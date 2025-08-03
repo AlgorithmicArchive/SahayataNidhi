@@ -21,6 +21,7 @@ import {
 import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  PictureAsPdf,
 } from "@mui/icons-material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -37,8 +38,8 @@ import CollapsibleActionHistory from "../../components/officer/CollapsibleAction
 const TableContainer = styled(Box)`
   background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justifyContent: "center",
+  alignItems: "center",
   padding: 2rem;
   border-radius: 16px;
 `;
@@ -224,10 +225,11 @@ const validationSchema = yup.object().shape({
   remarks: yup.string().required("Remarks are required"),
 });
 
-export default function ViewCorrigendumDetails() {
+export default function ViewApplicationDetails() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { referenceNumber, applicationId } = location.state || {};
+  const { referenceNumber, applicationId, type } = location.state || {};
+  const isCorrection = type === "Correction";
   const [loading, setLoading] = useState(true);
   const [fieldColumns, setFieldColumns] = useState([]);
   const [fieldData, setFieldData] = useState([]);
@@ -237,7 +239,7 @@ export default function ViewCorrigendumDetails() {
   const [actions, setActions] = useState([]);
   const [formDetails, setFormDetails] = useState({});
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [corrigendumId, setCorrigendumId] = useState();
+  const [applicationTypeId, setApplicationTypeId] = useState();
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState("");
   const [pdfBlob, setPdfBlob] = useState(null);
@@ -248,8 +250,9 @@ export default function ViewCorrigendumDetails() {
   const [pendingFormData, setPendingFormData] = useState(null);
   const [fieldsOpen, setFieldsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [corHistoryOpen, setCorHistoryOpen] = useState(false);
+  const [appHistoryOpen, setAppHistoryOpen] = useState(false);
   const [isSanctionLetter, setIsSanctionLetter] = useState(false);
+  const [applicationFiles, setApplicationFiles] = useState([]);
 
   const {
     control,
@@ -272,32 +275,52 @@ export default function ViewCorrigendumDetails() {
   };
 
   useEffect(() => {
-    const fetchCorrigendum = async () => {
+    const fetchApplication = async () => {
       try {
-        const response = await axiosInstance.get(
-          "/Officer/GetCorrigendumApplication",
-          {
-            params: {
-              referenceNumber: referenceNumber,
-              ...(applicationId && { corrigendumId: applicationId }),
-            },
+        const endpoint = isCorrection
+          ? "/Officer/GetCorrigendumApplication"
+          : "/Officer/GetCorrigendumApplication";
+        const response = await axiosInstance.get(endpoint, {
+          params: {
+            referenceNumber: referenceNumber,
+            ...(applicationId && {
+              corrigendumId: applicationId,
+            }),
+            type: type,
           },
-        );
+        });
         const result = response.data;
         setData(result.data);
         setColumns(result.columns);
         setFieldData(result.fieldsData);
         setFieldColumns(result.fieldColumns);
         setCanTakeAction(result.canTakeAction);
-        setActions(result.actions);
-        setCorrigendumId(result.corrigendumId);
+        setActions(
+          isCorrection
+            ? result.actions.filter((action) => action.value !== "sanction")
+            : result.actions,
+        );
+        setApplicationTypeId(
+          isCorrection ? result.corrigendumId : result.corrigendumId,
+        );
+        setApplicationFiles(result.files);
       } catch (error) {
-        console.error("Error fetching corrigendum details:", error);
-        toast.error("Failed to load corrigendum details. Please try again.", {
-          position: "top-center",
-          autoClose: 3000,
-          theme: "colored",
-        });
+        console.error(
+          `Error fetching ${
+            isCorrection ? "correction" : "corrigendum"
+          } details:`,
+          error,
+        );
+        toast.error(
+          `Failed to load ${
+            isCorrection ? "correction" : "corrigendum"
+          } details. Please try again.`,
+          {
+            position: "top-center",
+            autoClose: 3000,
+            theme: "colored",
+          },
+        );
       } finally {
         setLoading(false);
       }
@@ -317,11 +340,11 @@ export default function ViewCorrigendumDetails() {
         setLoading(false);
       }
     }
-    if (applicationId) {
+    if (applicationId && type) {
       loadDetails();
-      fetchCorrigendum();
+      fetchApplication();
     }
-  }, [applicationId]);
+  }, [applicationId, referenceNumber, type, isCorrection]);
 
   useEffect(() => {
     return () => {
@@ -371,7 +394,10 @@ export default function ViewCorrigendumDetails() {
     formData.append("pin", pin);
     formData.append(
       "original_path",
-      applicationId.replace(/\//g, "_") + "CorrigendumSanctionLetter.pdf",
+      applicationId.replace(/\//g, "_") +
+        (isCorrection
+          ? "_CorrectionSanctionLetter.pdf"
+          : "_CorrigendumSanctionLetter.pdf"),
     );
     try {
       const response = await fetch("http://localhost:8000/sign", {
@@ -420,10 +446,15 @@ export default function ViewCorrigendumDetails() {
 
       const updateFormData = new FormData();
       updateFormData.append("signedPdf", signedBlob, "signed.pdf");
-      updateFormData.append("applicationId", referenceNumber);
-      updateFormData.append("corrigendumId", corrigendumId);
+      updateFormData.append("refenceNumber", referenceNumber);
+      updateFormData.append(
+        isCorrection ? "correctionId" : "corrigendumId",
+        applicationId,
+      );
       const updateResponse = await axiosInstance.post(
-        "/Officer/UpdateCorrigendumPdf",
+        isCorrection
+          ? "/Officer/UpdateCorrectionPdf"
+          : "/Officer/UpdateCorrigendumPdf",
         updateFormData,
       );
 
@@ -436,12 +467,10 @@ export default function ViewCorrigendumDetails() {
 
       console.log("Server PDF path:", updateResponse.data.path);
 
-      // Revoke old blob URL if it exists
       if (pdfUrl && pdfUrl.startsWith("blob:")) {
         URL.revokeObjectURL(pdfUrl);
       }
 
-      // Use server path with cache-busting
       const uniqueUrl = `${updateResponse.data.path}`;
       setPdfUrl(uniqueUrl);
       setPdfModalOpen(false);
@@ -471,12 +500,15 @@ export default function ViewCorrigendumDetails() {
 
   const sanctionAction = async () => {
     try {
-      const response = await axiosInstance.get(
-        "/Officer/GetCorrigendumSanctionLetter",
-        {
-          params: { applicationId: referenceNumber, corrigendumId },
+      const endpoint = isCorrection
+        ? "/Officer/GetCorrigendumSanctionLetter"
+        : "/Officer/GetCorrigendumSanctionLetter";
+      const response = await axiosInstance.get(endpoint, {
+        params: {
+          referenceNumber: referenceNumber,
+          [isCorrection ? "correctionId" : "corrigendumId"]: applicationTypeId,
         },
-      );
+      });
       const result = response.data;
       if (!result.status) {
         throw new Error(result.response || "Something went wrong");
@@ -496,9 +528,16 @@ export default function ViewCorrigendumDetails() {
       setPdfModalOpen(true);
       setIsSanctionLetter(true);
     } catch (error) {
-      console.error("Error fetching corrigendum sanction letter:", error);
+      console.error(
+        `Error fetching ${
+          isCorrection ? "correction" : "corrigendum"
+        } sanction letter:`,
+        error,
+      );
       toast.error(
-        "Failed to fetch corrigendum sanction letter: " + error.message,
+        `Failed to fetch ${
+          isCorrection ? "correction" : "corrigendum"
+        } sanction letter: ` + error.message,
         {
           position: "top-center",
           autoClose: 3000,
@@ -509,29 +548,32 @@ export default function ViewCorrigendumDetails() {
   };
 
   const handleFinalSubmit = async (formData) => {
+    console.log("Application ID", applicationTypeId);
     const data = new FormData();
     for (const key in formData) {
       data.append(key, formData[key]);
     }
-    data.append("corrigendumId", corrigendumId);
+    data.append(
+      isCorrection ? "corrigendumId" : "corrigendumId",
+      applicationTypeId,
+    );
     data.append("referenceNumber", referenceNumber);
+    data.append("type", type);
 
     try {
-      const response = await axiosInstance.post(
-        "/Officer/HandleCorrigendumAction",
-        data,
-      );
+      const endpoint = isCorrection
+        ? "/Officer/HandleCorrigendumAction"
+        : "/Officer/HandleCorrigendumAction";
+      const response = await axiosInstance.post(endpoint, data);
       if (!response.data.status) {
         throw new Error(response.data.response || "Something went wrong");
       }
       toast.success("Action completed successfully!", {
         position: "top-center",
-        autoClose: 6000,
+        autoClose: 3000,
         theme: "colored",
       });
-      setTimeout(() => {
-        navigate("/officer/home");
-      }, 6000);
+      setCanTakeAction(false);
     } catch (error) {
       console.error("Submission error:", error);
       toast.error("Error processing request: " + error.message, {
@@ -544,7 +586,7 @@ export default function ViewCorrigendumDetails() {
 
   const onSubmit = async (formData) => {
     setButtonLoading(true);
-    if (formData.action === "sanction") {
+    if (formData.action === "sanction" && !isCorrection) {
       const isAppRunning = await checkDesktopApp();
       if (!isAppRunning) {
         setButtonLoading(false);
@@ -585,6 +627,36 @@ export default function ViewCorrigendumDetails() {
     );
   }
 
+  if (!type) {
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          bgcolor: "#f8f9fa",
+        }}
+      >
+        <Typography color="error" variant="h6" sx={{ mb: 2 }}>
+          Invalid application type.
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => navigate("/officer/home")}
+          sx={{
+            bgcolor: "#2196f3",
+            "&:hover": { bgcolor: "#1976d2" },
+          }}
+        >
+          Return to Home
+        </Button>
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
@@ -614,7 +686,7 @@ export default function ViewCorrigendumDetails() {
           gutterBottom
           sx={{ color: "#1f2937", fontWeight: 700 }}
         >
-          Corrigendum Application Details
+          {isCorrection ? "Correction" : "Corrigendum"} Application Details
         </Typography>
         <Typography
           variant="h6"
@@ -665,22 +737,65 @@ export default function ViewCorrigendumDetails() {
         />
 
         <CollapsibleTable
-          title="Corrigendum Fields"
+          title={`${isCorrection ? "Correction" : "Corrigendum"} Fields`}
           columns={fieldColumns}
           data={fieldData}
-          viewType="corrigendum field"
+          viewType={`${isCorrection ? "correction" : "corrigendum"} field`}
           open={fieldsOpen}
           setOpen={setFieldsOpen}
           onViewPdf={handleViewPdf}
         />
+        {applicationFiles.length > 0 && (
+          <Box
+            sx={{
+              mt: 3,
+              mb: 3,
+              p: 2,
+              border: "1px solid #e0e0e0",
+              borderRadius: 2,
+              backgroundColor: "#fafafa",
+            }}
+          >
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+              {isCorrection ? "Correction" : "Corrigendum"} Attachments
+            </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 2,
+              }}
+            >
+              {applicationFiles.map((item, index) => (
+                <Button
+                  key={index}
+                  onClick={() => handleViewPdf(item)}
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<PictureAsPdf />}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 500,
+                    minWidth: 140,
+                  }}
+                >
+                  View PDF {index + 1}
+                </Button>
+              ))}
+            </Box>
+          </Box>
+        )}
 
         <CollapsibleTable
-          title="Corrigendum History"
+          title={`${
+            isCorrection ? "Correction" : "Corrigendum"
+          } Movement History`}
           columns={columns}
           data={data}
-          viewType="corrigendum history"
-          open={corHistoryOpen}
-          setOpen={setCorHistoryOpen}
+          viewType={`${isCorrection ? "correction" : "corrigendum"} history`}
+          open={appHistoryOpen}
+          setOpen={setAppHistoryOpen}
           onViewPdf={handleViewPdf}
         />
 
@@ -831,9 +946,15 @@ export default function ViewCorrigendumDetails() {
           open={pdfModalOpen}
           handleClose={handleModalClose}
           handleActionButton={
-            isSanctionLetter && !isSignedPdf ? () => setConfirmOpen(true) : null
+            isSanctionLetter && !isSignedPdf && !isCorrection
+              ? () => setConfirmOpen(true)
+              : null
           }
-          buttonText={isSanctionLetter && !isSignedPdf ? "Sign PDF" : null}
+          buttonText={
+            isSanctionLetter && !isSignedPdf && !isCorrection
+              ? "Sign PDF"
+              : null
+          }
           Title={isSignedPdf ? "Signed Document" : "Document Preview"}
           pdf={pdfUrl}
           sx={{

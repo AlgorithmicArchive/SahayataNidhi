@@ -82,8 +82,9 @@ export default function UserDetails() {
   const [certificateDetails, setCertificateDetails] = useState(null);
   const [isSanctionLetter, setIsSanctionLetter] = useState(false);
   const [pendingFormData, setPendingFormData] = useState(null);
+  const [hasPending, setHaspending] = useState(false);
+  const [canTakeAction, setCanTakeAction] = useState(true);
 
-  const navigate = useNavigate();
   const {
     control,
     handleSubmit,
@@ -103,7 +104,13 @@ export default function UserDetails() {
     async function loadDetails() {
       setLoading(true);
       try {
-        await fetchUserDetail(applicationId, setFormDetails, setActionForm);
+        await fetchUserDetail(
+          applicationId,
+          setFormDetails,
+          setActionForm,
+          setHaspending,
+          setCanTakeAction,
+        );
       } catch (error) {
         console.error("Error fetching user details:", error);
         toast.error("Failed to load user details. Please try again.", {
@@ -357,16 +364,12 @@ export default function UserDetails() {
       if (!result.status) {
         throw new Error(result.response || "Something went wrong");
       } else {
+        setCanTakeAction(false);
         toast.success("Action completed successfully!", {
           position: "top-center",
           autoClose: 6000,
           theme: "colored",
         });
-        if (certificateDetails != null) {
-          setTimeout(() => {
-            navigate("/officer/home");
-          }, 6000);
-        } else navigate("/officer/home");
       }
     } catch (error) {
       console.error("Submission error:", error);
@@ -767,115 +770,134 @@ export default function UserDetails() {
             aria-label="Generate user details PDF"
           />
         </Box>
-
-        {!notaction && (
+        {canTakeAction ? (
           <>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 600,
-                color: "primary.main",
-                textAlign: "center",
-                mt: detailsOpen ? 6 : 4,
-                mb: 4,
-              }}
-            >
-              Action Form
-            </Typography>
-            <Box
-              sx={{
-                bgcolor: "background.paper",
-                borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-                p: 3,
-                maxWidth: "600px",
-                mx: "auto",
-              }}
-            >
-              <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
-                {actionForm.length > 0 ? (
-                  actionForm.map((field, index) => {
-                    const selectedValue =
-                      field.type === "select" ? watch(field.name) : null;
-                    return (
-                      <Box key={index} sx={{ mb: 2 }}>
-                        {renderField(field, index)}
-                        {field.type === "select" &&
-                          selectedValue === "ReturnToCitizen" && (
-                            <Controller
-                              name="returnFields"
-                              control={control}
-                              defaultValue={[]}
-                              rules={{
-                                validate: (value) =>
-                                  value.length > 0 ||
-                                  "Select at least one user detail field.",
-                              }}
-                              render={({ field: { onChange, value } }) => (
-                                <Box
-                                  sx={{
-                                    border: "1px solid #E0E0E0",
-                                    borderRadius: "8px",
-                                    maxHeight: "200px",
-                                    overflowY: "auto",
-                                    p: 2,
-                                    mt: 2,
-                                  }}
-                                >
-                                  <Typography
-                                    variant="subtitle2"
-                                    sx={{ color: "#757575", mb: 1 }}
-                                  >
-                                    Select Fields to Return
-                                  </Typography>
-                                  <SectionSelectCheckboxes
-                                    formDetails={formDetails}
-                                    control={control}
-                                    name="returnFields"
-                                    value={value}
-                                    onChange={onChange}
-                                    formatKey={formatKey}
-                                  />
-                                  {errors.returnFields && (
-                                    <FormHelperText
-                                      sx={{ color: "error.main" }}
-                                    >
-                                      {errors.returnFields.message}
-                                    </FormHelperText>
-                                  )}
-                                </Box>
-                              )}
-                            />
-                          )}
-                      </Box>
-                    );
-                  })
-                ) : (
-                  <Typography
-                    sx={{ textAlign: "center", color: "#B0BEC5", py: 4 }}
-                  >
-                    No action form fields available.
-                  </Typography>
-                )}
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                  <CustomButton
-                    text="Take Action"
-                    sx={{ ...buttonStyles, width: "100%", mt: 3 }}
-                    disabled={buttonLoading}
-                    startIcon={
-                      buttonLoading && (
-                        <CircularProgress size={20} color="inherit" />
-                      )
-                    }
-                    type="submit"
-                    aria-label="Submit action form"
-                  />
-                </Box>
-              </form>
-            </Box>
-          </>
-        )}
+            {/* ✅ Show the form only if both are false */}
+            {!notaction && !hasPending && (
+              <>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontWeight: 600,
+                    color: "primary.main",
+                    textAlign: "center",
+                    mt: detailsOpen ? 6 : 4,
+                    mb: 4,
+                  }}
+                >
+                  Action Form
+                </Typography>
 
+                <Box
+                  sx={{
+                    bgcolor: "background.paper",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+                    p: 3,
+                    maxWidth: "600px",
+                    mx: "auto",
+                  }}
+                >
+                  <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
+                    {actionForm.length > 0 ? (
+                      actionForm.map((field, index) => {
+                        const selectedValue =
+                          field.type === "select" ? watch(field.name) : null;
+                        return (
+                          <Box key={index} sx={{ mb: 2 }}>
+                            {renderField(field, index)}
+                            {field.type === "select" &&
+                              selectedValue === "ReturnToCitizen" && (
+                                <Controller
+                                  name="returnFields"
+                                  control={control}
+                                  defaultValue={[]}
+                                  rules={{
+                                    validate: (value) =>
+                                      value.length > 0 ||
+                                      "Select at least one user detail field.",
+                                  }}
+                                  render={({ field: { onChange, value } }) => (
+                                    <Box
+                                      sx={{
+                                        border: "1px solid #E0E0E0",
+                                        borderRadius: "8px",
+                                        maxHeight: "200px",
+                                        overflowY: "auto",
+                                        p: 2,
+                                        mt: 2,
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="subtitle2"
+                                        sx={{ color: "#757575", mb: 1 }}
+                                      >
+                                        Select Fields to Return
+                                      </Typography>
+                                      <SectionSelectCheckboxes
+                                        formDetails={formDetails}
+                                        control={control}
+                                        name="returnFields"
+                                        value={value}
+                                        onChange={onChange}
+                                        formatKey={formatKey}
+                                      />
+                                      {errors.returnFields && (
+                                        <FormHelperText
+                                          sx={{ color: "error.main" }}
+                                        >
+                                          {errors.returnFields.message}
+                                        </FormHelperText>
+                                      )}
+                                    </Box>
+                                  )}
+                                />
+                              )}
+                          </Box>
+                        );
+                      })
+                    ) : (
+                      <Typography
+                        sx={{ textAlign: "center", color: "#B0BEC5", py: 4 }}
+                      >
+                        No action form fields available.
+                      </Typography>
+                    )}
+                    <Box sx={{ display: "flex", justifyContent: "center" }}>
+                      <CustomButton
+                        text="Take Action"
+                        sx={{ ...buttonStyles, width: "100%", mt: 3 }}
+                        disabled={buttonLoading}
+                        startIcon={
+                          buttonLoading && (
+                            <CircularProgress size={20} color="inherit" />
+                          )
+                        }
+                        type="submit"
+                        aria-label="Submit action form"
+                      />
+                    </Box>
+                  </form>
+                </Box>
+              </>
+            )}
+
+            {/* ✅ Show this message when form is NOT rendered */}
+            {(notaction || hasPending) && (
+              <Typography
+                sx={{ textAlign: "center", color: "#e23535ff", py: 4 }}
+              >
+                You cannot take action right now.{" "}
+                {hasPending &&
+                  "Current application is under correction process."}
+              </Typography>
+            )}
+          </>
+        ) : (
+          <Typography variant="subtitle1" color="success" textAlign={"center"}>
+            Action Taken Successfully.
+          </Typography>
+        )}
         <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
           <DialogTitle>Enter USB Token PIN</DialogTitle>
           <DialogContent>

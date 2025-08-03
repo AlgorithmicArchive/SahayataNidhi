@@ -318,7 +318,6 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpPost]
-        [HttpPost]
         public IActionResult SaveEmailTemplate([FromForm] IFormCollection form)
         {
             var emailSettings = dbcontext.EmailSettings.FirstOrDefault();
@@ -342,5 +341,71 @@ namespace SahayataNidhi.Controllers
             return Json(new { success = true, updated = true, key, value = newValue });
         }
 
+        [HttpPost]
+        [HttpPost]
+        public IActionResult SaveDocumentFields([FromForm] IFormCollection form)
+        {
+            int serviceId = Convert.ToInt32(form["serviceId"].ToString());
+            string documentType = form["documentType"].ToString();
+            string fields = form["fields"].ToString();
+
+            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
+            if (service == null)
+            {
+                return Json(new { status = false, message = "Service not found." });
+            }
+
+            // Deserialize the fields input
+            List<string> fieldsList;
+            try
+            {
+                fieldsList = JsonConvert.DeserializeObject<List<string>>(fields)!;
+                if (fieldsList == null)
+                {
+                    return Json(new { status = false, message = "Invalid fields data." });
+                }
+            }
+            catch (JsonException)
+            {
+                return Json(new { status = false, message = "Failed to parse fields data." });
+            }
+
+            // Initialize or deserialize existing DocumentFields
+            Dictionary<string, List<string>> documentFields;
+            if (string.IsNullOrEmpty(service.DocumentFields))
+            {
+                documentFields = new Dictionary<string, List<string>>();
+            }
+            else
+            {
+                try
+                {
+                    documentFields = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(service.DocumentFields)!;
+                    if (documentFields == null)
+                    {
+                        documentFields = new Dictionary<string, List<string>>();
+                    }
+                }
+                catch (JsonException)
+                {
+                    return Json(new { status = false, message = "Failed to parse existing document fields." });
+                }
+            }
+
+            // Update or create the documentType entry
+            documentFields[documentType] = fieldsList;
+
+            // Serialize and save back to the database
+            try
+            {
+                service.DocumentFields = JsonConvert.SerializeObject(documentFields);
+                dbcontext.SaveChanges();
+                return Json(new { status = true, message = "Document fields saved successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = $"Error saving document fields: {ex.Message}" });
+            }
+        }
     }
 }

@@ -44,6 +44,7 @@ import ViewerLayout from "../screens/viewer/ViewerLayout";
 import ViewerHome from "../screens/viewer/ViewerHome";
 import IssueCorrigendum from "../screens/officer/IssueCorrigendum";
 import ViewCorrigendumDetails from "../screens/officer/ViewCorrigendumDetails";
+import Corrections from "../screens/designer/Corrections";
 
 const RoutesComponent = () => {
   return (
@@ -110,6 +111,7 @@ const RoutesComponent = () => {
           <Route path="createwebservice" element={<CreateWebService />} />
           <Route path="dynamicform" element={<DynamicScrollableForm />} />
           <Route path="emailsettings" element={<EmailSettings />} />
+          <Route path="corrections" element={<Corrections />} />
         </Route>
       </Route>
       <Route

@@ -238,6 +238,9 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+            entity.Property(e => e.Type)
+                .HasMaxLength(50)
+                .HasColumnName("type");
 
             entity.HasOne(d => d.ReferenceNumberNavigation).WithMany(p => p.Corrigenda)
                 .HasForeignKey(d => d.ReferenceNumber)
@@ -459,6 +462,7 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.Property(e => e.Department)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+            entity.Property(e => e.DocumentFields).HasDefaultValue("''''''");
             entity.Property(e => e.FormElement).IsUnicode(false);
             entity.Property(e => e.NameShort)
                 .HasMaxLength(50)

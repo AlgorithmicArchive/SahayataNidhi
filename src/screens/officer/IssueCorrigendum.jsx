@@ -12,6 +12,7 @@ import {
   FormControl,
   InputLabel,
   FormHelperText,
+  Modal,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { Delete as DeleteIcon } from "@mui/icons-material";
@@ -24,6 +25,7 @@ import {
 } from "../../assets/formvalidations";
 import { useLocation } from "react-router-dom";
 import { MaterialReactTable } from "material-react-table";
+import BasicModal from "../../components/BasicModal";
 
 const StyledContainer = styled(Container)({
   background: "linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%)",
@@ -54,6 +56,31 @@ const StyledFormControl = styled(FormControl)({
     backgroundColor: "#fff",
     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
   },
+});
+
+const FileNameTypography = styled(Typography)({
+  cursor: "pointer",
+  color: "#1976d2",
+  "&:hover": {
+    textDecoration: "underline",
+  },
+});
+
+const ModalContent = styled(Box)({
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "80%",
+  maxWidth: "800px",
+  height: "80vh",
+  backgroundColor: "#fff",
+  borderRadius: "8px",
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+  padding: "16px",
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
 });
 
 const MaterialTable = ({ columns, data, viewType }) => {
@@ -128,7 +155,7 @@ const MaterialTable = ({ columns, data, viewType }) => {
             fontSize: { xs: 14, md: 16 },
           }}
         >
-          No {viewType?.toLowerCase() || ""} applications available.
+          No {viewType?.toLowerCase() || ""} history available.
         </Box>
       )}
     />
@@ -140,6 +167,7 @@ export default function IssueCorrigendum() {
   const [loading, setLoading] = useState(false);
   const [serviceId, setServiceId] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
+  const [type, setType] = useState("");
   const [canIssue, setCanIssue] = useState(false);
   const [formDetailsFields, setFormDetailsFields] = useState([]);
   const [formElements, setFormElements] = useState([]);
@@ -147,20 +175,51 @@ export default function IssueCorrigendum() {
   const [selectedField, setSelectedField] = useState("");
   const [remarks, setRemarks] = useState("");
   const [files, setFiles] = useState([]);
+  const [serverFiles, setServerFiles] = useState([]);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({});
-  const [touched, setTouched] = useState({ remarks: false, files: false });
+  const [touched, setTouched] = useState({
+    remarks: false,
+    files: false,
+    type: false,
+  });
   const [nextOfficer, setNextOfficer] = useState("");
   const [columns, setColumns] = useState([]);
   const [data, setData] = useState([]);
+  const [isEdit, setIsEdit] = useState(false);
   const [responseMessage, setResponseMessage] = useState({
     message: "",
     type: "",
   });
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedFileUrl, setSelectedFileUrl] = useState("");
+  const [selectedFileName, setSelectedFileName] = useState("");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [allowedFormFields, setAllowedFormFields] = useState([]);
   const fileInputRef = useRef(null);
 
   const location = useLocation();
-  const { ReferenceNumber, ServiceId, applicationId } = location.state || {};
+  const { ReferenceNumber, ServiceId, applicationId, corrigendumType } =
+    location.state || {};
+
+  // Reset function to clear all form-related state
+  const resetFormState = () => {
+    setCanIssue(false);
+    setFormDetailsFields([]);
+    setFormElements([]);
+    setCorrigendumFields([]);
+    setSelectedField("");
+    setRemarks("");
+    setFiles([]);
+    setServerFiles([]);
+    setErrors({});
+    setFormData({});
+    setTouched({ remarks: false, files: false, type: false });
+    setNextOfficer("");
+    setColumns([]);
+    setData([]);
+    setResponseMessage({ message: "", type: "" });
+  };
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -180,12 +239,17 @@ export default function IssueCorrigendum() {
   }, []);
 
   useEffect(() => {
-    if (applicationId && ReferenceNumber && ServiceId) {
+    if (applicationId && ReferenceNumber && ServiceId && corrigendumType) {
+      setIsEdit(true);
       setReferenceNumber(ReferenceNumber);
       setServiceId(ServiceId);
+      setType(corrigendumType);
+      setIsInitialLoad(false); // Mark initial load as complete
       handleCheckIfCorrigendum();
+    } else {
+      setIsInitialLoad(false); // Allow changes after initial load
     }
-  }, [applicationId, ReferenceNumber, ServiceId, services]);
+  }, [applicationId, ReferenceNumber, ServiceId, corrigendumType, services]);
 
   const normalizeDetails = (formDetails) => {
     if (!formDetails || typeof formDetails !== "object") {
@@ -298,10 +362,16 @@ export default function IssueCorrigendum() {
     return value.trim() ? null : "Remarks are required";
   };
 
-  const validateFiles = (files) => {
-    return files.length > 0
+  const validateFiles = (files, serverFiles) => {
+    return files.length > 0 || serverFiles.length > 0
       ? null
       : "At least one verification document is required";
+  };
+
+  const validateType = (value) => {
+    return value === "Corrigendum" || value === "Correction"
+      ? null
+      : "Please select a valid type (Corrigendum or Correction)";
   };
 
   const revalidateAllFields = async (
@@ -345,12 +415,21 @@ export default function IssueCorrigendum() {
     }
     if (validateRemarksAndFiles) {
       newErrors.remarks = validateRemarks(remarks);
-      newErrors.files = validateFiles(files);
+      newErrors.files = validateFiles(files, serverFiles);
+      newErrors.type = validateType(type);
     }
     return newErrors;
   };
 
   const handleCheckIfCorrigendum = async () => {
+    if (!type) {
+      setErrors((prev) => ({
+        ...prev,
+        type: "Please select a type (Corrigendum or Correction)",
+      }));
+      return;
+    }
+
     if (!applicationId && (!referenceNumber || !serviceId)) {
       setResponseMessage({
         message: "Please provide both reference number and service.",
@@ -367,8 +446,9 @@ export default function IssueCorrigendum() {
             referenceNumber: ReferenceNumber,
             serviceId: ServiceId,
             applicationId,
+            type,
           }
-        : { referenceNumber, serviceId };
+        : { referenceNumber, serviceId, type };
 
       const response = await axiosInstance.get(
         "/Officer/GetApplicationForCorrigendum",
@@ -376,7 +456,19 @@ export default function IssueCorrigendum() {
       );
       const result = response.data;
 
+      console.log("API Response for", type, ":", result); // Debug log
+
       if (result.status) {
+        if (!result.formDetails || !result.formElements) {
+          setResponseMessage({
+            message: `No editable fields available for this ${type.toLowerCase()}.`,
+            type: "error",
+          });
+          setCanIssue(false);
+          setLoading(false);
+          return;
+        }
+
         const normalizedFields = normalizeDetails(result.formDetails);
         const parsedFormElements =
           typeof result.formElements === "string"
@@ -385,17 +477,26 @@ export default function IssueCorrigendum() {
 
         setFormDetailsFields(normalizedFields);
         setFormElements(parsedFormElements);
-        setCanIssue(true);
+        setCanIssue(result.isCurrentOfficer || result.corrigendumType === type);
         setNextOfficer(result.nextOfficer);
-        if (applicationId != null) {
-          setColumns(result.columns);
-          setData(result.data);
+        setAllowedFormFields(result.allowedForDetails);
+
+        if (isEdit) {
+          setColumns(result.columns || []);
+          setData(result.data || []);
+          setServerFiles(result.files || []);
+          setType(result.corrigendumType);
         }
 
-        setReferenceNumber(
-          result.application.ReferenceNumber || referenceNumber,
-        );
-        setServiceId(result.application.ServiceId || serviceId);
+        // Only update if values differ to prevent triggering reset
+        if (result.application.ReferenceNumber !== referenceNumber) {
+          setReferenceNumber(
+            result.application.ReferenceNumber || referenceNumber,
+          );
+        }
+        if (result.application.ServiceId !== serviceId) {
+          setServiceId(result.application.ServiceId || serviceId);
+        }
 
         const newFormData = {};
         normalizedFields.forEach((item) => {
@@ -411,6 +512,7 @@ export default function IssueCorrigendum() {
             for (const [name, fieldData] of Object.entries(
               corrigendumFieldsData,
             )) {
+              if (name === "Files") continue;
               const fieldConfig = findFieldConfig(name, parsedFormElements);
               const formDetail = normalizedFields.find(
                 (item) => item.name === name,
@@ -430,7 +532,7 @@ export default function IssueCorrigendum() {
                 name: selected.name,
                 oldValue: selected.value,
                 newValue: fieldData.new_value,
-                additionalValues: {},
+                additionalValues: fieldData.additional_values || {},
                 type: fieldConfig.type,
                 options: fieldConfig.options || [],
                 validationFunctions: fieldConfig.validationFunctions || [],
@@ -453,7 +555,7 @@ export default function IssueCorrigendum() {
           } catch (error) {
             console.error("Error parsing corrigendumFields:", error);
             setResponseMessage({
-              message: "Invalid corrigendum fields data from server.",
+              message: `Invalid ${type.toLowerCase()} fields data from server.`,
               type: "error",
             });
           }
@@ -462,12 +564,17 @@ export default function IssueCorrigendum() {
         setCorrigendumFields(newCorrigendumFields);
         setErrors(newErrors);
         setFormData(newFormData);
-        if (!applicationId) {
+
+        // Automatically select the first editable field for non-edit mode
+        if (!applicationId && normalizedFields.length > 0) {
+          setSelectedField(
+            `${normalizedFields[0].label}|${normalizedFields[0].name}`,
+          );
           handleAddCorrigendumField();
         }
 
         setResponseMessage({
-          message: "Application found. You can issue a corrigendum.",
+          message: `Application found. You can issue a ${type.toLowerCase()}.`,
           type: "success",
         });
       } else {
@@ -478,9 +585,9 @@ export default function IssueCorrigendum() {
         });
       }
     } catch (error) {
-      console.error("Error in handleCheckIfCorrigendum:", error);
+      console.error(`Error in handleCheckIf${type}:`, error);
       setResponseMessage({
-        message: "Error checking application. Please try again.",
+        message: `Error checking application for ${type.toLowerCase()}. Please try again.`,
         type: "error",
       });
     } finally {
@@ -657,7 +764,7 @@ export default function IssueCorrigendum() {
     const selectedFiles = Array.from(event.target.files);
     setFiles((prev) => [...prev, ...selectedFiles]);
     setTouched((prev) => ({ ...prev, files: true }));
-    const error = validateFiles([...files, ...selectedFiles]);
+    const error = validateFiles([...files, ...selectedFiles], serverFiles);
     setErrors((prev) => ({ ...prev, files: error }));
     event.target.value = "";
   };
@@ -665,7 +772,20 @@ export default function IssueCorrigendum() {
   const handleRemoveFile = (index) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
     setTouched((prev) => ({ ...prev, files: true }));
-    const error = validateFiles(files.filter((_, i) => i !== index));
+    const error = validateFiles(
+      files.filter((_, i) => i !== index),
+      serverFiles,
+    );
+    setErrors((prev) => ({ ...prev, files: error }));
+  };
+
+  const handleRemoveServerFile = (index) => {
+    setServerFiles((prev) => prev.filter((_, i) => i !== index));
+    setTouched((prev) => ({ ...prev, files: true }));
+    const error = validateFiles(
+      files,
+      serverFiles.filter((_, i) => i !== index),
+    );
     setErrors((prev) => ({ ...prev, files: error }));
   };
 
@@ -677,6 +797,60 @@ export default function IssueCorrigendum() {
     setTouched((prev) => ({ ...prev, remarks: true }));
     const error = validateRemarks(remarks);
     setErrors((prev) => ({ ...prev, remarks: error }));
+  };
+
+  const handleTypeChange = (e) => {
+    const newType = e.target.value;
+    if (!isEdit && !isInitialLoad && type !== newType) {
+      resetFormState();
+      setType(newType);
+    } else {
+      setType(newType);
+    }
+  };
+
+  const handleTypeBlur = () => {
+    setTouched((prev) => ({ ...prev, type: true }));
+    const error = validateType(type);
+    setErrors((prev) => ({ ...prev, type: error }));
+  };
+
+  const handleServiceChange = (newServiceId) => {
+    if (!isEdit && !isInitialLoad && serviceId !== newServiceId) {
+      resetFormState();
+      setServiceId(newServiceId);
+    } else {
+      setServiceId(newServiceId);
+    }
+  };
+
+  const handleReferenceNumberChange = (e) => {
+    const newReferenceNumber = e.target.value;
+    if (!isEdit && !isInitialLoad && referenceNumber !== newReferenceNumber) {
+      resetFormState();
+      setReferenceNumber(newReferenceNumber);
+    } else {
+      setReferenceNumber(newReferenceNumber);
+    }
+  };
+
+  const handleViewFile = (file, isServerFile = false) => {
+    if (isServerFile) {
+      setSelectedFileUrl(`/Uploads/${file}`);
+      setSelectedFileName(file);
+    } else {
+      const url = URL.createObjectURL(file);
+      setSelectedFileUrl(url);
+      setSelectedFileName(file.name);
+      return () => URL.revokeObjectURL(url);
+    }
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedFileUrl("");
+    setSelectedFileName("");
   };
 
   const generateCorrigendumObject = () => {
@@ -692,15 +866,23 @@ export default function IssueCorrigendum() {
   };
 
   const handleSubmitCorrigendum = async () => {
-    if (corrigendumFields.length === 0) {
+    if (!type) {
       setErrors((prev) => ({
         ...prev,
-        corrigendumFields: "Please add at least one field to submit.",
+        type: "Please select a type (Corrigendum or Correction)",
       }));
       return;
     }
 
-    setTouched((prev) => ({ ...prev, remarks: true, files: true }));
+    if (corrigendumFields.length === 0) {
+      setErrors((prev) => ({
+        ...prev,
+        corrigendumFields: `Please add at least one field to submit the ${type.toLowerCase()}.`,
+      }));
+      return;
+    }
+
+    setTouched((prev) => ({ ...prev, remarks: true, files: true, type: true }));
 
     const newErrors = await revalidateAllFields(
       corrigendumFields,
@@ -718,7 +900,7 @@ export default function IssueCorrigendum() {
     if (hasEmptyNewValue) {
       setErrors((prev) => ({
         ...prev,
-        corrigendumFields: "Please fill in all new values before submitting.",
+        corrigendumFields: `Please fill in all new values before submitting the ${type.toLowerCase()}.`,
       }));
       return;
     }
@@ -726,8 +908,7 @@ export default function IssueCorrigendum() {
     if (hasValidationErrors) {
       setErrors((prev) => ({
         ...prev,
-        corrigendumFields:
-          "Please correct all validation errors before submitting.",
+        corrigendumFields: `Please correct all validation errors before submitting the ${type.toLowerCase()}.`,
       }));
       return;
     }
@@ -740,7 +921,7 @@ export default function IssueCorrigendum() {
         JSON.parse(JSON.stringify(corrigendumObject));
       } catch (error) {
         setResponseMessage({
-          message: "Invalid corrigendum fields format.",
+          message: `Invalid ${type.toLowerCase()} fields format.`,
           type: "error",
         });
         setLoading(false);
@@ -751,6 +932,7 @@ export default function IssueCorrigendum() {
       formData.append("referenceNumber", referenceNumber);
       formData.append("remarks", remarks);
       formData.append("serviceId", serviceId);
+      formData.append("type", type);
       formData.append("corrigendumFields", JSON.stringify(corrigendumObject));
       if (applicationId) {
         formData.append("applicationId", applicationId);
@@ -758,6 +940,11 @@ export default function IssueCorrigendum() {
       files.forEach((file, index) => {
         formData.append(`verificationDocuments[${index}]`, file);
       });
+      if (isEdit) {
+        serverFiles.forEach((fileName, index) => {
+          formData.append(`serverFiles[${index}]`, fileName);
+        });
+      }
 
       const response = await axiosInstance.post(
         "/Officer/SubmitCorrigendum",
@@ -769,24 +956,27 @@ export default function IssueCorrigendum() {
 
       if (response.data.status) {
         setResponseMessage({
-          message:
-            response.data.message || "Corrigendum submitted successfully!",
+          message: response.data.message || `${type} submitted successfully!`,
           type: "success",
         });
         setCorrigendumFields([]);
         setSelectedField("");
         setRemarks("");
         setFiles([]);
+        setServerFiles([]);
         setCanIssue(false);
         setReferenceNumber("");
         setServiceId("");
+        setType("");
         setErrors({});
         setFormData({});
-        setTouched({ remarks: false, files: false });
+        setTouched({ remarks: false, files: false, type: false });
         setNextOfficer("");
+        setIsEdit(false);
       } else {
         setResponseMessage({
-          message: response.data.message || "Failed to submit corrigendum.",
+          message:
+            response.data.message || `Failed to submit ${type.toLowerCase()}.`,
           type: "error",
         });
       }
@@ -794,7 +984,7 @@ export default function IssueCorrigendum() {
       setResponseMessage({
         message:
           error.response?.data?.message ||
-          "Error submitting corrigendum. Please try again.",
+          `Error submitting ${type.toLowerCase()}. Please try again.`,
         type: "error",
       });
     } finally {
@@ -1017,7 +1207,9 @@ export default function IssueCorrigendum() {
             textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
           }}
         >
-          {applicationId != null ? "Edit Corrigendum" : "Issue Corrigendum"}
+          {isEdit
+            ? `Edit ${type}`
+            : `Issue ${type || "Corrigendum/Correction"}`}
         </Typography>
 
         <Box
@@ -1031,14 +1223,36 @@ export default function IssueCorrigendum() {
           <ServiceSelectionForm
             services={services}
             value={serviceId}
-            onServiceSelect={setServiceId}
+            onServiceSelect={handleServiceChange}
+            disabled={isEdit}
           />
+          <StyledFormControl sx={{ width: "100%", maxWidth: "400px" }}>
+            <InputLabel>Type</InputLabel>
+            <Select
+              name="type"
+              value={type}
+              onChange={handleTypeChange}
+              onBlur={handleTypeBlur}
+              label="Type"
+              disabled={isEdit}
+              error={!!errors.type}
+            >
+              <MenuItem value="" disabled>
+                Select Type
+              </MenuItem>
+              <MenuItem value="Corrigendum">Corrigendum</MenuItem>
+              <MenuItem value="Correction">Correction</MenuItem>
+            </Select>
+            {errors.type && (
+              <FormHelperText error>{errors.type}</FormHelperText>
+            )}
+          </StyledFormControl>
 
           <TextField
             name="referenceNumber"
             label="Reference Number"
             value={referenceNumber}
-            onChange={(e) => setReferenceNumber(e.target.value)}
+            onChange={handleReferenceNumberChange}
             sx={{
               width: "100%",
               maxWidth: "400px",
@@ -1048,12 +1262,12 @@ export default function IssueCorrigendum() {
                 boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
               },
             }}
-            disabled={!!applicationId}
+            disabled={isEdit}
           />
 
           <StyledButton
             onClick={handleCheckIfCorrigendum}
-            disabled={loading || !!applicationId}
+            disabled={loading || isEdit || !type}
           >
             Check Application
           </StyledButton>
@@ -1070,12 +1284,12 @@ export default function IssueCorrigendum() {
           )}
         </Box>
 
-        {applicationId != null && (
+        {isEdit && (
           <Box>
             <MaterialTable
               columns={columns}
               data={data}
-              viewType={"Corrigendum History"}
+              viewType={`${type} History`}
             />
           </Box>
         )}
@@ -1087,7 +1301,7 @@ export default function IssueCorrigendum() {
                 variant="h6"
                 sx={{ fontWeight: "600", color: "#333", mb: 3 }}
               >
-                Corrigendum (Form Details)
+                {type} (Form Details)
               </Typography>
               <Typography
                 variant="h6"
@@ -1112,12 +1326,7 @@ export default function IssueCorrigendum() {
                     .filter(
                       (item) =>
                         !corrigendumFields.some((f) => f.name === item.name) &&
-                        [
-                          "ApplicantName",
-                          "DateOfBirth",
-                          "IfscCode",
-                          "AccountNumber",
-                        ].includes(item.name),
+                        allowedFormFields.includes(item.name),
                     )
                     .map((item) => (
                       <MenuItem
@@ -1248,7 +1457,7 @@ export default function IssueCorrigendum() {
                   {errors.files}
                 </FormHelperText>
               )}
-              {files.length > 0 && (
+              {(files.length > 0 || serverFiles.length > 0) && (
                 <Box
                   sx={{
                     mt: 1,
@@ -1258,9 +1467,43 @@ export default function IssueCorrigendum() {
                     flexWrap: "wrap",
                   }}
                 >
+                  {serverFiles.map((fileName, index) => (
+                    <Box
+                      key={`server-${index}`}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        width: "max-content",
+                        backgroundColor: "#f0f0f0",
+                        padding: "8px 12px",
+                        border: "1px solid #000",
+                        borderRadius: "8px",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+                      }}
+                    >
+                      <FileNameTypography
+                        variant="caption"
+                        sx={{ pr: 2 }}
+                        onClick={() => handleViewFile(fileName, true)}
+                      >
+                        {fileName} (Server)
+                      </FileNameTypography>
+                      <IconButton
+                        color="error"
+                        onClick={() => handleRemoveServerFile(index)}
+                        sx={{
+                          "&:hover": {
+                            backgroundColor: "rgba(211, 47, 47, 0.1)",
+                          },
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  ))}
                   {files.map((file, index) => (
                     <Box
-                      key={index}
+                      key={`local-${index}`}
                       sx={{
                         display: "flex",
                         alignItems: "center",
@@ -1272,12 +1515,13 @@ export default function IssueCorrigendum() {
                         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
                       }}
                     >
-                      <Typography
+                      <FileNameTypography
                         variant="caption"
-                        sx={{ color: "#333", pr: 2 }}
+                        sx={{ pr: 2 }}
+                        onClick={() => handleViewFile(file, false)}
                       >
                         {file.name}
-                      </Typography>
+                      </FileNameTypography>
                       <IconButton
                         color="error"
                         onClick={() => handleRemoveFile(index)}
@@ -1295,13 +1539,19 @@ export default function IssueCorrigendum() {
               )}
             </Box>
 
+            <BasicModal
+              open={openModal}
+              Title={"Document Preview"}
+              handleClose={handleCloseModal}
+              pdf={selectedFileName}
+            />
             {corrigendumFields.length > 0 && (
               <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
                 <StyledButton
                   onClick={handleSubmitCorrigendum}
                   disabled={loading}
                 >
-                  {`Forward Corrigendum to ${nextOfficer}`}
+                  {`Forward ${type} to ${nextOfficer}`}
                 </StyledButton>
               </Box>
             )}

@@ -249,13 +249,17 @@ export async function fetchUserDetail(
   applicationId,
   setFormDetails,
   setActionForm = null,
+  setHaspending,
+  setCanTakeAction = null,
 ) {
   const response = await axiosInstance.get("/Officer/GetUserDetails", {
     params: { applicationId: applicationId },
   });
   setFormDetails(response.data.list);
+  setHaspending(response.data.hasPending);
   if (setActionForm != null)
     setActionForm(response.data.currentOfficerDetails.actionForm);
+  if (setCanTakeAction != null) setCanTakeAction(!response.data.isSanctioned);
 }
 
 export async function fetchFormDetails(applicationId) {

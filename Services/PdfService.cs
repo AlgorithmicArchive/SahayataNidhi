@@ -295,7 +295,7 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
         Table corrLineTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 }))
             .UseAllAvailableWidth();
         corrLineTable.AddCell(new Cell()
-            .Add(new Paragraph($"Corrigendum ID: {corrigendumId}")
+            .Add(new Paragraph($"Number: {corrigendumId}")
                 .SetFontSize(10)
                 .SetBold())
             .SetBorder(Border.NO_BORDER)

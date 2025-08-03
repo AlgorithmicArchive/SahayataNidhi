@@ -282,13 +282,13 @@ const MyNavbar = () => {
                     to="/officer/issuecorrigendum"
                     style={getNavItemStyle(
                       "officer-corrigendum",
-                      "/officer/corrigendum"
+                      "/officer/corrigendum",
                     )}
                     onClick={() => setExpanded(false)}
                     onMouseEnter={() => handleMouseEnter("officer-corrigendum")}
                     onMouseLeave={handleMouseLeave}
                   >
-                    Issue Corrigendum
+                    Corrections/Corrigendum
                   </Nav.Link>
                 )}
               </>
@@ -346,7 +346,7 @@ const MyNavbar = () => {
                   to="/admin/validateofficer"
                   style={getNavItemStyle(
                     "admin-validateofficer",
-                    "/admin/validateofficer"
+                    "/admin/validateofficer",
                   )}
                   onClick={() => setExpanded(false)}
                   onMouseEnter={() => handleMouseEnter("admin-validateofficer")}
@@ -364,7 +364,7 @@ const MyNavbar = () => {
                   to="/designer/dashboard"
                   style={getNavItemStyle(
                     "designer-dashboard",
-                    "/designer/dashboard"
+                    "/designer/dashboard",
                   )}
                   onClick={() => setExpanded(false)}
                   onMouseEnter={() => handleMouseEnter("designer-dashboard")}
@@ -377,7 +377,7 @@ const MyNavbar = () => {
                   to="/designer/dynamicform"
                   style={getNavItemStyle(
                     "dynamic-form",
-                    "/designer/dynamicform"
+                    "/designer/dynamicform",
                   )}
                   onClick={() => setExpanded(false)}
                   onMouseEnter={() => handleMouseEnter("dynamic-form")}
@@ -411,6 +411,11 @@ const MyNavbar = () => {
                       onClick={() => handleNavigate("/designer/createworkflow")}
                     >
                       Workflow
+                    </NavDropdown.Item>
+                    <NavDropdown.Item
+                      onClick={() => handleNavigate("/designer/corrections")}
+                    >
+                      Corrections/Corrigendum
                     </NavDropdown.Item>
                     <NavDropdown.Item
                       onClick={() =>

@@ -94,162 +94,162 @@ namespace SahayataNidhi.Controllers
             return officer;
         }
 
-        public IActionResult GetApplicationsCount(int? ServiceId = null, int? DistrictId = null)
-        {
-            // Get the current officer's details.
-            var officer = GetOfficerDetails();
-            if (officer == null)
-            {
-                return Unauthorized();
-            }
+        // public IActionResult GetApplicationsCount(int? ServiceId = null, int? DistrictId = null)
+        // {
+        //     // Get the current officer's details.
+        //     var officer = GetOfficerDetails();
+        //     if (officer == null)
+        //     {
+        //         return Unauthorized();
+        //     }
 
-            // Retrieve the service record.
-            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == ServiceId);
-            if (service == null)
-            {
-                return NotFound();
-            }
+        //     // Retrieve the service record.
+        //     var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == ServiceId);
+        //     if (service == null)
+        //     {
+        //         return NotFound();
+        //     }
 
-            // Deserialize the OfficerEditableField JSON.
-            // Assuming the JSON is an array of objects.
-            var workflow = JsonConvert.DeserializeObject<List<dynamic>>(service.OfficerEditableField!);
-            if (workflow == null || workflow.Count == 0)
-            {
-                return Json(new { countList = new List<dynamic>(), canSanction = false });
-            }
+        //     // Deserialize the OfficerEditableField JSON.
+        //     // Assuming the JSON is an array of objects.
+        //     var workflow = JsonConvert.DeserializeObject<List<dynamic>>(service.OfficerEditableField!);
+        //     if (workflow == null || workflow.Count == 0)
+        //     {
+        //         return Json(new { countList = new List<dynamic>(), canSanction = false });
+        //     }
 
-            // Find the authority record for the officer's role.
-            // The JSON field names must match those in your stored JSON.
-            dynamic authorities = workflow.FirstOrDefault(p => p.designation == officer.Role)!;
-            if (authorities == null)
-            {
-                return Json(new { countList = new List<dynamic>(), canSanction = false });
-            }
-
-
-            var sqlParams = new List<SqlParameter>
-            {
-                new SqlParameter("@AccessLevel", officer.AccessLevel),
-                new SqlParameter("@AccessCode", DistrictId ?? 0),  // or TehsilId
-                new SqlParameter("@ServiceId", ServiceId ?? 0),
-                new SqlParameter("@TakenBy", officer.Role)
-            };
-
-            // Add DivisionCode only when required
-            if (officer.AccessLevel == "Division")
-            {
-                sqlParams.Add(new SqlParameter("@DivisionCode", officer.AccessCode));
-            }
-            else
-            {
-                sqlParams.Add(new SqlParameter("@DivisionCode", DBNull.Value));
-            }
-
-            var counts = dbcontext.Database
-                .SqlQueryRaw<StatusCounts>(
-                    "EXEC GetStatusCount @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode",
-                    sqlParams.ToArray()
-                )
-                .AsEnumerable()
-                .FirstOrDefault() ?? new StatusCounts();
+        //     // Find the authority record for the officer's role.
+        //     // The JSON field names must match those in your stored JSON.
+        //     dynamic authorities = workflow.FirstOrDefault(p => p.designation == officer.Role)!;
+        //     if (authorities == null)
+        //     {
+        //         return Json(new { countList = new List<dynamic>(), canSanction = false });
+        //     }
 
 
+        //     var sqlParams = new List<SqlParameter>
+        //     {
+        //         new SqlParameter("@AccessLevel", officer.AccessLevel),
+        //         new SqlParameter("@AccessCode", DistrictId ?? 0),  // or TehsilId
+        //         new SqlParameter("@ServiceId", ServiceId ?? 0),
+        //         new SqlParameter("@TakenBy", officer.Role)
+        //     };
 
-            _logger.LogInformation($"-------------COUNTS: {JsonConvert.SerializeObject(counts)}-----------------------");
+        //     // Add DivisionCode only when required
+        //     if (officer.AccessLevel == "Division")
+        //     {
+        //         sqlParams.Add(new SqlParameter("@DivisionCode", officer.AccessCode));
+        //     }
+        //     else
+        //     {
+        //         sqlParams.Add(new SqlParameter("@DivisionCode", DBNull.Value));
+        //     }
+
+        //     var counts = dbcontext.Database
+        //         .SqlQueryRaw<StatusCounts>(
+        //             "EXEC GetStatusCount @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode",
+        //             sqlParams.ToArray()
+        //         )
+        //         .AsEnumerable()
+        //         .FirstOrDefault() ?? new StatusCounts();
 
 
-            // Build the count list based on the available authority permissions.
-            var countList = new List<dynamic>
-            {
-                new
-                {
-                    label = "Total Applications",
-                    count = counts.TotalApplications,
-                    bgColor = "#000000",
-                    textColor = "#FFFFFF"
-                },
 
-                // Pending is always included.
-                new
-                {
-                    label = "Pending",
-                    count = counts.PendingCount,
-                    bgColor = "#FFC107",
-                    textColor = "#212121"
-                }
-            };
+        //     _logger.LogInformation($"-------------COUNTS: {JsonConvert.SerializeObject(counts)}-----------------------");
 
-            // Forwarded (if allowed)
-            if ((bool)authorities.canForwardToPlayer)
-            {
-                countList.Add(new
-                {
-                    label = "Forwarded",
-                    count = counts.ForwardedCount,
-                    bgColor = "#64B5F6",
-                    textColor = "#0D47A1"
-                });
-            }
 
-            // Returned (if allowed)
-            if ((bool)authorities.canReturnToPlayer)
-            {
-                countList.Add(new
-                {
-                    label = "Returned",
-                    count = counts.ReturnedCount,
-                    bgColor = "#E0E0E0",
-                    textColor = "#212121"
-                });
-            }
+        //     // Build the count list based on the available authority permissions.
+        //     var countList = new List<dynamic>
+        //     {
+        //         new
+        //         {
+        //             label = "Total Applications",
+        //             count = counts.TotalApplications,
+        //             bgColor = "#000000",
+        //             textColor = "#FFFFFF"
+        //         },
 
-            // Citizen Pending (if allowed)
-            if ((bool)authorities.canReturnToCitizen)
-            {
-                countList.Add(new
-                {
-                    label = "Citizen Pending",
-                    count = counts.ReturnToEditCount,
-                    bgColor = "#CE93D8",
-                    textColor = "#4A148C"
-                });
-            }
+        //         // Pending is always included.
+        //         new
+        //         {
+        //             label = "Pending",
+        //             count = counts.PendingCount,
+        //             bgColor = "#FFC107",
+        //             textColor = "#212121"
+        //         }
+        //     };
 
-            // Rejected (if allowed)
-            if ((bool)authorities.canReject)
-            {
-                countList.Add(new
-                {
-                    label = "Rejected",
-                    count = counts.RejectCount,
-                    bgColor = "#FF7043",
-                    textColor = "#B71C1C"
-                });
-            }
+        //     // Forwarded (if allowed)
+        //     if ((bool)authorities.canForwardToPlayer)
+        //     {
+        //         countList.Add(new
+        //         {
+        //             label = "Forwarded",
+        //             count = counts.ForwardedCount,
+        //             bgColor = "#64B5F6",
+        //             textColor = "#0D47A1"
+        //         });
+        //     }
 
-            // Sanctioned (if allowed)
-            if ((bool)authorities.canSanction)
-            {
-                countList.Add(new
-                {
-                    label = "Sanctioned",
-                    count = counts.SanctionedCount,
-                    bgColor = "#81C784",
-                    textColor = "#1B5E20"
-                });
-            }
+        //     // Returned (if allowed)
+        //     if ((bool)authorities.canReturnToPlayer)
+        //     {
+        //         countList.Add(new
+        //         {
+        //             label = "Returned",
+        //             count = counts.ReturnedCount,
+        //             bgColor = "#E0E0E0",
+        //             textColor = "#212121"
+        //         });
+        //     }
 
-            countList.Add(new
-            {
-                label = "Disbursed",
-                count = counts.DisbursedCount,
-                bgColor = "#ABCDEF",
-                textColor = "#123456"
-            });
+        //     // Citizen Pending (if allowed)
+        //     if ((bool)authorities.canReturnToCitizen)
+        //     {
+        //         countList.Add(new
+        //         {
+        //             label = "Citizen Pending",
+        //             count = counts.ReturnToEditCount,
+        //             bgColor = "#CE93D8",
+        //             textColor = "#4A148C"
+        //         });
+        //     }
 
-            // Return the count list and whether the officer can sanction.
-            return Json(new { countList, canSanction = (bool)authorities.canSanction });
-        }
+        //     // Rejected (if allowed)
+        //     if ((bool)authorities.canReject)
+        //     {
+        //         countList.Add(new
+        //         {
+        //             label = "Rejected",
+        //             count = counts.RejectCount,
+        //             bgColor = "#FF7043",
+        //             textColor = "#B71C1C"
+        //         });
+        //     }
+
+        //     // Sanctioned (if allowed)
+        //     if ((bool)authorities.canSanction)
+        //     {
+        //         countList.Add(new
+        //         {
+        //             label = "Sanctioned",
+        //             count = counts.SanctionedCount,
+        //             bgColor = "#81C784",
+        //             textColor = "#1B5E20"
+        //         });
+        //     }
+
+        //     countList.Add(new
+        //     {
+        //         label = "Disbursed",
+        //         count = counts.DisbursedCount,
+        //         bgColor = "#ABCDEF",
+        //         textColor = "#123456"
+        //     });
+
+        //     // Return the count list and whether the officer can sanction.
+        //     return Json(new { countList, canSanction = (bool)authorities.canSanction });
+        // }
 
         public string GetFieldValue(string fieldName, dynamic data)
         {

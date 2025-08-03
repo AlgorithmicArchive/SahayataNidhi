@@ -1,0 +1,437 @@
+import React, { useState, useEffect } from "react";
+import {
+  Container,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  IconButton,
+  Box,
+  Modal,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Paper,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { Col, Row } from "react-bootstrap";
+import axiosInstance from "../../axiosConfig";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const Corrections = () => {
+  const [services, setServices] = useState([]);
+  const [selectedServiceId, setSelectedServiceId] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [formFields, setFormFields] = useState([]);
+  const [correctionFields, setCorrectionFields] = useState([]);
+  const [corrigendumFields, setCorrigendumFields] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalFieldNames, setModalFieldNames] = useState([]); // Changed to array for multiple selections
+  const [modalFieldIndex, setModalFieldIndex] = useState(-1);
+  const [modalType, setModalType] = useState("");
+
+  // Fetch services and form fields
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await axiosInstance.get("/Base/GetServices");
+        if (response.data.status && response.data.services) {
+          setServices(response.data.services);
+        } else {
+          toast.error("No services found.");
+        }
+      } catch (error) {
+        console.error("Error fetching services:", error);
+        toast.error("Failed to load services.");
+      }
+    };
+
+    const fetchFormFields = async () => {
+      try {
+        const response = await axiosInstance.get("/Designer/GetFormElements", {
+          params: { serviceId: selectedServiceId || "1" },
+        });
+        setFormFields(response.data.names || []);
+      } catch (error) {
+        console.error("Error fetching form fields:", error);
+        toast.error("Failed to load form fields.");
+      }
+    };
+
+    fetchServices();
+    if (selectedServiceId) {
+      fetchFormFields();
+    }
+  }, [selectedServiceId]);
+
+  // Fetch document fields when service or type changes
+  useEffect(() => {
+    if (!selectedServiceId || !selectedType) {
+      setCorrectionFields([]);
+      setCorrigendumFields([]);
+      return;
+    }
+
+    const fetchDocumentFields = async () => {
+      try {
+        const response = await axiosInstance.get(
+          "/Designer/GetDocumentFields",
+          {
+            params: { serviceId: selectedServiceId },
+          },
+        );
+        if (response.data.documentFields) {
+          const { Correction, Corrigendum } = response.data.documentFields;
+          setCorrectionFields(Correction || []);
+          setCorrigendumFields(Corrigendum || []);
+          toast.success("Document fields loaded successfully.");
+        } else {
+          setCorrectionFields([]);
+          setCorrigendumFields([]);
+          toast.info("No existing document fields found for this service.");
+        }
+      } catch (error) {
+        console.error("Error fetching document fields:", error);
+        setCorrectionFields([]);
+        setCorrigendumFields([]);
+        toast.error("Failed to load document fields.");
+      }
+    };
+
+    fetchDocumentFields();
+  }, [selectedServiceId, selectedType]);
+
+  const openModalForAdd = (type) => {
+    setModalType(type);
+    setModalFieldIndex(-1);
+    setModalFieldNames([]); // Initialize as empty array for multiple selections
+    setModalOpen(true);
+  };
+
+  const openModalForEdit = (type, index, fieldName) => {
+    setModalType(type);
+    setModalFieldIndex(index);
+    setModalFieldNames([fieldName]); // Pre-select the single field for editing
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleCheckboxChange = (fieldName) => {
+    setModalFieldNames((prev) =>
+      prev.includes(fieldName)
+        ? prev.filter((name) => name !== fieldName)
+        : [...prev, fieldName],
+    );
+  };
+
+  const saveModal = () => {
+    if (modalFieldNames.length === 0) {
+      toast.error("Please select at least one field name.");
+      return;
+    }
+
+    if (modalType === "Correction") {
+      const newFields = [...correctionFields];
+      if (modalFieldIndex === -1) {
+        // Adding new fields
+        const duplicates = modalFieldNames.filter((name) =>
+          newFields.includes(name),
+        );
+        if (duplicates.length > 0) {
+          toast.error(
+            `The following fields are already added to Correction: ${duplicates.join(
+              ", ",
+            )}`,
+          );
+          return;
+        }
+        newFields.push(...modalFieldNames);
+      } else {
+        // Editing a single field
+        if (modalFieldNames.length > 1) {
+          toast.error("Please select only one field for editing.");
+          return;
+        }
+        newFields[modalFieldIndex] = modalFieldNames[0];
+      }
+      setCorrectionFields(newFields);
+    } else if (modalType === "Corrigendum") {
+      const newFields = [...corrigendumFields];
+      if (modalFieldIndex === -1) {
+        // Adding new fields
+        const duplicates = modalFieldNames.filter((name) =>
+          newFields.includes(name),
+        );
+        if (duplicates.length > 0) {
+          toast.error(
+            `The following fields are already added to Corrigendum: ${duplicates.join(
+              ", ",
+            )}`,
+          );
+          return;
+        }
+        newFields.push(...modalFieldNames);
+      } else {
+        // Editing a single field
+        if (modalFieldNames.length > 1) {
+          toast.error("Please select only one field for editing.");
+          return;
+        }
+        newFields[modalFieldIndex] = modalFieldNames[0];
+      }
+      setCorrigendumFields(newFields);
+    }
+    closeModal();
+  };
+
+  const handleRemoveField = (type, index) => {
+    if (type === "Correction") {
+      setCorrectionFields(correctionFields.filter((_, i) => i !== index));
+    } else if (type === "Corrigendum") {
+      setCorrigendumFields(corrigendumFields.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleGenerateJson = () => {
+    const jsonOutput = {
+      documentType: selectedType,
+      fields:
+        selectedType === "Correction" ? correctionFields : corrigendumFields,
+    };
+    console.log(JSON.stringify(jsonOutput, null, 2));
+    return jsonOutput;
+  };
+
+  const saveDocumentFields = async () => {
+    if (!selectedServiceId || !selectedType) {
+      toast.error("Please select a service and document type.");
+      return;
+    }
+
+    const jsonOutput = handleGenerateJson();
+    const formData = new FormData();
+    formData.append("serviceId", selectedServiceId);
+    formData.append("documentType", jsonOutput.documentType);
+    formData.append("fields", JSON.stringify(jsonOutput.fields));
+
+    try {
+      const response = await axiosInstance.post(
+        "/Designer/SaveDocumentFields",
+        formData,
+      );
+      if (response.data.status) {
+        toast.success("Document fields saved successfully!");
+      } else {
+        toast.error("Failed to save document fields.");
+      }
+    } catch (error) {
+      console.error("Error saving document fields:", error);
+      toast.error("An error occurred while saving document fields.");
+    }
+  };
+
+  // Render table for fields
+  const renderFieldsTable = (type, fields) => (
+    <Box sx={{ mb: 4 }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        {type} Fields
+      </Typography>
+      <TableContainer component={Paper} sx={{ mb: 2 }}>
+        <Table>
+          <TableBody>
+            {fields.map((fieldName, index) => (
+              <TableRow key={`${type}-${index}`}>
+                <TableCell sx={{ border: "1px solid #ccc", fontSize: 12 }}>
+                  {fieldName}
+                </TableCell>
+                <TableCell sx={{ border: "1px solid #ccc", fontSize: 12 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => openModalForEdit(type, index, fieldName)}
+                    sx={{ mr: 1 }}
+                    disabled={!selectedServiceId || !selectedType}
+                  >
+                    Edit
+                  </Button>
+                  <IconButton
+                    onClick={() => handleRemoveField(type, index)}
+                    color="error"
+                    size="small"
+                    disabled={!selectedServiceId || !selectedType}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={() => openModalForAdd(type)}
+        sx={{ bgcolor: "blue.500" }}
+        disabled={!selectedServiceId || !selectedType}
+      >
+        Add {type} Field
+      </Button>
+    </Box>
+  );
+
+  return (
+    <Box sx={{ minHeight: "100vh", bgcolor: "grey.100", p: 3 }}>
+      <Container
+        maxWidth
+        sx={{
+          bgcolor: "white",
+          borderRadius: 2,
+          boxShadow: 3,
+          p: 4,
+        }}
+      >
+        <Row>
+          <Col md={12}>
+            <Typography
+              variant="h4"
+              sx={{ color: "grey.800", mb: 4, fontWeight: "bold" }}
+            >
+              Configure Document Fields
+            </Typography>
+            <Box sx={{ mb: 4 }}>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel id="service-select-label">
+                  Select Service
+                </InputLabel>
+                <Select
+                  labelId="service-select-label"
+                  value={selectedServiceId}
+                  label="Select Service"
+                  onChange={(e) => setSelectedServiceId(e.target.value)}
+                >
+                  <MenuItem value="" disabled>
+                    Select a Service
+                  </MenuItem>
+                  {services.map((service) => (
+                    <MenuItem key={service.serviceId} value={service.serviceId}>
+                      {service.serviceName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel id="type-select-label">
+                  Select Document Type
+                </InputLabel>
+                <Select
+                  labelId="type-select-label"
+                  value={selectedType}
+                  label="Select Document Type"
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  disabled={!selectedServiceId}
+                >
+                  <MenuItem value="" disabled>
+                    Select a Document Type
+                  </MenuItem>
+                  <MenuItem value="Correction">Correction</MenuItem>
+                  <MenuItem value="Corrigendum">Corrigendum</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            {selectedType && (
+              <>
+                {selectedType === "Correction" &&
+                  renderFieldsTable("Correction", correctionFields)}
+                {selectedType === "Corrigendum" &&
+                  renderFieldsTable("Corrigendum", corrigendumFields)}
+                <Box sx={{ display: "flex", gap: 2 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleGenerateJson}
+                    disabled={!selectedServiceId || !selectedType}
+                  >
+                    Generate JSON
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={saveDocumentFields}
+                    disabled={!selectedServiceId || !selectedType}
+                  >
+                    Save Document Fields
+                  </Button>
+                </Box>
+              </>
+            )}
+          </Col>
+        </Row>
+        <Modal open={modalOpen} onClose={closeModal}>
+          <Box
+            sx={{
+              bgcolor: "white",
+              p: 4,
+              borderRadius: 2,
+              maxWidth: 500,
+              mx: "auto",
+              marginTop: "20px",
+              boxShadow: 24,
+              maxHeight: 800,
+              overflowY: "auto",
+            }}
+          >
+            <Typography variant="h5" sx={{ mb: 3 }}>
+              Configure {modalType} Field{modalFieldIndex === -1 ? "s" : ""}
+            </Typography>
+            <FormGroup sx={{ mb: 3, maxHeight: 400, overflowY: "auto" }}>
+              {formFields.map((fieldName, index) => (
+                <FormControlLabel
+                  key={`${fieldName}-${index}`}
+                  control={
+                    <Checkbox
+                      checked={modalFieldNames.includes(fieldName)}
+                      onChange={() => handleCheckboxChange(fieldName)}
+                      disabled={
+                        modalFieldIndex !== -1 &&
+                        !modalFieldNames.includes(fieldName)
+                      } // Disable other checkboxes during edit
+                    />
+                  }
+                  label={fieldName}
+                />
+              ))}
+            </FormGroup>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+              <Button variant="outlined" onClick={closeModal}>
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                onClick={saveModal}
+                disabled={modalFieldNames.length === 0}
+              >
+                Save
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
+      </Container>
+      <ToastContainer position="top-right" autoClose={3000} />
+    </Box>
+  );
+};
+
+export default Corrections;

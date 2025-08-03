@@ -116,7 +116,7 @@ const StyledCard = styled(Card)`
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   &:hover {
     transform: translateY(-5px);
-    boxshadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
   }
 `;
 
@@ -125,6 +125,7 @@ export default function OfficerHome() {
   const [serviceId, setServiceId] = useState("");
   const [countList, setCountList] = useState([]);
   const [corrigendumList, setCorrigendumList] = useState([]);
+  const [correctionList, setCorrectionList] = useState([]);
   const [counts, setCounts] = useState({
     total: 0,
     pending: 0,
@@ -135,6 +136,7 @@ export default function OfficerHome() {
     returnedCount: 0,
     shiftedCount: 0,
     corrigendumCount: 0,
+    correctionCount: 0,
   });
   const [canSanction, setCanSanction] = useState(false);
   const [canHavePool, setCanHavePool] = useState(false);
@@ -163,6 +165,7 @@ export default function OfficerHome() {
   const [pendingFormData, setPendingFormData] = useState(null);
   const [pullRow, setPullRow] = useState({});
   const [url, setUrl] = useState("/Officer/GetApplications");
+  const [applicationType, setApplicationType] = useState("application");
 
   const tableRef = useRef(null);
   const tableInstanceRef = useRef(null);
@@ -191,9 +194,8 @@ export default function OfficerHome() {
       "Shifted To Another Location": (
         <SyncAlt sx={{ fontSize: 28, color: "inherit" }} />
       ),
-      "Total Corrigendums": (
-        <EditNote sx={{ fontSize: 28, color: "inherit" }} />
-      ),
+      "Total Corrigendum": <EditNote sx={{ fontSize: 28, color: "inherit" }} />,
+      "Total Correction": <EditNote sx={{ fontSize: 28, color: "inherit" }} />,
       Pending: <HourglassEmpty sx={{ fontSize: 28, color: "inherit" }} />,
       Forwarded: <Forward sx={{ fontSize: 28, color: "inherit" }} />,
       Returned: <Reply sx={{ fontSize: 28, color: "inherit" }} />,
@@ -206,7 +208,7 @@ export default function OfficerHome() {
   const statusColors = useMemo(
     () => ({
       "Total Applications": "#C2D0FF",
-      "Under Process": "#EBFFC2",
+      Pending: "#EBFFC2",
       Forwarded: "#C2EDFE",
       Returned: "#C2EDFE",
       "Pending With Citizen": "#DAC2FE",
@@ -214,7 +216,8 @@ export default function OfficerHome() {
       Sanctioned: "#C9F2CA",
       "Shifted To Another Location": "#00897B",
       "Total Corrigendum": "#C2D0FF",
-      "Under Process": "#EBFFC2",
+      "Total Correction": "#C2D0FF",
+      Pending: "#EBFFC2",
       Forwarded: "#C2EDFE",
       Returned: "#C2EDFE",
       Rejected: "#FEC2C2",
@@ -226,7 +229,7 @@ export default function OfficerHome() {
   const textColors = useMemo(
     () => ({
       "Total Applications": "#000000",
-      "Under Process": "#000000",
+      Pending: "#000000",
       Forwarded: "#000000",
       Returned: "#000000",
       "Pending With Citizen": "#000000",
@@ -235,7 +238,8 @@ export default function OfficerHome() {
       Sanctioned: "#000000",
       "Shifted To Another Location": "#000000",
       "Total Corrigendum": "#000000",
-      "Under Process": "#000000",
+      "Total Correction": "#000000",
+      Pending: "#000000",
       Forwarded: "#000000",
       Returned: "#000000",
       Rejected: "#000000",
@@ -260,6 +264,7 @@ export default function OfficerHome() {
         );
         setCountList(response.data.countList);
         setCorrigendumList(response.data.corrigendumList || []);
+        setCorrectionList(response.data.correctionList || []);
         setCanSanction(response.data.canSanction);
         setCanHavePool(response.data.canHavePool);
         setOfficerAuthorities(response.data.officerAuthorities);
@@ -296,6 +301,11 @@ export default function OfficerHome() {
             )?.count || 0,
           corrigendumCount:
             response.data.corrigendumList?.reduce(
+              (sum, item) => sum + (item.count || 0),
+              0,
+            ) || 0,
+          correctionCount:
+            response.data.correctionList?.reduce(
               (sum, item) => sum + (item.count || 0),
               0,
             ) || 0,
@@ -346,18 +356,22 @@ export default function OfficerHome() {
   };
 
   const handleCardClick = useCallback((statusName, type) => {
-    // Normalize the statusName by removing "Corrigendum" (with optional space)
+    // Normalize the statusName by removing "Corrigendum" or "Correction" (with optional space)
     const isCorrigendum = statusName.toLowerCase().includes("corrigendum");
-    const cleanedStatus = statusName.replace(/Corrigendum\s*/gi, "").trim();
-    console.log(cleanedStatus);
+    const isCorrection = statusName.toLowerCase().includes("correction");
+    const cleanedStatus = statusName
+      .replace(/(Corrigendum|Correction)\s*/gi, "")
+      .trim();
 
     const typeMap = {
+      "Total Applications": "total",
       "Total Corrigendum": "total",
-      "Under Process": isCorrigendum ? "pending" : "pending",
-      Forwarded: isCorrigendum ? "forwarded" : "forwarded",
-      Returned: isCorrigendum ? "returned" : "returned",
-      Rejected: isCorrigendum ? "rejected" : "rejected",
-      Sanctioned: isCorrigendum ? "sanctioned" : "sanctioned",
+      "Total Correction": "total",
+      Pending: isCorrigendum || isCorrection ? "pending" : "pending",
+      Forwarded: isCorrigendum || isCorrection ? "forwarded" : "forwarded",
+      Returned: isCorrigendum || isCorrection ? "returned" : "returned",
+      Rejected: isCorrigendum || isCorrection ? "rejected" : "rejected",
+      Sanctioned: isCorrigendum || isCorrection ? "sanctioned" : "sanctioned",
       Issued: "sanctioned",
       "Pending With Citizen": "returntoedit",
       "Pendig With Citizen": "returntoedit",
@@ -367,13 +381,12 @@ export default function OfficerHome() {
     const mappedType = typeMap[cleanedStatus] || cleanedStatus.toLowerCase();
     setType(mappedType);
 
-    // Set URL based on whether it's a corrigendum or application
-    setUrl(
-      type != null && type == "corrigendum"
-        ? "/Officer/GetCorrigendumApplicaions"
-        : "/Officer/GetApplications",
-    );
-
+    const url = ["Corrigendum", "Correction"].includes(type)
+      ? "/Officer/GetCorrigendumApplications"
+      : "/Officer/GetApplications";
+    // Set URL based on whether it's a corrigendum, correction, or application
+    setUrl(url);
+    setApplicationType(type);
     setShowTable(true);
 
     setTimeout(() => {
@@ -417,9 +430,11 @@ export default function OfficerHome() {
             ...(userdata.applicationId && {
               applicationId: userdata.applicationId,
             }),
+            type: userdata.applicationType,
           },
         });
       },
+
       handleViewPdf: async (row, action) => {
         const { referenceNumber } = row.original;
         const { type, corrigendumId } = action;
@@ -428,13 +443,11 @@ export default function OfficerHome() {
           let filename;
 
           if (type === "DownloadSL") {
-            // Construct filename for sanction letter: referenceNumber with / replaced by _ and _SanctionLetter
             filename = `${referenceNumber.replace(
               /\//g,
               "_",
             )}_SanctionLetter.pdf`;
           } else if (type === "DownloadCorrigendum") {
-            // Construct filename for corrigendum: corrigendumId with / replaced by _ and _CorrigendumLetter
             if (!corrigendumId) {
               throw new Error("Corrigendum ID is missing in action");
             }
@@ -442,12 +455,20 @@ export default function OfficerHome() {
               /\//g,
               "_",
             )}_CorrigendumSanctionLetter.pdf`;
+          } else if (type === "DownloadCorrection") {
+            if (!corrigendumId) {
+              throw new Error("Correction ID is missing in action");
+            }
+            filename = `${corrigendumId.replace(
+              /\//g,
+              "_",
+            )}_CorrectionSanctionLetter.pdf`;
           } else {
             throw new Error(`Invalid action type: ${type}`);
           }
 
           setPdfUrl(filename);
-          setPdfBlob(null); // No blob needed since PdfViewer handles /Base/DisplayFile
+          setPdfBlob(null);
           setIsSignedPdf(true);
           setCurrentApplicationId(referenceNumber);
           setPdfModalOpen(true);
@@ -463,6 +484,16 @@ export default function OfficerHome() {
       handleEditCorrigendumApplication: (row) => {
         const userdata = row.original;
         navigate("/officer/issuecorrigendum", {
+          state: {
+            ReferenceNumber: userdata.referenceNumber,
+            ServiceId: userdata.serviceId,
+            applicationId: userdata.applicationId,
+          },
+        });
+      },
+      handleEditCorrectionApplication: (row) => {
+        const userdata = row.original;
+        navigate("/officer/issuecorrection", {
           state: {
             ReferenceNumber: userdata.referenceNumber,
             ServiceId: userdata.serviceId,
@@ -944,6 +975,7 @@ export default function OfficerHome() {
           autoClose: 2000,
           theme: "colored",
         });
+        setPullConfirmOpen(false);
         refreshTable();
         if (serviceId) debouncedHandleRecords(serviceId);
       }
@@ -1044,34 +1076,34 @@ export default function OfficerHome() {
   const pieData = useMemo(() => {
     const labels = ["Pending"];
     const data = [counts.pending];
-    const backgroundColor = ["#FBC02D"];
+    const backgroundColor = ["#EBFFC2"];
 
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
       data.push(counts.forwarded);
-      backgroundColor.push("#0288D1");
+      backgroundColor.push("#C2EDFE");
     }
 
     if (officerAuthorities.canReturnToPlayer) {
       labels.push("Returned");
       data.push(counts.returnedCount);
-      backgroundColor.push("#4CAF50");
+      backgroundColor.push("#C2EDFE");
     }
 
     if (officerAuthorities.canReturnToCitizen) {
       labels.push("Citizen Pending");
       data.push(counts.citizenPending);
-      backgroundColor.push("#DAC2FE");
+      backgroundColor.push("rgba(218, 194, 254, 1)");
     }
 
     labels.push("Rejected");
     data.push(counts.rejected);
-    backgroundColor.push("#D32F2F");
+    backgroundColor.push("#FEC2C2");
 
     if (officerAuthorities.canSanction) {
       labels.push("Sanctioned");
       data.push(counts.sanctioned);
-      backgroundColor.push("#388E3C");
+      backgroundColor.push("#C9F2CA");
     }
 
     return {
@@ -1092,24 +1124,35 @@ export default function OfficerHome() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
+        tooltip: {
+          enable: false,
+        },
         legend: {
           position: "top",
           labels: {
             font: { size: 14, family: "'Inter', sans-serif" },
           },
         },
+        datalabels: {
+          display: false,
+        },
       },
     }),
     [],
   );
 
-  const extraParams = useMemo(
-    () => ({
+  const extraParams = useMemo(() => {
+    const params = {
       ServiceId: serviceId,
       type: type,
-    }),
-    [serviceId, type],
-  );
+    };
+
+    if (applicationType === "Corrigendum" || applicationType == "Correction") {
+      params.applicationType = applicationType;
+    }
+
+    return params;
+  }, [serviceId, type, applicationType]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -1257,7 +1300,7 @@ export default function OfficerHome() {
                       justifyContent: "space-between",
                       height: "160px",
                     }}
-                    onClick={() => handleCardClick(item.label)}
+                    onClick={() => handleCardClick(item.label, "application")}
                   >
                     <Box
                       sx={{
@@ -1330,7 +1373,7 @@ export default function OfficerHome() {
                           sx={{
                             fontWeight: "bold",
                             fontSize: "0.8rem",
-                            color: "#000000", // or your preferred color
+                            color: "#000000",
                           }}
                         >
                           Sanctioned: {item.forwardedSanctionedCount}
@@ -1397,7 +1440,9 @@ export default function OfficerHome() {
                           justifyContent: "space-between",
                           height: "160px",
                         }}
-                        onClick={() => handleCardClick(item.label)}
+                        onClick={() =>
+                          handleCardClick(item.label, "Corrigendum")
+                        }
                       >
                         <Box
                           sx={{
@@ -1438,7 +1483,137 @@ export default function OfficerHome() {
                               item.label === "Pendig With Citizen"
                                 ? "Pending With Citizen"
                                 : item.label
-                            } applications`
+                            } corrigendums`
+                          }
+                          enterTouchDelay={0}
+                          leaveTouchDelay={2000}
+                          arrow
+                        >
+                          <Typography
+                            variant="h3"
+                            sx={{
+                              fontWeight: "bold",
+                              color: textColors[item.label] || "#FFFFFF",
+                              textAlign: "left",
+                              fontSize: "4rem",
+                            }}
+                          >
+                            {item.count}
+                          </Typography>
+                        </MuiTooltip>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            mt: 1,
+                            width: "100%",
+                          }}
+                        >
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: textColors[item.label] || "#FFFFFF",
+                              fontSize: "0.85rem",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            View All{" "}
+                            <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
+                          </Typography>
+                        </Box>
+                      </StatCard>
+                    </Col>
+                  ))}
+                </Row>
+              </>
+            )}
+
+            {correctionList?.length > 0 && (
+              <>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    mb: 3,
+                    fontWeight: 600,
+                    color: "#2d3748",
+                    textAlign: "center",
+                    fontFamily: "'Inter', sans-serif",
+                  }}
+                >
+                  Corrections
+                </Typography>
+                <Row
+                  className="mb-5 justify-content-center align-items-center"
+                  style={{ width: "100%" }}
+                >
+                  {correctionList.map((item, index) => (
+                    <Col
+                      key={index}
+                      xs={12}
+                      sm={6}
+                      md={4}
+                      lg={2}
+                      className="mb-4"
+                      style={{ display: "flex", justifyContent: "center" }}
+                    >
+                      <StatCard
+                        sx={{
+                          backgroundColor:
+                            statusColors[item.label] || "#1976d2",
+                          padding: "16px",
+                          borderRadius: "12px",
+                          cursor: "pointer",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                          height: "160px",
+                        }}
+                        onClick={() =>
+                          handleCardClick(item.label, "Correction")
+                        }
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: "bold",
+                              color: textColors[item.label] || "#FFFFFF",
+                              fontSize: "0.85rem",
+                            }}
+                          >
+                            {item.label === "Pendig With Citizen"
+                              ? "Pending With Citizen"
+                              : item.label}
+                          </Typography>
+
+                          {React.cloneElement(
+                            iconMap[item.label] || (
+                              <AssignmentTurnedIn sx={{ fontSize: 16 }} />
+                            ),
+                            {
+                              style: {
+                                color: "#000000",
+                              },
+                            },
+                          )}
+                        </Box>
+
+                        <MuiTooltip
+                          title={
+                            item.tooltipText ||
+                            `View ${
+                              item.label === "Pendig With Citizen"
+                                ? "Pending With Citizen"
+                                : item.label
+                            } corrections`
                           }
                           enterTouchDelay={0}
                           leaveTouchDelay={2000}
@@ -1541,8 +1716,16 @@ export default function OfficerHome() {
                     selectedAction={selectedAction}
                     setSelectedAction={setSelectedAction}
                     Title={`${
-                      type.charAt(0).toUpperCase() + type.slice(1)
-                    } Applications`}
+                      type === "returntoedit"
+                        ? "Pending With Citizen"
+                        : type.charAt(0).toUpperCase() + type.slice(1)
+                    } ${
+                      type === "corrigendum"
+                        ? "Corrigendums"
+                        : type === "correction"
+                        ? "Corrections"
+                        : "Applications"
+                    }`}
                     sx={{
                       "& .MuiTable-root": { background: "#ffffff" },
                       "& .MuiTableCell-root": {
@@ -1580,8 +1763,13 @@ export default function OfficerHome() {
             sx={{ mb: 2, color: "#2d3748", fontFamily: "'Inter', sans-serif" }}
           >
             Are you sure you want to reject {pendingRejectRows.length} selected
-            application{pendingRejectRows.length > 1 ? "s" : ""}? This action
-            cannot be undone.
+            {type === "corrigendum"
+              ? "corrigendum"
+              : type === "correction"
+              ? "correction"
+              : "application"}
+            {pendingRejectRows.length > 1 ? "s" : ""}? This action cannot be
+            undone.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -1628,8 +1816,13 @@ export default function OfficerHome() {
           <Typography
             sx={{ mb: 2, color: "#2d3748", fontFamily: "'Inter', sans-serif" }}
           >
-            Are you sure you want to pull {pullRow.referenceNumber} application?
-            This action cannot be undone.
+            Are you sure you want to pull {pullRow.referenceNumber}{" "}
+            {type === "corrigendum"
+              ? "corrigendum"
+              : type === "correction"
+              ? "correction"
+              : "application"}
+            ? This action cannot be undone.
           </Typography>
         </DialogContent>
         <DialogActions>

@@ -723,5 +723,215 @@ namespace SahayataNidhi.Controllers.Officer
             }
         }
 
+        // Helper method to build main application counts
+        private List<object> BuildMainApplicationCounts(StatusCounts counts, dynamic authorities)
+        {
+            var countList = new List<object>
+            {
+                new { label = "Total Applications", count = counts.TotalApplications, bgColor = "#000000", textColor = "#FFFFFF" },
+                new { label = "Pending", count = counts.PendingCount, bgColor = "#FFC107", textColor = "#212121" }
+            };
+
+            if ((bool)authorities.CanForwardToPlayer)
+            {
+                countList.Add(new
+                {
+                    label = "Forwarded",
+                    count = counts.ForwardedCount,
+                    bgColor = "#64B5F6",
+                    textColor = "#0D47A1",
+                    forwardedSanctionedCount = counts.ForwardedCount > 0 ? counts.ForwardedSanctionedCount : (int?)null
+                });
+            }
+
+            if ((bool)authorities.CanReturnToPlayer)
+            {
+                countList.Add(new
+                {
+                    label = "Returned",
+                    count = counts.ReturnedCount,
+                    bgColor = "#E0E0E0",
+                    textColor = "#212121"
+                });
+            }
+
+            if ((bool)authorities.CanReturnToCitizen)
+            {
+                countList.Add(new
+                {
+                    label = "Pending With Citizen",
+                    count = counts.ReturnToEditCount,
+                    bgColor = "#CE93D8",
+                    textColor = "#4A148C",
+                    tooltipText = "Application is pending at Citizen level for correction."
+                });
+            }
+
+            countList.Add(new
+            {
+                label = "Rejected",
+                count = counts.RejectCount,
+                bgColor = "#FF7043",
+                textColor = "#B71C1C"
+            });
+
+            if ((bool)authorities.CanSanction)
+            {
+                countList.Add(new
+                {
+                    label = "Sanctioned",
+                    count = counts.SanctionedCount,
+                    bgColor = "#81C784",
+                    textColor = "#1B5E20"
+                });
+            }
+
+            return countList;
+        }
+
+        // Helper method to build corrigendum counts
+        private List<object> BuildCorrigendumCounts(StatusCounts counts, dynamic authorities)
+        {
+            var corrigendumList = new List<object>
+    {
+        new
+        {
+            label = "Total Corrigendum",
+            name = "corrigendum",
+            count = counts.CorrigendumCount,
+            bgColor = "#6A1B9A",
+            textColor = "#FFFFFF"
+        },
+        new
+        {
+            label = "Pending",
+            name = "corrigendum",
+            count = counts.CorrigendumPendingCount,
+            bgColor = "#FFC107",
+            textColor = "#212121"
+        }
+    };
+
+            if ((bool)authorities.CanForwardToPlayer)
+            {
+                corrigendumList.Add(new
+                {
+                    label = "Forwarded",
+                    name = "corrigendum",
+                    count = counts.CorrigendumForwardedCount,
+                    bgColor = "#64B5F6",
+                    textColor = "#0D47A1"
+                });
+            }
+
+            if ((bool)authorities.CanReturnToPlayer)
+            {
+                corrigendumList.Add(new
+                {
+                    label = "Returned",
+                    name = "corrigendum",
+                    count = counts.CorrigendumReturnedCount,
+                    bgColor = "#E0E0E0",
+                    textColor = "#212121"
+                });
+            }
+
+            corrigendumList.Add(new
+            {
+                label = "Rejected",
+                name = "corrigendum",
+                count = counts.CorrigendumRejectedCount,
+                bgColor = "#FF7043",
+                textColor = "#B71C1C"
+            });
+
+            if ((bool)authorities.CanSanction)
+            {
+                corrigendumList.Add(new
+                {
+                    label = "Issued",
+                    name = "corrigendum",
+                    count = counts.CorrigendumSanctionedCount,
+                    bgColor = "#81C784",
+                    textColor = "#1B5E20"
+                });
+            }
+
+            return corrigendumList;
+        }
+
+        // Helper method to build correction counts
+        private List<object> BuildCorrectionCounts(StatusCounts counts, dynamic authorities)
+        {
+            var correctionList = new List<object>
+            {
+                new
+                {
+                    label = "Total Correction",
+                    name = "correction",
+                    count = counts.CorrectionCount,
+                    bgColor = "#6A1B9A",
+                    textColor = "#FFFFFF"
+                },
+                new
+                {
+                    label = "Pending",
+                    name = "correction",
+                    count = counts.CorrectionPendingCount,
+                    bgColor = "#FFC107",
+                    textColor = "#212121"
+                }
+            };
+
+            if ((bool)authorities.CanForwardToPlayer)
+            {
+                correctionList.Add(new
+                {
+                    label = "Forwarded",
+                    name = "correction",
+                    count = counts.CorrectionForwardedCount,
+                    bgColor = "#64B5F6",
+                    textColor = "#0D47A1"
+                });
+            }
+
+            if ((bool)authorities.CanReturnToPlayer)
+            {
+                correctionList.Add(new
+                {
+                    label = "Returned",
+                    name = "correction",
+                    count = counts.CorrectionReturnedCount,
+                    bgColor = "#E0E0E0",
+                    textColor = "#212121"
+                });
+            }
+
+            correctionList.Add(new
+            {
+                label = "Rejected",
+                name = "correction",
+                count = counts.CorrectionRejectedCount,
+                bgColor = "#FF7043",
+                textColor = "#B71C1C"
+            });
+
+            if ((bool)authorities.CanSanction)
+            {
+                correctionList.Add(new
+                {
+                    label = "Issued",
+                    name = "correction",
+                    count = counts.CorrectionSanctionedCount,
+                    bgColor = "#81C784",
+                    textColor = "#1B5E20"
+                });
+            }
+
+            return correctionList;
+        }
+
+
+
     }
 }

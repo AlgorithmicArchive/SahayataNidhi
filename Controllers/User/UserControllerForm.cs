@@ -91,7 +91,7 @@ namespace SahayataNidhi.Controllers.User
                         ["playerId"] = player["playerId"],
                         ["prevPlayerId"] = player["prevPlayerId"],
                         ["nextPlayerId"] = player["nextPlayerId"],
-                        ["canPUll"] = player["canPull"]
+                        ["canPull"] = player["canPull"]
                     };
 
                     filteredWorkflow.Add(filteredPlayer);

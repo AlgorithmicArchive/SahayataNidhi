@@ -17,6 +17,8 @@ public partial class Corrigendum
 
     public int CurrentPlayer { get; set; }
 
+    public string? Type { get; set; }
+
     public string? History { get; set; }
 
     public string? Status { get; set; }

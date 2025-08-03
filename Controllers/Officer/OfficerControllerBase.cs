@@ -99,8 +99,6 @@ namespace SahayataNidhi.Controllers.Officer
             return Json(new { serviceList, role = officer.RoleShort, area = officerArea });
         }
 
-
-
         [HttpGet]
         public async Task<IActionResult> PullApplication(string applicationId)
         {
@@ -124,9 +122,8 @@ namespace SahayataNidhi.Controllers.Officer
                 otherPlayer["status"] = "forwarded"; // Restore status to previous
                 currentPlayer!["status"] = "pending"; // Pull back
             }
-            else if (status == "sanctioned")
+            else if (status == "sanctioned" || status == "returntoedit")
             {
-                // Do NOT change currentPlayer or move to other player
                 currentPlayer!["status"] = "pending"; // Optional: Mark as pending if needed
             }
 
@@ -199,6 +196,7 @@ namespace SahayataNidhi.Controllers.Officer
                         else if (action == "ReturnToCitizen")
                         {
                             players[currentPlayer]["status"] = "returntoedit";
+                            players[currentPlayer]["canPull"] = true;
                             JObject jObject;
                             if (string.IsNullOrEmpty(formdetails.AdditionalDetails))
                             {

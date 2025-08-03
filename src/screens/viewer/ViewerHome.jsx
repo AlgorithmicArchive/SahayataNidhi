@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
-  CardContent,
   Typography,
   useTheme,
-  Avatar,
   TextField,
   MenuItem,
+  Tooltip as MuiTooltip,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import {
@@ -21,6 +20,7 @@ import {
   MonetizationOn,
   ErrorOutline,
   EmojiEvents,
+  ArrowRightAlt,
 } from "@mui/icons-material";
 import { Col, Row } from "react-bootstrap";
 import axiosInstance from "../../axiosConfig";
@@ -30,21 +30,17 @@ const mockDashboardData = (params) => {
   const { state, division, district, tehsil } = params;
   let multiplier = 1;
 
-  // Determine multiplier based on the most specific filter selected
-  if (tehsil != null) multiplier = 0.1; // Smallest scope
+  if (tehsil != null) multiplier = 0.1;
   else if (district != null) multiplier = 0.2;
   else if (division != null) multiplier = 0.5;
-  else if (state != null && state !== "") multiplier = 1; // Largest scope
+  else if (state != null && state !== "") multiplier = 1;
 
-  // Modify default data based on the multiplier
   return defaultCardData.map((card) => {
     let newValue;
     if (card.value.startsWith("₹")) {
-      // Handle currency values
       const amount = parseInt(card.value.replace(/[^0-9]/g, ""), 10);
       newValue = `₹${Math.round(amount * multiplier).toLocaleString()}`;
     } else {
-      // Handle numerical values
       const num = parseInt(card.value.replace(/[^0-9]/g, ""), 10);
       newValue = Math.round(num * multiplier).toString();
     }
@@ -52,23 +48,108 @@ const mockDashboardData = (params) => {
   });
 };
 
-// Mock axios instance for dashboard data only
+// Mock axios instance
 const mockAxiosInstance = {
   get: (url, config) => {
     if (url === "/api/dashboard/stats") {
       console.log(
         "Mock API call for dashboard stats with params:",
-        config.params
+        config.params,
       );
       return Promise.resolve({ data: mockDashboardData(config.params) });
     }
-    // Use real axiosInstance for other endpoints
     return axiosInstance.get(url, config);
   },
 };
 
-const DashboardCard = styled(Card)(({ theme }) => ({
-  minWidth: 200,
+// Default card data
+const defaultCardData = [
+  {
+    title: "Applications Received",
+    value: "1,234",
+    cardColor: "#B8C8FF",
+    textColor: "#212121",
+  },
+  {
+    title: "Sanctioned",
+    value: "856",
+    cardColor: "#C0E8C2",
+    textColor: "#212121",
+  },
+  {
+    title: "Under Process",
+    value: "200",
+    cardColor: "#E5F8B8",
+    textColor: "#212121",
+  },
+  {
+    title: "Pending with Citizen",
+    value: "20",
+    cardColor: "#D2B8F8",
+    textColor: "#212121",
+  },
+  {
+    title: "Rejected",
+    value: "178",
+    cardColor: "#F8B8B8",
+    textColor: "#212121",
+  },
+  {
+    title: "Total Amount Disbursed (Latest Month)",
+    value: "₹5,67,89,000",
+    cardColor: "#C0E8C2",
+    textColor: "#212121",
+  },
+  {
+    title: "New Sanctions (After Latest Disbursements)",
+    value: "320",
+    cardColor: "#C0E8C2",
+    textColor: "#212121",
+  },
+  {
+    title: "No. of Beneficiaries Paid (Latest Month)",
+    value: "542",
+    cardColor: "#C0E8C2",
+    textColor: "#212121",
+  },
+  {
+    title: "Successful Disbursements (Latest Month)",
+    value: "519",
+    cardColor: "#C0E8C2",
+    textColor: "#212121",
+  },
+  {
+    title: "Failed Disbursements (Latest Month)",
+    value: "23",
+    cardColor: "#F8B8B8",
+    textColor: "#212121",
+  },
+  {
+    title: "Arrear Amount Disbursed (Latest Month)",
+    value: "₹12,50,000",
+    cardColor: "#C0E8C2",
+    textColor: "#212121",
+  },
+];
+
+// Icon mapping
+const iconMap = {
+  "Applications Received": <AssignmentTurnedIn />,
+  Sanctioned: <CheckCircle />,
+  "Under Process": <HourglassEmpty />,
+  "Pending with Citizen": <Group />,
+  Rejected: <Cancel />,
+  "Total Amount Disbursed (Latest Month)": <MonetizationOn />,
+  "New Sanctions (After Latest Disbursements)": <TrendingUp />,
+  "No. of Beneficiaries Paid (Latest Month)": <AccountBalanceWallet />,
+  "Successful Disbursements (Latest Month)": <EmojiEvents />,
+  "Failed Disbursements (Latest Month)": <ErrorOutline />,
+  "Arrear Amount Disbursed (Latest Month)": <MonetizationOn />,
+};
+
+// Styled StatCard component
+const StatCard = styled(Card)(({ theme }) => ({
+  minWidth: 250,
   borderRadius: "16px",
   boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
   transition: "transform 0.3s ease, box-shadow 0.3s ease",
@@ -78,90 +159,9 @@ const DashboardCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-// Default data used as a base for mock dashboard data
-const defaultCardData = [
-  {
-    title: "Applications Received",
-    value: "1,234",
-    icon: <AssignmentTurnedIn />,
-    cardColor: "#1976D2",
-    textColor: "#FFFFFF",
-  },
-  {
-    title: "Sanctioned",
-    value: "856",
-    icon: <CheckCircle />,
-    cardColor: "#388E3C",
-    textColor: "#FFFFFF",
-  },
-  {
-    title: "Under Process",
-    value: "200",
-    icon: <HourglassEmpty />,
-    cardColor: "#FBC02D",
-    textColor: "#212121",
-  },
-  {
-    title: "Pending with Citizen",
-    value: "20",
-    icon: <Group />,
-    cardColor: "#7B1FA2",
-    textColor: "#FFFFFF",
-  },
-  {
-    title: "Rejected",
-    value: "178",
-    icon: <Cancel />,
-    cardColor: "#D32F2F",
-    textColor: "#FFFFFF",
-  },
-  {
-    title: "Total Amount Disbursed (Latest Month)",
-    value: "₹5,67,89,000",
-    icon: <MonetizationOn />,
-    cardColor: "#00897B",
-    textColor: "#FFFFFF",
-  },
-  {
-    title: "New Sanctions (After Latest Disbursements)",
-    value: "320",
-    icon: <TrendingUp />,
-    cardColor: "#4CAF50",
-    textColor: "#FFFFFF",
-  },
-  {
-    title: "No. of Beneficiaries Paid (Latest Month)",
-    value: "542",
-    icon: <AccountBalanceWallet />,
-    cardColor: "#0288D1",
-    textColor: "#FFFFFF",
-  },
-  {
-    title: "Successful Disbursements (Latest Month)",
-    value: "519",
-    icon: <EmojiEvents />,
-    cardColor: "#43A047",
-    textColor: "#FFFFFF",
-  },
-  {
-    title: "Failed Disbursements (Latest Month)",
-    value: "23",
-    icon: <ErrorOutline />,
-    cardColor: "#C62828",
-    textColor: "#FFFFFF",
-  },
-  {
-    title: "Arrear Amount Disbursed (Latest Month)",
-    value: "₹12,50,000",
-    icon: <MonetizationOn />,
-    cardColor: "#00695C",
-    textColor: "#FFFFFF",
-  },
-];
-
 export default function ViewerHome() {
   const theme = useTheme();
-  const [state, setState] = useState(0); // Default to Jammu & Kashmir
+  const [state, setState] = useState(0);
   const [division, setDivision] = useState(null);
   const [districts, setDistricts] = useState([]);
   const [district, setDistrict] = useState(null);
@@ -205,7 +205,7 @@ export default function ViewerHome() {
             "/Base/GetTeshilForDistrict",
             {
               params: { districtId: district },
-            }
+            },
           );
           const result = response.data;
           const Tehsils = result.tehsils.map((item) => ({
@@ -254,13 +254,18 @@ export default function ViewerHome() {
       } catch (err) {
         setError("Failed to fetch dashboard data");
         console.error(err);
-        setDashboardData(defaultCardData); // Fallback on error
+        setDashboardData(defaultCardData);
       } finally {
         setIsLoading(false);
       }
     };
     fetchDashboardData();
   }, [state, division, district, tehsil]);
+
+  // Handle card click
+  const handleCardClick = (label, type) => {
+    console.log(`Clicked card: ${label}, type: ${type}`);
+  };
 
   return (
     <Box
@@ -371,7 +376,7 @@ export default function ViewerHome() {
         ) : error ? (
           <Typography color="error">{error}</Typography>
         ) : (
-          <Row style={{ justifyContent: "center" }}>
+          <Row style={{ justifyContent: "center", width: "100%" }}>
             {dashboardData.map((card, index) => (
               <Col
                 key={index}
@@ -385,51 +390,96 @@ export default function ViewerHome() {
                     : 2
                 }
                 xs={12}
-                style={{ marginBottom: 40 }}
+                style={{
+                  marginBottom: 40,
+                  display: "flex",
+                  justifyContent: "center",
+                }}
               >
-                <DashboardCard sx={{ backgroundColor: card.cardColor }}>
-                  <CardContent
+                <StatCard
+                  sx={{
+                    backgroundColor: card.cardColor,
+                    padding: "16px",
+                    borderRadius: "12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    height: "160px",
+                    width: "100%",
+                    maxWidth: 300,
+                  }}
+                  onClick={() => handleCardClick(card.title, "application")}
+                >
+                  <Box
                     sx={{
-                      textAlign: "center",
-                      padding: "22px 20px",
                       display: "flex",
-                      flexDirection: "column",
+                      justifyContent: "space-between",
                       alignItems: "center",
                     }}
                   >
-                    <Avatar
-                      sx={{
-                        bgcolor: "#FFFFFF",
-                        width: 56,
-                        height: 56,
-                        mb: 2,
-                      }}
-                    >
-                      {React.cloneElement(card.icon, {
-                        style: { color: card.cardColor },
-                      })}
-                    </Avatar>
                     <Typography
-                      variant="subtitle1"
+                      variant="subtitle2"
                       sx={{
-                        fontWeight: 500,
+                        fontWeight: "bold",
                         color: card.textColor,
-                        mb: 1,
+                        fontSize: "0.85rem",
                       }}
                     >
                       {card.title}
                     </Typography>
+                    {React.cloneElement(
+                      iconMap[card.title] || <AssignmentTurnedIn />,
+                      {
+                        style: { color: "#000000", fontSize: 16 },
+                      },
+                    )}
+                  </Box>
+                  <MuiTooltip
+                    title={`View ${
+                      card.title === "Pending with Citizen"
+                        ? "Pending With Citizen"
+                        : card.title
+                    } applications`}
+                    enterTouchDelay={0}
+                    leaveTouchDelay={2000}
+                    arrow
+                  >
                     <Typography
-                      variant="h5"
+                      variant="h3"
                       sx={{
                         fontWeight: "bold",
                         color: card.textColor,
+                        textAlign: "left",
+                        fontSize: "2.5rem",
                       }}
                     >
                       {card.value}
                     </Typography>
-                  </CardContent>
-                </DashboardCard>
+                  </MuiTooltip>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mt: 1,
+                      width: "100%",
+                    }}
+                  >
+                    <span /> {/* No forwardedSanctionedCount in data */}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: card.textColor,
+                        fontSize: "0.85rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      View All <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
+                    </Typography>
+                  </Box>
+                </StatCard>
               </Col>
             ))}
           </Row>
