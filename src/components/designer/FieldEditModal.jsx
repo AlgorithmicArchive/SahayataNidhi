@@ -24,7 +24,9 @@ import {
 } from "../../assets/formvalidations";
 import axiosnInstance from "../../axiosConfig";
 
-// Async function to fetch districts from your API endpoint
+// [Previous imports and utility functions remain unchanged]
+
+// Async function to fetch districts (unchanged)
 const fetchDistricts = async () => {
   try {
     const response = await axiosnInstance.get("/Base/GetDistricts");
@@ -39,10 +41,9 @@ const fetchDistricts = async () => {
   }
 };
 
-// Utility function to collect all selectable fields, including nested additional fields
+// Utility function to collect selectable fields (unchanged)
 const getSelectableFields = (sections = [], actionForm = []) => {
   const selectableFields = [];
-
   const processFields = (fields, parentLabel = "", parentFieldName = "") => {
     fields.forEach((field) => {
       selectableFields.push({
@@ -53,27 +54,25 @@ const getSelectableFields = (sections = [], actionForm = []) => {
         type: field.type,
         parentFieldName: parentFieldName || undefined,
       });
-
       if (field.additionalFields) {
-        Object.values(field.additionalFields).forEach((additionalFieldArray) => {
-          processFields(
-            additionalFieldArray,
-            parentLabel ? `${parentLabel} > ${field.label}` : field.label,
-            field.name
-          );
-        });
+        Object.values(field.additionalFields).forEach(
+          (additionalFieldArray) => {
+            processFields(
+              additionalFieldArray,
+              parentLabel ? `${parentLabel} > ${field.label}` : field.label,
+              field.name,
+            );
+          },
+        );
       }
     });
   };
-
   if (sections?.length > 0) {
     sections.forEach((section) => processFields(section.fields || []));
   }
-
   if (actionForm?.length > 0) {
     processFields(actionForm);
   }
-
   return selectableFields.filter((field) => !field.id.includes("District"));
 };
 
@@ -85,7 +84,7 @@ const FieldEditModal = ({
   updateField,
 }) => {
   const [dependentOn, setDependentOn] = useState(
-    selectedField?.dependentOn || ""
+    selectedField?.dependentOn || "",
   );
   const [formData, setFormData] = useState({
     id: selectedField?.id || `field-${Date.now()}`,
@@ -100,11 +99,11 @@ const FieldEditModal = ({
       ? selectedField.validationFunctions
       : [],
     transformationFunctions: Array.isArray(
-      selectedField?.transformationFunctions
+      selectedField?.transformationFunctions,
     )
       ? selectedField.transformationFunctions
       : [],
-    additionalFields: selectedField?.additionalFields || {}, // Maps option values to arrays of additional fields
+    additionalFields: selectedField?.additionalFields || {},
     accept: selectedField?.accept || "",
     editable: selectedField?.editable ?? true,
     value: selectedField?.value ?? undefined,
@@ -118,26 +117,27 @@ const FieldEditModal = ({
     dependentValues: selectedField?.dependentValues || [],
     checkboxLayout: selectedField?.checkboxLayout || "vertical",
     isConsentCheckbox: selectedField?.isConsentCheckbox ?? false,
+    declaration: selectedField?.declaration || "", // New field for declaration text
     required: selectedField?.required ?? false,
   });
 
   const [optionInputText, setOptionInputText] = useState(
-    formData.options.map((opt) => opt.label).join("; ")
+    formData.options.map((opt) => opt.label).join("; "),
   );
   const initialIsDependentMaxLength =
     typeof selectedField?.maxLength === "object" &&
     selectedField?.maxLength?.dependentOn;
   const [isDependentMaxLength, setIsDependentMaxLength] = useState(
-    initialIsDependentMaxLength
+    initialIsDependentMaxLength,
   );
 
   const isWorkflowContext = sections.length === 0 && actionForm.length > 0;
   const selectableFields = getSelectableFields(sections, actionForm);
   const filteredSelectableFields = selectableFields.filter(
-    (field) => field.id !== selectedField?.name
+    (field) => field.id !== selectedField?.name,
   );
 
-  // Ensure consent checkbox clears irrelevant fields on initialization
+  // Update useEffect to handle declaration when isConsentCheckbox changes
   useEffect(() => {
     if (formData.isConsentCheckbox && formData.type === "checkbox") {
       setFormData((prev) => ({
@@ -146,10 +146,16 @@ const FieldEditModal = ({
         optionsType: "",
         dependentOn: "",
         dependentOptions: {},
-        additionalFields: {}, // Clear additional fields for consent
+        additionalFields: {},
+        declaration: prev.declaration || "", // Preserve declaration if already set
       }));
       setOptionInputText("");
       setDependentOn("");
+    } else if (!formData.isConsentCheckbox && formData.type === "checkbox") {
+      setFormData((prev) => ({
+        ...prev,
+        declaration: "", // Clear declaration when not a consent checkbox
+      }));
     }
   }, [formData.isConsentCheckbox, formData.type]);
 
@@ -180,7 +186,10 @@ const FieldEditModal = ({
     setFormData((prev) => {
       const newAdditionalFields = {
         ...prev.additionalFields,
-        [optionValue]: [...(prev.additionalFields[optionValue] || []), { name: "", label: "", type: "text" }],
+        [optionValue]: [
+          ...(prev.additionalFields[optionValue] || []),
+          { name: "", label: "", type: "text" },
+        ],
       };
       return { ...prev, additionalFields: newAdditionalFields };
     });
@@ -212,19 +221,14 @@ const FieldEditModal = ({
 
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
-
     if (!destination) return;
-
-    const optionValue = Object.keys(formData.additionalFields).find(key =>
-      formData.additionalFields[key].some(field => field.id === draggableId)
+    const optionValue = Object.keys(formData.additionalFields).find((key) =>
+      formData.additionalFields[key].some((field) => field.id === draggableId),
     );
-
     if (!optionValue) return;
-
     const fields = [...formData.additionalFields[optionValue]];
     const [removed] = fields.splice(source.index, 1);
     fields.splice(destination.index, 0, removed);
-
     setFormData((prev) => ({
       ...prev,
       additionalFields: {
@@ -240,6 +244,7 @@ const FieldEditModal = ({
       isConsentCheckbox: formData.isConsentCheckbox,
       additionalFields: formData.additionalFields,
       options: formData.options,
+      declaration: formData.declaration, // Include declaration in log
     });
 
     const finalFormData = {
@@ -253,6 +258,7 @@ const FieldEditModal = ({
       dependentOptions: formData.isConsentCheckbox
         ? {}
         : formData.dependentOptions,
+      declaration: formData.isConsentCheckbox ? formData.declaration : "", // Only include declaration for consent checkboxes
     };
 
     updateField(finalFormData);
@@ -362,7 +368,7 @@ const FieldEditModal = ({
                   {(() => {
                     const dependentFieldId = formData.maxLength.dependentOn;
                     const selectedField = selectableFields.find(
-                      (field) => field.id === dependentFieldId
+                      (field) => field.id === dependentFieldId,
                     );
                     if (selectedField?.options?.length > 0) {
                       return selectedField.options.map((option) => (
@@ -463,6 +469,15 @@ const FieldEditModal = ({
                   e.target.value === "checkbox" && prev.isConsentCheckbox
                     ? {}
                     : prev.additionalFields,
+                declaration:
+                  e.target.value === "checkbox" && prev.isConsentCheckbox
+                    ? prev.declaration
+                    : "", // Preserve declaration for checkbox
+                accept:
+                  e.target.value === "file" ||
+                  (e.target.value === "select" && prev.isDependentEnclosure)
+                    ? prev.accept
+                    : "", // Preserve accept for select enclosures
               }))
             }
           >
@@ -493,6 +508,7 @@ const FieldEditModal = ({
                       dependentOn: checked ? "" : prev.dependentOn,
                       dependentOptions: checked ? {} : prev.dependentOptions,
                       additionalFields: checked ? {} : prev.additionalFields,
+                      declaration: checked ? prev.declaration : "", // Preserve or clear declaration
                     }));
                     if (checked) {
                       setOptionInputText("");
@@ -503,6 +519,24 @@ const FieldEditModal = ({
               }
               label="Single Consent Checkbox (True/False)"
             />
+            {formData.isConsentCheckbox && (
+              <TextField
+                fullWidth
+                label="Declaration Text"
+                value={formData.declaration}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    declaration: e.target.value,
+                  }))
+                }
+                margin="dense"
+                multiline
+                rows={4}
+                placeholder="Enter the declaration or consent text, e.g., 'I agree to the terms and conditions.'"
+                helperText="Optional: Enter a declaration statement to display with the consent checkbox."
+              />
+            )}
             {!formData.isConsentCheckbox && (
               <>
                 <FormControl fullWidth margin="dense">
@@ -591,7 +625,7 @@ const FieldEditModal = ({
                       <>
                         {(() => {
                           const selectedField = selectableFields.find(
-                            (field) => field.id === dependentOn
+                            (field) => field.id === dependentOn,
                           );
                           if (selectedField?.options?.length > 0) {
                             return selectedField.options.map((option) => (
@@ -719,10 +753,14 @@ const FieldEditModal = ({
                                         label="Field Name"
                                         value={field.name || ""}
                                         onChange={(e) =>
-                                          updateAdditionalField(option.value, index, {
-                                            ...field,
-                                            name: e.target.value,
-                                          })
+                                          updateAdditionalField(
+                                            option.value,
+                                            index,
+                                            {
+                                              ...field,
+                                              name: e.target.value,
+                                            },
+                                          )
                                         }
                                         margin="dense"
                                       />
@@ -731,10 +769,14 @@ const FieldEditModal = ({
                                         label="Field Label"
                                         value={field.label || ""}
                                         onChange={(e) =>
-                                          updateAdditionalField(option.value, index, {
-                                            ...field,
-                                            label: e.target.value,
-                                          })
+                                          updateAdditionalField(
+                                            option.value,
+                                            index,
+                                            {
+                                              ...field,
+                                              label: e.target.value,
+                                            },
+                                          )
                                         }
                                         margin="dense"
                                       />
@@ -743,16 +785,22 @@ const FieldEditModal = ({
                                         label="Field Type"
                                         value={field.type || "text"}
                                         onChange={(e) =>
-                                          updateAdditionalField(option.value, index, {
-                                            ...field,
-                                            type: e.target.value,
-                                          })
+                                          updateAdditionalField(
+                                            option.value,
+                                            index,
+                                            {
+                                              ...field,
+                                              type: e.target.value,
+                                            },
+                                          )
                                         }
                                         margin="dense"
                                       >
                                         <MenuItem value="text">Text</MenuItem>
                                         <MenuItem value="email">Email</MenuItem>
-                                        <MenuItem value="select">Select</MenuItem>
+                                        <MenuItem value="select">
+                                          Select
+                                        </MenuItem>
                                         <MenuItem value="checkbox">
                                           Checkbox
                                         </MenuItem>
@@ -762,7 +810,7 @@ const FieldEditModal = ({
                                         onClick={() =>
                                           removeAdditionalFieldForOption(
                                             option.value,
-                                            index
+                                            index,
                                           )
                                         }
                                       >
@@ -771,7 +819,7 @@ const FieldEditModal = ({
                                     </Box>
                                   )}
                                 </Draggable>
-                              )
+                              ),
                             )}
                             {provided.placeholder}
                           </div>
@@ -800,6 +848,20 @@ const FieldEditModal = ({
               }
               label="Required Field"
             />
+            {/* Add accept field for select type when it is an enclosure */}
+            {formData.type === "select" && formData.isDependentEnclosure && (
+              <TextField
+                fullWidth
+                label="File Type Allowed"
+                value={formData.accept}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, accept: e.target.value }))
+                }
+                margin="dense"
+                placeholder="e.g., image/*, .pdf"
+                helperText="Specify accepted file types, e.g., image/*, .pdf, .doc"
+              />
+            )}
           </>
         )}
         {formData.type === "enclosure" && (
@@ -857,7 +919,7 @@ const FieldEditModal = ({
                     </InputLabel>
                     {(() => {
                       const selectedField = selectableFields.find(
-                        (field) => field.id === formData.dependentField
+                        (field) => field.id === formData.dependentField,
                       );
                       if (selectedField?.options?.length > 0) {
                         return (
@@ -876,8 +938,8 @@ const FieldEditModal = ({
                                 .map(
                                   (val) =>
                                     selectedField.options.find(
-                                      (opt) => opt.value === val
-                                    )?.label
+                                      (opt) => opt.value === val,
+                                    )?.label,
                                 )
                                 .filter((label) => label)
                                 .join("; ")
@@ -934,6 +996,17 @@ const FieldEditModal = ({
               placeholder="Type options separated by semicolons, e.g., Option 1;Option 2 with space, comma;Option 3"
               helperText="Use semicolons (;) to separate options. Commas and spaces are allowed within each option."
             />
+            <TextField
+              fullWidth
+              label="File Type Allowed"
+              value={formData.accept}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, accept: e.target.value }))
+              }
+              margin="dense"
+              placeholder="e.g., image/*, .pdf"
+              helperText="Specify accepted file types, e.g., image/*, .pdf, .doc"
+            />
           </>
         )}
         {formData.type === "file" && (
@@ -945,6 +1018,8 @@ const FieldEditModal = ({
               setFormData((prev) => ({ ...prev, accept: e.target.value }))
             }
             margin="dense"
+            placeholder="e.g., image/*, .pdf"
+            helperText="Specify accepted file types, e.g., image/*, .pdf, .doc"
           />
         )}
         <Typography variant="body2" sx={{ marginTop: 2 }}>
@@ -962,7 +1037,7 @@ const FieldEditModal = ({
                     updatedValidations.push(func.id);
                   } else {
                     updatedValidations = updatedValidations.filter(
-                      (id) => id !== func.id
+                      (id) => id !== func.id,
                     );
                   }
                   setFormData((prev) => ({
@@ -992,7 +1067,7 @@ const FieldEditModal = ({
                     updatedTransformations.push(func.id);
                   } else {
                     updatedTransformations = updatedTransformations.filter(
-                      (id) => id !== func.id
+                      (id) => id !== func.id,
                     );
                   }
                   setFormData((prev) => ({

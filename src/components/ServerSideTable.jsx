@@ -135,7 +135,7 @@ const ServerSideTable = React.forwardRef(
       setSelectedAction,
       Title,
     },
-    ref
+    ref,
   ) => {
     const [columns, setColumns] = useState([]);
     const [inboxData, setInboxData] = useState([]);
@@ -158,7 +158,7 @@ const ServerSideTable = React.forwardRef(
     // Storage key unique to the table instance
     const storageKey = Title.toLowerCase()
       .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) =>
-        index === 0 ? word.toLowerCase() : word.toUpperCase()
+        index === 0 ? word.toLowerCase() : word.toUpperCase(),
       )
       .replace(/\s+/g, "");
 
@@ -217,7 +217,7 @@ const ServerSideTable = React.forwardRef(
         JSON.stringify({
           savedColumnOrder: columnOrder,
           savedColumnVisibility: columnVisibility,
-        })
+        }),
       );
 
       await axiosInstance.post("/Base/SaveTableSettings", formData);
@@ -258,7 +258,7 @@ const ServerSideTable = React.forwardRef(
           false;
 
         const updatedColumns = Object.values(json.columns || {}).map((col) =>
-          col.accessorKey === "sno" ? { ...col, size: 20 } : col
+          col.accessorKey === "sno" ? { ...col, size: 20 } : col,
         );
 
         setHasActions(hasAnyActions);
@@ -279,7 +279,7 @@ const ServerSideTable = React.forwardRef(
             }
           });
           return newOrder.filter((key) =>
-            updatedColumns.some((col) => col.accessorKey === key)
+            updatedColumns.some((col) => col.accessorKey === key),
           );
         });
 
@@ -368,7 +368,7 @@ const ServerSideTable = React.forwardRef(
           formData,
           {
             responseType: "blob",
-          }
+          },
         );
 
         const contentType = response.headers["content-type"];
@@ -382,7 +382,7 @@ const ServerSideTable = React.forwardRef(
         }.${extension}`;
 
         const blobUrl = window.URL.createObjectURL(
-          new Blob([response.data], { type: contentType })
+          new Blob([response.data], { type: contentType }),
         );
         const link = document.createElement("a");
         link.href = blobUrl;
@@ -632,14 +632,14 @@ const ServerSideTable = React.forwardRef(
                 <Box sx={{ display: "flex", gap: 1 }}>
                   {Array.isArray(row.original.customActions) ? (
                     (row.original.customActions || []).map((action, index) => (
-                      <Tooltip key={index} title={action.tooltip} arrow>
+                      <Tooltip key={index} title={action.tooltipText} arrow>
                         <ActionButton
                           variant="contained"
                           sx={{ width: "max-content" }}
                           onClick={() =>
                             actionFunctions[action.actionFunction]?.(
                               row,
-                              action
+                              action,
                             )
                           }
                           aria-label={`${
@@ -714,7 +714,7 @@ const ServerSideTable = React.forwardRef(
         </TableCard>
       </TableContainer>
     );
-  }
+  },
 );
 
 export default ServerSideTable;

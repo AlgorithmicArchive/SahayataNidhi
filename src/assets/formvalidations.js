@@ -52,7 +52,7 @@ export function isAgeGreaterThan(field, value, formData) {
   const compareDate = new Date(
     currentDate.getFullYear() - maxLengthValue,
     currentDate.getMonth(),
-    currentDate.getDate()
+    currentDate.getDate(),
   );
   const inputDate = new Date(value);
   if (inputDate >= compareDate) {
@@ -88,7 +88,7 @@ export async function duplicateAccountNumber(
   field,
   value,
   formData,
-  referenceNumber
+  referenceNumber,
 ) {
   try {
     const bankName =
@@ -100,7 +100,7 @@ export async function duplicateAccountNumber(
         ? formData["Bank Details"][2].value
         : formData.IfscCode;
     const res = await fetch(
-      `/Base/IsDuplicateAccNo?bankName=${bankName}&ifscCode=${ifscCode}&accNo=${value}&applicationId=${referenceNumber}`
+      `/Base/IsDuplicateAccNo?bankName=${bankName}&ifscCode=${ifscCode}&accNo=${value}&applicationId=${referenceNumber}`,
     );
     const data = await res.json();
     if (data.status) {
@@ -117,7 +117,7 @@ export async function validateIfscCode(
   field,
   value,
   formData,
-  referenceNumber
+  referenceNumber,
 ) {
   const bankName =
     formData["BankDetail"] != null
@@ -129,7 +129,7 @@ export async function validateIfscCode(
       : formData.IfscCode;
 
   const res = await fetch(
-    `/Base/ValidateIfscCode?bankName=${bankName}&ifscCode=${ifscCode}`
+    `/Base/ValidateIfscCode?bankName=${bankName}&ifscCode=${ifscCode}`,
   );
 
   const data = await res.json();
@@ -146,6 +146,8 @@ export async function validateFile(field, value) {
     else if (field.accept.includes(".pdf")) formData.append("fileType", "pdf");
     else return;
 
+    const notRequired = !field.validationFunctions.includes("notEmpty");
+
     formData.append("file", value);
 
     const res = await fetch("/Base/Validate", {
@@ -153,7 +155,11 @@ export async function validateFile(field, value) {
       body: formData,
     });
     const data = await res.json();
+    console.log("Repsone", field.name, data, "Value", value);
     if (!data.isValid) {
+      if (data.errorMessage == "No file uploaded." && notRequired) {
+        return true;
+      }
       return data.errorMessage;
     }
     return true;
@@ -188,7 +194,7 @@ export async function tehsilForDistrict(field, districtValue) {
   if (!districtValue) return [];
   try {
     const response = await fetch(
-      `/Base/GetTeshilForDistrict?districtId=${districtValue}`
+      `/Base/GetTeshilForDistrict?districtId=${districtValue}`,
     );
     const data = await response.json();
     if (data.status && Array.isArray(data.tehsils)) {
@@ -209,7 +215,7 @@ export const runValidations = async (
   field,
   value,
   formData,
-  referenceNumber
+  referenceNumber,
 ) => {
   if (!Array.isArray(field.validationFunctions)) return true;
 

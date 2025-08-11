@@ -40,6 +40,7 @@ export default function Incomplete() {
           url="/User/IncompleteApplications"
           extraParams={{}}
           actionFunctions={actionFunctions}
+          Title={"Incomplete Applications"}
         />
       </Box>
       <BasicModal

@@ -80,6 +80,8 @@ namespace SahayataNidhi.Controllers
                 .Where(app => string.IsNullOrWhiteSpace(applicationId) || app.ReferenceNumber != applicationId)
                 .ToList();
 
+            _logger.LogInformation($"----------- Found {otherApplications.Count} other applications for account {accNo}. -----------------");
+
             // If no other applications, then not a duplicate
             if (otherApplications.Count == 0)
             {

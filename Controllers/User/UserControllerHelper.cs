@@ -85,7 +85,7 @@ namespace SahayataNidhi.Controllers.User
             return tehsilName!;
         }
 
-        public int GetCountPerDistrict(int districtId, int serviceId)
+        public int GetCountPerDistrict(int districtId, int serviceId, string? type = "Application")
         {
             var financialYear = helper.GetCurrentFinancialYear();
 
@@ -100,7 +100,7 @@ namespace SahayataNidhi.Controllers.User
             // Call the stored procedure
             dbcontext.Database.ExecuteSqlRaw(
                 "EXEC GetAndIncrementCount @DistrictId = {0}, @ServiceId = {1}, @FinancialYear = {2}, @Type = {3}, @NewCount = @NewCount OUTPUT",
-                districtId, serviceId, financialYear, "Application", newCountParam
+                districtId, serviceId, financialYear, type, newCountParam
             );
 
             // Retrieve the output value
@@ -240,8 +240,22 @@ namespace SahayataNidhi.Controllers.User
                 {
                     var name = sf?.ToString() ?? "";
                     if (string.IsNullOrWhiteSpace(name)) return "";
+
                     var fieldObj = FindFieldRecursively(data, name);
-                    var value = fieldObj == null ? "" : ExtractValueWithSpecials(fieldObj, name);
+                    string value = "";
+
+                    if (fieldObj != null)
+                    {
+                        value = ExtractValueWithSpecials(fieldObj, name);
+
+                        // Check if the field name suggests a date and try to format it
+                        if (name.IndexOf("Date", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                            DateTime.TryParse(value, out DateTime dt))
+                        {
+                            value = dt.ToString("dd MMM yyyy");
+                        }
+                    }
+
                     return string.IsNullOrWhiteSpace(value) ? "" : value;
                 })
                 .ToList();
@@ -287,6 +301,7 @@ namespace SahayataNidhi.Controllers.User
 
             return new { Label = label, Value = result };
         }
+
 
         // Recursive search for a JObject with ["name"] == fieldName
         private static JObject? FindFieldRecursively(JToken token, string fieldName)
@@ -579,6 +594,22 @@ namespace SahayataNidhi.Controllers.User
             return null; // not found
         }
 
+        public async Task<IActionResult> DisplayFile(string fileName)
+        {
+            var fileModel = await dbcontext.UserDocuments
+                .FirstOrDefaultAsync(f => f.FileName == fileName);
 
+            if (fileModel == null)
+            {
+                return NotFound("File not found.");
+            }
+
+            if (!fileModel.FileType.StartsWith("image/") && fileModel.FileType != "application/pdf")
+            {
+                return BadRequest("File is not an image or PDF.");
+            }
+
+            return File(fileModel.FileData, fileModel.FileType);
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
@@ -93,8 +94,6 @@ namespace SahayataNidhi.Controllers.Officer
             // Retrieve the output value
             return (int)newCountParam.Value;
         }
-
-
 
         private dynamic GetFormattedValue(dynamic item, JObject data)
         {
@@ -213,6 +212,47 @@ namespace SahayataNidhi.Controllers.Officer
             }
             return null;
         }
+        private bool UpdateFieldValueRecursively(JToken token, string fieldName, string newValue)
+        {
+            _logger.LogInformation($"------------ TOKEN : {token}  FieldName: {fieldName}  NEW Value: {newValue} ------------------");
+            if (token is JObject obj)
+            {
+                // Check if this object is the target field
+                if (obj["name"]?.ToString() == fieldName)
+                {
+                    // If it's a date, convert to "dd MMM yyyy"
+                    if (DateTime.TryParse(newValue?.ToString(), out DateTime parsedDate))
+                    {
+                        obj["value"] = parsedDate.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+                    }
+                    else
+                    {
+                        obj["value"] = newValue; // Keep original if not a date
+                    }
+                    return true; // Found & updated
+                }
+
+                // Recursively search inside all properties
+                foreach (var prop in obj.Properties())
+                {
+                    if (UpdateFieldValueRecursively(prop.Value, fieldName, newValue))
+                        return true; // Found deeper
+                }
+            }
+            else if (token is JArray arr)
+            {
+                // Search inside array elements
+                foreach (var el in arr)
+                {
+                    if (UpdateFieldValueRecursively(el, fieldName, newValue))
+                        return true;
+                }
+            }
+
+            return false; // Not found in this branch
+        }
+
+
         // Extracts the string value (or does District/Tehsil lookups)
         private string ExtractValueWithSpecials(JObject fieldObj, string fieldName)
         {
@@ -465,9 +505,6 @@ namespace SahayataNidhi.Controllers.Officer
             return null; // Return 0 only if no "sanctioned" status was found
         }
 
-
-
-
         private static string FormatSectionKey(string key)
         {
             if (string.IsNullOrEmpty(key)) return key;
@@ -669,7 +706,7 @@ namespace SahayataNidhi.Controllers.Officer
                     return string.Empty;
             }
         }
-        private void FormatDateFields(JToken formDetails)
+        private static void FormatDateFields(JToken formDetails)
         {
             foreach (var section in formDetails.Children<JProperty>())
             {
@@ -724,12 +761,12 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         // Helper method to build main application counts
-        private List<object> BuildMainApplicationCounts(StatusCounts counts, dynamic authorities)
+        private static List<object> BuildMainApplicationCounts(StatusCounts counts, dynamic authorities)
         {
             var countList = new List<object>
             {
-                new { label = "Total Applications", count = counts.TotalApplications, bgColor = "#000000", textColor = "#FFFFFF" },
-                new { label = "Pending", count = counts.PendingCount, bgColor = "#FFC107", textColor = "#212121" }
+                new { label = "Total Applications", count = counts.TotalApplications, bgColor = "#000000", textColor = "#FFFFFF",tableTitle = "Total Applications" },
+                new { label = "Pending", count = counts.PendingCount, bgColor = "#FFC107", textColor = "#212121" ,tableTitle="Pending Applications"}
             };
 
             if ((bool)authorities.CanForwardToPlayer)
@@ -740,6 +777,7 @@ namespace SahayataNidhi.Controllers.Officer
                     count = counts.ForwardedCount,
                     bgColor = "#64B5F6",
                     textColor = "#0D47A1",
+                    tableTitle = "Forwarded Applications",
                     forwardedSanctionedCount = counts.ForwardedCount > 0 ? counts.ForwardedSanctionedCount : (int?)null
                 });
             }
@@ -751,7 +789,9 @@ namespace SahayataNidhi.Controllers.Officer
                     label = "Returned",
                     count = counts.ReturnedCount,
                     bgColor = "#E0E0E0",
-                    textColor = "#212121"
+                    textColor = "#212121",
+                    tableTitle = "Returned Applications",
+
                 });
             }
 
@@ -763,7 +803,9 @@ namespace SahayataNidhi.Controllers.Officer
                     count = counts.ReturnToEditCount,
                     bgColor = "#CE93D8",
                     textColor = "#4A148C",
-                    tooltipText = "Application is pending at Citizen level for correction."
+                    tooltipText = "Application is pending at Citizen level for correction.",
+                    tableTitle = "Pending With Citizen Applications",
+
                 });
             }
 
@@ -772,7 +814,8 @@ namespace SahayataNidhi.Controllers.Officer
                 label = "Rejected",
                 count = counts.RejectCount,
                 bgColor = "#FF7043",
-                textColor = "#B71C1C"
+                textColor = "#B71C1C",
+                tableTitle = "Rejected Applications",
             });
 
             if ((bool)authorities.CanSanction)
@@ -782,7 +825,8 @@ namespace SahayataNidhi.Controllers.Officer
                     label = "Sanctioned",
                     count = counts.SanctionedCount,
                     bgColor = "#81C784",
-                    textColor = "#1B5E20"
+                    textColor = "#1B5E20",
+                    tableTitle = "Rejected Applications",
                 });
             }
 
@@ -790,27 +834,29 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         // Helper method to build corrigendum counts
-        private List<object> BuildCorrigendumCounts(StatusCounts counts, dynamic authorities)
+        private static List<object> BuildCorrigendumCounts(StatusCounts counts, dynamic authorities)
         {
             var corrigendumList = new List<object>
-    {
-        new
-        {
-            label = "Total Corrigendum",
-            name = "corrigendum",
-            count = counts.CorrigendumCount,
-            bgColor = "#6A1B9A",
-            textColor = "#FFFFFF"
-        },
-        new
-        {
-            label = "Pending",
-            name = "corrigendum",
-            count = counts.CorrigendumPendingCount,
-            bgColor = "#FFC107",
-            textColor = "#212121"
-        }
-    };
+            {
+                new
+                {
+                    label = "Total Corrigendum",
+                    name = "corrigendum",
+                    count = counts.CorrigendumCount,
+                    bgColor = "#6A1B9A",
+                    textColor = "#FFFFFF",
+                    tableTitle = "Total Corrigendum Applications",
+                },
+                new
+                {
+                    label = "Pending",
+                    name = "corrigendum",
+                    count = counts.CorrigendumPendingCount,
+                    bgColor = "#FFC107",
+                    textColor = "#212121",
+                    tableTitle = "Pending Corrigendum Applications",
+                }
+            };
 
             if ((bool)authorities.CanForwardToPlayer)
             {
@@ -820,7 +866,9 @@ namespace SahayataNidhi.Controllers.Officer
                     name = "corrigendum",
                     count = counts.CorrigendumForwardedCount,
                     bgColor = "#64B5F6",
-                    textColor = "#0D47A1"
+                    textColor = "#0D47A1",
+                    tableTitle = "Forwarded Corrigendum Applications",
+
                 });
             }
 
@@ -832,7 +880,8 @@ namespace SahayataNidhi.Controllers.Officer
                     name = "corrigendum",
                     count = counts.CorrigendumReturnedCount,
                     bgColor = "#E0E0E0",
-                    textColor = "#212121"
+                    textColor = "#212121",
+                    tableTitle = "Returned Corrigendum Applications",
                 });
             }
 
@@ -842,7 +891,8 @@ namespace SahayataNidhi.Controllers.Officer
                 name = "corrigendum",
                 count = counts.CorrigendumRejectedCount,
                 bgColor = "#FF7043",
-                textColor = "#B71C1C"
+                textColor = "#B71C1C",
+                tableTitle = "Rejected Corrigendum Applications",
             });
 
             if ((bool)authorities.CanSanction)
@@ -853,7 +903,8 @@ namespace SahayataNidhi.Controllers.Officer
                     name = "corrigendum",
                     count = counts.CorrigendumSanctionedCount,
                     bgColor = "#81C784",
-                    textColor = "#1B5E20"
+                    textColor = "#1B5E20",
+                    tableTitle = "Issued Corrigendum Applications",
                 });
             }
 
@@ -861,7 +912,7 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         // Helper method to build correction counts
-        private List<object> BuildCorrectionCounts(StatusCounts counts, dynamic authorities)
+        private static List<object> BuildCorrectionCounts(StatusCounts counts, dynamic authorities)
         {
             var correctionList = new List<object>
             {
@@ -871,7 +922,8 @@ namespace SahayataNidhi.Controllers.Officer
                     name = "correction",
                     count = counts.CorrectionCount,
                     bgColor = "#6A1B9A",
-                    textColor = "#FFFFFF"
+                    textColor = "#FFFFFF",
+                    tableTitle = "Total Correction Applications",
                 },
                 new
                 {
@@ -879,7 +931,9 @@ namespace SahayataNidhi.Controllers.Officer
                     name = "correction",
                     count = counts.CorrectionPendingCount,
                     bgColor = "#FFC107",
-                    textColor = "#212121"
+                    textColor = "#212121",
+                    tableTitle = "Pending Correction Applications",
+
                 }
             };
 
@@ -891,7 +945,9 @@ namespace SahayataNidhi.Controllers.Officer
                     name = "correction",
                     count = counts.CorrectionForwardedCount,
                     bgColor = "#64B5F6",
-                    textColor = "#0D47A1"
+                    textColor = "#0D47A1",
+                    tableTitle = "Forwarded Correction Applications",
+
                 });
             }
 
@@ -903,7 +959,9 @@ namespace SahayataNidhi.Controllers.Officer
                     name = "correction",
                     count = counts.CorrectionReturnedCount,
                     bgColor = "#E0E0E0",
-                    textColor = "#212121"
+                    textColor = "#212121",
+                    tableTitle = "Returned Correction Applications",
+
                 });
             }
 
@@ -913,7 +971,9 @@ namespace SahayataNidhi.Controllers.Officer
                 name = "correction",
                 count = counts.CorrectionRejectedCount,
                 bgColor = "#FF7043",
-                textColor = "#B71C1C"
+                textColor = "#B71C1C",
+                tableTitle = "Rejected Correction Applications",
+
             });
 
             if ((bool)authorities.CanSanction)
@@ -924,7 +984,9 @@ namespace SahayataNidhi.Controllers.Officer
                     name = "correction",
                     count = counts.CorrectionSanctionedCount,
                     bgColor = "#81C784",
-                    textColor = "#1B5E20"
+                    textColor = "#1B5E20",
+                    tableTitle = "Issued Correction Applications",
+
                 });
             }
 

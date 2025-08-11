@@ -18,11 +18,116 @@ using iText.Kernel.Colors;
 using iText.Layout.Borders;
 using iText.Kernel.Pdf.Canvas;
 using System.Data;
+using System.Dynamic;
 
 namespace SahayataNidhi.Controllers.Officer
 {
     public partial class OfficerController : Controller
     {
+
+        public class LegacyStatusCounts
+        {
+            public int TotalApplications { get; set; }
+            public int RejectCount { get; set; }
+            public int SanctionedCount { get; set; }
+            public int PensionStoppedCount { get; set; }
+
+        }
+
+        public class TemporaryDisability
+        {
+            public int TemporaryDisabilityExpiringSoonCount { get; set; }
+            public int TotalPhysicallyChallengedApplications { get; set; }
+
+        }
+
+
+
+        [HttpGet]
+        public IActionResult GetLegacyCount(int ServiceId)
+        {
+            // Validate officer authentication
+            var officer = GetOfficerDetails();
+            if (officer == null)
+                return Unauthorized("Officer authentication failed.");
+
+            // Validate service
+            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == ServiceId);
+            if (service == null)
+                return NotFound("Service not found.");
+
+            // Parse workflow
+            if (string.IsNullOrEmpty(service.OfficerEditableField))
+                return Json(new { countList = new List<object>(), corrigendumList = new List<object>(), correctionList = new List<object>(), canSanction = false });
+
+
+            // Prepare SQL parameters
+            var sqlParams = new List<SqlParameter>
+            {
+                new SqlParameter("@AccessLevel", officer.AccessLevel),
+                new SqlParameter("@AccessCode", officer.AccessCode ?? (object)DBNull.Value),
+                new SqlParameter("@ServiceId", ServiceId),
+                new SqlParameter("@DivisionCode", officer.AccessLevel == "Division" ? officer.AccessCode : (object)DBNull.Value)
+            };
+
+
+
+            // Execute stored procedures
+            var counts = dbcontext.Database
+                .SqlQueryRaw<LegacyStatusCounts>(
+                    "EXEC GetLegacyStatusCount @AccessLevel, @AccessCode, @ServiceId, @DivisionCode",
+                    sqlParams.ToArray()
+                )
+                .AsEnumerable()
+                .FirstOrDefault() ?? new LegacyStatusCounts();
+
+
+            // Build count lists using a helper function
+            var countList = new List<object>
+            {
+                new
+                {
+                    label = "Total Applications",
+                    count = counts.TotalApplications,
+                    bgColor = "#6A1B9A",
+                    textColor = "#FFFFFF",
+                    tableTitle = "Total Legacy Applications",
+                },
+                new
+                {
+                    label = "Sanctioned",
+                    count = counts.SanctionedCount,
+                    bgColor = "#FFC107",
+                    textColor = "#212121",
+                    tableTitle = "Sanctioned Legacy Applications",
+
+                },
+                 new
+                {
+                    label = "Rejected",
+                    count = counts.RejectCount,
+                    bgColor = "#FFC107",
+                    textColor = "#212121",
+                    tableTitle = "Rejected Legacy Applications",
+
+                },
+                 new
+                {
+                    label = "Pension's Stopped",
+                    count = counts.PensionStoppedCount,
+                    bgColor = "#FFC107",
+                    textColor = "#212121",
+                    tableTitle = "Pension's Stopped Legacy Applications",
+
+                }
+            };
+
+
+            return Json(new
+            {
+                countList,
+            });
+        }
 
         [HttpGet]
         public IActionResult GetApplicationsCount(int ServiceId)
@@ -97,27 +202,96 @@ namespace SahayataNidhi.Controllers.Officer
                 .AsEnumerable()
                 .FirstOrDefault() ?? new ShiftedCountModal();
 
+            var temporaryCount = dbcontext.Database
+               .SqlQueryRaw<TemporaryDisability>(
+                   "EXEC GetTemporaryDisabilityCount @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode",
+                   sqlParams.ToArray()
+               )
+               .AsEnumerable()
+               .FirstOrDefault() ?? new TemporaryDisability();
+
             // Build count lists using a helper function
             var countList = BuildMainApplicationCounts(counts, officerAuthorities);
             var corrigendumList = BuildCorrigendumCounts(counts, officerAuthorities);
             var correctionList = BuildCorrectionCounts(counts, officerAuthorities);
+            var temporaryCountList = new List<dynamic>();
+            var withheldCountList = new List<dynamic>();
 
+            // Add Shifted Count only if count is greater than 0
             if (shiftedCount.ShiftedCount > 0)
             {
                 countList.Add(new
                 {
                     label = "Shifted To Another Location",
                     count = shiftedCount.ShiftedCount,
+                    tableTitle = "Shifted Applications",
                     bgColor = "#ABCDEF",
                     textColor = "#123456"
                 });
             }
+
+            // Add PCP Applications count (always show, even if 0)
+            temporaryCountList.Add(new
+            {
+                label = "PCP Applications",
+                count = temporaryCount.TotalPhysicallyChallengedApplications,
+                tooltipText = "Physically Challenged Applicants",
+                tableTitle = "Total PCP Applications",
+                bgColor = "#ABCDEF",
+                textColor = "#123456"
+            });
+
+            // Add PCP - UDID Card Expiring count (always show, even if 0)
+            temporaryCountList.Add(new
+            {
+                label = "PCP - UDID Card Expiring",
+                count = temporaryCount.TemporaryDisabilityExpiringSoonCount,
+                tooltipText = "Physically Challenged Applicants with Temporary Disability, UDID Card Expiring Soon",
+                tableTitle = "Expiring Eligibility Applications",
+                bgColor = "#ABCDEF",
+                textColor = "#123456"
+            });
+
+            // Add Total Withheld Applications count (always show, even if 0)
+            withheldCountList.Add(new
+            {
+                label = "Total Withheld Applications",
+                count = counts.TotalWithheldCount,
+                tooltipText = "Total Withheld Applications",
+                tableTitle = "Total Withheld Applications",
+                bgColor = "#FFCC00",
+                textColor = "#000000"
+            });
+
+            // Add Temporary Withheld count (always show, even if 0)
+            withheldCountList.Add(new
+            {
+                label = "Temporary Withheld",
+                count = counts.TemporaryWithheldCount,
+                tooltipText = "Temporary Withheld Applications",
+                tableTitle = "Temporary Withheld Applications",
+                bgColor = "#FFCC00",
+                textColor = "#000000"
+            });
+
+            // Add Permanent Withheld count (always show, even if 0)
+            withheldCountList.Add(new
+            {
+                label = "Permanent Withheld",
+                count = counts.PermanentWithheldCount,
+                tooltipText = "Permanent Withheld Applications",
+                tableTitle = "Permanent Withheld Applications",
+                bgColor = "#FFCC00",
+                textColor = "#000000"
+            });
 
             return Json(new
             {
                 countList,
                 corrigendumList,
                 correctionList,
+                temporaryCountList,
+                withheldCountList,
                 canSanction = officerAuthorities.CanSanction,
                 canHavePool = officerAuthorities.CanHavePool,
                 canCorrigendum = officerAuthorities.CanCorrigendum,
@@ -126,7 +300,7 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         [HttpGet]
-        public IActionResult GetApplications(int ServiceId, string type, int pageIndex = 0, int pageSize = 10)
+        public IActionResult GetApplications(int ServiceId, string type, int pageIndex = 0, int pageSize = 10, string? dataType = null)
         {
             var officerDetails = GetOfficerDetails();
 
@@ -138,6 +312,7 @@ namespace SahayataNidhi.Controllers.Officer
             var pageIndexParam = new SqlParameter("@PageIndex", pageIndex);
             var pageSizeParam = new SqlParameter("@PageSize", pageSize);
             var isPaginated = new SqlParameter("@IsPaginated", 1);
+            var dataTypeParam = new SqlParameter("@DataType", (object?)dataType ?? DBNull.Value);
             var totalRecordsParam = new SqlParameter
             {
                 ParameterName = "@TotalRecords",
@@ -190,10 +365,12 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 // Use new paginated SP with output param
                 response = dbcontext.CitizenApplications
-                    .FromSqlRaw("EXEC GetApplicationsForOfficer @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
-                        role, accessLevel, accessCode, applicationStatus, serviceId,
-                        pageIndexParam, pageSizeParam, isPaginated, totalRecordsParam)
-                    .ToList();
+             .FromSqlRaw(
+                 "EXEC GetApplicationsForOfficer @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @TotalRecords OUTPUT",
+                 role, accessLevel, accessCode, applicationStatus, serviceId,
+                 pageIndexParam, pageSizeParam, isPaginated, dataTypeParam, totalRecordsParam
+             )
+             .ToList();
             }
 
             int totalRecords = type == "shifted" ? response.Count : (int)totalRecordsParam.Value;
@@ -203,8 +380,9 @@ namespace SahayataNidhi.Controllers.Officer
             [
                 new { accessorKey = "referenceNumber", header = "Reference Number" },
                 new { accessorKey = "applicantName", header = "Applicant Name" },
-                new {accessorKey="serviceName", header = "Service Name" },
+                new { accessorKey="serviceName", header = "Service Name" },
                 new { accessorKey = "status", header = "Application Status" },
+                // new { accessorKey="legacydata",header="Legacy Data"},
                 new { accessorKey = "submissionDate", header = "Submission Date" },
 
             ];
@@ -231,6 +409,7 @@ namespace SahayataNidhi.Controllers.Officer
                 string serviceName = dbcontext.Services.FirstOrDefault(s => s.ServiceId == details.ServiceId)!.ServiceName!;
                 var corrigendums = dbcontext.Corrigenda.Where(co => co.ReferenceNumber == details.ReferenceNumber).ToList();
                 List<string> corrigendumIds = new List<string>();
+
 
                 foreach (var item in corrigendums)
                 {
@@ -284,13 +463,14 @@ namespace SahayataNidhi.Controllers.Officer
                         actionFunction = "handleViewApplication"
                     });
 
-                    customActions.Add(new
-                    {
-                        type = "DownloadSL",
-                        tooltip = "View SL",
-                        color = "#F0C38E",
-                        actionFunction = "handleViewPdf"
-                    });
+                    // if (details.DataType != "legacy")
+                    //     customActions.Add(new
+                    //     {
+                    //         type = "DownloadSL",
+                    //         tooltip = "View SL",
+                    //         color = "#F0C38E",
+                    //         actionFunction = "handleViewPdf"
+                    //     });
 
                     foreach (string id in corrigendumIds)
                     {
@@ -305,15 +485,24 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                 }
 
+                var excludedStatuses = new[] { "Rejected", "Sanctioned", "Initiated" };
+                bool IsError = excludedStatuses.Contains(details.Status);
+                _logger.LogInformation($"-------- IS ERORR: {IsError} ----------------------------");
+                if (!IsError)
+                {
+                    customActions.Clear();
+                }
 
+                string? Status = IsError ? rawStatus == "returntoedit" ? "Pending With Citizen" : char.ToUpper(rawStatus[0]) + rawStatus.Substring(1) : details.Status;
                 var applicationObject = new
                 {
                     referenceNumber = details.ReferenceNumber,
                     applicantName = GetFieldValue("ApplicantName", formDetails),
                     submissionDate = details.CreatedAt,
                     serviceName,
-                    status = rawStatus == "returntoedit" ? "Pending With Citizen" : char.ToUpper(rawStatus[0]) + rawStatus.Substring(1),
+                    status = Status,
                     serviceId = details.ServiceId,
+                    // legacydata = details.DataType == "legacy" ? "YES" : "NO",
                     customActions
                 };
 
@@ -342,6 +531,119 @@ namespace SahayataNidhi.Controllers.Officer
                 totalRecords,
                 canSanction = (bool)authorities.canSanction
             });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTemporaryDisability(string? ServiceId, string type, int pageIndex = 0, int pageSize = 10)
+        {
+            var officer = GetOfficerDetails();
+            int serviceId;
+            try
+            {
+                serviceId = Convert.ToInt32(ServiceId);
+            }
+            catch
+            {
+                return BadRequest("Invalid ServiceId");
+            }
+
+            string accessLevel = officer.AccessLevel!; // Adjust based on context or pass as parameter
+            int? accessCode = officer.AccessCode; // Adjust based on context or pass as parameter
+            string takenBy = officer.Role!; // Adjust based on context or pass as parameter
+            int? divisionCode = null; // Adjust based on context or pass as parameter
+            string resultType = type == "totalpcpapplication" ? "totalpcpapplication" : "expiringeligibility";
+
+            // Validate pagination parameters
+            if (pageIndex < 0) pageIndex = 0;
+            if (pageSize < 1) pageSize = 10;
+
+            // Execute stored procedure
+            var applications = await dbcontext.CitizenApplications
+                .FromSqlRaw("EXEC [dbo].[GetDisabilityApplications] @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode, @ResultType, @PageNumber, @PageSize",
+                    new SqlParameter("@AccessLevel", accessLevel),
+                    new SqlParameter("@AccessCode", accessCode),
+                    new SqlParameter("@ServiceId", serviceId),
+                    new SqlParameter("@TakenBy", takenBy),
+                    new SqlParameter("@DivisionCode", divisionCode ?? (object)DBNull.Value),
+                    new SqlParameter("@ResultType", resultType),
+                    new SqlParameter("@PageNumber", pageIndex + 1), // SQL uses 1-based indexing
+                    new SqlParameter("@PageSize", pageSize))
+                .ToListAsync();
+
+
+
+            // Commented out as per request
+            var serviceName = await dbcontext.Services
+                .Where(s => s.ServiceId == serviceId)
+                .Select(s => s.ServiceName)
+                .FirstOrDefaultAsync() ?? "Unknown Service";
+
+            List<dynamic> data = new List<dynamic>();
+
+            List<dynamic> columns = new List<dynamic>
+            {
+                new { accessorKey = "referenceNumber", header = "Reference Number" },
+                new { accessorKey = "applicantName", header = "Applicant Name" },
+                new { accessorKey = "serviceName", header = "Service Name" },
+            };
+
+            if (type == "totalpcpapplication")
+            {
+                columns.Add(new { accessorKey = "applicationType", header = "UDID Card Type" });
+            }
+            else
+            {
+                columns.Add(new { accessorKey = "expiryDate", header = "UDID Card Expiry Date" });
+                columns.Add(new { accessorKey = "noOfMailSent", header = "No. Of Reminder Mails Sent to Citizen" });
+
+            }
+
+
+            foreach (var application in applications)
+            {
+                var formDetailsObj = JToken.Parse(application.FormDetails ?? "{}");
+                string applicantName = GetFieldValue("ApplicantName", formDetailsObj);
+
+                var customActions = new List<dynamic>
+                {
+                    new
+                    {
+                        type = "SendEmail",
+                        tooltip = "Send Reminder Email",
+                        tooltipText = "Send Reminder Mail to Citizen",
+                        color = "#F0C38E",
+                        actionFunction = "sendExpirationEmail"
+                    }
+                };
+
+                dynamic applicationObject = new ExpandoObject();
+                applicationObject.referenceNumber = application.ReferenceNumber;
+                applicationObject.applicantName = applicantName;
+                applicationObject.serviceName = serviceName;
+
+                if (type == "totalpcpapplication")
+                {
+                    var disabilityType = FindFieldRecursively(formDetailsObj, "KindOfDisability")!;
+                    _logger.LogInformation($"-------------------- Disability Type: {disabilityType["value"]} -----------------------");
+                    applicationObject.applicationType = disabilityType["value"];
+                }
+                else
+                {
+                    var expiringApplication = dbcontext.ApplicationsWithExpiringEligibilities
+                      .FirstOrDefault(ae => ae.ReferenceNumber == application.ReferenceNumber);
+                    DateTime expirationDate = DateTime.Parse(expiringApplication?.ExpirationDate!);
+                    int daysLeft = (expirationDate.Date - DateTime.Today).Days;
+                    applicationObject.expiryDate = expirationDate.ToString("dd/MM/yyyy") + $" ({daysLeft} days left)";
+                    applicationObject.noOfMailSent = expiringApplication!.MailSent;
+                    applicationObject.customActions = customActions;
+
+                }
+
+
+                data.Add(applicationObject);
+            }
+
+            return Json(new { data, columns, totalrecords = applications.Count() });
         }
 
         [HttpGet]
@@ -449,6 +751,8 @@ namespace SahayataNidhi.Controllers.Officer
                    OfficerAccessLevel, OfficerAccessCode, ReferenceNumber, Status, new SqlParameter("@CorrigendumId", DBNull.Value), Type, OfficerRole)
                .ToList();
 
+            var formDetailsToken = JToken.Parse(details.FormDetails!);
+
             bool hasPending = false;
             if (IsCorrigendumPending.Count != 0)
             {
@@ -458,6 +762,22 @@ namespace SahayataNidhi.Controllers.Officer
                     var workflowArray = JArray.Parse(application.WorkFlow);
                     hasPending = workflowArray.Any(item => string.Equals((string)item["status"]!, "pending", StringComparison.OrdinalIgnoreCase));
                     type = application.Type!;
+                    if (application.Status == "Sanctioned")
+                    {
+                        var corrigendumFields = JObject.Parse(application.CorrigendumFields);
+
+                        foreach (var field in corrigendumFields.Properties())
+                        {
+                            if (field.Name == "Files")
+                                continue;
+
+                            var newValue = field.Value["new_value"]?.ToString();
+                            if (!string.IsNullOrEmpty(newValue))
+                            {
+                                UpdateFieldValueRecursively(formDetailsToken, field.Name, newValue);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -465,7 +785,6 @@ namespace SahayataNidhi.Controllers.Officer
             var serviceDetails = dbcontext.Services.FirstOrDefault(s => s.ServiceId == details.ServiceId);
             bool isSanctioned = details.Status == "Sanctioned";
             // Deserialize
-            var formDetailsToken = JToken.Parse(details.FormDetails!);
             formDetailsToken = ReorderFormDetails(formDetailsToken, applicationId, isSanctioned);
             var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails!);
 
@@ -495,6 +814,7 @@ namespace SahayataNidhi.Controllers.Officer
                 isSanctioned
             });
         }
+
         [HttpGet]
         public async Task<IActionResult> GetSanctionLetter(string applicationId)
         {
@@ -1437,6 +1757,10 @@ namespace SahayataNidhi.Controllers.Officer
                     string officerArea = GetOfficerArea(creationOfficerDesignation, JObject.Parse(citizenApp.FormDetails!));
                     var customActions = new List<dynamic>();
 
+                    var history = JArray.Parse(application.History!);
+                    var firstAction = history[0];
+
+
                     var currentOfficer = workFlow!.FirstOrDefault(o => (string)o["designation"]! == officer.Role);
 
                     // Add Pull if applicable
@@ -1458,7 +1782,7 @@ namespace SahayataNidhi.Controllers.Officer
                        .FirstOrDefault(item => (string)item["designation"]! == officer.Role);
 
 
-                        bool isToEdit = matchedItem != null && (string?)matchedItem["status"] == "pending" && (int?)matchedItem["playerId"] == application.CurrentPlayer && authorities != null && (bool)authorities!.canCorrigendum;
+                        bool isToEdit = matchedItem != null && (string?)matchedItem["status"] == "pending" && (int?)matchedItem["playerId"] == application.CurrentPlayer && authorities != null && (bool)authorities!.canCorrigendum && (string)firstAction["actionTaker"]! != "Citizen";
                         string actionFunction = isToEdit ? "handleEditCorrigendumApplication" : "handleViewCorrigendumApplication";
                         customActions.Add
                         (
@@ -1479,7 +1803,7 @@ namespace SahayataNidhi.Controllers.Officer
                     {
                         referenceNumber = application.ReferenceNumber,
                         applicationId = application.CorrigendumId,
-                        creationOfficer = creationOfficerDesignation + " " + officerArea,
+                        createdBy = (string)firstAction["actionTaken"]! == "Citizen" ? "Citizent" : creationOfficerDesignation + " " + officerArea,
                         applicantName = GetFieldValue("ApplicantName", formDetails),
                         creationDate = application.CreatedAt.ToString("dd MMM yyyy hh:mm:ss tt"),
                         applicationType = applicationType,
@@ -1492,7 +1816,7 @@ namespace SahayataNidhi.Controllers.Officer
             List<dynamic> columns = new List<dynamic>
             {
                 new { accessorKey = "applicationId", header = applicationType + " Id" },
-                new { accessorKey = "creationOfficer", header = "Creation Officer" },
+                new { accessorKey = "createdBy", header = "Creation Officer" },
                 new { accessorKey = "applicantName", header = "Applicant Name" },
                 new { accessorKey = "creationDate", header = applicationType + " Creation Date" },
                 new { accessorKey = "applicationType", header = "Application Type" }
@@ -1519,8 +1843,6 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 return Unauthorized();
             }
-
-
 
             var officerAccessLevel = new SqlParameter("@OfficerAccessLevel", officer.AccessLevel);
             var officerAccessCode = new SqlParameter("@OfficerAccessCode", officer.AccessCode);
@@ -1605,6 +1927,8 @@ namespace SahayataNidhi.Controllers.Officer
                 string prevOfficerDesignation = (string)prevOfficer["designation"]!;
                 string officerArea = GetOfficerArea(prevOfficerDesignation, formDetails);
 
+
+
                 actions.Add(new { label = $"Return to {prevOfficerDesignation} {officerArea}", value = "return" });
                 if (sanctionOfficer == null && type == "Correction")
                 {
@@ -1622,12 +1946,12 @@ namespace SahayataNidhi.Controllers.Officer
                 string nextOfficerDesignation = (string)nextOfficer["designation"]!;
                 string officerArea = GetOfficerArea(nextOfficerDesignation, formDetails);
 
-                actions.Add(new { label = "Forward", value = "forward" });
+                actions.Add(new { label = $"Forward to {nextOfficerDesignation} {officerArea}", value = "forward" });
             }
 
             List<dynamic> columns = [
                 new { accessorKey = "sno", header = "S.No." },
-            new { accessorKey = "officer", header = "Officer" },
+            new { accessorKey = "actionTaker", header = "Action Taker" },
             new { accessorKey = "actionTaken", header = "Action Taken" },
             new { accessorKey = "remarks", header = "Remarks" },
             new { accessorKey = "actionTakenOn", header = "Action Taken On" },
@@ -1640,20 +1964,23 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 foreach (var item in history)
                 {
-                    string officerName = item["officer"]?.ToString() ?? "Unknown";
+                    string officerName = item["actionTaker"]?.ToString() ?? "Unknown";
                     string status = item["status"]?.ToString() ?? "Unknown";
                     string historyRemarks = item["remarks"]?.ToString() ?? "";
                     string actionTakenOn = item["actionTakenOn"]?.ToString() ?? "";
-                    string[] words = officerName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    string firstThreeWords = string.Join(" ", words.Take(4));
-                    _logger.LogInformation($"Officer Name: {officerName} First Three Words: {firstThreeWords}");
+                    if (!officerName.Contains("Citizen"))
+                    {
 
-                    var designation = dbcontext.OfficersDesignations
-                        .FirstOrDefault(od => od.Designation == firstThreeWords);
+                        string[] words = officerName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        string firstThreeWords = string.Join(" ", words.Take(4));
+                        _logger.LogInformation($"Officer Name: {officerName} First Three Words: {firstThreeWords}");
 
-                    roleShort = designation?.DesignationShort ?? "Unknown";
-                    _logger.LogInformation($"Role Short: {roleShort}");
+                        var designation = dbcontext.OfficersDesignations
+                            .FirstOrDefault(od => od.Designation == firstThreeWords);
 
+                        roleShort = designation?.DesignationShort ?? "Unknown";
+                        _logger.LogInformation($"Role Short: {roleShort}");
+                    }
                     data.Add(new
                     {
                         sno = index,
@@ -1674,7 +2001,7 @@ namespace SahayataNidhi.Controllers.Officer
                     data.Add(new
                     {
                         sno = index,
-                        officer = item["designation"] + " " + GetOfficerArea(item["designation"].ToString(), formdetails),
+                        actionTaker = item["designation"] + " " + GetOfficerArea(item["designation"].ToString(), formdetails),
                         actionTaken = item["status"],
                         remarks = item["remarks"],
                         actionTakenOn = item["completedAt"]
@@ -1685,9 +2012,9 @@ namespace SahayataNidhi.Controllers.Officer
 
             List<dynamic> fieldColumns = [
                 new { accessorKey = "formField", header = "Description" },
-            new { accessorKey = "oldvalue", header = "As Existing" },
-            new { accessorKey = "newvalue", header = "As Corrected" },
-        ];
+                    new { accessorKey = "oldvalue", header = "As Existing" },
+                    new { accessorKey = "newvalue", header = "As Corrected" },
+                ];
 
             var fieldsData = new List<dynamic>();
             var stack = new Stack<(string path, JToken field)>();
@@ -1707,8 +2034,19 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 var (path, field) = stack.Pop();
                 string header = Regex.Replace(path, "(\\B[A-Z])", " $1");
+
                 string oldValue = field["old_value"]?.ToString() ?? "";
                 string newValue = field["new_value"]?.ToString() ?? "";
+
+                // 🔁 Check for "Date" in the path and format oldValue/newValue
+                if (path.IndexOf("Date", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    if (DateTime.TryParse(oldValue, out DateTime oldDt))
+                        oldValue = oldDt.ToString("dd MMM yyyy");
+
+                    if (DateTime.TryParse(newValue, out DateTime newDt))
+                        newValue = newDt.ToString("dd MMM yyyy");
+                }
 
                 fieldsData.Add(new
                 {
@@ -1728,9 +2066,25 @@ namespace SahayataNidhi.Controllers.Officer
                 }
             }
 
+
             var corFiles = corrigendumFields?["Files"] as JObject;
             _logger.LogInformation($"Cor Files: {corFiles}");
-            var files = corFiles?.ContainsKey(roleShort) ?? false ? corFiles[roleShort] : "NO FILES";
+
+            var allFiles = corFiles?
+                .Properties()
+                .SelectMany(p => p.Value is JArray arr
+                    ? arr.Select(f => f?.ToString()).Where(f => !string.IsNullOrWhiteSpace(f))
+                    : Enumerable.Empty<string>())
+                .ToList() ?? new List<string>()!;
+
+            if (!allFiles.Any())
+            {
+                allFiles.Add("NO FILES");
+            }
+
+            _logger.LogInformation($"All Files: {string.Join(", ", allFiles)}");
+
+
 
             return Json(new
             {
@@ -1742,12 +2096,12 @@ namespace SahayataNidhi.Controllers.Officer
                 actions,
                 remarks,
                 corrigendumApplication.CorrigendumId,
-                files
+                files = allFiles
             });
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCorrigendumSanctionLetter(string applicationId, string corrigendumId)
+        public async Task<IActionResult> GetCorrigendumSanctionLetter(string referenceNumber, string corrigendumId)
         {
             try
             {
@@ -1758,13 +2112,13 @@ namespace SahayataNidhi.Controllers.Officer
                 }
 
                 var corrigendum = dbcontext.Corrigenda
-                    .FirstOrDefault(c => c.ReferenceNumber == applicationId && c.CorrigendumId == corrigendumId);
+                    .FirstOrDefault(c => c.ReferenceNumber == referenceNumber && c.CorrigendumId == corrigendumId);
                 if (corrigendum == null)
                 {
                     return NotFound("Corrigendum not found.");
                 }
 
-                var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
+                var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
                 if (application == null)
                 {
                     return NotFound("Citizen application not found.");
@@ -1791,7 +2145,7 @@ namespace SahayataNidhi.Controllers.Officer
 
                 await _pdfService.CreateCorrigendumSanctionPdf(
                     corrigendumFieldsObj.ToString(),
-                    applicationId,
+                    referenceNumber,
                     officer,
                     service.ServiceName!,
                     corrigendumId,

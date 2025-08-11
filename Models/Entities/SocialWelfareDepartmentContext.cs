@@ -19,6 +19,8 @@ public partial class SocialWelfareDepartmentContext : DbContext
 
     public virtual DbSet<ApplicationPerDistrict> ApplicationPerDistricts { get; set; }
 
+    public virtual DbSet<ApplicationsWithExpiringEligibility> ApplicationsWithExpiringEligibilities { get; set; }
+
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
     public virtual DbSet<BankDetail> BankDetails { get; set; }
@@ -62,6 +64,8 @@ public partial class SocialWelfareDepartmentContext : DbContext
     public virtual DbSet<Ward> Wards { get; set; }
 
     public virtual DbSet<WebService> WebServices { get; set; }
+
+    public virtual DbSet<WithheldApplication> WithheldApplications { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=DefaultConnection");
@@ -107,6 +111,23 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Type).HasMaxLength(30);
+        });
+
+        modelBuilder.Entity<ApplicationsWithExpiringEligibility>(entity =>
+        {
+            entity.HasKey(e => e.ExpiringId);
+
+            entity.ToTable("ApplicationsWithExpiringEligibility");
+
+            entity.Property(e => e.ExpiringId).HasColumnName("Expiring_Id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("Created_At");
+            entity.Property(e => e.ExpirationDate)
+                .HasMaxLength(100)
+                .HasColumnName("Expiration_Date");
+            entity.Property(e => e.MailSent).HasColumnName("Mail_Sent");
+            entity.Property(e => e.ReferenceNumber).HasMaxLength(50);
         });
 
         modelBuilder.Entity<AuditLog>(entity =>
@@ -210,15 +231,9 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("Created_at");
-            entity.Property(e => e.DeptVerified).HasDefaultValue(false);
+            entity.Property(e => e.DataType).HasMaxLength(20);
             entity.Property(e => e.DistrictUidForBank)
                 .HasMaxLength(6)
-                .IsUnicode(false);
-            entity.Property(e => e.Status)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.VerifiedByDeptOn)
-                .HasMaxLength(50)
                 .IsUnicode(false);
         });
 
@@ -586,6 +601,20 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_WebService_Services");
+        });
+
+        modelBuilder.Entity<WithheldApplication>(entity =>
+        {
+            entity.HasKey(e => e.WithheldId);
+
+            entity.ToTable("Withheld_Applications");
+
+            entity.Property(e => e.WithheldId).HasColumnName("Withheld_Id");
+            entity.Property(e => e.MailSentToCitizen).HasDefaultValue(0);
+            entity.Property(e => e.ReferenceNumber).HasMaxLength(50);
+            entity.Property(e => e.WithheldOn).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.WithheldReason).HasColumnType("text");
+            entity.Property(e => e.WithheldType).HasMaxLength(20);
         });
 
         OnModelCreatingPartial(modelBuilder);

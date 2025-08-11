@@ -719,7 +719,7 @@ export default function UserDetails() {
         role="main"
         aria-labelledby="user-details-title"
       >
-        <Typography
+        {/* <Typography
           variant="h4"
           sx={{
             fontWeight: 700,
@@ -730,7 +730,7 @@ export default function UserDetails() {
           }}
         >
           Citizen Application Details
-        </Typography>
+        </Typography> */}
         <CollapsibleFormDetails
           formDetails={formDetails}
           formatKey={formatKey}
@@ -740,7 +740,7 @@ export default function UserDetails() {
           applicationId={applicationId}
         />
 
-        <Typography
+        {/* <Typography
           variant="h4"
           id="user-details-title"
           sx={{
@@ -751,7 +751,7 @@ export default function UserDetails() {
           }}
         >
           Application Movement History
-        </Typography>
+        </Typography> */}
         <CollapsibleActionHistory
           detailsOpen={historyOpen}
           setDetailsOpen={setHistoryOpen}

@@ -530,6 +530,32 @@ namespace SahayataNidhi.Controllers.Officer
                     corrigendumFields["Files"] = filesObj;
                 }
 
+                if (corrigendumFields["IfTemporaryDisabilityUdidCardValidUpto"] is JObject fieldObj)
+                {
+                    var newValue = fieldObj["new_value"]?.ToString();
+
+                    if (!string.IsNullOrWhiteSpace(newValue))
+                    {
+                        var expiring = dbcontext.ApplicationsWithExpiringEligibilities
+                            .FirstOrDefault(ae => ae.ReferenceNumber == referenceNumber);
+
+                        if (expiring != null)
+                        {
+                            expiring.ExpirationDate = newValue;
+                            dbcontext.SaveChanges();
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"No expiring eligibility found for reference {referenceNumber}.");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Field 'new_value' is null or empty for 'IfTemporaryDisabilityUdidCardValidUpto'.");
+                    }
+                }
+
+
                 var roleKey = officer.RoleShort!;
                 var newFiles = new JArray(Files.Select(Path.GetFileName));
                 if (filesObj[roleKey] is JArray existingFiles)
@@ -563,9 +589,10 @@ namespace SahayataNidhi.Controllers.Officer
         {
             try
             {
-                if (form == null || !form.Files.Any() || string.IsNullOrEmpty(form["applicationId"]) || string.IsNullOrEmpty(form["corrigendumId"]) || string.IsNullOrEmpty(form["type"]))
+                _logger.LogInformation($"----------------- IS Form NULL : {form == null} IS File Available :{form!.Files.Any()} IS Refernce Number Empty: {string.IsNullOrEmpty(form["referenceNumber"])} IS Corrigendum : {string.IsNullOrEmpty(form["corrigendumId"])} IS Type : {string.IsNullOrEmpty(form["type"])} ---------------------------");
+                if (form == null || !form.Files.Any() || string.IsNullOrEmpty(form["referenceNumber"]) || string.IsNullOrEmpty(form["corrigendumId"]) || string.IsNullOrEmpty(form["type"]))
                 {
-                    _logger.LogWarning("Missing form data for UpdateCorrigendumPdf. Form: {Form}", form);
+                    _logger.LogInformation("---------------- Missing form data for UpdateCorrigendumPdf. Form: {Form} -----------------------", form);
                     return BadRequest(new { status = false, response = "Missing form data, file, or type." });
                 }
 
@@ -584,7 +611,7 @@ namespace SahayataNidhi.Controllers.Officer
 
 
                 var signedPdf = form.Files["signedPdf"];
-                var applicationId = form["applicationId"].ToString();
+                var applicationId = form["referenceNumber"].ToString();
                 var corrigendumId = form["corrigendumId"].ToString();
 
                 if (signedPdf == null || signedPdf.Length == 0)
@@ -662,5 +689,47 @@ namespace SahayataNidhi.Controllers.Officer
                 return StatusCode(500, new { status = false, response = $"An error occurred while updating the {form["type"]} PDF: {ex.Message}" });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> SendExpirationEmail([FromForm] IFormCollection form)
+        {
+            string referenceNumber = form["referenceNumber"].ToString();
+            string expirationDate = form["expirationDate"].ToString();
+            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            var formDetailsJson = JObject.Parse(application!.FormDetails!);
+            string email = GetFieldValue("Email", formDetailsJson);
+            string applicantName = GetFieldValue("ApplicantName", formDetailsJson);
+            DateTime parsedExpirationDate = DateTime.Parse(expirationDate);
+            string htmlMessage = $@"
+            <div style='font-family: Arial, sans-serif;'>
+                <h2 style='color: #2e6c80;'>UDID Card Validity Expiring</h2>
+                <p><strong>{applicantName}</strong>,</p>
+                <p>
+                    This is a reminder that your UDID Card linked to application reference number 
+                    <strong>{referenceNumber}</strong> is expiring on <strong>{parsedExpirationDate.ToString("dd MMM yyyy")}</strong>.
+                </p>
+                <p>
+                    Please renew your UDID card and update your application if a new one has been issued.
+                    This is necessary to continue receiving financial assistance without interruption.
+                </p>
+                <p>
+                    You can log into the citizen portal and update your UDID card details at your earliest convenience.
+                </p>
+                <p>
+                    If you've already renewed your UDID card, kindly ignore this message.
+                </p>
+                <br />
+                <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
+            </div>";
+
+            var expiringApplications = dbcontext.ApplicationsWithExpiringEligibilities.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+            expiringApplications!.MailSent = expiringApplications.MailSent + 1;
+            dbcontext.SaveChanges();
+
+            await emailSender.SendEmail(email, "Important: UDID Card Validity Expiring", htmlMessage);
+
+            return Json(new { status = true, message = "Email Sent Successfully" });
+        }
+
     }
 }

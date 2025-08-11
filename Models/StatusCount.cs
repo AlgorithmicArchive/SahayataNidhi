@@ -20,4 +20,7 @@ public class StatusCounts
     public int CorrectionReturnedCount { get; set; }
     public int CorrectionRejectedCount { get; set; }
     public int CorrectionSanctionedCount { get; set; }
+    public int TotalWithheldCount { get; set; }
+    public int TemporaryWithheldCount { get; set; }
+    public int PermanentWithheldCount { get; set; }
 }

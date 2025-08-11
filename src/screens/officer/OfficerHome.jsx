@@ -22,7 +22,6 @@ import {
   Card,
   Tooltip as MuiTooltip,
   CardContent,
-  Avatar,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import axiosInstance from "../../axiosConfig";
@@ -73,6 +72,7 @@ ChartJS.register(
 // Styled components
 const StatCard = styled(Card)(({ theme }) => ({
   minWidth: 250,
+  border: "1px solid black",
   borderRadius: "16px",
   boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
   transition: "transform 0.3s ease, box-shadow 0.3s ease",
@@ -109,16 +109,17 @@ const StyledDialog = styled(Dialog)`
   }
 `;
 
-const StyledCard = styled(Card)`
-  background: linear-gradient(135deg, #ffffff, #f8f9fa);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
-  }
-`;
+const StyledCard = styled(Card)(({ theme }) => ({
+  background: "linear-gradient(135deg, #ffffff, #f8f9fa)",
+  border: "1px solid black",
+  borderRadius: "16px",
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+  "&:hover": {
+    transform: "translateY(-5px)",
+    boxShadow: "0 6px 25px rgba(0, 0, 0, 0.15)",
+  },
+}));
 
 export default function OfficerHome() {
   const [services, setServices] = useState([]);
@@ -126,6 +127,9 @@ export default function OfficerHome() {
   const [countList, setCountList] = useState([]);
   const [corrigendumList, setCorrigendumList] = useState([]);
   const [correctionList, setCorrectionList] = useState([]);
+  const [legacyCountList, setLegacyCountList] = useState([]); // New state for legacy counts
+  const [temporaryCountList, setTemporaryCountList] = useState([]);
+  const [withheldCountList, setWithheldCountList] = useState([]);
   const [counts, setCounts] = useState({
     total: 0,
     pending: 0,
@@ -137,10 +141,14 @@ export default function OfficerHome() {
     shiftedCount: 0,
     corrigendumCount: 0,
     correctionCount: 0,
+    legacyTotal: 0,
+    legacyRejected: 0,
+    legacySanctioned: 0,
   });
   const [canSanction, setCanSanction] = useState(false);
   const [canHavePool, setCanHavePool] = useState(false);
   const [type, setType] = useState("");
+  const [dataType, setDataType] = useState("new"); // New state for data type (new/legacy)
   const [showTable, setShowTable] = useState(false);
   const [selectedAction, setSelectedAction] = useState("Sanction");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -166,11 +174,11 @@ export default function OfficerHome() {
   const [pullRow, setPullRow] = useState({});
   const [url, setUrl] = useState("/Officer/GetApplications");
   const [applicationType, setApplicationType] = useState("application");
+  const [tableTitle, setTableTitle] = useState(null);
 
   const tableRef = useRef(null);
   const tableInstanceRef = useRef(null);
   const navigate = useNavigate();
-
   const { setOfficerAuthorities, officerAuthorities } = useContext(UserContext);
 
   const {
@@ -182,7 +190,7 @@ export default function OfficerHome() {
   const iconMap = useMemo(
     () => ({
       "Total Applications": (
-        <AssignmentTurnedIn sx={{ fontSize: 28, color: "inherit" }} />
+        <EditNote sx={{ fontSize: 28, color: "inherit" }} />
       ),
       Pending: <HourglassEmpty sx={{ fontSize: 28, color: "inherit" }} />,
       Forwarded: <Forward sx={{ fontSize: 28, color: "inherit" }} />,
@@ -196,11 +204,14 @@ export default function OfficerHome() {
       ),
       "Total Corrigendum": <EditNote sx={{ fontSize: 28, color: "inherit" }} />,
       "Total Correction": <EditNote sx={{ fontSize: 28, color: "inherit" }} />,
-      Pending: <HourglassEmpty sx={{ fontSize: 28, color: "inherit" }} />,
-      Forwarded: <Forward sx={{ fontSize: 28, color: "inherit" }} />,
-      Returned: <Reply sx={{ fontSize: 28, color: "inherit" }} />,
-      Rejected: <Cancel sx={{ fontSize: 28, color: "inherit" }} />,
       Issued: <CheckCircle sx={{ fontSize: 28, color: "inherit" }} />,
+      "Total Withheld Applications": (
+        <EditNote sx={{ fontSize: 28, color: "inherit" }} />
+      ),
+      "Temporary Withheld": (
+        <HourglassEmpty sx={{ fontSize: 28, color: "inherit" }} />
+      ),
+      "Permanent Withheld": <Cancel sx={{ fontSize: 28, color: "inherit" }} />,
     }),
     [],
   );
@@ -212,16 +223,19 @@ export default function OfficerHome() {
       Forwarded: "#C2EDFE",
       Returned: "#C2EDFE",
       "Pending With Citizen": "#DAC2FE",
+      "Pendig With Citizen": "#DAC2FE",
       Rejected: "#FEC2C2",
       Sanctioned: "#C9F2CA",
       "Shifted To Another Location": "#00897B",
       "Total Corrigendum": "#C2D0FF",
       "Total Correction": "#C2D0FF",
-      Pending: "#EBFFC2",
-      Forwarded: "#C2EDFE",
-      Returned: "#C2EDFE",
-      Rejected: "#FEC2C2",
       Issued: "#C9F2CA",
+      "Pension's Stopped": "#DAC2FE",
+      "PCP Applications": "#C2D0FF",
+      "PCP - UDID Card Expiring": "#C9F2CA",
+      "Total Withheld Applications": "#C2D0FF",
+      "Temporary Withheld": "#EBFFC2",
+      "Permanent Withheld": "#FEC2C2",
     }),
     [],
   );
@@ -239,11 +253,13 @@ export default function OfficerHome() {
       "Shifted To Another Location": "#000000",
       "Total Corrigendum": "#000000",
       "Total Correction": "#000000",
-      Pending: "#000000",
-      Forwarded: "#000000",
-      Returned: "#000000",
-      Rejected: "#000000",
       Issued: "#000000",
+      "Pension's Stopped": "#000000",
+      "PCP Applications": "#000000",
+      "PCP - UDID Card Expiring": "#000000",
+      "Total Withheld Applications": "#000000",
+      "Temporary Withheld": "#000000",
+      "Permanent Withheld": "#000000",
     }),
     [],
   );
@@ -256,6 +272,8 @@ export default function OfficerHome() {
       try {
         setServiceId(newServiceId);
         setLastServiceId(newServiceId);
+
+        // Fetch new application counts
         const response = await axiosInstance.get(
           "/Officer/GetApplicationsCount",
           {
@@ -265,10 +283,22 @@ export default function OfficerHome() {
         setCountList(response.data.countList);
         setCorrigendumList(response.data.corrigendumList || []);
         setCorrectionList(response.data.correctionList || []);
+        setTemporaryCountList(response.data.temporaryCountList || []);
+        setWithheldCountList(response.data.withheldCountList || []);
         setCanSanction(response.data.canSanction);
         setCanHavePool(response.data.canHavePool);
         setOfficerAuthorities(response.data.officerAuthorities);
 
+        // Fetch legacy counts
+        const legacyResponse = await axiosInstance.get(
+          "/Officer/GetLegacyCount",
+          {
+            params: { ServiceId: newServiceId },
+          },
+        );
+        setLegacyCountList(legacyResponse.data.countList || []);
+
+        // Update counts with both new and legacy data
         const newCounts = {
           total:
             response.data.countList.find(
@@ -309,6 +339,18 @@ export default function OfficerHome() {
               (sum, item) => sum + (item.count || 0),
               0,
             ) || 0,
+          legacyTotal:
+            legacyResponse.data.countList.find(
+              (item) => item.label === "Total Applications",
+            )?.count || 0,
+          legacyRejected:
+            legacyResponse.data.countList.find(
+              (item) => item.label === "Rejected",
+            )?.count || 0,
+          legacySanctioned:
+            legacyResponse.data.countList.find(
+              (item) => item.label === "Sanctioned",
+            )?.count || 0,
         };
         setCounts(newCounts);
       } catch (error) {
@@ -355,12 +397,13 @@ export default function OfficerHome() {
     }
   };
 
-  const handleCardClick = useCallback((statusName, type) => {
-    // Normalize the statusName by removing "Corrigendum" or "Correction" (with optional space)
-    const isCorrigendum = statusName.toLowerCase().includes("corrigendum");
-    const isCorrection = statusName.toLowerCase().includes("correction");
+  const handleCardClick = useCallback((statusName, type, tableTile = null) => {
+    const isCorrigendum = type.toLowerCase().includes("corrigendum");
+    const isCorrection = type.toLowerCase().includes("correction");
+    const isLegacy = type.toLowerCase().includes("legacy");
+    const isWithheld = type.toLowerCase().includes("withheld");
     const cleanedStatus = statusName
-      .replace(/(Corrigendum|Correction)\s*/gi, "")
+      .replace(/(Corrigendum|Correction|Legacy|Withheld)\s*/gi, "")
       .trim();
 
     const typeMap = {
@@ -370,21 +413,39 @@ export default function OfficerHome() {
       Pending: isCorrigendum || isCorrection ? "pending" : "pending",
       Forwarded: isCorrigendum || isCorrection ? "forwarded" : "forwarded",
       Returned: isCorrigendum || isCorrection ? "returned" : "returned",
-      Rejected: isCorrigendum || isCorrection ? "rejected" : "rejected",
-      Sanctioned: isCorrigendum || isCorrection ? "sanctioned" : "sanctioned",
-      Issued: "sanctioned",
+      Rejected:
+        isCorrigendum || isCorrection || isLegacy ? "rejected" : "rejected",
+      Sanctioned:
+        isCorrigendum || isCorrection || isLegacy ? "sanctioned" : "sanctioned",
+      Issued: isCorrigendum ? "sanctioned" : "verified",
       "Pending With Citizen": "returntoedit",
       "Pendig With Citizen": "returntoedit",
       "Shifted To Another Location": "shifted",
+      "Pension's Stopped": "pensionstopped",
+      "PCP - UDID Card Expiring": "expiringeligibility",
+      "PCP Applications": "totalpcpapplication",
     };
 
-    const mappedType = typeMap[cleanedStatus] || cleanedStatus.toLowerCase();
-    setType(mappedType);
+    let mappedType = typeMap[cleanedStatus] || cleanedStatus.toLowerCase();
+    if (isWithheld) {
+      mappedType = `withheld_${mappedType}`;
+    }
 
-    const url = ["Corrigendum", "Correction"].includes(type)
-      ? "/Officer/GetCorrigendumApplications"
-      : "/Officer/GetApplications";
-    // Set URL based on whether it's a corrigendum, correction, or application
+    if (tableTile != null) {
+      setTableTitle(tableTile);
+    }
+
+    setType(mappedType);
+    setDataType(isLegacy ? "legacy" : "new"); // Set dataType based on card type
+
+    const url =
+      type === "Corrigendum" || type === "Correction"
+        ? "/Officer/GetCorrigendumApplications"
+        : statusName === "PCP - UDID Card Expiring" ||
+          statusName === "PCP Applications"
+        ? "/Officer/GetTemporaryDisability"
+        : "/Officer/GetApplications";
+
     setUrl(url);
     setApplicationType(type);
     setShowTable(true);
@@ -434,7 +495,6 @@ export default function OfficerHome() {
           },
         });
       },
-
       handleViewPdf: async (row, action) => {
         const { referenceNumber } = row.original;
         const { type, corrigendumId } = action;
@@ -500,6 +560,23 @@ export default function OfficerHome() {
             applicationId: userdata.applicationId,
           },
         });
+      },
+      sendExpirationEmail: async (row) => {
+        setLoading(true);
+        const userdata = row.original;
+        const referenceNumber = userdata.referenceNumber;
+        const expirationDate = userdata.expirationDate;
+        const formdata = new FormData();
+        formdata.append("referenceNumber", referenceNumber);
+        formdata.append("expirationDate", expirationDate);
+        const response = await axiosInstance.post(
+          "/Officer/SendExpirationEmail",
+          formdata,
+        );
+        if (response.data.status) {
+          setLoading(false);
+          refreshTable();
+        }
       },
     }),
     [navigate],
@@ -1014,11 +1091,12 @@ export default function OfficerHome() {
       { value: "Reject", label: "Reject" },
       { value: "toInbox", label: "Return to Inbox" },
     ];
-    if (canSanction) {
+    if (canSanction && dataType === "new") {
+      // Only allow sanction for new data
       options.push({ value: "Sanction", label: "Sanction" });
     }
     return options;
-  }, [canSanction]);
+  }, [canSanction, dataType]);
 
   const barData = useMemo(() => {
     const labels = ["Total", "Pending"];
@@ -1145,14 +1223,15 @@ export default function OfficerHome() {
     const params = {
       ServiceId: serviceId,
       type: type,
+      dataType: dataType, // Use dataType for new or legacy
     };
 
-    if (applicationType === "Corrigendum" || applicationType == "Correction") {
+    if (applicationType === "Corrigendum" || applicationType === "Correction") {
       params.applicationType = applicationType;
     }
 
     return params;
-  }, [serviceId, type, applicationType]);
+  }, [serviceId, type, applicationType, dataType]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -1242,7 +1321,7 @@ export default function OfficerHome() {
       </Typography>
 
       <Container fluid>
-        <Row className="mb-5 justify-content-center">
+        <Row className="mb-1 justify-content-center">
           <Col xs={12} md={8} lg={6}>
             <ServiceSelectionForm
               services={services}
@@ -1273,7 +1352,7 @@ export default function OfficerHome() {
               Applications
             </Typography>
             <Row
-              className="mb-5 justify-content-center align-items-center"
+              className="mb-1 justify-content-center"
               style={{ width: "100%" }}
             >
               {countList.map((item, index) => (
@@ -1300,7 +1379,13 @@ export default function OfficerHome() {
                       justifyContent: "space-between",
                       height: "160px",
                     }}
-                    onClick={() => handleCardClick(item.label, "application")}
+                    onClick={() =>
+                      handleCardClick(
+                        item.label,
+                        "application",
+                        item.tableTitle,
+                      )
+                    }
                   >
                     <Box
                       sx={{
@@ -1351,13 +1436,299 @@ export default function OfficerHome() {
                           fontWeight: "bold",
                           color: textColors[item.label] || "#FFFFFF",
                           textAlign: "left",
-                          fontSize: "4rem",
+                          fontSize: "2.5rem",
                         }}
                       >
                         {item.count}
                       </Typography>
                     </MuiTooltip>
 
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mt: 1,
+                        width: "100%",
+                      }}
+                    >
+                      {item.forwardedSanctionedCount != null ? (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: "bold",
+                            fontSize: "0.8rem",
+                            color: "#000000",
+                          }}
+                        >
+                          Sanctioned: {item.forwardedSanctionedCount}
+                        </Typography>
+                      ) : (
+                        <span />
+                      )}
+
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: textColors[item.label] || "#FFFFFF",
+                          fontSize: "0.85rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        View All{" "}
+                        <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
+                      </Typography>
+                    </Box>
+                  </StatCard>
+                </Col>
+              ))}
+            </Row>
+
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                color: "#2d3748",
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              Withheld Applications
+            </Typography>
+            <Row
+              className="mb-1 justify-content-center"
+              style={{ width: "100%" }}
+            >
+              {withheldCountList.map((item, index) => (
+                <Col
+                  key={index}
+                  xs={12}
+                  sm={6}
+                  md={4}
+                  lg={2}
+                  className="mb-4"
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  <StatCard
+                    sx={{
+                      backgroundColor: statusColors[item.label] || "#1976d2",
+                      padding: "16px",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      height: "160px",
+                    }}
+                    onClick={() =>
+                      handleCardClick(item.label, "withheld", item.tableTitle)
+                    }
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: "bold",
+                          color: textColors[item.label] || "#FFFFFF",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        {item.label}
+                      </Typography>
+
+                      {React.cloneElement(
+                        iconMap[item.label] || (
+                          <AssignmentTurnedIn sx={{ fontSize: 16 }} />
+                        ),
+                        {
+                          style: {
+                            color: "#000000",
+                          },
+                        },
+                      )}
+                    </Box>
+
+                    <MuiTooltip
+                      title={
+                        item.tooltipText ||
+                        `View ${
+                          item.label === "Pendig With Citizen"
+                            ? "Pending With Citizen"
+                            : item.label
+                        } applications`
+                      }
+                      enterTouchDelay={0}
+                      leaveTouchDelay={2000}
+                      arrow
+                    >
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontWeight: "bold",
+                          color: textColors[item.label] || "#FFFFFF",
+                          textAlign: "left",
+                          fontSize: "2.5rem",
+                        }}
+                      >
+                        {item.count}
+                      </Typography>
+                    </MuiTooltip>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mt: 1,
+                        width: "100%",
+                      }}
+                    >
+                      {item.forwardedSanctionedCount != null ? (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: "bold",
+                            fontSize: "0.8rem",
+                            color: "#000000",
+                          }}
+                        >
+                          Sanctioned: {item.forwardedSanctionedCount}
+                        </Typography>
+                      ) : (
+                        <span />
+                      )}
+
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: textColors[item.label] || "#FFFFFF",
+                          fontSize: "0.85rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        View All{" "}
+                        <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
+                      </Typography>
+                    </Box>
+                  </StatCard>
+                </Col>
+              ))}
+            </Row>
+
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                color: "#2d3748",
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              Physically Challenged Applications
+            </Typography>
+            <Row
+              className="mb-1 justify-content-center"
+              style={{ width: "100%" }}
+            >
+              {temporaryCountList.map((item, index) => (
+                <Col
+                  key={index}
+                  xs={12}
+                  sm={6}
+                  md={4}
+                  lg={2}
+                  className="mb-4"
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  <StatCard
+                    sx={{
+                      backgroundColor: statusColors[item.label] || "#1976d2",
+                      padding: "16px",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      height: "160px",
+                    }}
+                    onClick={() =>
+                      handleCardClick(
+                        item.label,
+                        "application",
+                        item.tableTitle,
+                      )
+                    }
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: "bold",
+                          color: textColors[item.label] || "#FFFFFF",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        {item.label}
+                      </Typography>
+
+                      {React.cloneElement(
+                        iconMap[item.label] || (
+                          <AssignmentTurnedIn sx={{ fontSize: 16 }} />
+                        ),
+                        {
+                          style: {
+                            color: "#000000",
+                          },
+                        },
+                      )}
+                    </Box>
+
+                    <MuiTooltip
+                      title={
+                        item.tooltipText ||
+                        `View ${
+                          item.label === "Pendig With Citizen"
+                            ? "Pending With Citizen"
+                            : item.label
+                        } applications`
+                      }
+                      enterTouchDelay={0}
+                      leaveTouchDelay={2000}
+                      arrow
+                    >
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontWeight: "bold",
+                          color: textColors[item.label] || "#FFFFFF",
+                          textAlign: "left",
+                          fontSize: "2.5rem",
+                        }}
+                      >
+                        {item.count}
+                      </Typography>
+                    </MuiTooltip>
                     <Box
                       sx={{
                         display: "flex",
@@ -1415,7 +1786,7 @@ export default function OfficerHome() {
                   Corrigendums
                 </Typography>
                 <Row
-                  className="mb-5 justify-content-center align-items-center"
+                  className="mb-1 justify-content-center align-items-center"
                   style={{ width: "100%" }}
                 >
                   {corrigendumList.map((item, index) => (
@@ -1441,7 +1812,11 @@ export default function OfficerHome() {
                           height: "160px",
                         }}
                         onClick={() =>
-                          handleCardClick(item.label, "Corrigendum")
+                          handleCardClick(
+                            item.label,
+                            "Corrigendum",
+                            item.tableTitle,
+                          )
                         }
                       >
                         <Box
@@ -1495,7 +1870,7 @@ export default function OfficerHome() {
                               fontWeight: "bold",
                               color: textColors[item.label] || "#FFFFFF",
                               textAlign: "left",
-                              fontSize: "4rem",
+                              fontSize: "2.5rem",
                             }}
                           >
                             {item.count}
@@ -1545,7 +1920,7 @@ export default function OfficerHome() {
                   Corrections
                 </Typography>
                 <Row
-                  className="mb-5 justify-content-center align-items-center"
+                  className="mb-1 justify-content-center align-items-center"
                   style={{ width: "100%" }}
                 >
                   {correctionList.map((item, index) => (
@@ -1571,7 +1946,11 @@ export default function OfficerHome() {
                           height: "160px",
                         }}
                         onClick={() =>
-                          handleCardClick(item.label, "Correction")
+                          handleCardClick(
+                            item.label,
+                            "Correction",
+                            item.tableTitle,
+                          )
                         }
                       >
                         <Box
@@ -1625,7 +2004,131 @@ export default function OfficerHome() {
                               fontWeight: "bold",
                               color: textColors[item.label] || "#FFFFFF",
                               textAlign: "left",
-                              fontSize: "4rem",
+                              fontSize: "2.5rem",
+                            }}
+                          >
+                            {item.count}
+                          </Typography>
+                        </MuiTooltip>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            mt: 1,
+                            width: "100%",
+                          }}
+                        >
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: textColors[item.label] || "#FFFFFF",
+                              fontSize: "0.85rem",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            View All{" "}
+                            <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
+                          </Typography>
+                        </Box>
+                      </StatCard>
+                    </Col>
+                  ))}
+                </Row>
+              </>
+            )}
+
+            {legacyCountList?.length > 0 && (
+              <>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    mb: 3,
+                    fontWeight: 600,
+                    color: "#2d3748",
+                    textAlign: "center",
+                    fontFamily: "'Inter', sans-serif",
+                  }}
+                >
+                  Legacy Applications
+                </Typography>
+                <Row
+                  className="mb-1 justify-content-center align-items-center"
+                  style={{ width: "100%" }}
+                >
+                  {legacyCountList.map((item, index) => (
+                    <Col
+                      key={index}
+                      xs={12}
+                      sm={6}
+                      md={4}
+                      lg={2}
+                      className="mb-4"
+                      style={{ display: "flex", justifyContent: "center" }}
+                    >
+                      <StatCard
+                        sx={{
+                          backgroundColor:
+                            statusColors[item.label] || "#1976d2",
+                          padding: "16px",
+                          borderRadius: "12px",
+                          cursor: "pointer",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                          height: "160px",
+                        }}
+                        onClick={() =>
+                          handleCardClick(item.label, "Legacy", item.tableTitle)
+                        }
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: "bold",
+                              color: textColors[item.label] || "#FFFFFF",
+                              fontSize: "0.85rem",
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+
+                          {React.cloneElement(
+                            iconMap[item.label] || (
+                              <AssignmentTurnedIn sx={{ fontSize: 16 }} />
+                            ),
+                            {
+                              style: {
+                                color: "#000000",
+                              },
+                            },
+                          )}
+                        </Box>
+
+                        <MuiTooltip
+                          title={
+                            item.tooltipText ||
+                            `View ${item.label} legacy applications`
+                          }
+                          enterTouchDelay={0}
+                          leaveTouchDelay={2000}
+                          arrow
+                        >
+                          <Typography
+                            variant="h3"
+                            sx={{
+                              fontWeight: "bold",
+                              color: textColors[item.label] || "#FFFFFF",
+                              textAlign: "left",
+                              fontSize: "2.5rem",
                             }}
                           >
                             {item.count}
@@ -1661,7 +2164,7 @@ export default function OfficerHome() {
             )}
 
             <Row>
-              <Col xs={12} lg={6} className="mb-4">
+              <Col xs={12} lg={6} className="mb-4 ">
                 <StyledCard>
                   <CardContent>
                     <Typography
@@ -1676,7 +2179,7 @@ export default function OfficerHome() {
                   </CardContent>
                 </StyledCard>
               </Col>
-              <Col xs={12} lg={6} className="mb-4">
+              <Col xs={12} lg={6} className="mb-4 ">
                 <StyledCard>
                   <CardContent>
                     <Typography
@@ -1715,17 +2218,7 @@ export default function OfficerHome() {
                     actionOptions={getActionOptions}
                     selectedAction={selectedAction}
                     setSelectedAction={setSelectedAction}
-                    Title={`${
-                      type === "returntoedit"
-                        ? "Pending With Citizen"
-                        : type.charAt(0).toUpperCase() + type.slice(1)
-                    } ${
-                      type === "corrigendum"
-                        ? "Corrigendums"
-                        : type === "correction"
-                        ? "Corrections"
-                        : "Applications"
-                    }`}
+                    Title={tableTitle}
                     sx={{
                       "& .MuiTable-root": { background: "#ffffff" },
                       "& .MuiTableCell-root": {
@@ -1767,6 +2260,8 @@ export default function OfficerHome() {
               ? "corrigendum"
               : type === "correction"
               ? "correction"
+              : dataType === "legacy"
+              ? "legacy application"
               : "application"}
             {pendingRejectRows.length > 1 ? "s" : ""}? This action cannot be
             undone.
@@ -1821,6 +2316,8 @@ export default function OfficerHome() {
               ? "corrigendum"
               : type === "correction"
               ? "correction"
+              : dataType === "legacy"
+              ? "legacy application"
               : "application"}
             ? This action cannot be undone.
           </Typography>

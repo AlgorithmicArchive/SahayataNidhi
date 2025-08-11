@@ -51,7 +51,7 @@ const normalizeField = (field, timestamp = Date.now()) => ({
     : [],
   additionalFields: normalizeAdditionalFields(
     field.additionalFields || {},
-    timestamp
+    timestamp,
   ),
   accept: field.accept || "",
   editable: field.editable !== undefined ? field.editable : true,
@@ -63,8 +63,9 @@ const normalizeField = (field, timestamp = Date.now()) => ({
   dependentValues: Array.isArray(field.dependentValues)
     ? field.dependentValues
     : [],
-  isConsentCheckbox: field.isConsentCheckbox ?? false, // Add isConsentCheckbox
+  isConsentCheckbox: field.isConsentCheckbox ?? false,
   checkboxLayout: field.checkboxLayout || "vertical",
+  declaration: field.declaration || "", // Add declaration to normalized field
 });
 
 // Function to recursively normalize additionalFields
@@ -72,7 +73,7 @@ const normalizeAdditionalFields = (additionalFields, timestamp) => {
   const normalized = {};
   Object.keys(additionalFields).forEach((option) => {
     normalized[option] = (additionalFields[option] || []).map((field) =>
-      normalizeField(field, timestamp)
+      normalizeField(field, timestamp),
     );
   });
   return normalized;
@@ -177,7 +178,7 @@ export default function CreateService() {
 
   const handleDuplicateSection = (sectionId) => {
     const sectionToDuplicate = sections.find(
-      (section) => section.id === sectionId
+      (section) => section.id === sectionId,
     );
     if (sectionToDuplicate) {
       const newSection = {
@@ -190,7 +191,7 @@ export default function CreateService() {
             id: `field-${Date.now()}-${Math.random()
               .toString(36)
               .substring(2, 9)}`,
-          })
+          }),
         ),
       };
       setSections((prev) => [...prev, newSection]);
@@ -222,30 +223,33 @@ export default function CreateService() {
       isDependentEnclosure: false,
       dependentField: undefined,
       dependentValues: [],
+      isConsentCheckbox: false,
+      checkboxLayout: "vertical",
+      declaration: "", // Initialize declaration for new fields
     };
 
     setSections((prev) =>
       prev.map((section) =>
         section.id === sectionId
           ? { ...section, fields: [...section.fields, newField] }
-          : section
-      )
+          : section,
+      ),
     );
   };
 
   const handleSectionNameChange = (sectionId, newName) => {
     setSections((prev) =>
       prev.map((section) =>
-        section.id === sectionId ? { ...section, section: newName } : section
-      )
+        section.id === sectionId ? { ...section, section: newName } : section,
+      ),
     );
   };
 
   const handleUpdateSectionFields = (sectionId, newFields) => {
     setSections((prev) =>
       prev.map((section) =>
-        section.id === sectionId ? { ...section, fields: newFields } : section
-      )
+        section.id === sectionId ? { ...section, fields: newFields } : section,
+      ),
     );
   };
 
@@ -253,7 +257,7 @@ export default function CreateService() {
     const formdata = new FormData();
     if (!serviceName || !serviceNameShort || !departmentName) {
       toast.error(
-        "Please provide Service Name, Service Name Short, and Department Name."
+        "Please provide Service Name, Service Name Short, and Department Name.",
       );
       return;
     }
@@ -267,14 +271,14 @@ export default function CreateService() {
     try {
       const response = await axiosInstance.post(
         "/Designer/FormElement",
-        formdata
+        formdata,
       );
       const result = response.data;
       if (result.status) {
         toast.success(
           selectedServiceId
             ? "Service updated successfully!"
-            : "New service created successfully!"
+            : "New service created successfully!",
         );
         if (!selectedServiceId) {
           setServiceName("");
@@ -308,10 +312,10 @@ export default function CreateService() {
                 fields: section.fields.map((field) =>
                   field.id === updatedField.id
                     ? normalizeField(updatedField)
-                    : field
+                    : field,
                 ),
               }
-            : section
+            : section,
         );
       } else {
         // Handle additional fields (no sectionId)
@@ -322,10 +326,10 @@ export default function CreateService() {
                 fields: section.fields.map((field) =>
                   field.id === updatedField.id
                     ? normalizeField(updatedField)
-                    : field
+                    : field,
                 ),
               }
-            : section
+            : section,
         );
       }
     });
@@ -339,8 +343,8 @@ export default function CreateService() {
               ...section,
               fields: section.fields.filter((field) => field.id !== fieldId),
             }
-          : section
-      )
+          : section,
+      ),
     );
   };
 
@@ -351,17 +355,17 @@ export default function CreateService() {
           ? {
               ...section,
               fields: section.fields.map((field) =>
-                field.id === fieldId ? { ...field, value: newValue } : field
+                field.id === fieldId ? { ...field, value: newValue } : field,
               ),
             }
-          : section
-      )
+          : section,
+      ),
     );
     console.log("Updated field value:", { sectionId, fieldId, newValue });
   };
 
   const sectionSensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
   const handleSectionDragEnd = (event) => {
@@ -376,7 +380,7 @@ export default function CreateService() {
     setSelectedField({
       ...field,
       sectionId: sections.find((section) =>
-        section.fields.some((f) => f.id === field.id)
+        section.fields.some((f) => f.id === field.id),
       )?.id,
     });
     setIsModalOpen(true);

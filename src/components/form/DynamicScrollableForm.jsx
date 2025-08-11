@@ -130,7 +130,7 @@ const flattenFormDetails = (nestedDetails) => {
           branches.map((af) => ({
             ...af,
             name: af.name || `${field.name}_${af.id}`,
-          }))
+          })),
         );
       }
     });
@@ -168,7 +168,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   const [aadhaarNumber, setAadhaarNumber] = useState("");
   const applicantImageFile = watch("ApplicantImage");
   const [applicantImagePreview, setApplicantImagePreview] = useState(
-    "/assets/images/profile.jpg"
+    "/assets/images/profile.jpg",
   );
   const [aadhaarValid, setAadhaarValid] = useState(false);
   const [otpModal, setOtpModal] = useState(false);
@@ -401,7 +401,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       section.forEach((item) => {
         if (
           /district|muncipality|ward|block|halqapanchayat|village/i.test(
-            item.name
+            item.name,
           )
         ) {
           handleAreaChange(sectionIndex, item, item.value);
@@ -450,7 +450,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         }
         if ((mode === "incomplete" || mode === "edit") && referenceNumber) {
           const { formDetails, additionalDetails } = await fetchFormDetails(
-            referenceNumber
+            referenceNumber,
           );
           const flatDetails = flattenFormDetails(formDetails);
           setInitialData(flatDetails);
@@ -473,12 +473,12 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             }, {}),
           };
           const returnFields = JSON.parse(
-            additionalDetails?.returnFields || "[]"
+            additionalDetails?.returnFields || "[]",
           );
           const dependableFields = getDependableFields(
             config,
             returnFields,
-            flatDetails
+            flatDetails,
           );
           setAreas(formDetails);
           setDependableFields(dependableFields);
@@ -527,7 +527,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     handleAreaChange(
                       sectionIndex,
                       { name: item.name },
-                      item.value
+                      item.value,
                     );
                   }
                   setValue(item.name, item.value);
@@ -598,7 +598,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               name: af.name || `${name}_${af.id}`,
             })),
             sectionIndex,
-            sectionName
+            sectionName,
           );
         }
       });
@@ -698,14 +698,14 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   }, [
     watch,
     ...enclosureDependentFields.map(({ dependentField }) =>
-      watch(dependentField)
+      watch(dependentField),
     ),
   ]);
 
   const handleCopyAddress = async (checked) => {
     if (!checked) {
       const permanentSection = formSections.find(
-        (sec) => sec.section === "Permanent Address Details"
+        (sec) => sec.section === "Permanent Address Details",
       );
       if (!permanentSection) {
         console.warn("Permanent Address section not found");
@@ -721,10 +721,10 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     }
 
     const presentSection = formSections.find(
-      (sec) => sec.section === "Present Address Details"
+      (sec) => sec.section === "Present Address Details",
     );
     const permanentSection = formSections.find(
-      (sec) => sec.section === "Permanent Address Details"
+      (sec) => sec.section === "Permanent Address Details",
     );
 
     if (!presentSection || !permanentSection) {
@@ -733,15 +733,15 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     }
 
     const permanentSectionIndex = formSections.findIndex(
-      (sec) => sec.section === "Permanent Address Details"
+      (sec) => sec.section === "Permanent Address Details",
     );
 
     // Find address type fields dynamically
     const presentTypeField = presentSection.fields.find((field) =>
-      field.name.toLowerCase().includes("addresstype")
+      field.name.toLowerCase().includes("addresstype"),
     );
     const permanentTypeField = permanentSection.fields.find((field) =>
-      field.name.toLowerCase().includes("addresstype")
+      field.name.toLowerCase().includes("addresstype"),
     );
 
     if (!presentTypeField || !permanentTypeField) {
@@ -756,7 +756,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     if (
       permanentAddressType === "Please Select" ||
       !presentTypeField.options.some(
-        (opt) => opt.value === permanentAddressType
+        (opt) => opt.value === permanentAddressType,
       )
     ) {
       permanentAddressType = presentAddressType;
@@ -784,7 +784,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       const fieldValue = getValues(presentField.name);
       const permanentFieldName = presentField.name.replace(
         "Present",
-        "Permanent"
+        "Permanent",
       );
       const permanentField = [
         ...permanentSection.fields,
@@ -793,7 +793,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
       if (!permanentField) {
         console.warn(
-          `Permanent field not found for ${presentField.name}. Expected: ${permanentFieldName}`
+          `Permanent field not found for ${presentField.name}. Expected: ${permanentFieldName}`,
         );
         continue;
       }
@@ -803,13 +803,13 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       // Trigger area change for relevant fields (e.g., District, Municipality, etc.)
       if (
         /district|muncipality|ward|block|halqapanchayat|village/i.test(
-          presentField.name
+          presentField.name,
         )
       ) {
         await handleAreaChange(
           permanentSectionIndex,
           permanentField,
-          fieldValue
+          fieldValue,
         );
       }
     }
@@ -862,7 +862,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
   const handleAaddhaarNumber = async () => {
     const sendOTP = await fetch(
-      "/Home/SendAadhaarOTP?aadhaarNumber=" + aadhaarNumber
+      "/Home/SendAadhaarOTP?aadhaarNumber=" + aadhaarNumber,
     );
     const result = await sendOTP.json();
     console.log(result);
@@ -965,13 +965,13 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
       if (!childFieldName || !tableName) {
         console.warn(
-          `Invalid child field or table for ${addressTypeKey}: ${AddressType}`
+          `Invalid child field or table for ${addressTypeKey}: ${AddressType}`,
         );
         return;
       }
 
       const response = await axiosInstance.get(
-        `/Base/GetAreaList?table=${tableName}&parentId=${value}`
+        `/Base/GetAreaList?table=${tableName}&parentId=${value}`,
       );
       const areaList = response.data?.data || [];
 
@@ -1048,7 +1048,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       const sectionFormData = {};
       // Use formData if available, otherwise fall back to initialData
       const fieldValue =
-        field.name == "AadharNumber"
+        field.name === "AadharNumber"
           ? aadhaarNumber
           : formData[field.name] !== undefined
           ? formData[field.name]
@@ -1058,14 +1058,16 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       sectionFormData["name"] = field.name;
 
       if (field.type === "enclosure") {
+        const selectFieldName = `${field.name}_select`;
+        const fileFieldName = `${field.name}_file`;
         sectionFormData["Enclosure"] =
-          formData[`${field.name}_select`] !== undefined
-            ? formData[`${field.name}_select`]
+          formData[selectFieldName] !== undefined
+            ? formData[selectFieldName]
             : initialData[field.name]?.selected || "";
         sectionFormData["File"] =
-          formData[`${field.name}_file`] !== undefined
-            ? formData[`${field.name}_file`]
-            : initialData[field.name]?.file || "";
+          formData[fileFieldName] !== undefined
+            ? formData[fileFieldName]
+            : initialData[field.name]?.file || null;
       } else if (field.name === "ApplicantImage") {
         sectionFormData["File"] = fieldValue;
       } else {
@@ -1073,10 +1075,10 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       }
 
       if (
-        field.type == "enclosure" &&
-        field.name == "Other" &&
-        formData["OtherDocument"] != "" &&
-        formData[`${field.name}_file`] != undefined
+        field.type === "enclosure" &&
+        field.name === "Other" &&
+        formData["OtherDocument"] &&
+        formData[`${field.name}_file`]
       ) {
         sectionFormData["Enclosure"] = formData["OtherDocument"];
       }
@@ -1092,7 +1094,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               return processField(
                 { ...additionalField, name: nestedFieldName },
                 formData,
-                initialData
+                initialData,
               );
             })
             .filter((nestedField) => nestedField !== null);
@@ -1136,7 +1138,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
     formdata.append(
       "status",
-      operationType === "submit" ? "Initiated" : "Incomplete"
+      operationType === "submit" ? "Initiated" : "Incomplete",
     );
     formdata.append("referenceNumber", referenceNumber);
 
@@ -1261,7 +1263,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   field,
                   value,
                   getValues(),
-                  referenceNumber
+                  referenceNumber,
                 ),
             }}
             render={({ field: { onChange, value, ref } }) => (
@@ -1311,7 +1313,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                             transformedVal,
                             val,
                             getValues(),
-                            setValue
+                            setValue,
                           );
                         }
                       });
@@ -1320,9 +1322,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     onChange(transformedVal);
                   }}
                   onBlur={() => {
-                    if (field.name === "IfscCode") {
-                      handleChekcBankIfsc(field.name);
-                    }
+                    // if (field.name === "IfscCode") {
+                    //   handleChekcBankIfsc(field.name);
+                    // }
                   }}
                   inputRef={ref}
                   disabled={isFieldDisabled(field.name)}
@@ -1410,7 +1412,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   field,
                   value,
                   getValues(),
-                  referenceNumber
+                  referenceNumber,
                 );
               },
             }}
@@ -1422,38 +1424,48 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                 error={Boolean(errors[field.name])}
                 disabled={isFieldDisabled(field.name)}
               >
-                <FormLabel
-                  component="legend"
-                  sx={{
-                    fontSize: "1rem",
-                    color: "#000000",
-                    "&.Mui-focused": { color: "#000000" },
-                  }}
-                >
-                  {getLabelWithAsteriskJSX(field)}
-                </FormLabel>
                 {field.isConsentCheckbox ? (
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={!!value}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          onChange(checked);
-                          if (
-                            field.transformationFunctions?.includes(
-                              "handleCopyAddress"
-                            )
-                          ) {
-                            handleCopyAddress(checked, sectionIndex);
-                          }
+                  <Box>
+                    {field.declaration && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          marginBottom: "0.5rem",
+                          color: "#555",
                         }}
-                        inputRef={ref}
-                        disabled={isFieldDisabled(field.name)}
-                      />
-                    }
-                    label={field.label}
-                  />
+                      >
+                        {field.declaration}
+                      </Typography>
+                    )}
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={!!value}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            onChange(checked);
+                            if (
+                              field.transformationFunctions?.includes(
+                                "handleCopyAddress",
+                              )
+                            ) {
+                              handleCopyAddress(checked, sectionIndex);
+                            }
+                          }}
+                          inputRef={ref}
+                          disabled={isFieldDisabled(field.name)}
+                        />
+                      }
+                      label={
+                        <span>
+                          {field.label}
+                          {field.required && (
+                            <span style={{ color: "red" }}> *</span>
+                          )}
+                        </span>
+                      }
+                    />
+                  </Box>
                 ) : (
                   <FormGroup
                     row={field.checkboxLayout === "horizontal"}
@@ -1484,7 +1496,14 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                             disabled={isFieldDisabled(field.name)}
                           />
                         }
-                        label={option.label}
+                        label={
+                          <span>
+                            {option.label}
+                            {field.required && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </span>
+                        }
                       />
                     ))}
                   </FormGroup>
@@ -1594,7 +1613,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                                 });
                               });
                             }
-                          }
+                          },
                         );
                       }
                     }}
@@ -1642,7 +1661,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                               ...additionalField,
                               name: nestedFieldName,
                             },
-                            sectionIndex
+                            sectionIndex,
                           )}
                         </Col>
                       );
@@ -1687,7 +1706,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               defaultValue={selectValue}
               rules={{
                 validate: async (value) =>
-                  await runValidations(field, value, getValues()),
+                  field.required && !value ? "Please select an option" : true, // Only validate that a selection is made if required
               }}
               render={({ field: { onChange, value, ref } }) => {
                 return (
@@ -1702,9 +1721,11 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       onChange={(e) => {
                         onChange(e);
                         handleAreaChange(sectionIndex, field, e.target.value);
+                        // Clear file if select value changes
+                        setValue(fileFieldName, null, { shouldValidate: true });
                       }}
-                      error={Boolean(errors[field.name])}
-                      helperText={errors[field.name]?.message || ""}
+                      error={Boolean(errors[selectFieldName])}
+                      helperText={errors[selectFieldName]?.message || ""}
                       InputLabelProps={{
                         shrink: true,
                         style: { fontSize: "1.2rem", color: "#000000" },
@@ -1748,7 +1769,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                                 ...additionalField,
                                 name: nestedFieldName,
                               },
-                              sectionIndex
+                              sectionIndex,
                             )}
                           </Col>
                         );
@@ -1762,8 +1783,14 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               control={control}
               defaultValue={initialData?.[field.name]?.file || null}
               rules={{
-                validate: async (value) =>
-                  await runValidations(field, value, getValues()),
+                validate: async (value) => {
+                  // Run validations specifically for the file
+                  const selectValue = getValues(selectFieldName);
+                  if (field.required && !value && selectValue) {
+                    return "Please upload a file";
+                  }
+                  return await runValidations(field, value, getValues());
+                },
               }}
               render={({ field: { onChange, value } }) => (
                 <div
@@ -1827,7 +1854,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       width: "100%",
                       borderRadius: "12px",
                     }}
-                    disabled={isFieldDisabled(field.name)}
+                    disabled={
+                      isFieldDisabled(field.name) || !getValues(selectFieldName)
+                    }
                   >
                     Upload
                     <input
@@ -1837,7 +1866,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                         const file = e.target.files[0];
                         onChange(file);
                       }}
-                      accept={field.accept}
+                      accept={field.accept || ".pdf"}
                     />
                   </Button>
 
@@ -1845,6 +1874,10 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     <FormHelperText sx={{ color: "#F43F5E" }}>
                       {errors[fileFieldName]?.message || ""}
                     </FormHelperText>
+                    <Typography sx={{ fontSize: "0.85rem", color: "#6B7280" }}>
+                      Accepted File Types: {field.accept || ".pdf"} Size:
+                      100kb-200kb
+                    </Typography>
                   </Box>
                 </div>
               )}

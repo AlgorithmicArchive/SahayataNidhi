@@ -61,12 +61,12 @@ export default function Initiated() {
 
       try {
         const fileName =
-          applicationId.replace(/\//g, "_") + "SanctionLetter.pdf";
+          applicationId.replace(/\//g, "_") + "_SanctionLetter.pdf";
 
         // Fetch the sanction letter from the API
         const response = await axiosInstance.get(
           "/User/DownloadSanctionLetter",
-          { params: { fileName: fileName }, responseType: "blob" }
+          { params: { fileName: fileName }, responseType: "blob" },
         );
 
         // Create a Blob from the response data
@@ -104,7 +104,7 @@ export default function Initiated() {
         // Fetch the sanction letter from the API
         const response = await axiosInstance.get(
           "/User/DownloadSanctionLetter",
-          { params: { fileName: fileName }, responseType: "blob" }
+          { params: { fileName: fileName }, responseType: "blob" },
         );
 
         // Create a Blob from the response data
@@ -128,6 +128,15 @@ export default function Initiated() {
           theme: "colored",
         });
       }
+    },
+    UpdateExpiringDocument: async (row, action) => {
+      const userdata = row.original;
+      navigate("/user/updateexpiringdocument", {
+        state: {
+          referenceNumber: userdata.referenceNumber,
+          ServiceId: userdata.serviceId,
+        },
+      });
     },
   };
 

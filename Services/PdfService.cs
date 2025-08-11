@@ -129,11 +129,13 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
             .SetFontSize(12));
 
         Table table = new Table(UnitValue.CreatePercentArray(2)).UseAllAvailableWidth();
+
         foreach (var item in details)
         {
-            table.AddCell(new Cell().Add(new Paragraph(item.Key)));
-            table.AddCell(new Cell().Add(new Paragraph(item.Value)));
+            table.AddCell(new Cell().Add(new Paragraph(item.Key).SetFontSize(10)));
+            table.AddCell(new Cell().Add(new Paragraph(item.Value).SetFontSize(10)));
         }
+
         document.Add(table);
 
         document.Add(new Paragraph($"{information}")
@@ -313,9 +315,9 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
         string branchOffice = GetBranchOffice(applicationId);
         document.Add(new Paragraph($"To\n\nTHE MANAGER\nTHE JAMMU AND KASHMIR BANK LIMITED\nB/O {branchOffice}")
             .SetFontSize(14));
-        document.Add(new Paragraph($"\nSubject: Corrigendum to Saction Letter with No. {applicationId} dated: {sanctionedDate}"))
-            .SetFontSize(14);
-        document.Add(new Paragraph($"\nIn partial modification of above mentioned Sanctione Letter, the following corrections may be read as:")
+        document.Add(new Paragraph($"\nSubject: Corrigendum to Sanction Letter No. {applicationId} {(sanctionedDate != null ? "dated " + sanctionedDate : "")}"))
+             .SetFontSize(14);
+        document.Add(new Paragraph($"\nIn partial modification of above mentioned Sanctione Letter No., the following corrections may be read as:")
             .SetFontSize(12));
 
         // Create table for corrigendum fields with Serial Number
@@ -375,7 +377,7 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
         document.Add(table);
 
         // Add remarks and remaining text
-        document.Add(new Paragraph($"\nThe rest of the contents of the afore said Sanction letter remains unchanged.")
+        document.Add(new Paragraph($"\nThe rest of the contents of the afore said Sanction Letter No. remains unchanged.")
             .SetFontSize(12));
 
         // Add vertical gap

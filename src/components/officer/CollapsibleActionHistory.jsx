@@ -3,13 +3,18 @@ import { Box, Button, Tooltip, Collapse } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ServerSideTable from "../ServerSideTable";
+import {
+  AddCircleOutlineSharp,
+  PlusOne,
+  RemoveCircleOutlineSharp,
+} from "@mui/icons-material";
 
 const buttonStyles = {
   backgroundColor: "#FFFFFF",
   color: "primary.main",
   textTransform: "none",
-  fontSize: "14px",
-  fontWeight: 500,
+  fontSize: "24px",
+  fontWeight: 700,
   padding: "8px 16px",
   border: "1px solid",
   borderColor: "primary.main",
@@ -36,11 +41,17 @@ const CollapsibleActionHistory = ({
           <Button
             onClick={() => setDetailsOpen(!detailsOpen)}
             sx={buttonStyles}
-            startIcon={detailsOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            endIcon={
+              detailsOpen ? (
+                <RemoveCircleOutlineSharp />
+              ) : (
+                <AddCircleOutlineSharp />
+              )
+            }
             aria-expanded={detailsOpen}
             aria-label={detailsOpen ? "Collapse history" : "Expand history"}
           >
-            {detailsOpen ? "Hide History" : "Show History"}
+            {detailsOpen ? "Hide History" : "Application Movement History"}
           </Button>
         </Tooltip>
       </Box>

@@ -1,16 +1,18 @@
 import React, { useMemo } from "react";
 import { Box, Button, Collapse, Divider, Typography } from "@mui/material";
 import { Col, Row } from "react-bootstrap";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import {
+  AddCircleOutlineSharp,
+  RemoveCircleOutlineSharp,
+} from "@mui/icons-material";
 
 const buttonStyles = {
   backgroundColor: "#FFFFFF",
   color: "primary.main",
   textTransform: "none",
-  fontSize: "14px",
-  fontWeight: 500,
+  fontSize: "24px",
+  fontWeight: 700,
   padding: "8px 16px",
   border: "1px solid",
   borderColor: "primary.main",
@@ -20,6 +22,21 @@ const buttonStyles = {
     borderColor: "#1565C0",
     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
   },
+};
+
+// Recursive function to flatten fields and nested additionalFields
+const flattenFields = (fields) => {
+  return fields.reduce((acc, field) => {
+    acc.push(field);
+    if (
+      field.additionalFields &&
+      Array.isArray(field.additionalFields) &&
+      field.additionalFields.length > 0
+    ) {
+      acc.push(...flattenFields(field.additionalFields));
+    }
+    return acc;
+  }, []);
 };
 
 export const CollapsibleFormDetails = ({
@@ -42,11 +59,17 @@ export const CollapsibleFormDetails = ({
         <Button
           onClick={() => setDetailsOpen(!detailsOpen)}
           sx={buttonStyles}
-          startIcon={detailsOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          endIcon={
+            detailsOpen ? (
+              <RemoveCircleOutlineSharp />
+            ) : (
+              <AddCircleOutlineSharp />
+            )
+          }
           aria-expanded={detailsOpen}
           aria-label={detailsOpen ? "Collapse details" : "Expand details"}
         >
-          {detailsOpen ? "Hide Details" : "Show Details"}
+          {detailsOpen ? "Hide Details" : "Citizen Application Details"}
         </Button>
       </Box>
       <Collapse in={detailsOpen} timeout={500}>
@@ -87,6 +110,7 @@ export const CollapsibleFormDetails = ({
               </Col>
             </Row>
           </Box>
+
           {sections.length > 0 ? (
             sections.map((section, index) => (
               <Box key={index} sx={{ mb: 3 }}>
@@ -98,21 +122,11 @@ export const CollapsibleFormDetails = ({
                 </Typography>
                 <Row className="g-3">
                   {Object.entries(section).map(([sectionName, fields]) => {
-                    // Flatten fields and additionalFields into a single array
-                    const allFields = fields.reduce((acc, field) => {
-                      acc.push(field); // Add the parent field
-                      if (
-                        field.additionalFields &&
-                        Array.isArray(field.additionalFields)
-                      ) {
-                        acc.push(...field.additionalFields); // Add additionalFields as independent fields
-                      }
-                      return acc;
-                    }, []);
+                    const allFields = flattenFields(fields);
 
                     return allFields.map(
                       (field, fieldIndex) =>
-                        field.name !== "SameAsPresent" ? (
+                        field.name !== "SameAsPresent" && (
                           <Col
                             xs={12}
                             md={6}
@@ -192,7 +206,7 @@ export const CollapsibleFormDetails = ({
                               )}
                             </Box>
                           </Col>
-                        ) : null // Skip rendering if name is SameAsPresent
+                        ),
                     );
                   })}
                 </Row>

@@ -446,14 +446,18 @@ export default function ViewApplicationDetails() {
 
       const updateFormData = new FormData();
       updateFormData.append("signedPdf", signedBlob, "signed.pdf");
-      updateFormData.append("refenceNumber", referenceNumber);
+      updateFormData.append("referenceNumber", referenceNumber);
       updateFormData.append(
-        isCorrection ? "correctionId" : "corrigendumId",
+        isCorrection ? "corrigendumId" : "corrigendumId",
         applicationId,
+      );
+      updateFormData.append(
+        "type",
+        isCorrection ? "Correction" : "Corrigendum",
       );
       const updateResponse = await axiosInstance.post(
         isCorrection
-          ? "/Officer/UpdateCorrectionPdf"
+          ? "/Officer/UpdateCorrigendumPdf"
           : "/Officer/UpdateCorrigendumPdf",
         updateFormData,
       );
@@ -697,18 +701,6 @@ export default function ViewApplicationDetails() {
           Reference Number: {referenceNumber}
         </Typography>
 
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 700,
-            color: "primary.main",
-            textAlign: "center",
-            mt: 4,
-            mb: 4,
-          }}
-        >
-          Citizen Application Details
-        </Typography>
         <CollapsibleFormDetails
           formDetails={formDetails}
           formatKey={formatKey}
@@ -718,18 +710,6 @@ export default function ViewApplicationDetails() {
           applicationId={referenceNumber}
         />
 
-        <Typography
-          variant="h4"
-          id="user-details-title"
-          sx={{
-            fontWeight: 700,
-            color: "primary.main",
-            textAlign: "center",
-            mb: 4,
-          }}
-        >
-          Application Movement History
-        </Typography>
         <CollapsibleActionHistory
           detailsOpen={historyOpen}
           setDetailsOpen={setHistoryOpen}

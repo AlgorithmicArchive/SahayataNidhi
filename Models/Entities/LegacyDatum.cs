@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SahayataNidhi.Models.Entities;
 
-public partial class CitizenApplication
+public partial class LegacyDatum
 {
     public string ReferenceNumber { get; set; } = null!;
 
@@ -19,13 +19,9 @@ public partial class CitizenApplication
 
     public string? AdditionalDetails { get; set; }
 
-    public int CurrentPlayer { get; set; }
+    public int? CurrentPlayer { get; set; }
 
     public string? Status { get; set; }
 
-    public string? DataType { get; set; }
-
     public string? CreatedAt { get; set; }
-
-    public virtual ICollection<Corrigendum> Corrigenda { get; set; } = new List<Corrigendum>();
 }

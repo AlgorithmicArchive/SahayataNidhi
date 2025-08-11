@@ -772,7 +772,7 @@ namespace SahayataNidhi.Controllers
             return result;
         }
 
-        public async Task<IActionResult> SendAadhaarOTP(string aadhaarNumber)
+        public IActionResult SendAadhaarOTP(string aadhaarNumber)
         {
             string otpKey;
             var aadhaarData = AadhaarData(aadhaarNumber);

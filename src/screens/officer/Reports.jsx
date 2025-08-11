@@ -79,21 +79,21 @@ export default function Reports() {
               districtsRes.data.tehsils.map((d) => ({
                 value: d.tehsilId,
                 label: d.tehsilName,
-              }))
+              })),
             );
           } else {
             setDistricts(
               districtsRes.data.districts.map((d) => ({
                 value: d.districtId,
                 label: d.districtName,
-              }))
+              })),
             );
           }
           setServices(
             servicesRes.data.services.map((s) => ({
               value: s.serviceId,
               label: s.serviceName,
-            }))
+            })),
           );
         } else {
           throw new Error("Failed to fetch districts or services");

@@ -126,6 +126,10 @@ namespace SahayataNidhi.Controllers.User
                 string serviceName = dbcontext.Services.FirstOrDefault(s => s.ServiceId == application.ServiceId)!.ServiceName!;
                 var Corrigendum = dbcontext.Corrigenda.Where(co => co.ReferenceNumber == application.ReferenceNumber).ToList();
                 List<string> corrigendumIds = [];
+                var expiringEligibility = dbcontext.ApplicationsWithExpiringEligibilities.FirstOrDefault(aee => aee.ReferenceNumber == application.ReferenceNumber);
+
+
+
                 foreach (var item in Corrigendum)
                 {
                     string value = GetSanctionedCorrigendum(JsonConvert.DeserializeObject<dynamic>(item.WorkFlow), item.CorrigendumId);
@@ -149,15 +153,51 @@ namespace SahayataNidhi.Controllers.User
                 {
                     actions.Add(new { tooltip = "View", color = "#F0C38E", actionFunction = "CreateTimeLine" });
                     actions.Add(new { tooltip = "Download SL", color = "#F0C38E", actionFunction = "DownloadSanctionLetter" });
+                    index = 1;
                     foreach (string id in corrigendumIds)
                     {
-                        actions.Add(new { tooltip = "Download Corrigendum " + id.TrimEnd('/').Split('/').Last(), corrigendumId = id, color = "#F0C38E", actionFunction = "DownloadCorrigendum" });
+                        actions.Add(new { tooltip = "Download CRG " + index, corrigendumId = id, color = "#F0C38E", actionFunction = "DownloadCorrigendum" });
+                        index++;
                     }
                 }
                 else
                 {
                     actions.Add(new { tooltip = "Edit Form", color = "#F0C38E", actionFunction = "EditForm" });
                 }
+
+                if (expiringEligibility != null &&
+                         !string.IsNullOrWhiteSpace(expiringEligibility.ExpirationDate))
+                {
+                    // Check if there is any "Initiated" corrigendum for this reference
+                    bool hasInitiatedCorrection = dbcontext.Corrigenda
+                        .Any(co => co.ReferenceNumber == application.ReferenceNumber &&
+                                   co.Status == "Initiated");
+
+                    _logger.LogInformation(
+                        $"----------- Initiated Corrigendum Exists: {hasInitiatedCorrection} for Ref#: {application.ReferenceNumber} ------------------");
+
+                    // Only proceed if there is NO initiated corrigendum
+                    if (!hasInitiatedCorrection &&
+                        DateTime.TryParse(expiringEligibility.ExpirationDate, out DateTime expirationDate))
+                    {
+                        bool isExpiringSoon = expirationDate > DateTime.Today &&
+                                              expirationDate <= DateTime.Today.AddMonths(3);
+
+                        if (isExpiringSoon && application.Status == "Sanctioned")
+                        {
+                            actions.Clear();
+                            actions.Add(new
+                            {
+                                tooltip = "Update Expiring Document",
+                                tooltipText = "To update UDID Card as its validity is expiring soon",
+                                color = "#F0C38E",
+                                actionFunction = "UpdateExpiringDocument"
+                            });
+                        }
+                    }
+                }
+
+
 
                 // Add data object with embedded actions
                 data.Add(new
@@ -417,6 +457,189 @@ namespace SahayataNidhi.Controllers.User
             string fullPath = "Base/DisplayFile?filename=" + fileName;
 
             return Json(new { fullPath });
+        }
+
+        [HttpGet]
+        public IActionResult GetExpiringDocumentDetails(string ServiceId, string referenceNumber)
+        {
+            // Validate ServiceId
+            if (!int.TryParse(ServiceId, out int serviceId))
+            {
+                _logger.LogError($"Invalid ServiceId: {ServiceId}");
+                return Json(new { status = false, message = "Invalid ServiceId. Must be a valid integer." });
+            }
+
+            // Retrieve service
+            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
+            if (service == null)
+            {
+                _logger.LogError($"Service not found for ServiceId: {serviceId}");
+                return Json(new { status = false, message = "Service not found." });
+            }
+
+            // Validate referenceNumber
+            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            if (application == null)
+            {
+                _logger.LogError($"Application not found for ReferenceNumber: {referenceNumber}");
+                return Json(new { status = false, message = "Application not found." });
+            }
+
+            try
+            {
+                // Parse FormElement JSON
+                var formElementObj = JArray.Parse(service.FormElement!);
+                if (formElementObj == null || !formElementObj.Any())
+                {
+                    _logger.LogError($"FormElement is empty or invalid for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "FormElement is empty or invalid." });
+                }
+
+                // Find Pension Type section
+                var pensionTypeSection = formElementObj.FirstOrDefault(s => s["section"]?.ToString() == "Pension Type");
+                if (pensionTypeSection == null)
+                {
+                    _logger.LogError($"Pension Type section not found in FormElement for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "Pension Type section not found." });
+                }
+
+                // Find PensionType field
+                var fieldsArray = pensionTypeSection["fields"] as JArray;
+                if (fieldsArray == null)
+                {
+                    _logger.LogError($"No fields found in Pension Type section for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "No fields found in Pension Type section." });
+                }
+
+                var pensionTypeField = fieldsArray.FirstOrDefault(f => f["name"]?.ToString().Trim() == "PensionType");
+                if (pensionTypeField == null)
+                {
+                    _logger.LogError($"PensionType field not found in Pension Type section for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "PensionType field not found." });
+                }
+
+                // Verify PHYSICALLY CHALLENGED PERSON option
+                bool hasPhysicallyChallengedOption = (pensionTypeField["options"] as JArray)?
+                    .Any(o => o["value"]?.ToString().Trim() == "PHYSICALLY CHALLENGED PERSON") ?? false;
+                if (!hasPhysicallyChallengedOption)
+                {
+                    _logger.LogError($"PHYSICALLY CHALLENGED PERSON option not found in PensionType for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "PHYSICALLY CHALLENGED PERSON option not found." });
+                }
+
+                // Get additionalFields for PHYSICALLY CHALLENGED PERSON
+                var additionalFields = pensionTypeField["additionalFields"]?["PHYSICALLY CHALLENGED PERSON"]?.ToObject<JArray>();
+                if (additionalFields == null)
+                {
+                    _logger.LogError($"No additionalFields for PHYSICALLY CHALLENGED PERSON in ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "No additional fields for PHYSICALLY CHALLENGED PERSON." });
+                }
+
+                // Find KindOfDisability field
+                var kindOfDisabilityField = additionalFields.FirstOrDefault(f => f["name"]?.ToString() == "KindOfDisability");
+                if (kindOfDisabilityField == null)
+                {
+                    _logger.LogError($"KindOfDisability field not found in PHYSICALLY CHALLENGED PERSON additionalFields for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "KindOfDisability field not found." });
+                }
+
+                // Verify TEMPORARY option
+                bool hasTemporaryOption = (kindOfDisabilityField["options"] as JArray)?
+                    .Any(o => o["value"]?.ToString().Trim() == "TEMPORARY") ?? false;
+                if (!hasTemporaryOption)
+                {
+                    _logger.LogError($"TEMPORARY option not found in KindOfDisability for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "TEMPORARY option not found in KindOfDisability." });
+                }
+
+                // Get additionalFields for TEMPORARY
+                var temporaryAdditionalFields = kindOfDisabilityField["additionalFields"]?["TEMPORARY"]?.ToObject<JArray>();
+                if (temporaryAdditionalFields == null)
+                {
+                    _logger.LogError($"No additionalFields for TEMPORARY in KindOfDisability for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "No additional fields for TEMPORARY in KindOfDisability." });
+                }
+
+                // Extract fields from PHYSICALLY CHALLENGED PERSON additionalFields
+                var udidCardNumberField = additionalFields.FirstOrDefault(f => f["name"]?.ToString() == "UdidCardNumber");
+                var udidCardIssueDateField = additionalFields.FirstOrDefault(f => f["name"]?.ToString() == "UdidCardIssueDate");
+                var percentageOfDisabilityField = additionalFields.FirstOrDefault(f => f["name"]?.ToString() == "PercentageOfDisability");
+                var ifTemporaryDisabilityUdidCardValidUptoField = temporaryAdditionalFields
+                    .FirstOrDefault(f => f["name"]?.ToString() == "IfTemporaryDisabilityUdidCardValidUpto");
+
+                // Find Documents section
+                var documentsSection = formElementObj.FirstOrDefault(s => s["section"]?.ToString() == "Documents");
+                if (documentsSection == null)
+                {
+                    _logger.LogError($"Documents section not found in FormElement for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "Documents section not found." });
+                }
+
+                // Find UdidCard field in Documents section
+                var documentFieldsArray = documentsSection["fields"] as JArray;
+                if (documentFieldsArray == null)
+                {
+                    _logger.LogError($"No fields found in Documents section for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "No fields found in Documents section." });
+                }
+
+                var udidCardField = documentFieldsArray.FirstOrDefault(f => f["name"]?.ToString() == "UdidCard");
+                if (udidCardField == null)
+                {
+                    _logger.LogError($"UdidCard field not found in Documents section for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "UdidCard field not found." });
+                }
+
+                // Verify UdidCard is dependent on KindOfDisability with TEMPORARY
+                bool isDependentEnclosure = udidCardField["isDependentEnclosure"]?.ToObject<bool>() ?? false;
+                var dependentField = udidCardField["dependentField"]?.ToString();
+                var dependentValues = udidCardField["dependentValues"]?.ToObject<string[]>();
+                if (!isDependentEnclosure || dependentField != "KindOfDisability" || dependentValues == null || !dependentValues.Contains("TEMPORARY"))
+                {
+                    _logger.LogError($"UdidCard is not correctly configured as a dependent enclosure for KindOfDisability with TEMPORARY for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "UdidCard is not correctly configured as a dependent enclosure." });
+                }
+
+                // Validate required fields
+                if (udidCardNumberField == null || udidCardIssueDateField == null ||
+                    percentageOfDisabilityField == null || ifTemporaryDisabilityUdidCardValidUptoField == null ||
+                    udidCardField == null)
+                {
+                    _logger.LogError($"One or more required fields (UdidCardNumber, UdidCardIssueDate, PercentageOfDisability, IfTemporaryDisabilityUdidCardValidUpto, UdidCard) not found for ServiceId: {serviceId}");
+                    return Json(new { status = false, message = "One or more required fields not found in form elements." });
+                }
+
+                // Return the required field definitions
+                return Json(new
+                {
+                    status = true,
+                    data = new
+                    {
+                        UdidCardNumber = udidCardNumberField,
+                        UdidCardIssueDate = udidCardIssueDateField,
+                        PercentageOfDisability = percentageOfDisabilityField,
+                        IfTemporaryDisabilityUdidCardValidUpto = ifTemporaryDisabilityUdidCardValidUptoField,
+                        UdidCard = udidCardField
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error processing FormElement for ServiceId: {serviceId}, ReferenceNumber: {referenceNumber}");
+                return Json(new { status = false, message = "An error occurred while processing the request." });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetIfSameUdidNumber(string referenceNumber, string udidNumber)
+        {
+            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            var formDetails = JToken.Parse(application!.FormDetails!);
+            var UdidNumber = FindFieldRecursively(formDetails, "UdidCardNumber");
+            if (udidNumber == (string)UdidNumber!["value"]!)
+            {
+                return Json(new { status = true });
+            }
+            return Json(new { status = false, message = "Udid Number doesn't match the existing one in the record." });
         }
     }
 }

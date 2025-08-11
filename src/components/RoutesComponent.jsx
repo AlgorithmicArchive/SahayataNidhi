@@ -45,6 +45,7 @@ import ViewerHome from "../screens/viewer/ViewerHome";
 import IssueCorrigendum from "../screens/officer/IssueCorrigendum";
 import ViewCorrigendumDetails from "../screens/officer/ViewCorrigendumDetails";
 import Corrections from "../screens/designer/Corrections";
+import UpdateExpiringDocument from "../screens/user/UpdateExpiringDocument";
 
 const RoutesComponent = () => {
   return (
@@ -71,6 +72,10 @@ const RoutesComponent = () => {
           <Route path="incomplete" element={<Incomplete />} />
           <Route path="incompleteform" element={<IncompleteForm />} />
           <Route path="editform" element={<EditForm />} />
+          <Route
+            path="updateexpiringdocument"
+            element={<UpdateExpiringDocument />}
+          />
         </Route>
       </Route>
       <Route element={<ProtectedRoute requiredRoles={["Officer"]} />}>
