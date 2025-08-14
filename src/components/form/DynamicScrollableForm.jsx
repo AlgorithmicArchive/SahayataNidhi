@@ -1389,6 +1389,20 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       },
       marginBottom: "0.5rem",
     };
+    const formatDisplayDate = (dateValue) => {
+      if (!dateValue) return "";
+      try {
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return "";
+        return date.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+      } catch {
+        return "";
+      }
+    };
 
     const getLabelWithAsteriskJSX = (field) => {
       const isRequired = field.validationFunctions?.includes("notEmpty");

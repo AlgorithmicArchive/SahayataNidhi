@@ -1461,10 +1461,47 @@ export default function OfficerHome() {
                             fontWeight: "bold",
                             fontSize: "0.8rem",
                             color: "#000000",
+                            cursor: "pointer",
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log("Sanctioned Applications");
+                            handleCardClick(
+                              "Sanctioned",
+                              "application",
+                              item.tableTitle,
+                            );
                           }}
                         >
                           Sanctioned: {item.forwardedSanctionedCount}
                         </Typography>
+                      ) : (
+                        <span />
+                      )}
+
+                      {item.label == "Total Applications" ? (
+                        <>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: "bold",
+                              fontSize: "0.8rem",
+                              color: "#000000",
+                            }}
+                          >
+                            New: {item.count}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: "bold",
+                              fontSize: "0.8rem",
+                              color: "#000000",
+                            }}
+                          >
+                            Legacy: {legacyCountList[0].count}
+                          </Typography>
+                        </>
                       ) : (
                         <span />
                       )}
@@ -1487,18 +1524,20 @@ export default function OfficerHome() {
               ))}
             </Row>
 
-            <Typography
-              variant="h5"
-              sx={{
-                mb: 3,
-                fontWeight: 600,
-                color: "#2d3748",
-                textAlign: "center",
-                fontFamily: "'Inter', sans-serif",
-              }}
-            >
-              Withheld Applications
-            </Typography>
+            <MuiTooltip title="Withheld Applications After Sanction" arrow>
+              <Typography
+                variant="h5"
+                sx={{
+                  mb: 3,
+                  fontWeight: 600,
+                  color: "#2d3748",
+                  textAlign: "center",
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                Withheld Applications
+              </Typography>
+            </MuiTooltip>
             <Row
               className="mb-1 justify-content-center"
               style={{ width: "100%" }}
@@ -1747,6 +1786,7 @@ export default function OfficerHome() {
                             fontWeight: "bold",
                             fontSize: "0.8rem",
                             color: "#000000",
+                            cursor: "grab",
                           }}
                         >
                           Sanctioned: {item.forwardedSanctionedCount}
@@ -1775,18 +1815,23 @@ export default function OfficerHome() {
 
             {corrigendumList?.length > 0 && (
               <>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    mb: 3,
-                    fontWeight: 600,
-                    color: "#2d3748",
-                    textAlign: "center",
-                    fontFamily: "'Inter', sans-serif",
-                  }}
+                <MuiTooltip
+                  title="Corrgendum are issued after cases are sanctioned"
+                  arrow
                 >
-                  Corrigendums
-                </Typography>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      mb: 3,
+                      fontWeight: 600,
+                      color: "#2d3748",
+                      textAlign: "center",
+                      fontFamily: "'Inter', sans-serif",
+                    }}
+                  >
+                    Corrigendums
+                  </Typography>
+                </MuiTooltip>
                 <Row
                   className="mb-1 justify-content-center align-items-center"
                   style={{ width: "100%" }}
@@ -1924,18 +1969,23 @@ export default function OfficerHome() {
 
             {correctionList?.length > 0 && (
               <>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    mb: 3,
-                    fontWeight: 600,
-                    color: "#2d3748",
-                    textAlign: "center",
-                    fontFamily: "'Inter', sans-serif",
-                  }}
+                <MuiTooltip
+                  title="Corrections are made before cases are sanctioned"
+                  arrow
                 >
-                  Corrections
-                </Typography>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      mb: 3,
+                      fontWeight: 600,
+                      color: "#2d3748",
+                      textAlign: "center",
+                      fontFamily: "'Inter', sans-serif",
+                    }}
+                  >
+                    Corrections
+                  </Typography>
+                </MuiTooltip>
                 <Row
                   className="mb-1 justify-content-center align-items-center"
                   style={{ width: "100%" }}

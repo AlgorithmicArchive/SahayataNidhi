@@ -613,6 +613,7 @@ namespace SahayataNidhi.Controllers.Officer
             if (type == "totalpcpapplication")
             {
                 columns.Add(new { accessorKey = "applicationType", header = "UDID Card Type" });
+                columns.Add(new { accessorKey = "expiryDate", header = "UDID Card Expiry Date" });
             }
             else
             {
@@ -643,19 +644,20 @@ namespace SahayataNidhi.Controllers.Officer
                 applicationObject.referenceNumber = application.ReferenceNumber;
                 applicationObject.applicantName = applicantName;
                 applicationObject.serviceName = serviceName;
+                var expiringApplication = dbcontext.ApplicationsWithExpiringEligibilities
+                     .FirstOrDefault(ae => ae.ReferenceNumber == application.ReferenceNumber);
+                DateTime expirationDate = DateTime.Parse(expiringApplication?.ExpirationDate!);
+                int daysLeft = (expirationDate.Date - DateTime.Today).Days;
 
                 if (type == "totalpcpapplication")
                 {
                     var disabilityType = FindFieldRecursively(formDetailsObj, "KindOfDisability")!;
                     _logger.LogInformation($"-------------------- Disability Type: {disabilityType["value"]} -----------------------");
                     applicationObject.applicationType = disabilityType["value"];
+                    applicationObject.expiryDate = expirationDate.ToString("dd/MM/yyyy") + $" ({daysLeft} days left)";
                 }
                 else
                 {
-                    var expiringApplication = dbcontext.ApplicationsWithExpiringEligibilities
-                      .FirstOrDefault(ae => ae.ReferenceNumber == application.ReferenceNumber);
-                    DateTime expirationDate = DateTime.Parse(expiringApplication?.ExpirationDate!);
-                    int daysLeft = (expirationDate.Date - DateTime.Today).Days;
                     applicationObject.expiryDate = expirationDate.ToString("dd/MM/yyyy") + $" ({daysLeft} days left)";
                     applicationObject.noOfMailSent = expiringApplication!.MailSent;
                     applicationObject.customActions = customActions;

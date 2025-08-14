@@ -252,6 +252,11 @@ export default function Form() {
           value: "PHYSICALLY CHALLENGED PERSON",
           additionalFields: [
             {
+              label: "UDID Card Issue Date",
+              name: "UdidCardIssueDate",
+              value: "2025-02-02",
+            },
+            {
               label: "Type of Disability as per UDID Card",
               name: "TypeOfDisabilityAsPerUdidCard",
               value: "BLINDNESS",
