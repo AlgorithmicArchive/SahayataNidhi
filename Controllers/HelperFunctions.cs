@@ -93,20 +93,14 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SocialW
     public string GetCurrentFinancialYear()
     {
         var today = DateTime.Today;
-        int startYear;
-
-        if (today.Month < 4)
-        {
-            startYear = today.Year - 1;
-        }
-        else
-        {
-            startYear = today.Year;
-        }
-
+        int startYear = today.Month < 4 ? today.Year - 1 : today.Year;
         int endYear = startYear + 1;
-        return $"{startYear}-{endYear}";
+
+        // Format: yyyy-yy (e.g., 2025-26)
+        return $"{startYear}-{endYear % 100:00}";
     }
+
+
 
     public string GenerateApplicationId(int districtId, SocialWelfareDepartmentContext dbcontext)
     {

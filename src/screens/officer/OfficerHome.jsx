@@ -444,6 +444,8 @@ export default function OfficerHome() {
         : statusName === "PCP - UDID Card Expiring" ||
           statusName === "PCP Applications"
         ? "/Officer/GetTemporaryDisability"
+        : statusName.includes("Withheld")
+        ? "/Officer/GetWithheldApplications"
         : "/Officer/GetApplications";
 
     setUrl(url);
@@ -1880,11 +1882,26 @@ export default function OfficerHome() {
                         <Box
                           sx={{
                             display: "flex",
-                            justifyContent: "flex-end",
+                            justifyContent: "space-between",
+                            alignItems: "center",
                             mt: 1,
                             width: "100%",
                           }}
                         >
+                          {item.forwardedSanctionedCount != null ? (
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: "bold",
+                                fontSize: "0.8rem",
+                                color: "#000000",
+                              }}
+                            >
+                              Issued: {item.forwardedSanctionedCount}
+                            </Typography>
+                          ) : (
+                            <span />
+                          )}
                           <Typography
                             variant="body2"
                             sx={{
@@ -2014,11 +2031,26 @@ export default function OfficerHome() {
                         <Box
                           sx={{
                             display: "flex",
-                            justifyContent: "flex-end",
+                            justifyContent: "space-between",
+                            alignItems: "center",
                             mt: 1,
                             width: "100%",
                           }}
                         >
+                          {item.forwardedSanctionedCount != null ? (
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: "bold",
+                                fontSize: "0.8rem",
+                                color: "#000000",
+                              }}
+                            >
+                              Verified: {item.forwardedSanctionedCount}
+                            </Typography>
+                          ) : (
+                            <span />
+                          )}
                           <Typography
                             variant="body2"
                             sx={{

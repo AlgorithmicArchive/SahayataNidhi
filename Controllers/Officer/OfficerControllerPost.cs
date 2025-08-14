@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
@@ -729,6 +730,129 @@ namespace SahayataNidhi.Controllers.Officer
             await emailSender.SendEmail(email, "Important: UDID Card Validity Expiring", htmlMessage);
 
             return Json(new { status = true, message = "Email Sent Successfully" });
+        }
+
+        [HttpPost]
+        public IActionResult CreateWithheldApplication([FromForm] IFormCollection form)
+        {
+            try
+            {
+                var officer = GetOfficerDetails();
+                // Validate input
+                if (!form.TryGetValue("ReferenceNumber", out StringValues referenceNumber) || string.IsNullOrEmpty(referenceNumber.ToString()))
+                {
+                    return BadRequest(new { status = false, message = "ReferenceNumber is required." });
+                }
+                if (!form.TryGetValue("ServiceId", out StringValues serviceIdStr) || !int.TryParse(serviceIdStr.ToString(), out var serviceId) || serviceId <= 0)
+                {
+                    return BadRequest(new { status = false, message = "ServiceId is required and must be a valid integer." });
+                }
+                if (!form.TryGetValue("IsWithheld", out StringValues isWithheldStr) || !bool.TryParse(isWithheldStr.ToString(), out var isWithheld))
+                {
+                    return BadRequest(new { status = false, message = "Invalid or missing IsWithheld value." });
+                }
+                if (!form.TryGetValue("WithheldType", out StringValues withheldType) || string.IsNullOrEmpty(withheldType.ToString()))
+                {
+                    return BadRequest(new { status = false, message = "WithheldType is required." });
+                }
+                if (!form.TryGetValue("WithheldReason", out StringValues withheldReason) || string.IsNullOrEmpty(withheldReason.ToString()))
+                {
+                    return BadRequest(new { status = false, message = "WithheldReason is required." });
+                }
+
+                // Check if application already exists
+                var existingApplication = dbcontext.WithheldApplications
+                    .FirstOrDefault(wa => wa.ReferenceNumber == referenceNumber.ToString() && wa.ServiceId == serviceId);
+
+                if (existingApplication != null)
+                {
+                    return BadRequest(new { status = false, message = "Application already exists." });
+                }
+
+                // Create new application
+                var newApplication = new WithheldApplication
+                {
+                    ServiceId = serviceId,
+                    ReferenceNumber = referenceNumber.ToString(),
+                    IsWithheld = isWithheld,
+                    WithheldType = withheldType.ToString(),
+                    WithheldReason = withheldReason.ToString(),
+                    // WithheldOn is not set explicitly as it has a default value of GETDATE() in the database
+                };
+
+                dbcontext.WithheldApplications.Add(newApplication);
+                dbcontext.SaveChanges();
+
+                helper.InsertHistory(referenceNumber!, $"Withheld Application ({withheldType})", officer.Role!, withheldReason!, officer.AccessLevel!, (int)officer.AccessCode!);
+
+                return Ok(new { status = true, message = "Application created successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = "Failed to create application: " + ex.Message });
+            }
+
+        }
+
+        [HttpPut]
+        public IActionResult UpdateWithheldApplication([FromForm] IFormCollection form)
+        {
+            try
+            {
+                var officer = GetOfficerDetails();
+                // Validate input
+                if (!form.TryGetValue("ReferenceNumber", out StringValues referenceNumber) || string.IsNullOrEmpty(referenceNumber.ToString()))
+                {
+                    return BadRequest(new { status = false, message = "ReferenceNumber is required." });
+                }
+                if (!form.TryGetValue("ServiceId", out StringValues serviceIdStr) || !int.TryParse(serviceIdStr.ToString(), out var serviceId) || serviceId <= 0)
+                {
+                    return BadRequest(new { status = false, message = "ServiceId is required and must be a valid integer." });
+                }
+                if (!form.TryGetValue("IsWithheld", out StringValues isWithheldStr) || !bool.TryParse(isWithheldStr.ToString(), out var isWithheld))
+                {
+                    return BadRequest(new { status = false, message = "Invalid or missing IsWithheld value." });
+                }
+                if (!form.TryGetValue("WithheldType", out StringValues withheldType) || string.IsNullOrEmpty(withheldType.ToString()))
+                {
+                    return BadRequest(new { status = false, message = "WithheldType is required." });
+                }
+                if (!form.TryGetValue("WithheldReason", out StringValues withheldReason) || string.IsNullOrEmpty(withheldReason.ToString()))
+                {
+                    return BadRequest(new { status = false, message = "WithheldReason is required." });
+                }
+
+                // Find existing application
+                var application = dbcontext.WithheldApplications
+                    .FirstOrDefault(wa => wa.ReferenceNumber == referenceNumber.ToString() && wa.ServiceId == serviceId);
+
+                if (application == null)
+                {
+                    return NotFound(new { status = false, message = "Application not found." });
+                }
+
+                // Update application
+                application.IsWithheld = isWithheld;
+                application.WithheldType = withheldType.ToString();
+                application.WithheldReason = withheldReason.ToString();
+                // WithheldOn is not updated as it's typically set only on creation
+
+                dbcontext.SaveChanges();
+                if (isWithheld)
+                {
+                    helper.InsertHistory(referenceNumber!, $"Withheld Application ({withheldType})", officer.Role!, withheldReason!, officer.AccessLevel!, (int)officer.AccessCode!);
+                }
+                else
+                {
+                    helper.InsertHistory(referenceNumber!, $"Removed Application From Withheld", officer.Role!, withheldReason!, officer.AccessLevel!, (int)officer.AccessCode!);
+
+                }
+                return Ok(new { status = true, message = "Application updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = "Failed to update application: " + ex.Message });
+            }
         }
 
     }

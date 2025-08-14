@@ -234,12 +234,27 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
             .SetTextAlignment(TextAlignment.CENTER)
             .SetFontSize(16));
 
-        Table table = new Table(UnitValue.CreatePercentArray(2)).UseAllAvailableWidth();
+        // Create table with fixed layout to auto-scale cells based on content
+        Table table = new Table(UnitValue.CreatePercentArray(2))
+            .UseAllAvailableWidth()
+            .SetFixedLayout(); // Set fixed layout to adjust cell size to content
+
         foreach (DictionaryEntry item in details)
         {
-            table.AddCell(new Cell().Add(new Paragraph(item.Key.ToString())));
-            table.AddCell(new Cell().Add(new Paragraph(item.Value?.ToString() ?? string.Empty)));
+            // Add cells with auto-scaling based on content
+            Cell keyCell = new Cell()
+                .Add(new Paragraph(item.Key.ToString())
+                    .SetFontSize(12)); // Optional: Adjust font size for better fit
+            keyCell.SetPadding(5); // Add padding for better readability
+            table.AddCell(keyCell);
+
+            Cell valueCell = new Cell()
+                .Add(new Paragraph(item.Value?.ToString() ?? string.Empty)
+                    .SetFontSize(12)); // Optional: Adjust font size for better fit
+            valueCell.SetPadding(5); // Add padding for better readability
+            table.AddCell(valueCell);
         }
+
         document.Add(table);
 
         // Ensure the PDF is finalized

@@ -142,7 +142,28 @@ export default function Form() {
           label: "Present Address Type",
           name: "PresentAddressType",
           value: "Urban",
-          additionalFields: [],
+          additionalFields: [
+            {
+              lable: "Present District",
+              name: "PresentDistrict",
+              value: 5,
+            },
+            {
+              lable: "Present Tehsil",
+              name: "PresentTehsil",
+              value: 79,
+            },
+            {
+              label: "Present Muncipality",
+              name: "PresentMuncipality",
+              value: "248194",
+            },
+            {
+              label: "Present Ward",
+              name: "PresentWard",
+              value: "11013",
+            },
+          ],
         },
         {
           label: "Present Pincode",
@@ -239,13 +260,7 @@ export default function Form() {
               label: "Kind Of Disability",
               name: "KindOfDisability",
               value: "TEMPORARY",
-              additionalFields: [
-                {
-                  label: "If Temporary Disability, UDID Card Valid upto",
-                  name: "IfTemporaryDisabilityUdidCardValidUpto",
-                  value: "2025-10-06",
-                },
-              ],
+              additionalFields: [],
             },
             {
               label: "UDID Card Number",
@@ -327,7 +342,28 @@ export default function Form() {
           label: "Present Address Type",
           name: "PresentAddressType",
           value: "Urban",
-          additionalFields: [],
+          additionalFields: [
+            {
+              lable: "Present District",
+              name: "PresentDistrict",
+              value: 5,
+            },
+            {
+              lable: "Present Tehsil",
+              name: "PresentTehsil",
+              value: 79,
+            },
+            {
+              label: "Present Muncipality",
+              name: "PresentMuncipality",
+              value: "248194",
+            },
+            {
+              label: "Present Ward",
+              name: "PresentWard",
+              value: "11013",
+            },
+          ],
         },
         {
           label: "Present Pincode",
@@ -490,7 +526,28 @@ export default function Form() {
           label: "Present Address Type",
           name: "PresentAddressType",
           value: "Urban",
-          additionalFields: [],
+          additionalFields: [
+            {
+              lable: "Present District",
+              name: "PresentDistrict",
+              value: 5,
+            },
+            {
+              lable: "Present Tehsil",
+              name: "PresentTehsil",
+              value: 79,
+            },
+            {
+              label: "Present Muncipality",
+              name: "PresentMuncipality",
+              value: "248194",
+            },
+            {
+              label: "Present Ward",
+              name: "PresentWard",
+              value: "11013",
+            },
+          ],
         },
         {
           label: "Present Pincode",

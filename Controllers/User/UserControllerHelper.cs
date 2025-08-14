@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -248,13 +249,14 @@ namespace SahayataNidhi.Controllers.User
                     {
                         value = ExtractValueWithSpecials(fieldObj, name);
 
-                        // Check if the field name suggests a date and try to format it
-                        if (name.IndexOf("Date", StringComparison.OrdinalIgnoreCase) >= 0 &&
-                            DateTime.TryParse(value, out DateTime dt))
+                        // Check if value is in yyyy-MM-dd format and convert
+                        if (DateTime.TryParseExact(value, "yyyy-MM-dd",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dt))
                         {
                             value = dt.ToString("dd MMM yyyy");
                         }
                     }
+
 
                     return string.IsNullOrWhiteSpace(value) ? "" : value;
                 })

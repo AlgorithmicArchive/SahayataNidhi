@@ -390,6 +390,12 @@ namespace SahayataNidhi.Controllers
 
             switch (table)
             {
+                case "TehsilAll":
+                    data = dbcontext.Tehsils
+                     .Where(t => t.DistrictId == parentId)
+                     .Select(t => new { value = t.TehsilId, label = t.TehsilName }) // Optional: project only needed fields
+                     .ToList();
+                    break;
                 case "Tehsil":
                     data = dbcontext.Tswotehsils
                         .Where(t => t.DistrictId == parentId)

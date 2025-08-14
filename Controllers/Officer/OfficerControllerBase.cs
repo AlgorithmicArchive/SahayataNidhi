@@ -318,26 +318,59 @@ namespace SahayataNidhi.Controllers.Officer
                 if (action == "Sanction")
                 {
                     string fileName = applicationId.Replace("/", "_") + "_SanctionLetter.pdf";
+
+                    // Get file from database
                     var fileModel = await dbcontext.UserDocuments
                         .FirstOrDefaultAsync(f => f.FileName == fileName);
 
                     if (fileModel == null)
                     {
                         _logger.LogWarning($"File not found in database: {fileName}");
+                        return Json(new { status = false, message = "File not found" });
                     }
-                    string tempPath = Path.Combine(Path.GetTempPath(), fileName);
-                    await System.IO.File.WriteAllBytesAsync(tempPath, fileModel!.FileData);
 
-                    var attachments = new List<string> { tempPath };
+                    // Create Temp directory inside wwwroot
+                    string tempDir = Path.Combine(_webHostEnvironment.WebRootPath, "Temp");
+                    Directory.CreateDirectory(tempDir); // Ensure it exists
+
+                    string tempFilePath = Path.Combine(tempDir, fileName);
+                    var attachments = new List<string>();
+
                     try
                     {
-                        await emailSender.SendEmailWithAttachments(userEmail!, "Form Submission", htmlMessage, attachments);
+                        // Write file data to temp path
+                        await System.IO.File.WriteAllBytesAsync(tempFilePath, fileModel.FileData);
+                        attachments.Add(tempFilePath);
+
+                        // Send email with attachment
+                        await emailSender.SendEmailWithAttachments(
+                            userEmail!,
+                            "Form Submission",
+                            htmlMessage,
+                            attachments
+                        );
                     }
                     catch (Exception ex)
                     {
-                        // Log the email sending error but continue execution
+                        // Log send error but continue
                         _logger.LogError(ex, $"Failed to send email with attachments for Application ID: {applicationId}, Email: {userEmail}");
                     }
+                    finally
+                    {
+                        // Delete temp file
+                        if (System.IO.File.Exists(tempFilePath))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(tempFilePath);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, $"Failed to delete temporary file: {tempFilePath}");
+                            }
+                        }
+                    }
+
                 }
                 else if (action != "Forward" && action != "Returned")
                 {

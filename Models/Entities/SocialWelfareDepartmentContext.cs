@@ -610,7 +610,6 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.ToTable("Withheld_Applications");
 
             entity.Property(e => e.WithheldId).HasColumnName("Withheld_Id");
-            entity.Property(e => e.MailSentToCitizen).HasDefaultValue(0);
             entity.Property(e => e.ReferenceNumber).HasMaxLength(50);
             entity.Property(e => e.WithheldOn).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.WithheldReason).HasColumnType("text");

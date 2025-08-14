@@ -41,6 +41,7 @@ export default function Initiated() {
     CreateTimeLine: (row) => {
       const userdata = row.original;
       handleOpen();
+      setApplicationId(userdata.referenceNumber);
       setTable({
         url: "/User/GetApplicationHistory",
         params: { ApplicationId: userdata.referenceNumber },
@@ -153,10 +154,10 @@ export default function Initiated() {
       <BasicModal
         open={open}
         handleClose={handleClose}
-        Title={"Application Status"}
+        Title={"Application Status for " + ApplicationId}
         pdf={null}
         table={table}
-        accordion={ApplicationId}
+        // accordion={ApplicationId}
       />
     </MainContainer>
   );

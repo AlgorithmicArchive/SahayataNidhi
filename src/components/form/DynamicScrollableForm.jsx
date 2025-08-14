@@ -140,6 +140,52 @@ const flattenFormDetails = (nestedDetails) => {
   return flat;
 };
 
+const sanitizeFormSections = (sections) => {
+  return sections.map((section) => ({
+    ...section,
+    fields: section.fields.map((field) => {
+      if (field.options) {
+        const seenValues = new Set();
+        const uniqueOptions = field.options.filter((option) => {
+          if (seenValues.has(option.value)) {
+            console.warn(
+              `Duplicate option value found: ${option.value} in field ${field.name}`,
+            );
+            return false;
+          }
+          seenValues.add(option.value);
+          return true;
+        });
+        return { ...field, options: uniqueOptions };
+      }
+      if (field.additionalFields) {
+        const sanitizedAdditionalFields = {};
+        Object.entries(field.additionalFields).forEach(([key, fields]) => {
+          sanitizedAdditionalFields[key] = fields.map((af) => {
+            if (af.options) {
+              const seenValues = new Set();
+              const uniqueOptions = af.options.filter((option) => {
+                if (seenValues.has(option.value)) {
+                  console.warn(
+                    `Duplicate option value found: ${option.value} in additional field ${af.name}`,
+                  );
+                  return false;
+                }
+                seenValues.add(option.value);
+                return true;
+              });
+              return { ...af, options: uniqueOptions };
+            }
+            return af;
+          });
+        });
+        return { ...field, additionalFields: sanitizedAdditionalFields };
+      }
+      return field;
+    }),
+  }));
+};
+
 const DynamicScrollableForm = ({ mode = "new", data }) => {
   const {
     control,
@@ -400,7 +446,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       const section = formDetails[key];
       section.forEach((item) => {
         if (
-          /district|muncipality|ward|block|halqapanchayat|village/i.test(
+          /district|tehsil|muncipality|ward|block|halqapanchayat|village/i.test(
             item.name,
           )
         ) {
@@ -442,7 +488,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         if (result && result.status) {
           try {
             config = JSON.parse(result.formElement);
-            setFormSections(config);
+            setFormSections(sanitizeFormSections(config));
           } catch (err) {
             console.error("Error parsing formElements:", err);
             setFormSections([]);
@@ -452,6 +498,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           const { formDetails, additionalDetails } = await fetchFormDetails(
             referenceNumber,
           );
+
           const flatDetails = flattenFormDetails(formDetails);
           setInitialData(flatDetails);
           const resetData = {
@@ -505,32 +552,60 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             }, {}),
           };
           setInitialData(flatDetails);
-          setAreas(data);
+          // setAreas(data);
           reset(resetData);
         }
 
         if (data != null) {
-          Object.keys(data).forEach((key) => {
-            data[key].map((item, sectionIndex) => {
+          Object.keys(data).forEach((key, sectionIndex) => {
+            data[key].map((item, index) => {
               if (item.name.toLowerCase().includes("district")) {
                 handleAreaChange(sectionIndex, { name: item.name }, item.value);
               }
               setValue(item.name, item.value);
               if (item.additionalFields) {
-                item.additionalFields.forEach((item) => {
-                  console.log("ITEM", item);
+                let fieldsArray = [];
+
+                if (Array.isArray(item.additionalFields)) {
+                  // Case 1: single array of objects
+                  fieldsArray = item.additionalFields;
+                } else if (
+                  typeof item.additionalFields === "object" &&
+                  !Array.isArray(item.additionalFields)
+                ) {
+                  // Case 2: object whose values are arrays of objects
+                  Object.values(item.additionalFields).forEach((arr) => {
+                    if (Array.isArray(arr)) {
+                      fieldsArray.push(...arr);
+                    }
+                  });
+                }
+
+                // Deduplicate based on name + value
+                const uniqueFields = [];
+                const seen = new Set();
+
+                fieldsArray.forEach((field) => {
+                  const key = `${field.name}::${field.value}`;
+                  if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueFields.push(field);
+                  }
+                });
+
+                // Process fields
+                uniqueFields.forEach((field) => {
                   if (
-                    item.name.toLowerCase().includes("district") ||
-                    item.name.toLowerCase().includes("muncipality")
+                    field.name.toLowerCase().includes("district") ||
+                    field.name.toLowerCase().includes("muncipality") // Keep original spelling
                   ) {
-                    console.log("SECTION INDEX", sectionIndex);
                     handleAreaChange(
                       sectionIndex,
-                      { name: item.name },
-                      item.value,
+                      { name: field.name },
+                      field.value,
                     );
                   }
-                  setValue(item.name, item.value);
+                  setValue(field.name, field.value);
                 });
               }
             });
@@ -643,12 +718,10 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           const currentValue = getValues(field.name);
 
           if (options.length > 0) {
-            // If current value is not in options, reset to first available
             setValue(field.name, options[1]?.value || "", {
               shouldValidate: true,
             });
           } else if (currentValue) {
-            // If no options and value is set, clear it
             setValue(field.name, "", { shouldValidate: true });
           }
         }
@@ -802,7 +875,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
       // Trigger area change for relevant fields (e.g., District, Municipality, etc.)
       if (
-        /district|muncipality|ward|block|halqapanchayat|village/i.test(
+        /district|tehsil|muncipality|ward|block|halqapanchayat|village/i.test(
           presentField.name,
         )
       ) {
@@ -865,7 +938,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       "/Home/SendAadhaarOTP?aadhaarNumber=" + aadhaarNumber,
     );
     const result = await sendOTP.json();
-    console.log(result);
     if (result.status) {
       setOtpModal(true);
     }
@@ -885,15 +957,25 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     if (result.status) {
       setOtpModal(false);
       setAadhaarValid(true);
-      // setValue("AadharNumber", result.aadhaarToken);
+
+      // Mask first 8 digits with 'X'
+      const maskedAadhaar = aadhaarNumber.replace(/\d/g, (digit, index) => {
+        return index < 8 ? "X" : digit;
+      });
+
+      // Update form value with masked Aadhaar
+      setValue("AadharNumber", maskedAadhaar);
+
+      // Store the secure Aadhaar token in state
       setAadhaarNumber(result.aadhaarToken);
+
       toast.success("Aadhaar Number Validated.");
     }
   };
 
   const handleAreaChange = async (sectionIndex, field, value) => {
     try {
-      // 🧠 Determine which AddressType to use based on field name
+      // 🧠 Determine AddressType based on field name
       let addressTypeKey = "";
       if (field.name.startsWith("Present")) {
         addressTypeKey = "PresentAddressType";
@@ -907,13 +989,25 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         { name: "District", childname: "Tehsil", respectiveTable: "Tehsil" },
         {
           name: "PresentDistrict",
-          childname: { Urban: "PresentMuncipality", Rural: "PresentBlock" },
-          respectiveTable: { Urban: "Muncipality", Rural: "Block" },
+          childname: {
+            Urban: ["PresentTehsil", "PresentMuncipality"],
+            Rural: ["PresentTehsil", "PresentBlock"],
+          },
+          respectiveTable: {
+            Urban: ["TehsilAll", "Muncipality"],
+            Rural: ["TehsilAll", "Block"],
+          },
         },
         {
           name: "PermanentDistrict",
-          childname: { Urban: "PermanentMuncipality", Rural: "PermanentBlock" },
-          respectiveTable: { Urban: "Muncipality", Rural: "Block" },
+          childname: {
+            Urban: ["PermanentTehsil", "PermanentMuncipality"],
+            Rural: ["PermanentTehsil", "PermanentBlock"],
+          },
+          respectiveTable: {
+            Urban: ["TehsilAll", "Muncipality"],
+            Rural: ["TehsilAll", "Block"],
+          },
         },
         {
           name: "PresentMuncipality",
@@ -948,85 +1042,145 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       ];
 
       const match = fieldNames.find((f) => f.name === field.name);
+
       if (!match) {
         console.warn(`Field "${field.name}" not found in fieldNames.`);
         return;
       }
 
-      const childFieldName =
+      // Normalize to arrays
+      let childFieldNames =
         typeof match.childname === "object"
           ? match.childname[AddressType]
           : match.childname;
+      if (!Array.isArray(childFieldNames)) {
+        childFieldNames = [childFieldNames];
+      }
 
-      const tableName =
+      let tableNames =
         typeof match.respectiveTable === "object"
           ? match.respectiveTable[AddressType]
           : match.respectiveTable;
+      if (!Array.isArray(tableNames)) {
+        tableNames = [tableNames];
+      }
 
-      if (!childFieldName || !tableName) {
-        console.warn(
-          `Invalid child field or table for ${addressTypeKey}: ${AddressType}`,
-        );
+      if (!childFieldNames.length || !tableNames.length) {
+        console.warn(`Invalid mapping for ${field.name} (${AddressType})`);
         return;
       }
 
-      const response = await axiosInstance.get(
-        `/Base/GetAreaList?table=${tableName}&parentId=${value}`,
-      );
-      const areaList = response.data?.data || [];
+      // Loop through each child/table pair
+      for (let i = 0; i < childFieldNames.length; i++) {
+        const childFieldName = childFieldNames[i];
+        const tableName = tableNames[i];
 
-      const newOptions = [
-        { label: "Please Select", value: "Please Select" },
-        ...areaList.map((item) => ({
-          value: item.id ?? item.value,
-          label: item.name ?? item.label,
-        })),
-      ];
+        try {
+          const response = await axiosInstance.get(
+            `/Base/GetAreaList?table=${tableName}&parentId=${value}`,
+          );
+          const areaList = response.data?.data || [];
 
-      setFormSections((prevSections) => {
-        const newSections = [...prevSections];
+          // Deduplicate options based on value
+          const uniqueOptions = [];
+          const seenValues = new Set();
+          areaList.forEach((item) => {
+            const optionValue = item.id ?? item.value;
+            if (!seenValues.has(optionValue)) {
+              seenValues.add(optionValue);
+              uniqueOptions.push({
+                value: optionValue,
+                label: item.name ?? item.label,
+              });
+            }
+          });
 
-        const section = newSections[sectionIndex];
-        let updated = false;
-        section.fields = section.fields.map((f) => {
-          if (f.name === childFieldName) {
-            updated = true;
-            return { ...f, options: newOptions };
+          const newOptions = [
+            { label: "Please Select", value: "Please Select" },
+            ...uniqueOptions,
+          ];
+
+          // Check if current value is in newOptions, reset to "Please Select" if not
+          const currentValue = getValues(childFieldName);
+          const isValueValid = newOptions.some(
+            (option) => option.value.toString() === currentValue?.toString(),
+          );
+          if (currentValue && !isValueValid) {
+            setValue(childFieldName, "Please Select", { shouldValidate: true });
           }
 
-          if (
-            f.additionalFields &&
-            typeof f.additionalFields === "object" &&
-            Array.isArray(f.additionalFields[AddressType])
-          ) {
-            f.additionalFields[AddressType] = f.additionalFields[
-              AddressType
-            ].map((af) => {
-              if (af.name === childFieldName) {
+          setFormSections((prevSections) => {
+            const newSections = [...prevSections];
+            const section = newSections[sectionIndex];
+            let updated = false;
+
+            section.fields = section.fields.map((f) => {
+              // Check top-level fields
+              if (f.name === childFieldName) {
                 updated = true;
-                return { ...af, options: newOptions };
+                return { ...f, options: newOptions };
               }
-              return af;
+
+              // Check nested fields in additionalFields for Urban and Rural
+              if (
+                f.additionalFields &&
+                typeof f.additionalFields === "object"
+              ) {
+                // Handle Urban fields
+                if (Array.isArray(f.additionalFields.Urban)) {
+                  f.additionalFields.Urban = f.additionalFields.Urban.map(
+                    (af) => {
+                      if (af.name === childFieldName) {
+                        updated = true;
+                        return { ...af, options: newOptions };
+                      }
+                      return af;
+                    },
+                  );
+                }
+
+                // Handle Rural fields
+                if (Array.isArray(f.additionalFields.Rural)) {
+                  f.additionalFields.Rural = f.additionalFields.Rural.map(
+                    (af) => {
+                      if (af.name === childFieldName) {
+                        updated = true;
+                        return { ...af, options: newOptions };
+                      }
+                      return af;
+                    },
+                  );
+                }
+              }
+
+              return f;
             });
-          }
 
-          return f;
-        });
+            if (!updated) {
+              console.warn(
+                `Child field "${childFieldName}" not found in section.`,
+              );
+            }
 
-        if (!updated) {
-          console.warn(`Child field "${childFieldName}" not found in section.`);
+            return newSections;
+          });
+        } catch (err) {
+          console.error(
+            `Error fetching options for ${childFieldName} (${tableName}):`,
+            err,
+          );
         }
-
-        return newSections;
-      });
-
-      // setValue(childFieldName, "Please Select");
+      }
     } catch (error) {
-      console.error("Error fetching child field options:", error);
+      console.error("Error in handleAreaChange:", error);
     }
   };
 
   const onSubmit = async (data, operationType) => {
+    if (!aadhaarValid && operationType != "save") {
+      alert("Aadhaar Number is not validated.");
+      return;
+    }
     const groupedFormData = {};
     setLoading(true);
 
@@ -1289,6 +1443,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
                     // Aadhaar-specific logic
                     if (fieldName === "AadharNumber") {
+                      setAadhaarValid(false);
                       const lastChar = val.toString().charAt(val.length - 1);
 
                       let updatedAadhaar;
@@ -1582,8 +1737,13 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               } else {
                 options = field.options || [];
               }
-              if (value && !options.some((opt) => opt.value === value)) {
-                options = [...options, { value, label: value }];
+              if (
+                value &&
+                !options.some(
+                  (opt) => opt.value.toString() === value.toString(),
+                )
+              ) {
+                options = [...options, { value, label: value.toString() }];
               }
 
               return (
@@ -1627,9 +1787,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     sx={commonStyles}
                     disabled={isFieldDisabled(field.name)}
                   >
-                    {options.map((option) => (
+                    {options.map((option, index) => (
                       <MenuItem
-                        key={option.value}
+                        key={`${option.value}-${index}`}
                         value={option.value}
                         sx={{
                           color: "#1F2937", // Gray-900
@@ -1691,7 +1851,12 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           "";
         const options = field.options || [];
 
-        if (selectValue && !options.some((opt) => opt.value === selectValue)) {
+        if (
+          selectValue &&
+          !options.some(
+            (opt) => opt.value.toString() === selectValue.toString(),
+          )
+        ) {
           options.push({ value: selectValue, label: selectValue });
         }
 
@@ -1734,9 +1899,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       sx={commonStyles}
                       disabled={isFieldDisabled(field.name)}
                     >
-                      {options.map((option) => (
+                      {options.map((option, index) => (
                         <MenuItem
-                          key={option.value}
+                          key={`${option.value}-${index}`}
                           value={option.value}
                           sx={{
                             color: "#1F2937", // Gray-900
@@ -2060,7 +2225,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     },
                   }}
                   disabled={buttonLoading || loading}
-                  onClick={handleSubmit((data) => onSubmit(data, "save"))}
+                  onClick={(data) => onSubmit(data, "save")}
                 >
                   Save as Draft{buttonLoading ? "..." : ""}
                 </Button>
@@ -2112,7 +2277,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         <OtpModal
           open={otpModal}
           onClose={() => {
-            console.log("OtpModal onClose triggered");
             setOtpModal(false);
           }}
           onSubmit={handleOtpSubmit}

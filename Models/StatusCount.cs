@@ -14,12 +14,14 @@ public class StatusCounts
     public int CorrigendumReturnedCount { get; set; }
     public int CorrigendumRejectedCount { get; set; }
     public int CorrigendumSanctionedCount { get; set; }
+    public int ForwardedSanctionedCorrigendumCount { get; set; } // Added for forwarded and sanctioned corrigendum
     public int CorrectionCount { get; set; }
     public int CorrectionPendingCount { get; set; }
     public int CorrectionForwardedCount { get; set; }
     public int CorrectionReturnedCount { get; set; }
     public int CorrectionRejectedCount { get; set; }
     public int CorrectionSanctionedCount { get; set; }
+    public int ForwardedVerifiedCorrectionCount { get; set; } // Added for forwarded and verified correction
     public int TotalWithheldCount { get; set; }
     public int TemporaryWithheldCount { get; set; }
     public int PermanentWithheldCount { get; set; }

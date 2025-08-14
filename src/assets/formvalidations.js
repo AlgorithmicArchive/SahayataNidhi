@@ -155,7 +155,6 @@ export async function validateFile(field, value) {
       body: formData,
     });
     const data = await res.json();
-    console.log("Repsone", field.name, data, "Value", value);
     if (!data.isValid) {
       if (data.errorMessage == "No file uploaded." && notRequired) {
         return true;
@@ -175,7 +174,7 @@ export function range(field, value) {
   }
 }
 
-export function isDateAfterCurrentDate(field, value) {
+export function isDateAfterCurrentDate(field, value, formData) {
   const inputDate = new Date(value);
   const currentDate = new Date();
 
@@ -183,8 +182,31 @@ export function isDateAfterCurrentDate(field, value) {
   inputDate.setHours(0, 0, 0, 0);
   currentDate.setHours(0, 0, 0, 0);
 
+  console.log(field.name);
   if (inputDate <= currentDate) {
     return `${field.label || "Date"} must be after the current date.`;
+  }
+
+  if (field.name == "IfTemporaryDisabilityUdidCardValidUpto") {
+    const issueDate = new Date(formData["UdidCardIssueDate"]);
+    if (inputDate <= issueDate) {
+      return `${field.label || "Date"} must be after the UDID Card Issue date.`;
+    }
+  }
+
+  return true;
+}
+
+export function isDateBeforeCurrentDate(field, value) {
+  const inputDate = new Date(value);
+  const currentDate = new Date();
+
+  // Zero out time to compare only dates
+  inputDate.setHours(0, 0, 0, 0);
+  currentDate.setHours(0, 0, 0, 0);
+
+  if (inputDate >= currentDate) {
+    return `${field.label || "Date"} must be before the current date.`;
   }
 
   return true;
@@ -256,12 +278,12 @@ const ValidationFunctionsList = {
   validateIfscCode,
   range,
   isDateAfterCurrentDate,
+  isDateBeforeCurrentDate,
 };
 
 export const TransformationFunctionsList = {
   CaptilizeAlphabet: (value) => value.toUpperCase(),
   MaskAadhaar: (value, aadhaarNumber) => {
-    console.log(value, aadhaarNumber);
     const input =
       typeof aadhaarNumber === "string" && aadhaarNumber.length > 0
         ? aadhaarNumber
@@ -288,6 +310,7 @@ export const validationFunctionsList = [
   { id: "validateIfscCode", label: "Validate IFSC" },
   { id: "range", label: "Range Value" },
   { id: "isDateAfterCurrentDate", label: "After Current Date" },
+  { id: "isDateBeforeCurrentDate", label: "Before Current Date" },
 ];
 
 export const transformationFunctionsList = [

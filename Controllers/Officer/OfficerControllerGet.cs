@@ -342,7 +342,6 @@ namespace SahayataNidhi.Controllers.Officer
 
             if (type == "shifted")
             {
-                // Shifted does not support pagination, fallback to manual paging
                 response = dbcontext.CitizenApplications
                     .FromSqlRaw("EXEC GetShiftedApplications @Role, @AccessLevel, @AccessCode, @ServiceId",
                         role, accessLevel, accessCode, serviceId)
@@ -363,28 +362,26 @@ namespace SahayataNidhi.Controllers.Officer
             }
             else
             {
-                // Use new paginated SP with output param
                 response = dbcontext.CitizenApplications
-             .FromSqlRaw(
-                 "EXEC GetApplicationsForOfficer @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @TotalRecords OUTPUT",
-                 role, accessLevel, accessCode, applicationStatus, serviceId,
-                 pageIndexParam, pageSizeParam, isPaginated, dataTypeParam, totalRecordsParam
-             )
-             .ToList();
+                 .FromSqlRaw(
+                     "EXEC GetApplicationsForOfficer @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @TotalRecords OUTPUT",
+                     role, accessLevel, accessCode, applicationStatus, serviceId,
+                     pageIndexParam, pageSizeParam, isPaginated, dataTypeParam, totalRecordsParam
+                 )
+                 .ToList();
             }
 
             int totalRecords = type == "shifted" ? response.Count : (int)totalRecordsParam.Value;
 
-            // Common metadata columns
+            // Columns with S.No
             List<dynamic> columns =
             [
+                new { accessorKey = "sno", header = "S.No" },
                 new { accessorKey = "referenceNumber", header = "Reference Number" },
                 new { accessorKey = "applicantName", header = "Applicant Name" },
-                new { accessorKey="serviceName", header = "Service Name" },
+                new { accessorKey = "serviceName", header = "Service Name" },
                 new { accessorKey = "status", header = "Application Status" },
-                // new { accessorKey="legacydata",header="Legacy Data"},
-                new { accessorKey = "submissionDate", header = "Submission Date" },
-
+                new { accessorKey = "submissionDate", header = "Submission Date" }
             ];
 
             List<dynamic> data = [];
@@ -400,6 +397,9 @@ namespace SahayataNidhi.Controllers.Officer
                 ? JsonConvert.DeserializeObject<List<string>>(poolList.List)
                 : new List<string>();
 
+            // Start numbering based on pagination
+            int snoCounter = (pageIndex * pageSize) + 1;
+
             foreach (var details in response)
             {
                 var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails!);
@@ -410,7 +410,6 @@ namespace SahayataNidhi.Controllers.Officer
                 var corrigendums = dbcontext.Corrigenda.Where(co => co.ReferenceNumber == details.ReferenceNumber).ToList();
                 List<string> corrigendumIds = new List<string>();
 
-
                 foreach (var item in corrigendums)
                 {
                     string value = GetSanctionedCorrigendum(JsonConvert.DeserializeObject<dynamic>(item.WorkFlow), item.CorrigendumId);
@@ -420,15 +419,11 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                 }
 
-                string officerArea = GetOfficerArea(officerDesignation, formDetails);
                 var customActions = new List<dynamic>();
                 var rawStatus = officers[currentPlayer]["status"]!.ToString();
-
                 var currentOfficer = officers!.FirstOrDefault(o => (string)o["designation"]! == officerDetails.Role);
 
-                // Add Pull if applicable
                 bool canPull = currentOfficer?["canPull"] != null && (bool)currentOfficer["canPull"]!;
-                _logger.LogInformation($"---------------Can pull: {canPull}  Type: {type} ---------------");
                 if ((type == "forwarded" || type == "returned" || type == "returntoedit") && canPull)
                 {
                     customActions.Add(new
@@ -440,8 +435,6 @@ namespace SahayataNidhi.Controllers.Officer
                     });
                 }
 
-
-                // Add other actions
                 var currentStatus = (string)officers[currentPlayer!]!["status"]!;
                 if (currentStatus != "returntoedit" && currentStatus != "sanctioned")
                 {
@@ -463,15 +456,6 @@ namespace SahayataNidhi.Controllers.Officer
                         actionFunction = "handleViewApplication"
                     });
 
-                    // if (details.DataType != "legacy")
-                    //     customActions.Add(new
-                    //     {
-                    //         type = "DownloadSL",
-                    //         tooltip = "View SL",
-                    //         color = "#F0C38E",
-                    //         actionFunction = "handleViewPdf"
-                    //     });
-
                     foreach (string id in corrigendumIds)
                     {
                         customActions.Add(new
@@ -487,22 +471,24 @@ namespace SahayataNidhi.Controllers.Officer
 
                 var excludedStatuses = new[] { "Rejected", "Sanctioned", "Initiated" };
                 bool IsError = excludedStatuses.Contains(details.Status);
-                _logger.LogInformation($"-------- IS ERORR: {IsError} ----------------------------");
                 if (!IsError)
                 {
                     customActions.Clear();
                 }
 
-                string? Status = IsError ? rawStatus == "returntoedit" ? "Pending With Citizen" : char.ToUpper(rawStatus[0]) + rawStatus.Substring(1) : details.Status;
+                string? Status = IsError
+                    ? rawStatus == "returntoedit" ? "Pending With Citizen" : char.ToUpper(rawStatus[0]) + rawStatus.Substring(1)
+                    : details.Status;
+
                 var applicationObject = new
                 {
+                    sno = snoCounter++, // serial number
                     referenceNumber = details.ReferenceNumber,
                     applicantName = GetFieldValue("ApplicantName", formDetails),
                     submissionDate = details.CreatedAt,
                     serviceName,
                     status = Status,
                     serviceId = details.ServiceId,
-                    // legacydata = details.DataType == "legacy" ? "YES" : "NO",
                     customActions
                 };
 
@@ -532,6 +518,43 @@ namespace SahayataNidhi.Controllers.Officer
                 canSanction = (bool)authorities.canSanction
             });
         }
+
+        [HttpGet]
+        public IActionResult GetWithheldApplications(string serviceId, string type, int pageIndex = 0, int pageSize = 10)
+        {
+            var withheldType = type.StartsWith("withheld_")
+            ? type.Split('_')[1]
+            : type;
+
+            var response = dbcontext.WithheldApplications.Where(wh => wh.ServiceId == Convert.ToInt32(serviceId) && wh.WithheldType == withheldType).ToList();
+            List<dynamic> columns =
+            [
+                new { accessorKey = "sno", header = "S.No" },
+                    new { accessorKey = "referenceNumber", header = "Reference Number" },
+                    new { accessorKey = "applicantName", header = "Applicant Name" },
+                    new { accessorKey = "withheldType", header = "Withheld Type" },
+                    new { accessorKey = "withheldReason", header = "Withheld Reason" }
+            ];
+            List<dynamic> data = [];
+            int index = 1;
+            foreach (var application in response)
+            {
+                var details = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == application.ReferenceNumber);
+                var formdetails = JToken.Parse(details!.FormDetails!);
+                var applicantName = FindFieldRecursively(formdetails, "ApplicantName");
+                data.Add(new
+                {
+                    sno = index,
+                    referenceNumber = application.ReferenceNumber,
+                    applicantName = (string)applicantName!["value"]!,
+                    withheldType = application.WithheldType,
+                    withheldReason = application.WithheldReason
+                });
+            }
+
+            return Json(new { columns, data, totlaRecords = response.Count });
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> GetTemporaryDisability(string? ServiceId, string type, int pageIndex = 0, int pageSize = 10)
@@ -2159,6 +2182,31 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 return StatusCode(500, new { status = false, response = ex.Message });
             }
+        }
+
+        [HttpGet]
+        public IActionResult GetWithheldApplication(string referenceNumber, string serviceId)
+        {
+            var officer = GetOfficerDetails();
+            bool canPermanentToTemporary = false;
+            var application = dbcontext.WithheldApplications.FirstOrDefault(wa => wa.ReferenceNumber == referenceNumber && wa.ServiceId == Convert.ToInt32(serviceId));
+            if (application == null)
+            {
+                var applicationStatus = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+                if (applicationStatus == null)
+                {
+                    return Json(new { status = false, response = "Application not found." });
+                }
+                else if (applicationStatus.Status != "Sanctioned")
+                {
+                    return Json(new { status = false, response = "Application is not sactioned can't withheld the application." });
+                }
+            }
+            else
+            {
+                canPermanentToTemporary = application.WithheldType == "Permanent" && officer.Role!.Contains("Director");
+            }
+            return Json(new { status = true, application, canPermanentToTemporary });
         }
 
     }

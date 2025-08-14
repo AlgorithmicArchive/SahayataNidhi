@@ -35,9 +35,11 @@ export default function Settings() {
   const [unused, setUnused] = useState([]);
   const [save, setSave] = useState(false);
   const [profile, setLocalProfile] = useState({ file: "", url: "" });
+  const [ageProof, setAgeProof] = useState({ file: null }); // NEW: For ProofOfAge file
   const [loading, setLoading] = useState(true);
   const [buttonLoading, setButtonLoading] = useState(false);
   const profileRef = useRef(null);
+  const ageProofRef = useRef(null); // NEW: Ref for ProofOfAge input
 
   // Handle input changes for user details
   const handleInputChange = (e) => {
@@ -61,7 +63,37 @@ export default function Settings() {
     }
   };
 
-  // Save profile image and user details
+  // Handle proof of age file change
+  const handleAgeProofChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.type !== "application/pdf") {
+        toast.error("Please select a PDF file for Proof of Age.", {
+          position: "top-center",
+          autoClose: 3000,
+          theme: "colored",
+        });
+        return;
+      }
+      if (file.size < 100 * 1024 || file.size > 200 * 1024) {
+        toast.error("File size must be between 100KB and 200KB.", {
+          position: "top-center",
+          autoClose: 3000,
+          theme: "colored",
+        });
+        return;
+      }
+      setAgeProof({ file });
+      setSave(true);
+      toast.info("Proof of Age selected. Click Save to update.", {
+        position: "top-center",
+        autoClose: 2000,
+        theme: "colored",
+      });
+    }
+  };
+
+  // Save profile image, proof of age, and user details
   const handleSaveProfile = async () => {
     setButtonLoading(true);
     try {
@@ -73,20 +105,25 @@ export default function Settings() {
       if (profile.file) {
         formdata.append("profile", profile.file);
       }
+      if (ageProof.file) {
+        formdata.append("ageProof", ageProof.file);
+      }
 
       const response = await axiosInstance.post(
         "/Profile/UpdateUserDetails",
-        formdata
+        formdata,
       );
       if (response.data.isValid) {
         setProfile(response.data.profile);
         setLocalProfile({ file: "", url: response.data.profile });
+        setAgeProof({ file: null }); // Clear ProofOfAge
         setUserDetails({
           name: response.data.name,
           username: response.data.username,
           email: response.data.email,
           mobileNumber: response.data.mobileNumber,
           profile: response.data.profile,
+          ageProof: response.data.ageProof || "",
         });
         setSave(false);
         toast.success("User details updated successfully!", {
@@ -96,7 +133,7 @@ export default function Settings() {
         });
       } else {
         throw new Error(
-          response.data.errorMessage || "Failed to update user details."
+          response.data.errorMessage || "Failed to update user details.",
         );
       }
     } catch (error) {
@@ -125,7 +162,7 @@ export default function Settings() {
         await GetUserDetails();
       } else {
         throw new Error(
-          response.data.errorMessage || "Failed to generate codes"
+          response.data.errorMessage || "Failed to generate codes",
         );
       }
     } catch (error) {
@@ -152,10 +189,12 @@ export default function Settings() {
           email: response.data.email || "",
           mobileNumber: response.data.mobileNumber || "",
           profile: response.data.profile || "",
+          ageProof: response.data.ageProof || "",
         });
         setLocalProfile({ file: "", url: response.data.profile || "" });
+        setAgeProof({ file: null }); // Initialize ProofOfAge
         const backupCodes = JSON.parse(
-          response.data.backupCodes || '{"used":[],"unused":[]}'
+          response.data.backupCodes || '{"used":[],"unused":[]}',
         );
         setUsed(backupCodes.used || []);
         setUnused(backupCodes.unused || []);
@@ -346,20 +385,28 @@ export default function Settings() {
               <Button
                 variant="contained"
                 component="label"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "#90CAF9" },
-                    "&:hover fieldset": { borderColor: "#42A5F5" },
-                    "&.Mui-focused fieldset": { borderColor: "#1E88E5" },
-                  },
-                }}
+                sx={buttonStyles}
+                aria-label="Upload proof of age"
               >
-                <Typography>Proof Of Age</Typography>
-                <input type="file" hidden accept={".pdf"} />
+                <Typography>Upload Proof of Age</Typography>
+                <input
+                  type="file"
+                  hidden
+                  accept=".pdf"
+                  ref={ageProofRef}
+                  onChange={handleAgeProofChange}
+                />
               </Button>
               <Typography sx={{ fontSize: "0.85rem", color: "#6B7280" }}>
                 Accepted File Types: .pdf Size: 100kb-200kb
               </Typography>
+              {userDetails.ageProof && (
+                <Typography
+                  sx={{ fontSize: "0.85rem", color: "#6B7280", mt: 1 }}
+                >
+                  Current file: {userDetails.ageProof}
+                </Typography>
+              )}
             </FormControl>
           </Box>
         </Box>

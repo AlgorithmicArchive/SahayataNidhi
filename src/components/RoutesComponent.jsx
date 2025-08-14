@@ -46,6 +46,7 @@ import IssueCorrigendum from "../screens/officer/IssueCorrigendum";
 import ViewCorrigendumDetails from "../screens/officer/ViewCorrigendumDetails";
 import Corrections from "../screens/designer/Corrections";
 import UpdateExpiringDocument from "../screens/user/UpdateExpiringDocument";
+import Withheld from "../screens/officer/Withheld";
 
 const RoutesComponent = () => {
   return (
@@ -88,6 +89,7 @@ const RoutesComponent = () => {
           <Route path="responseFile" element={<ResponseFile />} />
           <Route path="registerdsc" element={<RegisterDSC />} />
           <Route path="issuecorrigendum" element={<IssueCorrigendum />} />
+          <Route path="withheld" element={<Withheld />} />
           <Route
             path="viewcorrigendumdetails"
             element={<ViewCorrigendumDetails />}

@@ -14,10 +14,11 @@ namespace SahayataNidhi.Controllers.User
 
         public void ServiceSpecific(int ServiceId, JToken formDetails, string ReferenceNumber)
         {
+            _logger.LogInformation($"--------- SERVICE ID: {ServiceId} ------------------------------");
             if (ServiceId == 1)
             {
                 var KindOfDisability = FindFieldRecursively(formDetails, "KindOfDisability");
-                if ((string)KindOfDisability!["value"]! == "TEMPORARY")
+                if (KindOfDisability != null && (string)KindOfDisability!["value"]! == "TEMPORARY")
                 {
                     string ExpirationDate = (string)FindFieldRecursively(formDetails, "IfTemporaryDisabilityUdidCardValidUpto")!["value"]!;
                     var expiringEligibility = new ApplicationsWithExpiringEligibility
@@ -27,6 +28,7 @@ namespace SahayataNidhi.Controllers.User
                         ReferenceNumber = ReferenceNumber,
                     };
                     dbcontext.ApplicationsWithExpiringEligibilities.Add(expiringEligibility);
+                    dbcontext.SaveChanges();
                 }
             }
         }
@@ -154,25 +156,35 @@ namespace SahayataNidhi.Controllers.User
 
             if (status == "Initiated")
             {
-                var getServices = dbcontext.WebServices.FirstOrDefault(ws => ws.ServiceId == serviceId && ws.IsActive);
-                if (getServices != null)
+                try
                 {
-                    var onAction = JsonConvert.DeserializeObject<List<string>>(getServices.OnAction);
-                    if (onAction != null && onAction.Contains("Submission"))
+                    var getServices = dbcontext.WebServices.FirstOrDefault(ws => ws.ServiceId == serviceId && ws.IsActive);
+                    if (getServices != null)
                     {
-                        try
+                        var onAction = JsonConvert.DeserializeObject<List<string>>(getServices.OnAction);
+                        if (onAction != null && onAction.Contains("Submission"))
                         {
-                            var fieldMapObj = JObject.Parse(getServices.FieldMappings);
-                            var fieldMap = MapServiceFieldsFromForm(formDetailsObj, fieldMapObj);
-                            await SendApiRequestAsync(getServices.ApiEndPoint, fieldMap);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Log the error but continue execution
-                            _logger.LogError(ex, $"Failed to send API request to {getServices.ApiEndPoint} for Reference: {ReferenceNumber}");
+                            try
+                            {
+                                var fieldMapObj = JObject.Parse(getServices.FieldMappings);
+                                var fieldMap = MapServiceFieldsFromForm(formDetailsObj, fieldMapObj);
+                                await SendApiRequestAsync(getServices.ApiEndPoint, fieldMap);
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log the error but continue execution
+                                _logger.LogError(ex, $"Failed to send API request to {getServices.ApiEndPoint} for Reference: {ReferenceNumber}");
+                            }
                         }
                     }
+
                 }
+                catch (Exception ex)
+                {
+                    // Log the email sending error but continue execution
+                    _logger.LogError(ex, $"Failed to send email for Reference: {ReferenceNumber}");
+                }
+
 
                 string fullPath = await FetchAcknowledgementDetails(ReferenceNumber);
                 string? fullName = GetFormFieldValue(formDetailsObj, "ApplicantName");
@@ -198,12 +210,34 @@ namespace SahayataNidhi.Controllers.User
 
                 string htmlMessage = template;
 
-                var attachmentFile = DisplayFile(fullPath.Split('=')[1]);
+                // Retrieve the file from the database
+                var fileResult = await DisplayFile(fullPath.Split('=')[1]);
 
-                var attachments = new List<string> { fullPath };
+                // Check if the file exists and is valid
+                if (fileResult is not FileContentResult fileContentResult)
+                {
+                    _logger.LogWarning($"File not found or invalid for Reference: {ReferenceNumber}, Email: {email}");
+                    // Handle the error appropriately (e.g., skip email sending or notify user)
+                    return Json(new { status = false, message = "File not found or invalid" });
+                }
+
+                // Get the file data from FileContentResult
+                byte[] fileData = fileContentResult.FileContents;
+                string fileName = ReferenceNumber.Replace("/", "_") + "Acknowledgement.pdf";
+
+                // Create a temporary file in the Temp directory
+                string tempDir = Path.Combine(_webHostEnvironment.WebRootPath, "Temp");
+                Directory.CreateDirectory(tempDir); // Ensure the Temp directory exists
+                string tempFilePath = Path.Combine(tempDir, fileName);
+                var attachments = new List<string>();
 
                 try
                 {
+                    // Write the file data to a temporary PDF file
+                    await System.IO.File.WriteAllBytesAsync(tempFilePath, fileData);
+                    attachments.Add(tempFilePath);
+
+                    // Send the email with the temporary PDF file as an attachment
                     await emailSender.SendEmailWithAttachments(email!, "Form Submission", htmlMessage, attachments);
                 }
                 catch (Exception ex)
@@ -211,7 +245,21 @@ namespace SahayataNidhi.Controllers.User
                     // Log the email sending error but continue execution
                     _logger.LogError(ex, $"Failed to send email for Reference: {ReferenceNumber}, Email: {email}");
                 }
-
+                finally
+                {
+                    // Clean up: Delete the temporary file
+                    if (System.IO.File.Exists(tempFilePath))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(tempFilePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, $"Failed to delete temporary file: {tempFilePath}");
+                        }
+                    }
+                }
                 string field = GetFormFieldValue(formDetailsObj, "Tehsil") != null ? "Tehsil" : "District";
                 string? value = GetFormFieldValue(formDetailsObj, field);
 
@@ -220,7 +268,11 @@ namespace SahayataNidhi.Controllers.User
 
                 ServiceSpecific(serviceId, formdetailsToken, ReferenceNumber);
 
+
+
                 helper.InsertHistory(ReferenceNumber, "Application Submission", "Citizen", "Submitted", locationLevel, locationValue);
+
+
                 return Json(new { status = true, ReferenceNumber, type = "Submit" });
             }
             else

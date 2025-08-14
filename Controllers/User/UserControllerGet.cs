@@ -25,6 +25,13 @@ namespace SahayataNidhi.Controllers.User
             return null; // Return 0 only if no "sanctioned" status was found
         }
 
+        public IActionResult GetFormFields(string referenceNumber)
+        {
+            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            return Json(new { status = true, formDetails = JsonConvert.DeserializeObject<dynamic>(application!.FormDetails!) });
+        }
+
+
         [HttpGet]
         public IActionResult GetFormDetails(string applicationId)
         {
@@ -85,24 +92,24 @@ namespace SahayataNidhi.Controllers.User
                     UserId, PageIndex, PageSize, IsPaginated, TotalRecords)
                 .ToList();
 
-            // Retrieve the total record count from the output parameter
+            // Retrieve the total record count from the output
             int totalRecords = TotalRecords.Value != DBNull.Value ? Convert.ToInt32(TotalRecords.Value) : 0;
 
             // Define columns (exclude customActions)
             var columns = new List<dynamic>
-                {
-                    new { header = "S.No", accessorKey = "sno" },
-                    new { header = "Service Name", accessorKey = "serviceName" },
-                    new { header = "Reference Number", accessorKey = "referenceNumber" },
-                    new { header = "Applicant Name", accessorKey = "applicantName" },
-                    new { header = "Currently With", accessorKey = "currentlyWith" },
-                    new { header = "Submission Date", accessorKey = "submissionDate" },
-                    new { header = "Status", accessorKey = "status" }
-                };
+            {
+                new { header = "S.No", accessorKey = "sno" },
+                new { header = "Service Name", accessorKey = "serviceName" },
+                new { header = "Reference Number", accessorKey = "referenceNumber" },
+                new { header = "Applicant Name", accessorKey = "applicantName" },
+                new { header = "Currently With", accessorKey = "currentlyWith" },
+                new { header = "Submission Date", accessorKey = "submissionDate" },
+                new { header = "Status", accessorKey = "status" }
+            };
 
             // Initialize data list with embedded actions
             List<dynamic> data = new List<dynamic>();
-            int index = 0;
+            int rowIndex = 0; // Use a dedicated variable for row indexing
             Dictionary<string, string> actionMap = new()
             {
                 {"pending", "Pending"},
@@ -128,8 +135,8 @@ namespace SahayataNidhi.Controllers.User
                 List<string> corrigendumIds = [];
                 var expiringEligibility = dbcontext.ApplicationsWithExpiringEligibilities.FirstOrDefault(aee => aee.ReferenceNumber == application.ReferenceNumber);
 
-
-
+                // Process corrigendum IDs
+                int corrigendumIndex = 1; // Separate index for corrigendum actions
                 foreach (var item in Corrigendum)
                 {
                     string value = GetSanctionedCorrigendum(JsonConvert.DeserializeObject<dynamic>(item.WorkFlow), item.CorrigendumId);
@@ -137,9 +144,7 @@ namespace SahayataNidhi.Controllers.User
                     {
                         corrigendumIds.Add(value);
                     }
-
                 }
-
 
                 string officerArea = GetOfficerArea(officerDesignation, formDetails);
 
@@ -153,11 +158,10 @@ namespace SahayataNidhi.Controllers.User
                 {
                     actions.Add(new { tooltip = "View", color = "#F0C38E", actionFunction = "CreateTimeLine" });
                     actions.Add(new { tooltip = "Download SL", color = "#F0C38E", actionFunction = "DownloadSanctionLetter" });
-                    index = 1;
                     foreach (string id in corrigendumIds)
                     {
-                        actions.Add(new { tooltip = "Download CRG " + index, corrigendumId = id, color = "#F0C38E", actionFunction = "DownloadCorrigendum" });
-                        index++;
+                        actions.Add(new { tooltip = "Download CRG " + corrigendumIndex, corrigendumId = id, color = "#F0C38E", actionFunction = "DownloadCorrigendum" });
+                        corrigendumIndex++;
                     }
                 }
                 else
@@ -165,24 +169,19 @@ namespace SahayataNidhi.Controllers.User
                     actions.Add(new { tooltip = "Edit Form", color = "#F0C38E", actionFunction = "EditForm" });
                 }
 
-                if (expiringEligibility != null &&
-                         !string.IsNullOrWhiteSpace(expiringEligibility.ExpirationDate))
+                if (expiringEligibility != null && !string.IsNullOrWhiteSpace(expiringEligibility.ExpirationDate))
                 {
                     // Check if there is any "Initiated" corrigendum for this reference
                     bool hasInitiatedCorrection = dbcontext.Corrigenda
-                        .Any(co => co.ReferenceNumber == application.ReferenceNumber &&
-                                   co.Status == "Initiated");
+                        .Any(co => co.ReferenceNumber == application.ReferenceNumber && co.Status == "Initiated");
 
                     _logger.LogInformation(
                         $"----------- Initiated Corrigendum Exists: {hasInitiatedCorrection} for Ref#: {application.ReferenceNumber} ------------------");
 
                     // Only proceed if there is NO initiated corrigendum
-                    if (!hasInitiatedCorrection &&
-                        DateTime.TryParse(expiringEligibility.ExpirationDate, out DateTime expirationDate))
+                    if (!hasInitiatedCorrection && DateTime.TryParse(expiringEligibility.ExpirationDate, out DateTime expirationDate))
                     {
-                        bool isExpiringSoon = expirationDate > DateTime.Today &&
-                                              expirationDate <= DateTime.Today.AddMonths(3);
-
+                        bool isExpiringSoon = expirationDate > DateTime.Today && expirationDate <= DateTime.Today.AddMonths(3);
                         if (isExpiringSoon && application.Status == "Sanctioned")
                         {
                             actions.Clear();
@@ -197,12 +196,10 @@ namespace SahayataNidhi.Controllers.User
                     }
                 }
 
-
-
                 // Add data object with embedded actions
                 data.Add(new
                 {
-                    sno = (pageIndex * pageSize) + index + 1,
+                    sno = (pageIndex * pageSize) + rowIndex + 1, // Correct S.No calculation
                     serviceName,
                     referenceNumber = application.ReferenceNumber,
                     applicantName = GetFieldValue("ApplicantName", formDetails),
@@ -213,7 +210,7 @@ namespace SahayataNidhi.Controllers.User
                     customActions = actions // Embed actions here
                 });
 
-                index++;
+                rowIndex++; // Increment row index for S.No
             }
 
             return Json(new { data, columns, totalRecords });

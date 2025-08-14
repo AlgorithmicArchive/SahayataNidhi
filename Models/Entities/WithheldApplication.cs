@@ -17,7 +17,5 @@ public partial class WithheldApplication
 
     public string WithheldReason { get; set; } = null!;
 
-    public int? MailSentToCitizen { get; set; }
-
     public DateOnly? WithheldOn { get; set; }
 }

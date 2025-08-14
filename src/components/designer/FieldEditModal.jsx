@@ -13,18 +13,12 @@ import {
   FormControl,
   InputLabel,
   Box,
-  IconButton,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import {
-  transformationFunctionsList,
   validationFunctionsList,
+  transformationFunctionsList,
 } from "../../assets/formvalidations";
 import axiosnInstance from "../../axiosConfig";
-
-// [Previous imports and utility functions remain unchanged]
 
 // Async function to fetch districts (unchanged)
 const fetchDistricts = async () => {
@@ -103,7 +97,6 @@ const FieldEditModal = ({
     )
       ? selectedField.transformationFunctions
       : [],
-    additionalFields: selectedField?.additionalFields || {},
     accept: selectedField?.accept || "",
     editable: selectedField?.editable ?? true,
     value: selectedField?.value ?? undefined,
@@ -117,12 +110,12 @@ const FieldEditModal = ({
     dependentValues: selectedField?.dependentValues || [],
     checkboxLayout: selectedField?.checkboxLayout || "vertical",
     isConsentCheckbox: selectedField?.isConsentCheckbox ?? false,
-    declaration: selectedField?.declaration || "", // New field for declaration text
+    declaration: selectedField?.declaration || "",
     required: selectedField?.required ?? false,
   });
 
   const [optionInputText, setOptionInputText] = useState(
-    formData.options.map((opt) => opt.label).join("; "),
+    formData.options.map((opt) => opt.label).join(";"),
   );
   const initialIsDependentMaxLength =
     typeof selectedField?.maxLength === "object" &&
@@ -146,15 +139,14 @@ const FieldEditModal = ({
         optionsType: "",
         dependentOn: "",
         dependentOptions: {},
-        additionalFields: {},
-        declaration: prev.declaration || "", // Preserve declaration if already set
+        declaration: prev.declaration || "",
       }));
       setOptionInputText("");
       setDependentOn("");
     } else if (!formData.isConsentCheckbox && formData.type === "checkbox") {
       setFormData((prev) => ({
         ...prev,
-        declaration: "", // Clear declaration when not a consent checkbox
+        declaration: "",
       }));
     }
   }, [formData.isConsentCheckbox, formData.type]);
@@ -175,90 +167,30 @@ const FieldEditModal = ({
         ],
         optionsType: "independent",
       }));
-      setOptionInputText(districtOptions.map((opt) => opt.label).join("; "));
+      setOptionInputText(districtOptions.map((opt) => opt.label).join(";"));
     } else {
       setFormData((prev) => ({ ...prev, options: [], optionsType: "" }));
       setOptionInputText("");
     }
   };
 
-  const addAdditionalFieldForOption = (optionValue) => {
-    setFormData((prev) => {
-      const newAdditionalFields = {
-        ...prev.additionalFields,
-        [optionValue]: [
-          ...(prev.additionalFields[optionValue] || []),
-          { name: "", label: "", type: "text" },
-        ],
-      };
-      return { ...prev, additionalFields: newAdditionalFields };
-    });
-  };
-
-  const removeAdditionalFieldForOption = (optionValue, index) => {
-    setFormData((prev) => {
-      const newAdditionalFields = { ...prev.additionalFields };
-      if (newAdditionalFields[optionValue]) {
-        newAdditionalFields[optionValue].splice(index, 1);
-        if (newAdditionalFields[optionValue].length === 0) {
-          delete newAdditionalFields[optionValue];
-        }
-      }
-      return { ...prev, additionalFields: newAdditionalFields };
-    });
-  };
-
-  const updateAdditionalField = (optionValue, index, fieldData) => {
-    setFormData((prev) => {
-      const newAdditionalFields = { ...prev.additionalFields };
-      if (!newAdditionalFields[optionValue]) {
-        newAdditionalFields[optionValue] = [];
-      }
-      newAdditionalFields[optionValue][index] = fieldData;
-      return { ...prev, additionalFields: newAdditionalFields };
-    });
-  };
-
-  const onDragEnd = (result) => {
-    const { source, destination, draggableId } = result;
-    if (!destination) return;
-    const optionValue = Object.keys(formData.additionalFields).find((key) =>
-      formData.additionalFields[key].some((field) => field.id === draggableId),
-    );
-    if (!optionValue) return;
-    const fields = [...formData.additionalFields[optionValue]];
-    const [removed] = fields.splice(source.index, 1);
-    fields.splice(destination.index, 0, removed);
-    setFormData((prev) => ({
-      ...prev,
-      additionalFields: {
-        ...prev.additionalFields,
-        [optionValue]: fields,
-      },
-    }));
-  };
-
   const saveChanges = () => {
     console.log("Saving FormData:", {
       ...formData,
       isConsentCheckbox: formData.isConsentCheckbox,
-      additionalFields: formData.additionalFields,
       options: formData.options,
-      declaration: formData.declaration, // Include declaration in log
+      declaration: formData.declaration,
     });
 
     const finalFormData = {
       ...formData,
-      additionalFields: formData.isConsentCheckbox
-        ? {}
-        : formData.additionalFields,
       options: formData.isConsentCheckbox ? [] : formData.options,
       optionsType: formData.isConsentCheckbox ? "" : formData.optionsType,
       dependentOn: formData.isConsentCheckbox ? "" : formData.dependentOn,
       dependentOptions: formData.isConsentCheckbox
         ? {}
         : formData.dependentOptions,
-      declaration: formData.isConsentCheckbox ? formData.declaration : "", // Only include declaration for consent checkboxes
+      declaration: formData.isConsentCheckbox ? formData.declaration : "",
     };
 
     updateField(finalFormData);
@@ -465,19 +397,15 @@ const FieldEditModal = ({
                   e.target.value === "checkbox"
                     ? prev.isConsentCheckbox
                     : false,
-                additionalFields:
-                  e.target.value === "checkbox" && prev.isConsentCheckbox
-                    ? {}
-                    : prev.additionalFields,
                 declaration:
                   e.target.value === "checkbox" && prev.isConsentCheckbox
                     ? prev.declaration
-                    : "", // Preserve declaration for checkbox
+                    : "",
                 accept:
                   e.target.value === "file" ||
                   (e.target.value === "select" && prev.isDependentEnclosure)
                     ? prev.accept
-                    : "", // Preserve accept for select enclosures
+                    : "",
               }))
             }
           >
@@ -507,8 +435,7 @@ const FieldEditModal = ({
                       optionsType: checked ? "" : prev.optionsType,
                       dependentOn: checked ? "" : prev.dependentOn,
                       dependentOptions: checked ? {} : prev.dependentOptions,
-                      additionalFields: checked ? {} : prev.additionalFields,
-                      declaration: checked ? prev.declaration : "", // Preserve or clear declaration
+                      declaration: checked ? prev.declaration : "",
                     }));
                     if (checked) {
                       setOptionInputText("");
@@ -584,8 +511,8 @@ const FieldEditModal = ({
                       setFormData((prev) => ({ ...prev, options: newOptions }));
                     }}
                     margin="dense"
-                    placeholder="Type options separated by semicolons, e.g., Option 1;Option 2 with space, comma;Option 3"
-                    helperText="Use semicolons (;) to separate options. Commas and spaces are allowed within each option."
+                    placeholder="Type options separated by semicolons, e.g., Option 1;Option 2 with space;Option 3"
+                    helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."
                   />
                 )}
                 {formData.optionsType === "dependent" && !isWorkflowContext && (
@@ -637,7 +564,7 @@ const FieldEditModal = ({
                                   formData.dependentOptions?.[option.value]
                                     ? formData.dependentOptions[option.value]
                                         .map((opt) => opt.label)
-                                        .join("; ")
+                                        .join(";")
                                     : ""
                                 }
                                 onChange={(e) => {
@@ -659,8 +586,8 @@ const FieldEditModal = ({
                                   }));
                                 }}
                                 margin="dense"
-                                placeholder="Type options separated by semicolons, e.g., Sub-option 1;Sub-option 2 with comma;Sub-option 3"
-                                helperText="Use semicolons (;) to separate options. Commas and spaces are allowed within each option."
+                                placeholder="Type options separated by semicolons, e.g., Sub-option 1;Sub-option 2 with space;Sub-option 3"
+                                helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."
                               />
                             ));
                           }
@@ -674,7 +601,7 @@ const FieldEditModal = ({
                                 formData.dependentOptions?.["default"]
                                   ? formData.dependentOptions["default"]
                                       .map((opt) => opt.label)
-                                      .join("; ")
+                                      .join(";")
                                   : ""
                               }
                               onChange={(e) => {
@@ -696,8 +623,8 @@ const FieldEditModal = ({
                                 }));
                               }}
                               margin="dense"
-                              placeholder="Type options separated by semicolons, e.g., Sub-option 1;Sub-option 2 with comma;Sub-option 3"
-                              helperText="Use semicolons (;) to separate options. Commas and spaces are allowed within each option."
+                              placeholder="Type options separated by semicolons, e.g., Sub-option 1;Sub-option 2 with space;Sub-option 3"
+                              helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."
                             />
                           );
                         })()}
@@ -705,129 +632,6 @@ const FieldEditModal = ({
                     )}
                   </>
                 )}
-                <Typography variant="body2" sx={{ marginTop: 2 }}>
-                  Link Additional Fields to Options
-                </Typography>
-                {formData.options.map((option) => (
-                  <Box key={option.value} sx={{ marginBottom: 2 }}>
-                    <Typography variant="subtitle1">
-                      Options: {option.label} ({option.value})
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      startIcon={<AddIcon />}
-                      onClick={() => addAdditionalFieldForOption(option.value)}
-                      sx={{ marginRight: 1 }}
-                    >
-                      Add Additional Field
-                    </Button>
-                    <DragDropContext onDragEnd={onDragEnd}>
-                      <Droppable droppableId={option.value}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                          >
-                            {formData.additionalFields[option.value]?.map(
-                              (field, index) => (
-                                <Draggable
-                                  key={`${option.value}-${index}`}
-                                  draggableId={`${option.value}-${index}`}
-                                  index={index}
-                                >
-                                  {(provided) => (
-                                    <Box
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      sx={{
-                                        marginTop: 1,
-                                        padding: 1,
-                                        border: "1px solid #ccc",
-                                        backgroundColor: "#fff",
-                                        cursor: "move",
-                                      }}
-                                    >
-                                      <TextField
-                                        fullWidth
-                                        label="Field Name"
-                                        value={field.name || ""}
-                                        onChange={(e) =>
-                                          updateAdditionalField(
-                                            option.value,
-                                            index,
-                                            {
-                                              ...field,
-                                              name: e.target.value,
-                                            },
-                                          )
-                                        }
-                                        margin="dense"
-                                      />
-                                      <TextField
-                                        fullWidth
-                                        label="Field Label"
-                                        value={field.label || ""}
-                                        onChange={(e) =>
-                                          updateAdditionalField(
-                                            option.value,
-                                            index,
-                                            {
-                                              ...field,
-                                              label: e.target.value,
-                                            },
-                                          )
-                                        }
-                                        margin="dense"
-                                      />
-                                      <Select
-                                        fullWidth
-                                        label="Field Type"
-                                        value={field.type || "text"}
-                                        onChange={(e) =>
-                                          updateAdditionalField(
-                                            option.value,
-                                            index,
-                                            {
-                                              ...field,
-                                              type: e.target.value,
-                                            },
-                                          )
-                                        }
-                                        margin="dense"
-                                      >
-                                        <MenuItem value="text">Text</MenuItem>
-                                        <MenuItem value="email">Email</MenuItem>
-                                        <MenuItem value="select">
-                                          Select
-                                        </MenuItem>
-                                        <MenuItem value="checkbox">
-                                          Checkbox
-                                        </MenuItem>
-                                      </Select>
-                                      <IconButton
-                                        color="error"
-                                        onClick={() =>
-                                          removeAdditionalFieldForOption(
-                                            option.value,
-                                            index,
-                                          )
-                                        }
-                                      >
-                                        <RemoveIcon />
-                                      </IconButton>
-                                    </Box>
-                                  )}
-                                </Draggable>
-                              ),
-                            )}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </DragDropContext>
-                  </Box>
-                ))}
                 <FormControlLabel
                   control={<Checkbox onChange={handleDistrictCheckboxChange} />}
                   label="Is District"
@@ -848,7 +652,6 @@ const FieldEditModal = ({
               }
               label="Required Field"
             />
-            {/* Add accept field for select type when it is an enclosure */}
             {formData.type === "select" && formData.isDependentEnclosure && (
               <TextField
                 fullWidth
@@ -942,7 +745,7 @@ const FieldEditModal = ({
                                     )?.label,
                                 )
                                 .filter((label) => label)
-                                .join("; ")
+                                .join(";")
                             }
                           >
                             {selectedField.options.map((option) => (
@@ -993,8 +796,8 @@ const FieldEditModal = ({
                 }))
               }
               margin="dense"
-              placeholder="Type options separated by semicolons, e.g., Option 1;Option 2 with space, comma;Option 3"
-              helperText="Use semicolons (;) to separate options. Commas and spaces are allowed within each option."
+              placeholder="Type options separated by semicolons, e.g., Option 1;Option 2 with space;Option 3"
+              helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."
             />
             <TextField
               fullWidth

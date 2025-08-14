@@ -1,10 +1,13 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
 
 namespace SahayataNidhi.Controllers.Profile
@@ -51,28 +54,44 @@ namespace SahayataNidhi.Controllers.Profile
             if (userId == null)
             {
                 _logger.LogWarning("User ID not found in claims.");
-                return Json(null);
+                return Json(new { isValid = false, errorMessage = "User ID not found." });
             }
 
             var userDetails = _dbcontext.Users.FirstOrDefault(u => u.UserId.ToString() == userId);
             if (userDetails == null)
             {
                 _logger.LogWarning($"User not found for ID: {userId}");
-                return Json(null);
+                return Json(new { isValid = false, errorMessage = "User not found." });
             }
 
-            var details = new
+            try
             {
-                userDetails.Name,
-                userDetails.Username,
-                userDetails.Profile,
-                userDetails.Email,
-                userDetails.MobileNumber,
-                userDetails.BackupCodes,
-            };
+                // Get ProofOfAge from AdditionalDetails
+                var ageProof = string.IsNullOrEmpty(userDetails.AdditionalDetails)
+                    ? ""
+                    : JObject.Parse(userDetails.AdditionalDetails)["ProofOfAge"]?.ToString() ?? "";
 
-            return Json(details);
+                var details = new
+                {
+                    isValid = true,
+                    userDetails.Name,
+                    userDetails.Username,
+                    userDetails.Email,
+                    userDetails.MobileNumber,
+                    userDetails.Profile,
+                    userDetails.BackupCodes,
+                    ageProof
+                };
+
+                return Json(details);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching user details: {ex.Message}");
+                return Json(new { isValid = false, errorMessage = "Failed to fetch user details: " + ex.Message });
+            }
         }
+
 
         [HttpGet]
         public IActionResult GenerateBackupCodes()
@@ -138,46 +157,96 @@ namespace SahayataNidhi.Controllers.Profile
 
             try
             {
+                // Validate input
+                if (!form.TryGetValue("name", out StringValues name) || string.IsNullOrEmpty(name.ToString()))
+                {
+                    return Json(new { isValid = false, errorMessage = "Name is required." });
+                }
+                if (!form.TryGetValue("username", out StringValues username) || string.IsNullOrEmpty(username.ToString()))
+                {
+                    return Json(new { isValid = false, errorMessage = "Username is required." });
+                }
+                if (!form.TryGetValue("email", out StringValues email) || string.IsNullOrEmpty(email.ToString()))
+                {
+                    return Json(new { isValid = false, errorMessage = "Email is required." });
+                }
+                if (!form.TryGetValue("mobileNumber", out StringValues mobileNumber) || string.IsNullOrEmpty(mobileNumber.ToString()))
+                {
+                    return Json(new { isValid = false, errorMessage = "Mobile number is required." });
+                }
+
                 // Update allowed fields
-                user.Name = form["name"].ToString();
-                user.Username = form["username"].ToString();
-                user.Email = form["email"].ToString();
-                user.MobileNumber = form["mobileNumber"].ToString();
+                user.Name = name.ToString();
+                user.Username = username.ToString();
+                user.Email = email.ToString();
+                user.MobileNumber = mobileNumber.ToString();
 
                 // Handle profile image if uploaded
-                if (form.Files.Any())
+                if (form.Files.GetFile("profile") is IFormFile profileFile && profileFile.Length > 0)
                 {
-                    var file = form.Files["profile"];
-                    if (file != null && file.Length > 0)
+                    var profile = user.Profile;
+                    if (!string.IsNullOrEmpty(profile) && profile != "/assets/images/profile.jpg")
                     {
-                        var profile = user.Profile;
-                        if (!string.IsNullOrEmpty(profile) && profile != "/assets/images/profile.jpg")
+                        string existingFilePath = Path.Combine(_webHostEnvironment.WebRootPath, profile.TrimStart('/'));
+                        if (System.IO.File.Exists(existingFilePath))
                         {
-                            string existingFilePath = Path.Combine(_webHostEnvironment.WebRootPath, profile.TrimStart('/'));
-                            if (System.IO.File.Exists(existingFilePath))
+                            try
                             {
-                                try
-                                {
-                                    System.IO.File.Delete(existingFilePath);
-                                    _logger.LogInformation($"Existing file {existingFilePath} deleted.");
-                                }
-                                catch (Exception ex)
-                                {
-                                    _logger.LogError($"Error deleting file {existingFilePath}: {ex.Message}");
-                                }
+                                System.IO.File.Delete(existingFilePath);
+                                _logger.LogInformation($"Existing file {existingFilePath} deleted.");
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError($"Error deleting file {existingFilePath}: {ex.Message}");
                             }
                         }
-
-                        var filePath = await _helper.GetFilePath(file);
-                        _logger.LogInformation($"------File Path: {filePath}");
-                        user.Profile = filePath;
                     }
+                    var profileFileName = await _helper.GetFilePath(profileFile);
+                    _logger.LogInformation($"Profile file path: {profileFileName}");
+                    user.Profile = profileFileName;
+                }
+
+                // Handle proof of age if uploaded
+                string? ageProofFileName = null;
+                if (form.Files.GetFile("ageProof") is IFormFile ageProofFile && ageProofFile.Length > 0)
+                {
+                    // Validate file size (100KB–200KB) and type (PDF)
+                    if (ageProofFile.Length < 100 * 1024 || ageProofFile.Length > 200 * 1024)
+                    {
+                        return Json(new { isValid = false, errorMessage = "Proof of Age file size must be between 100KB and 200KB." });
+                    }
+                    if (ageProofFile.ContentType != "application/pdf")
+                    {
+                        return Json(new { isValid = false, errorMessage = "Proof of Age must be a PDF file." });
+                    }
+
+                    // Get existing AdditionalDetails or initialize
+                    JObject additionalDetails = string.IsNullOrEmpty(user.AdditionalDetails)
+                        ? new JObject()
+                        : JObject.Parse(user.AdditionalDetails);
+
+                    // Get existing ProofOfAge filename to pass to GetFilePath
+                    var existingProofOfAge = additionalDetails["ProofOfAge"]?.ToString();
+
+                    ageProofFileName = await _helper.GetFilePath(ageProofFile, null, existingProofOfAge);
+                    _logger.LogInformation($"Proof of Age file path: {ageProofFileName}");
+
+                    // Update AdditionalDetails JSON
+                    additionalDetails["ProofOfAge"] = ageProofFileName;
+                    user.AdditionalDetails = JsonConvert.SerializeObject(additionalDetails);
                 }
 
                 await _dbcontext.SaveChangesAsync();
 
+                _auditService.InsertLog(HttpContext, "Update Profile",
+                    ageProofFileName != null ? "Profile and Proof of Age updated successfully." : "Profile updated successfully.",
+                    user.UserId, "Success");
 
-                _auditService.InsertLog(HttpContext, "Update Profile", "Profile Updated successfully.", user!.UserId, "Success");
+                // Get ProofOfAge for response
+                var responseAgeProof = string.IsNullOrEmpty(user.AdditionalDetails)
+                    ? ""
+                    : JObject.Parse(user.AdditionalDetails)["ProofOfAge"]?.ToString() ?? "";
+
                 return Json(new
                 {
                     isValid = true,
@@ -185,14 +254,16 @@ namespace SahayataNidhi.Controllers.Profile
                     username = user.Username,
                     email = user.Email,
                     mobileNumber = user.MobileNumber,
-                    profile = user.Profile
+                    profile = user.Profile,
+                    ageProof = responseAgeProof
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error updating user details: {ex.Message}");
-                return Json(new { isValid = false, errorMessage = "Failed to update user details." });
+                return Json(new { isValid = false, errorMessage = "Failed to update user details: " + ex.Message });
             }
         }
+
     }
 }

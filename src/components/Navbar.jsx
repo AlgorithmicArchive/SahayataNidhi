@@ -276,21 +276,38 @@ const MyNavbar = () => {
                       </NavDropdown>
                     </div>
                   )}
-                {officerAuthorities && officerAuthorities.canCorrigendum && (
-                  <Nav.Link
+                <NavDropdown
+                  title="Applications Updations"
+                  id="applications-dropdown"
+                  onMouseEnter={() => handleMouseEnter("applications")}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {officerAuthorities?.canCorrigendum && (
+                    <NavDropdown.Item
+                      as={Link}
+                      to="/officer/issuecorrigendum"
+                      style={getNavItemStyle(
+                        "officer-corrigendum",
+                        "/officer/corrigendum",
+                      )}
+                      onClick={() => setExpanded(false)}
+                    >
+                      Corrections/Corrigendum
+                    </NavDropdown.Item>
+                  )}
+
+                  <NavDropdown.Item
                     as={Link}
-                    to="/officer/issuecorrigendum"
+                    to="/officer/withheld"
                     style={getNavItemStyle(
-                      "officer-corrigendum",
-                      "/officer/corrigendum",
+                      "officer-withheld",
+                      "/officer/withheld",
                     )}
                     onClick={() => setExpanded(false)}
-                    onMouseEnter={() => handleMouseEnter("officer-corrigendum")}
-                    onMouseLeave={handleMouseLeave}
                   >
-                    Corrections/Corrigendum
-                  </Nav.Link>
-                )}
+                    Withheld Application
+                  </NavDropdown.Item>
+                </NavDropdown>
               </>
             )}
 
