@@ -295,7 +295,7 @@ const MyNavbar = () => {
                       Corrections/Corrigendum
                     </NavDropdown.Item>
                   )}
-
+                  {officerAuthorities.canWithhold &&(
                   <NavDropdown.Item
                     as={Link}
                     to="/officer/withheld"
@@ -307,6 +307,7 @@ const MyNavbar = () => {
                   >
                     Withheld Application
                   </NavDropdown.Item>
+                 )}
                 </NavDropdown>
               </>
             )}

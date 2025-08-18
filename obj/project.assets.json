@@ -11293,19 +11293,19 @@
     ]
   },
   "packageFolders": {
-    "/home/momin/.nuget/packages/": {}
+    "C:\\Users\\HP\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/momin/Github/SahayataNidhi/SahayataNidhi.csproj",
+      "projectUniqueName": "D:\\Github\\SahayataNidhi\\SahayataNidhi.csproj",
       "projectName": "SahayataNidhi",
-      "projectPath": "/home/momin/Github/SahayataNidhi/SahayataNidhi.csproj",
-      "packagesPath": "/home/momin/.nuget/packages/",
-      "outputPath": "/home/momin/Github/SahayataNidhi/obj/",
+      "projectPath": "D:\\Github\\SahayataNidhi\\SahayataNidhi.csproj",
+      "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
+      "outputPath": "D:\\Github\\SahayataNidhi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/momin/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\HP\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -11329,7 +11329,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.100"
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
       "net9.0": {
@@ -11411,12 +11411,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[9.0.5, 9.0.5]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -11425,7 +11419,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.106/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -39,7 +39,8 @@ BEGIN
         ROLLBACK TRANSACTION;
         THROW;
     END CATCH
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetApplicationForCorrigendum]
     @ReferenceNumber VARCHAR(50),
@@ -167,7 +168,8 @@ END
               AND JSON_PATH_EXISTS(ca.WorkFlow, '$[' + CAST(ca.CurrentPlayer AS NVARCHAR(10)) + '].designation') = 1
               AND JSON_VALUE(ca.WorkFlow, '$[' + CAST(ca.CurrentPlayer AS NVARCHAR(10)) + '].designation') = @Role)
       );
-END;
+END
+GO
 
 CREATE PROCEDURE GetApplicationsByAccessLevel
      @AccessLevel VARCHAR(50),  -- 'State', 'Division', or 'District'
@@ -220,7 +222,8 @@ BEGIN
             OR (loc.name = 'District' AND loc.value = @AccessCode)
         );
     END
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetApplicationsForOfficer]
     @Role VARCHAR(255),
@@ -334,7 +337,8 @@ fa.DistrictUidForBank,
         (@IsPaginated = 1 AND fa.RowNum BETWEEN (@PageIndex * @PageSize) + 1 AND ((@PageIndex + 1) * @PageSize))
         OR (@IsPaginated = 0)
     ORDER BY fa.RowNum;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetApplicationsForReport]
     @AccessCode INT,
@@ -420,7 +424,8 @@ BEGIN
         WHERE t.TehsilId = @AccessCode
         GROUP BY t.TehsilName;
     END
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetCitizensByAccessLevel]
       @AccessLevel VARCHAR(100),
@@ -465,7 +470,8 @@ BEGIN
               OR t.DistrictId = @AccessCode
           );
     END
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetCorrigendumByLocationAccess]
     @OfficerAccessLevel VARCHAR(50),
@@ -522,7 +528,8 @@ BEGIN
             OR wf.OfficerStatus = @Status
         )
         AND (@Type IS NULL OR c.Type = @Type);
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetCountForAdmin]
     @AccessLevel VARCHAR(50),  -- 'State', 'Division', or 'District'
@@ -670,7 +677,8 @@ BEGIN
         @TotalCitizens AS TotalCitizens,
         @TotalApplicationsSubmitted AS TotalApplicationsSubmitted,
         @TotalServices AS TotalServices;
-END;
+END
+GO
 
 CREATE   PROCEDURE [dbo].[GetDisabilityApplications]
     @AccessLevel VARCHAR(20),
@@ -833,7 +841,8 @@ BEGIN
     ORDER BY fa.ReferenceNumber
     OFFSET (@PageNumber - 1) * @PageSize ROWS
     FETCH NEXT @PageSize ROWS ONLY;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetDuplicateAccNo]
     @AccountNumber VARCHAR(50),
@@ -878,7 +887,8 @@ BEGIN
         *
     FROM 
         MatchingAccounts;
-END;
+END
+GO
 
 CREATE PROCEDURE GetIfscCode
     @BankName VARCHAR(255),
@@ -886,7 +896,8 @@ CREATE PROCEDURE GetIfscCode
 AS
 BEGIN
     SELECT IFSC FROM AllBankDetails WHERE BANK LIKE @BankName+'%' AND BRANCH LIKE @BranchName+'%';
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetInitiatedApplications]
     @UserId INT,
@@ -951,7 +962,8 @@ BEGIN
         OR (@IsPaginated = 0)
     ORDER BY 
         oa.RowNum;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetLegacyStatusCount]
     @AccessLevel VARCHAR(20),
@@ -1033,7 +1045,8 @@ BEGIN
             ELSE 0 
         END), 0) AS PensionStoppedCount
     FROM FilteredApplications;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetOfficerDetails]
     @UserId INT = NULL
@@ -1061,7 +1074,8 @@ BEGIN
         [dbo].[Users] u
     WHERE 
         (@UserId IS NULL OR u.UserId = @UserId);
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetOfficersByAccessLevel]
     @AccessLevel VARCHAR(100),
@@ -1107,7 +1121,8 @@ BEGIN
               OR (ad.AccessLevel = 'Tehsil' AND t.DistrictId = @AccessCode)
           );
     END
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetOfficersToValidate]
     @AccessLevel VARCHAR(100),
@@ -1217,7 +1232,8 @@ BEGIN
             u.UserType = 'Officer'
             AND t.DistrictID = @AccessCode;
     END
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetRecordsForBankFile]
     @AccessCode INT,
@@ -1243,8 +1259,6 @@ BEGIN
         MAX(ca.AdditionalDetails) AS AdditionalDetails,
         MAX(ca.CurrentPlayer) AS CurrentPlayer,
         MAX(ca.[Status]) AS [Status],
-        CAST(MAX(CAST(ca.[DeptVerified] AS INT)) AS BIT) AS [DeptVerified],
-        MAX(ca.[VerifiedByDeptOn]) AS [VerifiedByDeptOn],
         MAX(ca.Created_at) AS Created_at
     FROM
         [dbo].[Citizen_Applications] ca
@@ -1276,7 +1290,8 @@ BEGIN
         )
     GROUP BY
         ca.ReferenceNumber;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetRecordsForBankFile_New]
     @AccessCode INT,
@@ -1409,7 +1424,8 @@ BEGIN
       AND (@ApplicationStatus = 'Total Applications' OR wp.StatusValue = @ApplicationStatus)
       AND wp.StatusValue IS NOT NULL
       AND wp.CompletedAtDate BETWEEN @StartOfMonth AND @LastDayOfMonth;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetServicesByRole]
     @Role VARCHAR(255)
@@ -1429,7 +1445,8 @@ BEGIN
     WHERE 
         jsonValues.designation = @Role
         AND s.Active = 1;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetShiftedApplications]
     @Role VARCHAR(255),
@@ -1451,8 +1468,6 @@ BEGIN
             ca.AdditionalDetails,
             ca.CurrentPlayer,
             ca.[Status],
-            ca.DeptVerified,
-            ca.VerifiedByDeptOn,
             ca.Created_at,
             jsonWorkFlow.status AS workflow_status,
             jsonWorkFlow.designation,
@@ -1491,8 +1506,6 @@ BEGIN
         MAX(rs.AdditionalDetails) AS AdditionalDetails,
         MAX(rs.CurrentPlayer) AS CurrentPlayer,
         MAX(rs.[Status]) AS [Status],
-        CAST(MAX(CAST(rs.DeptVerified AS INT)) AS BIT) AS DeptVerified,
-        MAX(rs.VerifiedByDeptOn) AS VerifiedByDeptOn,
         MAX(rs.Created_at) AS Created_at
     FROM
         RankedStatus rs
@@ -1500,7 +1513,8 @@ BEGIN
         rs.rn = 1
     GROUP BY
         rs.ReferenceNumber;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetShiftedCount]
     @AccessLevel VARCHAR(20),
@@ -1595,7 +1609,8 @@ BEGIN
         ISNULL(SUM(CASE WHEN fa.shifted = 1 AND fa.shiftedFrom = @AccessCode THEN 1 ELSE 0 END), 0) AS ShiftedCount
     FROM
         FilteredApplications fa;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetStatusCount]
     @AccessLevel VARCHAR(20),
@@ -1706,7 +1721,7 @@ BEGIN
         ) AS jsonWorkFlow
         CROSS APPLY OPENJSON(ca.FormDetails, '$.Location') WITH (
             name NVARCHAR(50) '$.name',
-   value INT '$.value'
+            value INT '$.value'
         ) AS jsonLocation
         LEFT JOIN [dbo].[District] d 
             ON jsonLocation.name = 'District' 
@@ -1718,6 +1733,112 @@ BEGIN
             AND ca.ServiceId = @ServiceId
             AND ISJSON(ca.WorkFlow) = 1
             AND ca.DataType != 'legacy'
+            AND (
+                @AccessLevel = 'State'
+                OR (@AccessLevel = 'District' 
+                    AND jsonLocation.name = 'District' 
+                    AND jsonLocation.value = @AccessCode)
+                OR (@AccessLevel = 'Tehsil' 
+                    AND jsonLocation.name = 'Tehsil' 
+                    AND jsonLocation.value = @AccessCode)
+                OR (
+                    @AccessLevel = 'Division' 
+                    AND (
+                        (jsonLocation.name = 'District' 
+                            AND jsonLocation.value = @AccessCode 
+                            AND d.Division = @DivisionCode)
+                        OR
+                        (jsonLocation.name = 'Tehsil' 
+                            AND EXISTS (
+                                SELECT 1 
+                                FROM Tehsil t
+                                INNER JOIN District d2 
+                                    ON t.DistrictID = d2.DistrictID
+                                WHERE t.TehsilID = jsonLocation.value 
+                                    AND d2.Division = @DivisionCode
+                            ))
+                    )
+                )
+            )
+    ),
+    -- ======== Forwarded by TakenBy and Sanctioned Corrigendum ========
+    ForwardedSanctionedCorrigendum AS (
+        SELECT DISTINCT
+            c.CorrigendumId
+        FROM [dbo].[Corrigendum] c
+        INNER JOIN [dbo].[Citizen_Applications] ca 
+            ON ca.ReferenceNumber = c.ReferenceNumber
+        CROSS APPLY OPENJSON(c.WorkFlow) WITH (
+            status NVARCHAR(50) '$.status',
+            designation NVARCHAR(50) '$.designation'
+        ) AS jsonWorkFlow
+        CROSS APPLY OPENJSON(ca.FormDetails, '$.Location') WITH (
+            name NVARCHAR(50) '$.name',
+            value INT '$.value'
+        ) AS jsonLocation
+        LEFT JOIN [dbo].[District] d 
+            ON jsonLocation.name = 'District' 
+            AND jsonLocation.value = d.DistrictID
+        WHERE 
+            jsonWorkFlow.status = 'forwarded'
+            AND jsonWorkFlow.designation = @TakenBy
+            AND c.Status = 'sanctioned'
+            AND c.Type = 'Corrigendum'
+            AND ca.ServiceId = @ServiceId
+            AND ISJSON(c.WorkFlow) = 1
+            AND (
+                @AccessLevel = 'State'
+                OR (@AccessLevel = 'District' 
+                    AND jsonLocation.name = 'District' 
+                    AND jsonLocation.value = @AccessCode)
+                OR (@AccessLevel = 'Tehsil' 
+                    AND jsonLocation.name = 'Tehsil' 
+                    AND jsonLocation.value = @AccessCode)
+                OR (
+                    @AccessLevel = 'Division' 
+                    AND (
+                        (jsonLocation.name = 'District' 
+                            AND jsonLocation.value = @AccessCode 
+                            AND d.Division = @DivisionCode)
+                        OR
+                        (jsonLocation.name = 'Tehsil' 
+                            AND EXISTS (
+                                SELECT 1 
+                                FROM Tehsil t
+                                INNER JOIN District d2 
+                                    ON t.DistrictID = d2.DistrictID
+                                WHERE t.TehsilID = jsonLocation.value 
+                                    AND d2.Division = @DivisionCode
+                            ))
+                    )
+                )
+            )
+    ),
+    -- ======== Forwarded by TakenBy and Verified Correction ========
+    ForwardedVerifiedCorrection AS (
+        SELECT DISTINCT
+            c.CorrigendumId
+        FROM [dbo].[Corrigendum] c
+        INNER JOIN [dbo].[Citizen_Applications] ca 
+            ON ca.ReferenceNumber = c.ReferenceNumber
+        CROSS APPLY OPENJSON(c.WorkFlow) WITH (
+            status NVARCHAR(50) '$.status',
+            designation NVARCHAR(50) '$.designation'
+        ) AS jsonWorkFlow
+        CROSS APPLY OPENJSON(ca.FormDetails, '$.Location') WITH (
+            name NVARCHAR(50) '$.name',
+            value INT '$.value'
+        ) AS jsonLocation
+        LEFT JOIN [dbo].[District] d 
+            ON jsonLocation.name = 'District' 
+            AND jsonLocation.value = d.DistrictID
+        WHERE 
+            jsonWorkFlow.status = 'forwarded'
+            AND jsonWorkFlow.designation = @TakenBy
+            AND c.Status = 'verified'
+            AND c.Type = 'Correction'
+            AND ca.ServiceId = @ServiceId
+            AND ISJSON(c.WorkFlow) = 1
             AND (
                 @AccessLevel = 'State'
                 OR (@AccessLevel = 'District' 
@@ -1907,8 +2028,10 @@ BEGIN
         ISNULL(SUM(CASE WHEN fa.status = 'rejected' THEN 1 ELSE 0 END), 0) AS RejectCount,
         ISNULL(SUM(CASE WHEN fa.status = 'disbursed' THEN 1 ELSE 0 END), 0) AS DisbursedCount,
         COUNT(DISTINCT fa.ReferenceNumber) AS TotalApplications,
-        -- Forwarded and Sanctioned count
+        -- Forwarded and Sanctioned counts
         ISNULL((SELECT COUNT(*) FROM ForwardedSanctioned), 0) AS ForwardedSanctionedCount,
+        ISNULL((SELECT COUNT(*) FROM ForwardedSanctionedCorrigendum), 0) AS ForwardedSanctionedCorrigendumCount,
+        ISNULL((SELECT COUNT(*) FROM ForwardedVerifiedCorrection), 0) AS ForwardedVerifiedCorrectionCount,
         -- Corrigendum counts by status
         ISNULL(SUM(CASE WHEN fc.status = 'pending' AND fc.Type = 'Corrigendum' THEN 1 ELSE 0 END), 0) AS CorrigendumPendingCount,
         ISNULL(SUM(CASE WHEN fc.status = 'forwarded' AND fc.Type = 'Corrigendum' THEN 1 ELSE 0 END), 0) AS CorrigendumForwardedCount,
@@ -1929,13 +2052,14 @@ BEGIN
         ISNULL(SUM(CASE WHEN fw.WithheldType = 'PERMANENT' THEN 1 ELSE 0 END), 0) AS PermanentWithheldCount
     FROM 
         FilteredApplications fa
-        FULL OUTER JOIN 
+        LEFT JOIN 
         FilteredCorrigendum fc 
-        ON 1 = 0
-        FULL OUTER JOIN 
+        ON fa.ReferenceNumber = fc.ReferenceNumber
+        LEFT JOIN 
         FilteredWithheld fw 
-        ON 1 = 0;
-END;
+        ON fa.ReferenceNumber = fw.ReferenceNumber;
+END
+GO
 
 CREATE PROCEDURE [dbo].[GetTemporaryDisabilityCount]
     @AccessLevel VARCHAR(20),
@@ -2062,7 +2186,8 @@ BEGIN
                 )
             )
     ) fa;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[InsertOfficerDetail]
     @OfficerId INT,
@@ -2078,7 +2203,8 @@ BEGIN
 
     -- Return the ID of the newly inserted record
     SELECT SCOPE_IDENTITY() AS NewDetailId;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[RegisterUser]
     @Name VARCHAR(100),
@@ -2106,7 +2232,8 @@ BEGIN
         -- Return a success result with the new UserId (assuming UserId is auto-incremented)
     SELECT * FROM Users WHERE UserId = SCOPE_IDENTITY();
    
-END;
+END
+GO
 
 CREATE PROCEDURE [ResetUserPassword]
     @Email NVARCHAR(100),
@@ -2147,7 +2274,8 @@ BEGIN
         UserId = UserId
     FROM Users 
     WHERE Email = @Email;
-END;
+END
+GO
 
 CREATE PROCEDURE UpdateNullOfficer
     @NewOfficerId INT,
@@ -2179,7 +2307,8 @@ BEGIN
     AND AccessLevel = @AccessLevel
     AND AccessCode = @AccessCode
     AND Role = @Role;
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[UpdateWorkflowForService]
     @ServiceId INT
@@ -2209,7 +2338,8 @@ BEGIN
     JOIN Services s ON ca.ServiceId = s.ServiceId
     WHERE ca.ServiceId = @ServiceId
     AND ca.[Status] NOT IN ('Sanctioned', 'Rejected');
-END;
+END
+GO
 
 CREATE PROCEDURE [dbo].[UserLogin]
     @Username NVARCHAR(50),
@@ -2226,7 +2356,8 @@ BEGIN
     SELECT *
     FROM Users
     WHERE Username = @Username AND [Password] = @PasswordHash;
-END;
+END
+GO
 
 CREATE PROCEDURE ValidateIFSC
     @bankName VARCHAR(255),
@@ -2238,3 +2369,4 @@ BEGIN
     WHERE BANK LIKE '%' + @bankName + '%'
       AND IFSC = @ifscCode;
 END;
+GO

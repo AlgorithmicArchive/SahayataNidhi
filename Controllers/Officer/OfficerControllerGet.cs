@@ -172,7 +172,8 @@ namespace SahayataNidhi.Controllers.Officer
                 CanReturnToPlayer = authorities.canReturnToPlayer ?? false,
                 CanCorrigendum = authorities.canCorrigendum ?? false,
                 CanReturnToCitizen = authorities.canReturnToCitizen ?? false,
-                CanManageBankFiles = authorities.canManageBankFiles ?? false
+                CanManageBankFiles = authorities.canManageBankFiles ?? false,
+                CanWithhold = authorities.canWithhold ?? false
             };
 
             // Prepare SQL parameters
@@ -1980,7 +1981,7 @@ namespace SahayataNidhi.Controllers.Officer
             new { accessorKey = "actionTaken", header = "Action Taken" },
             new { accessorKey = "remarks", header = "Remarks" },
             new { accessorKey = "actionTakenOn", header = "Action Taken On" },
-        ];
+            ];
 
             var data = new List<dynamic>();
             int index = 1;
@@ -2189,26 +2190,73 @@ namespace SahayataNidhi.Controllers.Officer
         [HttpGet]
         public IActionResult GetWithheldApplication(string referenceNumber, string serviceId)
         {
-            var officer = GetOfficerDetails();
-            bool canPermanentToTemporary = false;
-            var application = dbcontext.WithheldApplications.FirstOrDefault(wa => wa.ReferenceNumber == referenceNumber && wa.ServiceId == Convert.ToInt32(serviceId));
-            if (application == null)
+            if (string.IsNullOrEmpty(referenceNumber) || string.IsNullOrEmpty(serviceId))
             {
-                var applicationStatus = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
-                if (applicationStatus == null)
+                return Json(new { status = false, response = "Reference number and service ID are required." });
+            }
+
+            if (!int.TryParse(serviceId, out int parsedServiceId))
+            {
+                return Json(new { status = false, response = "Invalid service ID format." });
+            }
+
+            var officer = GetOfficerDetails();
+            if (officer == null)
+            {
+                return Json(new { status = false, response = "Unauthorized: Officer details not found." });
+            }
+
+            var withheldApplication = dbcontext.WithheldApplications
+                .FirstOrDefault(wa => wa.ReferenceNumber == referenceNumber && wa.ServiceId == parsedServiceId);
+
+            var citizenApplication = dbcontext.CitizenApplications
+                .FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+
+            if (withheldApplication == null)
+            {
+                if (citizenApplication == null)
                 {
                     return Json(new { status = false, response = "Application not found." });
                 }
-                else if (applicationStatus.Status != "Sanctioned")
+                if (citizenApplication.Status != "Sanctioned")
                 {
-                    return Json(new { status = false, response = "Application is not sactioned can't withheld the application." });
+                    return Json(new { status = false, response = "Application is not sanctioned and cannot be withheld." });
+                }
+            }
+
+            bool canPermanentToTemporary = withheldApplication != null &&
+                                           withheldApplication.WithheldType == "Permanent" &&
+                                           officer.Role?.Contains("Director") == true;
+
+            var application = new ExpandoObject() as IDictionary<string, object>;
+            if (citizenApplication?.FormDetails != null)
+            {
+                try
+                {
+                    var formDetails = JToken.Parse(citizenApplication.FormDetails);
+                    var tswovalue = GetFieldValue("Tehsil", formDetails);
+
+                    application["applicantName"] = GetFieldValue("ApplicantName", formDetails) ?? "N/A";
+                    application["parentage"] = GetFieldValue("RelationName", formDetails) ?? "N/A";
+                }
+                catch (JsonException)
+                {
+                    return Json(new { status = false, response = "Error parsing application form details." });
                 }
             }
             else
             {
-                canPermanentToTemporary = application.WithheldType == "Permanent" && officer.Role!.Contains("Director");
+                application["applicantName"] = "N/A";
+                application["parentage"] = "N/A";
             }
-            return Json(new { status = true, application, canPermanentToTemporary });
+
+            return Json(new
+            {
+                status = true,
+                application = withheldApplication,
+                canPermanentToTemporary,
+                applicationDetails = application
+            });
         }
 
     }

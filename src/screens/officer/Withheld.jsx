@@ -8,6 +8,13 @@ import {
   FormHelperText,
   MenuItem,
   Alert,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  Paper,
 } from "@mui/material";
 import ServiceSelectionForm from "../../components/ServiceSelectionForm";
 import { fetchServiceList } from "../../assets/fetch";
@@ -19,12 +26,13 @@ export default function Withheld() {
   const [referenceNumber, setReferenceNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState(""); // NEW: For success message
+  const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     withheldType: "",
     withheldReason: "",
     isWithheld: true,
   });
+  const [applicantDetails, setApplicantDetails] = useState(null);
   const [recordExists, setRecordExists] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const [canCreate, setCanCreate] = useState(false);
@@ -40,10 +48,11 @@ export default function Withheld() {
       return;
     }
     setError("");
-    setSuccessMessage(""); // Clear success message on new check
+    setSuccessMessage("");
     setLoading(true);
     setHasChecked(false);
     setCanCreate(false);
+    setApplicantDetails(null);
 
     try {
       const res = await axiosInstance.get("/Officer/GetWithheldApplication", {
@@ -56,6 +65,10 @@ export default function Withheld() {
           withheldType: res.data.application.withheldType,
           withheldReason: res.data.application.withheldReason,
           isWithheld: res.data.application.isWithheld,
+        });
+        setApplicantDetails({
+          name: res.data.application.applicantName || "N/A",
+          email: res.data.application.parentage || "N/A",
         });
         setCanPermanentToTemporary(res.data.canPermanentToTemporary);
         setCanCreate(true);
@@ -113,7 +126,7 @@ export default function Withheld() {
           form,
           {
             headers: { "Content-Type": "multipart/form-data" },
-          },
+          }
         );
       } else {
         res = await axiosInstance.post(
@@ -121,11 +134,10 @@ export default function Withheld() {
           form,
           {
             headers: { "Content-Type": "multipart/form-data" },
-          },
+          }
         );
       }
 
-      // Set success message and clear the page
       setSuccessMessage(res.data.message);
       setServiceId("");
       setReferenceNumber("");
@@ -137,9 +149,9 @@ export default function Withheld() {
       setRecordExists(false);
       setHasChecked(false);
       setCanCreate(false);
+      setApplicantDetails(null);
       setError("");
 
-      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage("");
       }, 3000);
@@ -149,129 +161,222 @@ export default function Withheld() {
     }
   };
 
+  const formControlStyles = {
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderColor: "divider" },
+      "&:hover fieldset": { borderColor: "primary.main" },
+      "&.Mui-focused fieldset": {
+        borderColor: "primary.main",
+        borderWidth: "2px",
+      },
+      backgroundColor: "background.paper",
+      color: "text.primary",
+      borderRadius: 1,
+    },
+    "& .MuiInputLabel-root": {
+      color: "text.secondary",
+      "&.Mui-focused": { color: "primary.main" },
+    },
+    marginBottom: 2,
+  };
+
+  const buttonStyles = {
+    backgroundColor: "primary.main",
+    color: "background.paper",
+    fontWeight: 600,
+    textTransform: "none",
+    py: 1,
+    px: 3,
+    borderRadius: 2,
+    "&:hover": {
+      backgroundColor: "primary.dark",
+      transform: "scale(1.02)",
+      transition: "all 0.2s ease",
+    },
+  };
+
   return (
-    <Box sx={{ p: 4, maxWidth: 600, mx: "auto", height: "100vh" }}>
-      <Typography variant="h5" mb={3}>
-        Check / Edit Withheld Application
+    <Box
+      sx={{
+        p: { xs: 2, md: 4 },
+        maxWidth: 700,
+        mx: "auto",
+        minHeight: "100vh",
+        bgcolor: "background.default",
+        borderRadius: 3,
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      <Typography
+        variant="h5"
+        sx={{
+          fontFamily: "'Playfair Display', serif",
+          color: "primary.main",
+          mb: 3,
+          fontWeight: 700,
+        }}
+      >
+        Withheld Application Management
       </Typography>
 
-      {/* Success message */}
       {successMessage && (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
           {successMessage}
         </Alert>
       )}
 
-      {/* Service Selector */}
-      <ServiceSelectionForm
-        services={services}
-        value={serviceId}
-        onServiceSelect={(id) => setServiceId(id)}
-      />
-      {error && !serviceId && (
-        <FormHelperText error>Please select a service</FormHelperText>
-      )}
-
-      {/* Reference Number */}
-      <TextField
-        fullWidth
-        label="Reference Number"
-        value={referenceNumber}
-        onChange={(e) => setReferenceNumber(e.target.value)}
-        sx={{ mt: 2 }}
-      />
-      {error && !referenceNumber && (
-        <FormHelperText error>Please enter a reference number</FormHelperText>
-      )}
-
-      <Button
-        variant="contained"
-        sx={{ mt: 2 }}
-        onClick={handleCheck}
-        disabled={loading}
-      >
-        {loading ? <CircularProgress size={20} /> : "Check Application"}
-      </Button>
-
-      {/* Display error message if application cannot be withheld */}
-      {error && !canCreate && !successMessage && (
-        <FormHelperText error sx={{ mt: 2 }}>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
           {error}
-        </FormHelperText>
+        </Alert>
       )}
 
-      {/* Editable Form - Only shown if canCreate is true */}
-      {hasChecked && canCreate && (
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" mb={2}>
-            {recordExists
-              ? "Update Withheld Application"
-              : "Create New Withheld Application"}
-          </Typography>
-
-          {/* Withheld Type */}
-          <TextField
-            select
-            label="Withheld Type"
-            fullWidth
-            value={formData.withheldType}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, withheldType: e.target.value }))
-            }
-            sx={{ mb: 2 }}
-          >
-            <MenuItem value="Permanent">Permanent</MenuItem>
-            {(formData.withheldType === "Temporary" ||
-              (formData.withheldType === "Permanent" &&
-                canPermanentToTemporary)) && (
-              <MenuItem value="Temporary">Temporary</MenuItem>
-            )}
-          </TextField>
-
-          {/* Withheld Reason */}
-          <TextField
-            label="Withheld Reason"
-            fullWidth
-            multiline
-            rows={3}
-            value={formData.withheldReason}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                withheldReason: e.target.value,
-              }))
-            }
-            sx={{ mb: 2 }}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <FormControl fullWidth sx={formControlStyles}>
+          <ServiceSelectionForm
+            services={services}
+            value={serviceId}
+            onServiceSelect={(id) => setServiceId(id)}
           />
+          {!serviceId && error.includes("Service") && (
+            <FormHelperText error>Please select a service</FormHelperText>
+          )}
+        </FormControl>
 
-          {/* Is Withheld */}
-          <TextField
-            select
-            label="Is Withheld"
-            fullWidth
-            value={formData.isWithheld}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                isWithheld: e.target.value === "true",
-              }))
-            }
-            sx={{ mb: 2 }}
-          >
-            <MenuItem value="true">True</MenuItem>
-            <MenuItem value="false">False</MenuItem>
-          </TextField>
+        <TextField
+          fullWidth
+          label="Reference Number"
+          value={referenceNumber}
+          onChange={(e) => setReferenceNumber(e.target.value)}
+          sx={formControlStyles}
+          error={!referenceNumber && error.includes("Reference Number")}
+          helperText={
+            !referenceNumber && error.includes("Reference Number")
+              ? "Please enter a reference number"
+              : ""
+          }
+        />
 
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSave}
-            disabled={loading}
+        <Button
+          variant="contained"
+          sx={buttonStyles}
+          onClick={handleCheck}
+          disabled={loading}
+          startIcon={loading && <CircularProgress size={20} />}
+        >
+          {loading ? "Checking..." : "Check Application"}
+        </Button>
+
+        {hasChecked && canCreate && (
+          <Paper
+            sx={{
+              p: 3,
+              mt: 3,
+              borderRadius: 2,
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
+            }}
           >
-            {recordExists ? "Update Application" : "Submit Application"}
-          </Button>
-        </Box>
-      )}
+            <Typography
+              variant="h6"
+              sx={{ mb: 2, fontWeight: 600, color: "text.primary" }}
+            >
+              {recordExists
+                ? "Update Withheld Application"
+                : "Create New Withheld Application"}
+            </Typography>
+
+            {applicantDetails && (
+              <Box sx={{ mb: 3, p: 2, bgcolor: "grey.100", borderRadius: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                  Applicant Details
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Name:</strong> {applicantDetails.name}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Parentage:</strong> {applicantDetails.parentage}
+                </Typography>
+              </Box>
+            )}
+
+            <FormControl fullWidth sx={formControlStyles}>
+              <InputLabel id="withheld-type-label">Withheld Type</InputLabel>
+              <Select
+                labelId="withheld-type-label"
+                label="Withheld Type"
+                value={formData.withheldType}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    withheldType: e.target.value,
+                  }))
+                }
+              >
+                <MenuItem value="Permanent">Permanent</MenuItem>
+                {(formData.withheldType === "Temporary" ||
+                  (formData.withheldType === "Permanent" &&
+                    canPermanentToTemporary)) && (
+                  <MenuItem value="Temporary">Temporary</MenuItem>
+                )}
+              </Select>
+            </FormControl>
+
+            <TextField
+              label="Withheld Reason"
+              fullWidth
+              multiline
+              rows={3}
+              value={formData.withheldReason}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  withheldReason: e.target.value,
+                }))
+              }
+              sx={formControlStyles}
+            />
+
+            <FormControl component="fieldset" sx={{ mb: 2 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: 600, color: "text.primary" }}
+              >
+                Is Withheld
+              </Typography>
+              <RadioGroup
+                row
+                value={formData.isWithheld.toString()}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    isWithheld: e.target.value === "true",
+                  }))
+                }
+              >
+                <FormControlLabel
+                  value="true"
+                  control={<Radio />}
+                  label="Yes"
+                />
+                <FormControlLabel
+                  value="false"
+                  control={<Radio />}
+                  label="No"
+                />
+              </RadioGroup>
+            </FormControl>
+
+            <Button
+              variant="contained"
+              sx={buttonStyles}
+              onClick={handleSave}
+              disabled={loading}
+            >
+              {recordExists ? "Update Application" : "Submit Application"}
+            </Button>
+          </Paper>
+        )}
+      </Box>
     </Box>
   );
 }

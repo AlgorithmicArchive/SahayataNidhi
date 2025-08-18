@@ -81,6 +81,7 @@ export default function CreateWorkflow() {
     canHavePool: false,
     canCorrigendum: false,
     canManageBankFiles: false,
+    canWithhold: false,
     actionForm: [],
     prevPlayerId: null,
     nextPlayerId: null,
@@ -131,6 +132,9 @@ export default function CreateWorkflow() {
     }
     if (player.canReject) {
       actionOptions.push({ value: "Reject", label: "Reject" });
+    }
+    if (player.canWithhold) {
+      actionOptions.push({ value: "Withhold", label: "Withhold" });
     }
     const defaultActionField = {
       id: `default-field-${Date.now()}`,
@@ -258,6 +262,7 @@ export default function CreateWorkflow() {
       canHavePool: false,
       canCorrigendum: false,
       canManageBankFiles: false,
+      canWithhold: false,
       actionForm: [],
       status: "",
       completedAt: null,
@@ -270,15 +275,20 @@ export default function CreateWorkflow() {
       toast.error("Please select a service first.");
       return;
     }
-    // Check for multiple players with canCorrigendum or canManageBankFiles
+    // Check for multiple players with exclusive authorities
     const corrigendumCount = players.filter((p) => p.canCorrigendum).length;
     const bankFilesCount = players.filter((p) => p.canManageBankFiles).length;
+    const withholdCount = players.filter((p) => p.canWithhold).length;
     if (corrigendumCount > 1) {
       toast.error("Only one player can have Can Corrigendum authority.");
       return;
     }
     if (bankFilesCount > 1) {
       toast.error("Only one player can have Can Manage Bank Files authority.");
+      return;
+    }
+    if (withholdCount > 1) {
+      toast.error("Only one player can have Can Withhold authority.");
       return;
     }
     const formdata = new FormData();
@@ -289,7 +299,7 @@ export default function CreateWorkflow() {
         "/Designer/WorkFlowPlayers",
         formdata
       );
-      const result = await response.json();
+      const result = response.data
       if (result.status) {
         toast.success("Workflow saved successfully!");
       } else {
@@ -323,7 +333,7 @@ export default function CreateWorkflow() {
   };
 
   const updatePlayer = (updatedPlayer) => {
-    // Check for multiple players with canCorrigendum or canManageBankFiles
+    // Check for multiple players with exclusive authorities
     if (updatedPlayer.canCorrigendum) {
       const otherCorrigendum = players.find(
         (p) => p.playerId !== updatedPlayer.playerId && p.canCorrigendum
@@ -342,6 +352,17 @@ export default function CreateWorkflow() {
       if (otherBankFiles) {
         toast.error(
           `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`
+        );
+        return;
+      }
+    }
+    if (updatedPlayer.canWithhold) {
+      const otherWithhold = players.find(
+        (p) => p.playerId !== updatedPlayer.playerId && p.canWithhold
+      );
+      if (otherWithhold) {
+        toast.error(
+          `Another player (${otherWithhold.designation}) already has Can Withhold authority.`
         );
         return;
       }
@@ -508,6 +529,10 @@ export default function CreateWorkflow() {
                           <Typography variant="body2">
                             <strong>Manage Bank Files:</strong>{" "}
                             {player.canManageBankFiles ? "Yes" : "No"}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>Withhold:</strong>{" "}
+                            {player.canWithhold ? "Yes" : "No"}
                           </Typography>
                         </Box>
                         <Box sx={{ mt: 2, display: "flex", gap: 2 }}>

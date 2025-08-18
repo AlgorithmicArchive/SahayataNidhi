@@ -1,6 +1,6 @@
 -- DROP SCHEMA dbo;
 
-CREATE SCHEMA dbo;
+-- CREATE SCHEMA dbo;
 -- SocialWelfareDepartment.dbo.ActionHistory definition
 
 -- Drop table

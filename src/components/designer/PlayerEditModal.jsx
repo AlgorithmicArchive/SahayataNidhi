@@ -33,6 +33,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
     ...player,
     canHavePool: player.canHavePool || false,
     canManageBankFiles: player.canManageBankFiles || false,
+    canWithhold: player.canWithhold || false,
     actionForm: player.actionForm || [],
   });
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
@@ -84,7 +85,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
   };
 
   const handleChange = (field, value) => {
-    // Check for canCorrigendum and canManageBankFiles exclusivity
+    // Check for exclusive authorities
     if (field === "canCorrigendum" && value) {
       const otherCorrigendum = players.find(
         (p) => p.playerId !== editedPlayer.playerId && p.canCorrigendum
@@ -103,6 +104,17 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
       if (otherBankFiles) {
         toast.error(
           `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`
+        );
+        return;
+      }
+    }
+    if (field === "canWithhold" && value) {
+      const otherWithhold = players.find(
+        (p) => p.playerId !== editedPlayer.playerId && p.canWithhold
+      );
+      if (otherWithhold) {
+        toast.error(
+          `Another player (${otherWithhold.designation}) already has Can Withhold authority.`
         );
         return;
       }
@@ -301,6 +313,15 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
               />
             }
             label="Can Manage Bank Files"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={editedPlayer.canWithhold}
+                onChange={(e) => handleChange("canWithhold", e.target.checked)}
+              />
+            }
+            label="Can Withhold"
           />
         </Box>
         <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
