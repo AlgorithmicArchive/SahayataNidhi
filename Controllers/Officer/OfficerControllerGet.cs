@@ -64,10 +64,10 @@ namespace SahayataNidhi.Controllers.Officer
             // Prepare SQL parameters
             var sqlParams = new List<SqlParameter>
             {
-                new SqlParameter("@AccessLevel", officer.AccessLevel),
-                new SqlParameter("@AccessCode", officer.AccessCode ?? (object)DBNull.Value),
-                new SqlParameter("@ServiceId", ServiceId),
-                new SqlParameter("@DivisionCode", officer.AccessLevel == "Division" ? officer.AccessCode : (object)DBNull.Value)
+                new("@AccessLevel", officer.AccessLevel),
+                new("@AccessCode", officer.AccessCode ?? (object)DBNull.Value),
+                new("@ServiceId", ServiceId),
+                new("@DivisionCode", officer.AccessLevel == "Division" ? officer.AccessCode : (object)DBNull.Value)
             };
 
 
@@ -179,11 +179,11 @@ namespace SahayataNidhi.Controllers.Officer
             // Prepare SQL parameters
             var sqlParams = new List<SqlParameter>
             {
-                new SqlParameter("@AccessLevel", officer.AccessLevel),
-                new SqlParameter("@AccessCode", officer.AccessCode ?? (object)DBNull.Value),
-                new SqlParameter("@ServiceId", ServiceId),
-                new SqlParameter("@TakenBy", officer.Role),
-                new SqlParameter("@DivisionCode", officer.AccessLevel == "Division" ? officer.AccessCode : (object)DBNull.Value)
+                new("@AccessLevel", officer.AccessLevel),
+                new("@AccessCode", officer.AccessCode ?? (object)DBNull.Value),
+                new("@ServiceId", ServiceId),
+                new("@TakenBy", officer.Role),
+                new("@DivisionCode", officer.AccessLevel == "Division" ? officer.AccessCode : (object)DBNull.Value)
             };
 
             // Execute stored procedures
@@ -242,10 +242,10 @@ namespace SahayataNidhi.Controllers.Officer
                 textColor = "#123456"
             });
 
-            // Add PCP - UDID Card Expiring count (always show, even if 0)
+            // Add PCP - UDID Card Expires 3 Months count (always show, even if 0)
             temporaryCountList.Add(new
             {
-                label = "PCP - UDID Card Expiring",
+                label = "PCP-UDID Expires 3 Months",
                 count = temporaryCount.TemporaryDisabilityExpiringSoonCount,
                 tooltipText = "Physically Challenged Applicants with Temporary Disability, UDID Card Expiring Soon",
                 tableTitle = "Expiring Eligibility Applications",
@@ -409,7 +409,7 @@ namespace SahayataNidhi.Controllers.Officer
                 string officerDesignation = (string)officers![currentPlayer!]!["designation"]!;
                 string serviceName = dbcontext.Services.FirstOrDefault(s => s.ServiceId == details.ServiceId)!.ServiceName!;
                 var corrigendums = dbcontext.Corrigenda.Where(co => co.ReferenceNumber == details.ReferenceNumber).ToList();
-                List<string> corrigendumIds = new List<string>();
+                List<string> corrigendumIds = new();
 
                 foreach (var item in corrigendums)
                 {
@@ -602,9 +602,9 @@ namespace SahayataNidhi.Controllers.Officer
                 .Select(s => s.ServiceName)
                 .FirstOrDefaultAsync() ?? "Unknown Service";
 
-            List<dynamic> data = new List<dynamic>();
+            List<dynamic> data = new();
 
-            List<dynamic> columns = new List<dynamic>
+            List<dynamic> columns = new()
             {
                 new { accessorKey = "referenceNumber", header = "Reference Number" },
                 new { accessorKey = "applicantName", header = "Applicant Name" },
@@ -718,7 +718,7 @@ namespace SahayataNidhi.Controllers.Officer
                     .ToList();
 
                 // Define columns for the frontend
-                List<dynamic> columns = new List<dynamic>
+                List<dynamic> columns = new()
                 {
                     new { accessorKey = "tehsilName", header = "Tehsil Name" },
                     new { accessorKey = "totalApplicationsSubmitted", header = "Total Applications Received" },
@@ -1669,7 +1669,7 @@ namespace SahayataNidhi.Controllers.Officer
                     ? JObject.Parse(corrigendumFields)
                     : (JObject)corrigendumFields;
 
-                JArray officerFiles = new JArray();
+                JArray officerFiles = new();
                 if (corrigendumFieldsJson["Files"] is JObject filesObject &&
                     filesObject[officer.RoleShort!] is JArray roleFiles)
                 {
@@ -1839,7 +1839,7 @@ namespace SahayataNidhi.Controllers.Officer
                 }
             }
 
-            List<dynamic> columns = new List<dynamic>
+            List<dynamic> columns = new()
             {
                 new { accessorKey = "applicationId", header = applicationType + " Id" },
                 new { accessorKey = "createdBy", header = "Creation Officer" },
@@ -2224,9 +2224,7 @@ namespace SahayataNidhi.Controllers.Officer
                 }
             }
 
-            bool canPermanentToTemporary = withheldApplication != null &&
-                                           withheldApplication.WithheldType == "Permanent" &&
-                                           officer.Role?.Contains("Director") == true;
+            bool canPermanentToTemporary = true;
 
             var application = new ExpandoObject() as IDictionary<string, object>;
             if (citizenApplication?.FormDetails != null)
@@ -2234,10 +2232,14 @@ namespace SahayataNidhi.Controllers.Officer
                 try
                 {
                     var formDetails = JToken.Parse(citizenApplication.FormDetails);
-                    var tswovalue = GetFieldValue("Tehsil", formDetails);
+                    var tswovalue = dbcontext.Tswotehsils.FirstOrDefault(to => to.TehsilId == Convert.ToInt32(GetFieldValue("Tehsil", formDetails)));
+                    var dswovalue = dbcontext.Districts.FirstOrDefault(to => to.DistrictId == Convert.ToInt32(GetFieldValue("District", formDetails)))!.DistrictName;
+
+
 
                     application["applicantName"] = GetFieldValue("ApplicantName", formDetails) ?? "N/A";
                     application["parentage"] = GetFieldValue("RelationName", formDetails) ?? "N/A";
+                    application["r/o"] = $"DISTRICT: {dswovalue}, ADDRESS: {GetFieldValue("PresentAddress", formDetails)}";
                 }
                 catch (JsonException)
                 {

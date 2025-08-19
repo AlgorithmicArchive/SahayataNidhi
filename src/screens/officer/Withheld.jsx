@@ -32,7 +32,7 @@ export default function Withheld() {
     withheldReason: "",
     isWithheld: true,
   });
-  const [applicantDetails, setApplicantDetails] = useState(null);
+  const [applicationDetails, setApplicationDetails] = useState(null);
   const [recordExists, setRecordExists] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const [canCreate, setCanCreate] = useState(false);
@@ -52,7 +52,7 @@ export default function Withheld() {
     setLoading(true);
     setHasChecked(false);
     setCanCreate(false);
-    setApplicantDetails(null);
+    setApplicationDetails(null);
 
     try {
       const res = await axiosInstance.get("/Officer/GetWithheldApplication", {
@@ -66,10 +66,7 @@ export default function Withheld() {
           withheldReason: res.data.application.withheldReason,
           isWithheld: res.data.application.isWithheld,
         });
-        setApplicantDetails({
-          name: res.data.application.applicantName || "N/A",
-          email: res.data.application.parentage || "N/A",
-        });
+        setApplicationDetails(res.data.applicationDetails);
         setCanPermanentToTemporary(res.data.canPermanentToTemporary);
         setCanCreate(true);
         setHasChecked(true);
@@ -84,7 +81,7 @@ export default function Withheld() {
       } else if (
         !res.data.status &&
         res.data.response ===
-          "Application is not sactioned can't withheld the application."
+          "Application is not sanctioned and cannot be withheld."
       ) {
         setError(res.data.response);
         setRecordExists(false);
@@ -97,6 +94,7 @@ export default function Withheld() {
           withheldReason: "",
           isWithheld: true,
         });
+        setApplicationDetails(res.data.applicationDetails);
         setCanCreate(true);
         setHasChecked(true);
       }
@@ -126,7 +124,7 @@ export default function Withheld() {
           form,
           {
             headers: { "Content-Type": "multipart/form-data" },
-          }
+          },
         );
       } else {
         res = await axiosInstance.post(
@@ -134,7 +132,7 @@ export default function Withheld() {
           form,
           {
             headers: { "Content-Type": "multipart/form-data" },
-          }
+          },
         );
       }
 
@@ -149,7 +147,7 @@ export default function Withheld() {
       setRecordExists(false);
       setHasChecked(false);
       setCanCreate(false);
-      setApplicantDetails(null);
+      setApplicationDetails(null);
       setError("");
 
       setTimeout(() => {
@@ -159,6 +157,15 @@ export default function Withheld() {
       console.error(err);
       setError("Failed to save application");
     }
+  };
+
+  // Helper function to format keys for display
+  const formatKey = (key) => {
+    if (key === "r/o") return "Residence";
+    return key
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim();
   };
 
   const formControlStyles = {
@@ -267,6 +274,19 @@ export default function Withheld() {
           {loading ? "Checking..." : "Check Application"}
         </Button>
 
+        {hasChecked && applicationDetails && (
+          <Box sx={{ mb: 3, p: 2, bgcolor: "grey.100", borderRadius: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+              Application Details
+            </Typography>
+            {Object.entries(applicationDetails).map(([key, value]) => (
+              <Typography key={key} variant="body2">
+                <strong>{formatKey(key)}:</strong> {value || "N/A"}
+              </Typography>
+            ))}
+          </Box>
+        )}
+
         {hasChecked && canCreate && (
           <Paper
             sx={{
@@ -285,20 +305,6 @@ export default function Withheld() {
                 : "Create New Withheld Application"}
             </Typography>
 
-            {applicantDetails && (
-              <Box sx={{ mb: 3, p: 2, bgcolor: "grey.100", borderRadius: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                  Applicant Details
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Name:</strong> {applicantDetails.name}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Parentage:</strong> {applicantDetails.parentage}
-                </Typography>
-              </Box>
-            )}
-
             <FormControl fullWidth sx={formControlStyles}>
               <InputLabel id="withheld-type-label">Withheld Type</InputLabel>
               <Select
@@ -313,11 +319,7 @@ export default function Withheld() {
                 }
               >
                 <MenuItem value="Permanent">Permanent</MenuItem>
-                {(formData.withheldType === "Temporary" ||
-                  (formData.withheldType === "Permanent" &&
-                    canPermanentToTemporary)) && (
-                  <MenuItem value="Temporary">Temporary</MenuItem>
-                )}
+                <MenuItem value="Temporary">Temporary</MenuItem>
               </Select>
             </FormControl>
 
@@ -366,14 +368,16 @@ export default function Withheld() {
               </RadioGroup>
             </FormControl>
 
-            <Button
-              variant="contained"
-              sx={buttonStyles}
-              onClick={handleSave}
-              disabled={loading}
-            >
-              {recordExists ? "Update Application" : "Submit Application"}
-            </Button>
+            <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-start" }}>
+              <Button
+                variant="contained"
+                sx={buttonStyles}
+                onClick={handleSave}
+                disabled={loading}
+              >
+                {recordExists ? "Update Application" : "Submit Application"}
+              </Button>
+            </Box>
           </Paper>
         )}
       </Box>

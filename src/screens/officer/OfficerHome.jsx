@@ -232,7 +232,7 @@ export default function OfficerHome() {
       Issued: "#C9F2CA",
       "Pension's Stopped": "#DAC2FE",
       "PCP Applications": "#C2D0FF",
-      "PCP - UDID Card Expiring": "#C9F2CA",
+      "PCP-UDID Expires 3 Months": "#C9F2CA",
       "Total Withheld Applications": "#C2D0FF",
       "Temporary Withheld": "#EBFFC2",
       "Permanent Withheld": "#FEC2C2",
@@ -256,7 +256,7 @@ export default function OfficerHome() {
       Issued: "#000000",
       "Pension's Stopped": "#000000",
       "PCP Applications": "#000000",
-      "PCP - UDID Card Expiring": "#000000",
+      "PCP-UDID Expires 3 Months": "#000000",
       "Total Withheld Applications": "#000000",
       "Temporary Withheld": "#000000",
       "Permanent Withheld": "#000000",
@@ -422,7 +422,8 @@ export default function OfficerHome() {
       "Pendig With Citizen": "returntoedit",
       "Shifted To Another Location": "shifted",
       "Pension's Stopped": "pensionstopped",
-      "PCP - UDID Card Expiring": "expiringeligibility",
+      "PCP - UDID Card Expires 3 Months In Next 3 Months":
+        "expiringeligibility",
       "PCP Applications": "totalpcpapplication",
     };
 
@@ -441,7 +442,7 @@ export default function OfficerHome() {
     const url =
       type === "Corrigendum" || type === "Correction"
         ? "/Officer/GetCorrigendumApplications"
-        : statusName === "PCP - UDID Card Expiring" ||
+        : statusName === "PCP - UDID Card Expires 3 Months In Next 3 Months" ||
           statusName === "PCP Applications"
         ? "/Officer/GetTemporaryDisability"
         : statusName.includes("Withheld")

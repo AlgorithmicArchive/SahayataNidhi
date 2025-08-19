@@ -7,27 +7,25 @@ const TokenTimer = () => {
   const [timeLeft, setTimeLeft] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const inactivityThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
-  const sessionDuration = 30 * 60 * 1000; // 30 minutes in milliseconds
-  const popupThreshold = 2 * 60 * 1000; // 2 minutes in milliseconds
 
-  // Handle user activity to reset the timer
+  const inactivityThreshold = 5 * 60 * 1000; // 5 minutes
+  const sessionDuration = 30 * 60 * 1000; // 30 minutes
+  const popupThreshold = 2 * 60 * 1000; // 2 minutes
+
+  // Handle user activity to reset inactivity timer (but not tokenExpiry)
   const handleActivity = useCallback(() => {
-    // Only reset timer if popup is not open
     if (!isPopupOpen) {
-      const now = Date.now();
-      setLastActivity(now);
-      setTokenExpiry(now + sessionDuration);
+      setLastActivity(Date.now());
     }
-  }, [isPopupOpen, setTokenExpiry]);
+  }, [isPopupOpen]);
 
-  // Set up activity listeners
+  // Attach activity listeners
   useEffect(() => {
     const events = ["mousemove", "click", "keypress", "scroll"];
     events.forEach((event) => window.addEventListener(event, handleActivity));
     return () => {
       events.forEach((event) =>
-        window.removeEventListener(event, handleActivity)
+        window.removeEventListener(event, handleActivity),
       );
     };
   }, [handleActivity]);
@@ -44,7 +42,7 @@ const TokenTimer = () => {
       const now = Date.now();
       const timeSinceLastActivity = now - lastActivity;
 
-      // Start timer only after 5 minutes of inactivity
+      // Only start countdown after inactivity threshold is reached
       if (timeSinceLastActivity < inactivityThreshold) {
         setTimeLeft(null);
         return;
@@ -55,7 +53,6 @@ const TokenTimer = () => {
       if (timeRemaining <= 0) {
         setTimeLeft("Expired");
         setIsPopupOpen(false);
-        // Trigger logout logic
         handleLogout();
       } else {
         const minutes = Math.floor(timeRemaining / 1000 / 60);
@@ -63,10 +60,9 @@ const TokenTimer = () => {
         setTimeLeft(
           `${minutes.toString().padStart(2, "0")}:${seconds
             .toString()
-            .padStart(2, "0")}`
+            .padStart(2, "0")}`,
         );
 
-        // Show popup when 2 minutes remain
         if (timeRemaining <= popupThreshold && !isPopupOpen) {
           setIsPopupOpen(true);
         }
@@ -78,21 +74,19 @@ const TokenTimer = () => {
     return () => clearInterval(interval);
   }, [tokenExpiry, lastActivity, isPopupOpen]);
 
-  // Handle continue session
+  // Continue session explicitly
   const handleContinue = () => {
     const now = Date.now();
     setLastActivity(now);
-    setTokenExpiry(now + sessionDuration);
+    setTokenExpiry(now + sessionDuration); // ✅ only extend here
     setIsPopupOpen(false);
   };
 
-  // Handle session expiration
+  // Handle logout
   const handleLogout = () => {
     setTimeLeft("Expired");
     setIsPopupOpen(false);
-    // Optionally, trigger logout logic here
-    // e.g., clear token, redirect to login
-    // Example: localStorage.removeItem('authToken'); window.location.href = '/login';
+    // Example: localStorage.removeItem("authToken"); window.location.href = "/login";
   };
 
   if (!timeLeft) return null;
@@ -118,7 +112,9 @@ const TokenTimer = () => {
           transition: "all 0.3s ease",
         }}
       >
-        {timeLeft === "Expired" ? "Session Expired" : `Session expires in: ${timeLeft}`}
+        {timeLeft === "Expired"
+          ? "Session Expired"
+          : `Session expires in: ${timeLeft}`}
       </Box>
 
       <Modal open={isPopupOpen} onClose={() => {}}>
