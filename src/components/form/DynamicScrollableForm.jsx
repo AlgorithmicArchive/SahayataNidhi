@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, Controller, get, useWatch, set } from "react-hook-form";
 import {
   runValidations,
@@ -22,6 +22,7 @@ import {
   FormLabel,
   FormGroup,
   CircularProgress,
+  Grid,
 } from "@mui/material";
 import { Col, Row } from "react-bootstrap";
 import { fetchFormDetails, GetServiceContent } from "../../assets/fetch";
@@ -38,7 +39,7 @@ import MessageModal from "../MessageModal";
 import LoadingSpinner from "../LoadingSpinner";
 import { toast, ToastContainer } from "react-toastify";
 import OtpModal from "../OtpModal";
-import { CheckCircle } from "@mui/icons-material";
+import { CheckCircle, Delete, FileDownload } from "@mui/icons-material";
 
 const sectionIconMap = {
   Location: <LocationOnIcon sx={{ fontSize: 36, color: "#14B8A6" }} />, // Teal
@@ -196,6 +197,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     setValue,
     reset,
     unregister,
+    clearErrors,
     formState: { errors, dirtyFields },
   } = useForm({
     mode: "onChange",
@@ -226,6 +228,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   const hasRunRef = useRef(false);
   const watchedDependableValues = useWatch({ control, name: DependableFields });
   const isBackspacePressed = useRef(false);
+  const formRef = useRef(null);
 
   // Effect to manage non-rendered fields
   useEffect(() => {
@@ -287,7 +290,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     JSON.stringify(watchedDependableValues),
   ]);
 
-  // Watch for changes in dependent fields and update dependent selects and dependent enclosures accordingly
   useEffect(() => {
     if (!formSections.length) return;
 
@@ -378,7 +380,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     return Object.keys(flatDetails).includes(fieldName);
   }
 
-  // Only includes fields if their name is in returnFields (and their additionalFields)
   const getDependableFields = (formSections, returnFields, flatDetails) => {
     const dependencies = [];
     formSections.forEach((section) => {
@@ -426,18 +427,26 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     return false;
   };
 
-  const setDefaultFile = async (path) => {
+  const setDefaultFile = async (fieldName, path, setPreview = null) => {
     try {
-      const response = await fetch(path);
-      if (!response.ok) throw new Error("Failed to fetch file");
+      if (!path || typeof path !== "string") {
+        console.warn(`No valid URL provided for ${fieldName}`);
+        if (setPreview) setPreview("/assets/images/profile.jpg"); // Fallback for images
+        return;
+      }
+      const response = await fetch(`/Base/DisplayFile?fileName=${path}`);
+      if (!response.ok)
+        throw new Error(`Failed to fetch file for ${fieldName}`);
       const blob = await response.blob();
-      const fileName = path.split("/").pop();
+      const fileName = path.split("/").pop() || `${fieldName}_file`;
       const file = new File([blob], fileName, { type: blob.type });
-      setValue("ApplicantImage", file, { shouldValidate: true });
-      setApplicantImagePreview(URL.createObjectURL(file));
+      setValue(fieldName, file, { shouldValidate: true });
+      if (setPreview) {
+        setApplicantImagePreview(`/Base/DisplayFile?fileName=${path}`);
+      }
     } catch (error) {
-      console.error("Error setting default file:", error);
-      setApplicantImagePreview("/assets/images/profile.jpg"); // Fallback to default
+      console.error(`Error setting default file for ${fieldName}:`, error);
+      if (setPreview) setPreview("/assets/images/profile.jpg"); // Fallback for images
     }
   };
 
@@ -468,10 +477,10 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       typeof initialData.ApplicantImage === "string"
     ) {
       // Fetch the image from the URL and convert it to a File object
-      setDefaultFile(initialData.ApplicantImage);
-    } else {
+      setDefaultFile("ApplicantImage", initialData.ApplicantImage, true);
+    } else if (data != null) {
       const flatDetails = flattenFormDetails(data);
-      setDefaultFile(flatDetails.ApplicantImage);
+      setDefaultFile("ApplicantImage", flatDetails.ApplicantImage, true);
     }
   }, [applicantImageFile, initialData, mode, data, setValue]);
 
@@ -499,6 +508,13 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             referenceNumber,
           );
 
+          if (mode === "edit" || mode == "incomplete") {
+            const value = getValues("AadharNumber");
+            if (value && value.length > 12) {
+              setAadhaarValid(true);
+            }
+          }
+
           const flatDetails = flattenFormDetails(formDetails);
           setInitialData(flatDetails);
           const resetData = {
@@ -511,6 +527,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               ) {
                 acc[`${key}_select`] = flatDetails[key].selected;
                 acc[`${key}_file`] = flatDetails[key].file;
+                setDefaultFile(`${key}_file`, flatDetails[key].file, false);
                 // Set OtherDocument from Other enclosure's selected value
                 if (key === "Other") {
                   acc["OtherDocument"] = flatDetails[key].selected || "";
@@ -530,9 +547,35 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           setAreas(formDetails);
           setDependableFields(dependableFields);
           reset(resetData);
+
+          // Set default files for enclosures
+          formSections.forEach((section) => {
+            section.fields.forEach((field) => {
+              if (field.type === "enclosure") {
+                const fileFieldName = `${field.name}_file`;
+                const fileUrl = flatDetails[field.name]?.file;
+                if (fileUrl && typeof fileUrl === "string") {
+                  // Check if the enclosure is dependent and visible
+                  if (
+                    field.isDependentEnclosure &&
+                    field.dependentField &&
+                    field.dependentValues?.length > 0
+                  ) {
+                    const parentValue = flatDetails[field.dependentField];
+                    if (!field.dependentValues.includes(parentValue)) {
+                      return; // Skip if dependency condition is not met
+                    }
+                  }
+                  setDefaultFile(fileFieldName, fileUrl);
+                }
+              }
+            });
+          });
+
           setAdditionalDetails(additionalDetails);
         } else if (data !== null && data !== undefined) {
           const flatDetails = flattenFormDetails(data);
+
           const resetData = {
             ...flatDetails,
             ...Object.keys(flatDetails).reduce((acc, key) => {
@@ -552,8 +595,31 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             }, {}),
           };
           setInitialData(flatDetails);
-          // setAreas(data);
           reset(resetData);
+
+          // Set default files for enclosures
+          formSections.forEach((section) => {
+            section.fields.forEach((field) => {
+              if (field.type === "enclosure") {
+                const fileFieldName = `${field.name}_file`;
+                const fileUrl = flatDetails[field.name]?.file;
+                if (fileUrl && typeof fileUrl === "string") {
+                  // Check if the enclosure is dependent and visible
+                  if (
+                    field.isDependentEnclosure &&
+                    field.dependentField &&
+                    field.dependentValues?.length > 0
+                  ) {
+                    const parentValue = flatDetails[field.dependentField];
+                    if (!field.dependentValues.includes(parentValue)) {
+                      return; // Skip if dependency condition is not met
+                    }
+                  }
+                  setDefaultFile(fileFieldName, fileUrl);
+                }
+              }
+            });
+          });
         }
 
         if (data != null) {
@@ -567,13 +633,11 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                 let fieldsArray = [];
 
                 if (Array.isArray(item.additionalFields)) {
-                  // Case 1: single array of objects
                   fieldsArray = item.additionalFields;
                 } else if (
                   typeof item.additionalFields === "object" &&
                   !Array.isArray(item.additionalFields)
                 ) {
-                  // Case 2: object whose values are arrays of objects
                   Object.values(item.additionalFields).forEach((arr) => {
                     if (Array.isArray(arr)) {
                       fieldsArray.push(...arr);
@@ -581,7 +645,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   });
                 }
 
-                // Deduplicate based on name + value
                 const uniqueFields = [];
                 const seen = new Set();
 
@@ -593,11 +656,10 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   }
                 });
 
-                // Process fields
                 uniqueFields.forEach((field) => {
                   if (
                     field.name.toLowerCase().includes("district") ||
-                    field.name.toLowerCase().includes("muncipality") // Keep original spelling
+                    field.name.toLowerCase().includes("muncipality")
                   ) {
                     handleAreaChange(
                       sectionIndex,
@@ -701,7 +763,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       dependentField: field.dependentField,
     }));
 
-  // Watch dependent field values and log changes
   useEffect(() => {
     if (!formSections.length) return;
 
@@ -1176,44 +1237,28 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     }
   };
 
-  const onSubmit = async (data, operationType) => {
-    if (!aadhaarValid && operationType != "save") {
-      alert("Aadhaar Number is not validated.");
-      return;
-    }
-    const groupedFormData = {};
-    setLoading(true);
-
-    let returnFieldsArray = [];
-    if (additionalDetails != null && additionalDetails !== "") {
-      const returnFields = additionalDetails?.returnFields || "";
-      returnFieldsArray = JSON.parse(returnFields);
-    }
-
-    const processField = (field, formData, initialData) => {
-      if (field.type === "enclosure" && field.isDependentEnclosure) {
-        const parentValue =
-          formData[field.dependentField] || initialData[field.dependentField];
-        if (!parentValue || !field.dependentValues.includes(parentValue)) {
-          return null;
-        }
+  const processField = (field, formData, initialData) => {
+    if (field.type === "enclosure" && field.isDependentEnclosure) {
+      const parentValue =
+        formData[field.dependentField] || initialData[field.dependentField];
+      if (!parentValue || !field.dependentValues.includes(parentValue)) {
+        return null;
       }
-
-      const sectionFormData = {};
-      // Use formData if available, otherwise fall back to initialData
-      const fieldValue =
-        field.name === "AadharNumber"
-          ? aadhaarNumber
-          : formData[field.name] !== undefined
-          ? formData[field.name]
-          : initialData[field.name] || "";
-
-      sectionFormData["label"] = field.label;
-      sectionFormData["name"] = field.name;
-
-      if (field.type === "enclosure") {
-        const selectFieldName = `${field.name}_select`;
-        const fileFieldName = `${field.name}_file`;
+    }
+    const sectionFormData = { label: field.label, name: field.name };
+    if (field.type === "enclosure") {
+      const selectFieldName = `${field.name}_select`;
+      const fileFieldName = `${field.name}_file`;
+      if (field.name === "Other") {
+        const documents =
+          formData[fileFieldName] || initialData[field.name]?.documents || [];
+        sectionFormData["Documents"] = Array.isArray(documents)
+          ? documents.map((doc) => ({
+              type: doc.type || "",
+              file: doc.file || null,
+            }))
+          : [];
+      } else {
         sectionFormData["Enclosure"] =
           formData[selectFieldName] !== undefined
             ? formData[selectFieldName]
@@ -1222,41 +1267,56 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           formData[fileFieldName] !== undefined
             ? formData[fileFieldName]
             : initialData[field.name]?.file || null;
-      } else if (field.name === "ApplicantImage") {
-        sectionFormData["File"] = fieldValue;
-      } else {
-        sectionFormData["value"] = fieldValue;
       }
-
-      if (
-        field.type === "enclosure" &&
-        field.name === "Other" &&
-        formData["OtherDocument"] &&
-        formData[`${field.name}_file`]
-      ) {
-        sectionFormData["Enclosure"] = formData["OtherDocument"];
+    } else if (field.name === "ApplicantImage") {
+      sectionFormData["File"] =
+        formData[field.name] !== undefined
+          ? formData[field.name]
+          : initialData[field.name] || null;
+    } else {
+      sectionFormData["value"] =
+        formData[field.name] !== undefined
+          ? formData[field.name]
+          : initialData[field.name] || "";
+    }
+    if (field.additionalFields) {
+      const selectedValue =
+        sectionFormData["value"] || sectionFormData["Enclosure"] || "";
+      const additionalFields = field.additionalFields[selectedValue];
+      if (additionalFields) {
+        sectionFormData.additionalFields = additionalFields
+          .map((additionalField) => {
+            const nestedFieldName =
+              additionalField.name || `${field.name}_${additionalField.id}`;
+            return processField(
+              { ...additionalField, name: nestedFieldName },
+              formData,
+              initialData,
+            );
+          })
+          .filter((nestedField) => nestedField !== null);
       }
+    }
+    return sectionFormData;
+  };
 
-      if (field.additionalFields) {
-        const selectedValue = fieldValue || "";
-        const additionalFields = field.additionalFields[selectedValue];
-        if (additionalFields) {
-          sectionFormData.additionalFields = additionalFields
-            .map((additionalField) => {
-              const nestedFieldName =
-                additionalField.name || `${field.name}_${additionalField.id}`;
-              return processField(
-                { ...additionalField, name: nestedFieldName },
-                formData,
-                initialData,
-              );
-            })
-            .filter((nestedField) => nestedField !== null);
-        }
-      }
+  const onSubmit = async (data, operationType) => {
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    data = getValues();
 
-      return sectionFormData;
-    };
+    if (!aadhaarValid && operationType !== "save") {
+      alert("Aadhaar Number is not validated.");
+      return;
+    }
+
+    setLoading(true);
+    const groupedFormData = {};
+    let returnFieldsArray = [];
+    if (additionalDetails != null && additionalDetails !== "") {
+      const returnFields = additionalDetails?.returnFields || "";
+      returnFieldsArray = JSON.parse(returnFields);
+    }
 
     formSections.forEach((section) => {
       groupedFormData[section.section] = [];
@@ -1276,6 +1336,15 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       groupedFormData[section].forEach((field) => {
         if (field.hasOwnProperty("File") && field.File instanceof File) {
           formdata.append(field.name, field.File);
+        } else if (
+          field.hasOwnProperty("Documents") &&
+          Array.isArray(field.Documents)
+        ) {
+          field.Documents.forEach((doc, index) => {
+            if (doc.file instanceof File) {
+              formdata.append(`${field.name}_${index}`, doc.file);
+            }
+          });
         }
         if (field.additionalFields) {
           field.additionalFields.forEach((nestedField) => {
@@ -1301,6 +1370,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       formdata.append("returnFields", JSON.stringify(returnFieldsArray));
       url = "/User/UpdateApplicationDetails";
     }
+    console.log("formdata", formdata);
 
     try {
       const response = await axiosInstance.post(url, formdata);
@@ -1317,14 +1387,69 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         } else {
           setReferenceNumber(result.referenceNumber);
           toast.success("Form Details Saved as Draft.");
+          if (formRef.current) {
+            formRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "end",
+            });
+          }
         }
       } else {
         console.error("Submission failed:", result);
+        toast.error("Failed to save form details.");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
       setLoading(false);
+      toast.error("An error occurred while saving the form.");
     }
+
+    window.scrollTo(scrollX, scrollY);
+  };
+
+  const addDynamicEnclosure = (sectionId) => {
+    const newId = `field-${Date.now()}`;
+    const newField = {
+      id: newId,
+      type: "enclosure",
+      label: "Other Document",
+      name: `CustomDocument_${newId}`,
+      minLength: 5,
+      maxLength: 50,
+      options: [], // no options => render TextField instead of Select
+      span: 6,
+      validationFunctions: ["notEmpty", "validateFile"],
+      transformationFunctions: [],
+      additionalFields: {},
+      accept: ".pdf",
+      editable: true,
+      dependentOptions: {},
+      isDependentEnclosure: false,
+      dependentValues: [],
+      isConsentCheckbox: false,
+      checkboxLayout: "vertical",
+      declaration: "",
+    };
+
+    setFormSections((prevSections) =>
+      prevSections.map((section) =>
+        section.id === sectionId
+          ? { ...section, fields: [...section.fields, newField] }
+          : section,
+      ),
+    );
+  };
+  const removeDynamicEnclosure = (sectionId, fieldId) => {
+    setFormSections((prevSections) =>
+      prevSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              fields: section.fields.filter((field) => field.id !== fieldId),
+            }
+          : section,
+      ),
+    );
   };
 
   const renderField = (field, sectionIndex) => {
@@ -1372,7 +1497,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       },
       marginBottom: "1.5rem",
     };
-
     const buttonStyles = {
       background: "linear-gradient(to right, #10B981, #059669)", // Green-500 to Green-600
       color: "#FFFFFF",
@@ -1403,7 +1527,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         return "";
       }
     };
-
     const getLabelWithAsteriskJSX = (field) => {
       const isRequired = field.validationFunctions?.includes("notEmpty");
       return (
@@ -1426,13 +1549,20 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             control={control}
             defaultValue=""
             rules={{
-              validate: async (value) =>
-                await runValidations(
+              validate: async (value) => {
+                if (
+                  field.name === "AadharNumber" &&
+                  (mode === "edit" || mode == "incomplete" || aadhaarValid)
+                ) {
+                  return true; // Skip validation
+                }
+                return await runValidations(
                   field,
                   value,
                   getValues(),
                   referenceNumber,
-                ),
+                );
+              },
             }}
             render={({ field: { onChange, value, ref } }) => (
               <Box
@@ -1450,6 +1580,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   onKeyDown={(e) => {
                     isBackspacePressed.current = e.key === "Backspace";
                   }}
+                  placeholder={
+                    field.name === "OtherDocument" ? "File1, File2,..." : ""
+                  }
                   onChange={(e) => {
                     let val = e.target.value;
                     const fieldName = field.name;
@@ -1858,130 +1991,123 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
         const selectFieldName = `${field.name}_select`;
         const fileFieldName = `${field.name}_file`;
-
-        const selectValue =
-          getValues(selectFieldName) ||
-          initialData?.[field.name]?.selected ||
-          "";
-        const options = field.options || [];
-
-        if (
-          selectValue &&
-          !options.some(
-            (opt) => opt.value.toString() === selectValue.toString(),
-          )
-        ) {
-          options.push({ value: selectValue, label: selectValue });
-        }
-
-        const additionalFields =
-          field.additionalFields && field.additionalFields[selectValue];
+        const isDynamic = !field.options || field.options.length === 0;
 
         return (
-          <>
-            <Controller
-              name={selectFieldName}
-              control={control}
-              defaultValue={selectValue}
-              rules={{
-                validate: async (value) =>
-                  field.required && !value ? "Please select an option" : true, // Only validate that a selection is made if required
-              }}
-              render={({ field: { onChange, value, ref } }) => {
-                return (
-                  <>
-                    <TextField
-                      select
-                      fullWidth
-                      variant="outlined"
-                      label={getLabelWithAsteriskJSX(field)}
-                      value={value || ""}
-                      id={`field-${field.id}`}
-                      onChange={(e) => {
-                        onChange(e);
-                        handleAreaChange(sectionIndex, field, e.target.value);
-                        // Clear file if select value changes
-                        setValue(fileFieldName, null, { shouldValidate: true });
-                      }}
-                      error={Boolean(errors[selectFieldName])}
-                      helperText={errors[selectFieldName]?.message || ""}
-                      InputLabelProps={{
-                        shrink: true,
-                        style: { fontSize: "1.2rem", color: "#000000" },
-                      }}
-                      inputRef={ref}
-                      sx={commonStyles}
-                      disabled={isFieldDisabled(field.name)}
-                    >
-                      {options.map((option, index) => (
-                        <MenuItem
-                          key={`${option.value}-${index}`}
-                          value={option.value}
-                          sx={{
-                            color: "#1F2937", // Gray-900
-                            "&:hover": { backgroundColor: "#DBEAFE" }, // Blue-100
-                            "&.Mui-selected": {
-                              backgroundColor: "#6366F1", // Indigo-500
-                              color: "#FFFFFF",
-                            },
-                          }}
-                        >
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </TextField>
+          <Box sx={{ width: "100%", mb: 2, position: "relative" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+              <Typography variant="subtitle1">{field.label}</Typography>
+              {isDynamic && field.id.includes("field-") && (
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    removeDynamicEnclosure(`section-${sectionIndex}`, field.id);
+                    unregister(selectFieldName);
+                    unregister(fileFieldName);
+                  }}
+                  sx={{
+                    color: "#F43F5E",
+                    "&:hover": { color: "#E11D48" },
+                    p: 0.5,
+                  }}
+                  title="Remove Document"
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              )}
+            </Box>
 
-                    {field.additionalFields &&
-                      field.additionalFields[value] &&
-                      field.additionalFields[value].map((additionalField) => {
-                        const nestedFieldName =
-                          additionalField.name ||
-                          `${field.name}_${additionalField.id}`;
-                        return (
-                          <Col
-                            xs={12}
-                            lg={additionalField.span}
-                            key={additionalField.id}
-                          >
-                            {renderField(
-                              {
-                                ...additionalField,
-                                name: nestedFieldName,
-                              },
-                              sectionIndex,
-                            )}
-                          </Col>
-                        );
-                      })}
-                  </>
-                );
-              }}
-            />
+            {/* Enclosure Name */}
+            {isDynamic ? (
+              <Controller
+                name={selectFieldName}
+                control={control}
+                defaultValue={initialData?.[field.name]?.selected || ""}
+                rules={{ required: "Enclosure name is required" }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Enclosure Name"
+                    fullWidth
+                    margin="normal"
+                    error={Boolean(errors[selectFieldName])}
+                    helperText={errors[selectFieldName]?.message}
+                    sx={commonStyles}
+                  />
+                )}
+              />
+            ) : (
+              <Controller
+                name={selectFieldName}
+                control={control}
+                defaultValue={initialData?.[field.name]?.selected || ""}
+                rules={{
+                  validate: async (value) =>
+                    field.required && !value ? "Please select an option" : true, // Only validate that a selection is made if required
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <TextField
+                    select
+                    label={getLabelWithAsteriskJSX(field)}
+                    value={value || ""}
+                    onChange={(e) => {
+                      onChange(e.target.value);
+                      setValue(fileFieldName, null, { shouldValidate: true });
+                    }}
+                    disabled={isFieldDisabled(field.name)}
+                    error={Boolean(errors[selectFieldName])}
+                    helperText={errors[selectFieldName]?.message || ""}
+                    fullWidth
+                    margin="normal"
+                    SelectProps={{ native: true }}
+                    sx={{ mb: 2, ...commonStyles }}
+                  >
+                    {field.options.map((option) => (
+                      <option
+                        key={option.id || option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </option>
+                    ))}
+                  </TextField>
+                )}
+              />
+            )}
+
+            {/* File Upload */}
             <Controller
               name={fileFieldName}
               control={control}
               defaultValue={initialData?.[field.name]?.file || null}
               rules={{
                 validate: async (value) => {
-                  // Run validations specifically for the file
                   const selectValue = getValues(selectFieldName);
                   if (field.required && !value && selectValue) {
                     return "Please upload a file";
                   }
-                  return await runValidations(field, value, getValues());
+                  if (value instanceof File) {
+                    if (value.size > 200000) {
+                      return "File must be under 200KB";
+                    }
+                    const extension = `.${value.name
+                      .split(".")
+                      .pop()
+                      .toLowerCase()}`;
+                    if (!field.accept.split(",").includes(extension)) {
+                      return `Invalid file type. Accepted types: ${field.accept}`;
+                    }
+                  }
+                  return await runValidations(
+                    field,
+                    value,
+                    getValues(),
+                    referenceNumber,
+                  );
                 },
               }}
               render={({ field: { onChange, value } }) => (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "flex-start",
-                    alignItems: "flex-start",
-                    width: "100%",
-                    marginBottom: "0.5rem",
-                  }}
-                >
+                <Box>
                   {value && (
                     <Box
                       display="flex"
@@ -1992,52 +2118,47 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       <FormHelperText
                         sx={{
                           cursor: "pointer",
-                          color: "#6366F1", // Indigo-500
+                          color: "#6366F1",
                           textDecoration: "underline",
                           fontSize: "0.9rem",
-                          "&:hover": { color: "#4F46E5" }, // Indigo-600
+                          "&:hover": { color: "#4F46E5" },
                         }}
                         onClick={() => {
                           const fileURL =
-                            typeof value === "string"
-                              ? value
-                              : URL.createObjectURL(value);
+                            value instanceof File
+                              ? URL.createObjectURL(value)
+                              : value;
                           window.open(fileURL, "_blank");
                         }}
                       >
-                        {typeof value === "string"
-                          ? "View file"
-                          : value?.name || "View file"}
+                        {value instanceof File ? value.name : "View file"}
                       </FormHelperText>
                       <IconButton
                         size="small"
-                        disabled={isFieldDisabled(field.name)}
                         onClick={() => onChange(null)}
                         sx={{
-                          color: "#F43F5E", // Rose-500
-                          "&:hover": { color: "#E11D48" }, // Rose-600
+                          color: "#F43F5E",
+                          "&:hover": { color: "#E11D48" },
                           p: 0.5,
                         }}
-                        aria-label="Remove file"
                       >
                         <CloseIcon fontSize="small" />
                       </IconButton>
                     </Box>
                   )}
-
                   <Button
                     variant="contained"
                     component="label"
                     sx={{
-                      ...buttonStyles,
                       width: "100%",
                       borderRadius: "12px",
+                      ...buttonStyles,
                     }}
                     disabled={
                       isFieldDisabled(field.name) || !getValues(selectFieldName)
                     }
                   >
-                    Upload
+                    Upload File
                     <input
                       type="file"
                       hidden
@@ -2048,20 +2169,17 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       accept={field.accept || ".pdf"}
                     />
                   </Button>
-
-                  <Box>
-                    <FormHelperText sx={{ color: "#F43F5E" }}>
-                      {errors[fileFieldName]?.message || ""}
-                    </FormHelperText>
-                    <Typography sx={{ fontSize: "0.85rem", color: "#6B7280" }}>
-                      Accepted File Types: {field.accept || ".pdf"} Size:
-                      100kb-200kb
-                    </Typography>
-                  </Box>
-                </div>
+                  <FormHelperText sx={{ color: "#F43F5E" }}>
+                    {errors[fileFieldName]?.message || ""}
+                  </FormHelperText>
+                  <Typography sx={{ fontSize: "0.85rem", color: "#6B7280" }}>
+                    Accepted File Types: {field.accept || ".pdf"} Size:
+                    100kb-200kb
+                  </Typography>
+                </Box>
               )}
             />
-          </>
+          </Box>
         );
 
       default:
@@ -2088,7 +2206,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   return (
     <Box
       sx={{
-        maxWidth: "900px",
+        maxWidth: "90%",
         margin: "2rem auto",
         background: "linear-gradient(to bottom, #E0F2FE, #BAE6FD)", // Sky-100 to Sky-200
         borderRadius: "16px",
@@ -2107,177 +2225,216 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         },
       }}
     >
-      <form onSubmit={handleSubmit((data) => onSubmit(data, "submit"))}>
-        {formSections.length > 0 ? (
-          <>
-            {formSections.map((section, index) => (
-              <Box
-                key={section.id}
-                sx={{
-                  marginBottom: "3rem",
-                  padding: "2rem",
-                  borderRadius: "12px",
-                  background: "linear-gradient(to bottom, #FFFFFF, #F0FDFA)", // White to Teal-50
-                  boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    boxShadow: "0 4px 15px rgba(20, 184, 166, 0.3)", // Teal-500 shadow
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    marginBottom: "1.5rem",
-                  }}
-                >
-                  {sectionIconMap[section.section] || (
-                    <HelpOutlineIcon sx={{ fontSize: 36, color: "#14B8A6" }} /> // Teal-500
-                  )}
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: "600",
-                      color: "#1F2937", // Gray-900
-                      fontSize: "1.5rem",
-                    }}
-                  >
-                    {section.section}
-                  </Typography>
-                </Box>
-                <Divider
-                  sx={{ marginBottom: "1.5rem", borderColor: "#A5B4FC" }} // Indigo-200
-                />
-                {section.section === "Applicant Details" && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      marginBottom: "1.5rem",
-                    }}
+      <Grid container spacing={3} alignItems="stretch">
+        <Grid item xs={12}>
+          <form onSubmit={handleSubmit((data) => onSubmit(data, "submit"))}>
+            <Grid container spacing={3} alignItems="stretch">
+              {formSections.map((section, index) => {
+                // Decide grid size dynamically
+                const isFullRow =
+                  section.section === "Applicant Details" ||
+                  section.section === "Declearation";
+
+                return (
+                  <Grid
+                    item
+                    xs={12}
+                    md={isFullRow ? 12 : 6} // Full width for Applicant Details & Declaration
+                    key={section.id}
                   >
                     <Box
-                      component="img"
-                      src={applicantImagePreview}
-                      alt="Applicant Image"
                       sx={{
-                        width: 180,
-                        height: 180,
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                        border: "3px solid #A5B4FC", // Indigo-200
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%", // equal height with sibling when half-width
+                        padding: "2rem",
+                        borderRadius: "12px",
+                        background:
+                          "linear-gradient(to bottom, #FFFFFF, #F0FDFA)",
+                        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          boxShadow: "0 4px 15px rgba(20, 184, 166, 0.3)",
+                        },
                       }}
-                    />
-                  </Box>
-                )}
-                {section.section === "Documents" && (
-                  <Typography
-                    sx={{
-                      fontSize: "0.875rem",
-                      textAlign: "center",
-                      color: "#4B5563", // Gray-600
-                      marginBottom: "1rem",
-                    }}
-                  >
-                    Accepted File Type: .pdf, Size: 100Kb-200Kb
-                  </Typography>
-                )}
-                <Row
-                  style={{
-                    dispaly: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  {section.fields.map((field) => {
-                    const element = renderField(field, index);
-                    if (element != null) {
-                      return (
-                        <Col xs={12} lg={field.span} key={field.id}>
-                          {element}
-                        </Col>
-                      );
-                    }
-                    return null;
-                  })}
-                </Row>
-              </Box>
-            ))}
-            <Box
-              sx={{
-                position: "sticky",
-                bottom: 0,
-                background: "linear-gradient(to top, #E0F2FE, #BAE6FD)", // Sky-100 to Sky-200
-                padding: "1.5rem",
-                borderTop: "1px solid #A5B4FC", // Indigo-200
-                boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.1)",
-                display: "flex",
-                justifyContent: "center",
-                gap: 3,
-                zIndex: 1000,
-              }}
-            >
-              {mode != "edit" && (
-                <Button
+                    >
+                      {/* Section Header */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          mb: "1.5rem",
+                        }}
+                      >
+                        {sectionIconMap[section.section] || (
+                          <HelpOutlineIcon
+                            sx={{ fontSize: 36, color: "#14B8A6" }}
+                          />
+                        )}
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: "600",
+                            color: "#1F2937",
+                            fontSize: "1.5rem",
+                          }}
+                        >
+                          {section.section}
+                        </Typography>
+                      </Box>
+
+                      <Divider sx={{ mb: "1.5rem", borderColor: "#A5B4FC" }} />
+
+                      {/* Applicant Image */}
+                      {section.section === "Applicant Details" && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            mb: "1.5rem",
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={applicantImagePreview}
+                            alt="Applicant Image"
+                            sx={{
+                              width: 180,
+                              height: 180,
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                              border: "3px solid #A5B4FC",
+                            }}
+                          />
+                        </Box>
+                      )}
+
+                      {/* File Type Info */}
+                      {section.section === "Documents" && (
+                        <Typography
+                          sx={{
+                            fontSize: "0.875rem",
+                            textAlign: "center",
+                            color: "#4B5563",
+                            mb: "1rem",
+                          }}
+                        >
+                          Accepted File Type: .pdf, Size: 100Kb-200Kb
+                        </Typography>
+                      )}
+
+                      {/* Fields */}
+                      <Row
+                        style={{ display: "flex", justifyContent: "center" }}
+                      >
+                        {section.fields.map((field) => {
+                          const element = renderField(field, index);
+                          if (element != null) {
+                            return (
+                              <Col xs={12} lg={field.span} key={field.id}>
+                                {element}
+                              </Col>
+                            );
+                          }
+                          return null;
+                        })}
+                      </Row>
+
+                      {/* Add Document button ONLY for Documents section */}
+                      {section.section === "Documents" && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "flex-start",
+                            mt: 2,
+                          }}
+                        >
+                          <Button
+                            variant="outlined"
+                            onClick={() => addDynamicEnclosure(section.id)}
+                          >
+                            Add Document
+                          </Button>
+                        </Box>
+                      )}
+                    </Box>
+                  </Grid>
+                );
+              })}
+
+              {/* Sticky Footer inside the form */}
+              <Grid item xs={12}>
+                <Box
                   sx={{
-                    background: "linear-gradient(to right, #F59E0B, #D97706)", // Amber-500 to Amber-600
-                    color: "#FFFFFF",
-                    fontSize: { xs: "0.9rem", md: "1rem" },
-                    fontWeight: "600",
-                    padding: "0.75rem 2.5rem",
-                    borderRadius: "10px",
-                    textTransform: "none",
-                    "&:hover": {
-                      background: "linear-gradient(to right, #D97706, #B45309)", // Amber-600 to Amber-700
-                    },
-                    "&.Mui-disabled": {
-                      background: "#D1D5DB", // Gray-300
-                      color: "#9CA3AF", // Gray-400
-                    },
+                    position: "sticky",
+                    bottom: 0,
+                    background: "linear-gradient(to top, #E0F2FE, #BAE6FD)",
+                    padding: "1.5rem",
+                    borderTop: "1px solid #A5B4FC",
+                    boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.1)",
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 3,
+                    zIndex: 1000,
                   }}
-                  disabled={buttonLoading || loading}
-                  onClick={(data) => onSubmit(data, "save")}
                 >
-                  Save as Draft{buttonLoading ? "..." : ""}
-                </Button>
-              )}
-              <Button
-                sx={{
-                  background: "linear-gradient(to right, #10B981, #059669)", // Green-500 to Green-600
-                  color: "#FFFFFF",
-                  fontSize: { xs: "0.9rem", md: "1rem" },
-                  fontWeight: "600",
-                  padding: "0.75rem 2.5rem",
-                  borderRadius: "10px",
-                  textTransform: "none",
-                  "&:hover": {
-                    background: "linear-gradient(to right, #059669, #047857)", // Green-600 to Green-700
-                  },
-                  "&.Mui-disabled": {
-                    background: "#D1D5DB", // Gray-300
-                    color: "#9CA3AF", // Gray-400
-                  },
-                }}
-                disabled={buttonLoading || loading}
-                onClick={handleSubmit((data) => onSubmit(data, "submit"))}
-              >
-                Submit{buttonLoading ? "..." : ""}
-              </Button>
-            </Box>
-          </>
-        ) : (
-          !loading && (
-            <Typography
-              sx={{ textAlign: "center", color: "#4B5563", fontSize: "1.2rem" }}
-            >
-              No form configuration available.
-            </Typography>
-          )
-        )}
-      </form>
+                  {mode !== "edit" && (
+                    <Button
+                      sx={{
+                        background:
+                          "linear-gradient(to right, #F59E0B, #D97706)",
+                        color: "#FFFFFF",
+                        fontSize: { xs: "0.9rem", md: "1rem" },
+                        fontWeight: "600",
+                        padding: "0.75rem 2.5rem",
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(to right, #D97706, #B45309)",
+                        },
+                        "&.Mui-disabled": {
+                          background: "#D1D5DB",
+                          color: "#9CA3AF",
+                        },
+                      }}
+                      disabled={buttonLoading || loading}
+                      onClick={(data) => onSubmit(data, "save")}
+                    >
+                      Save as Draft{buttonLoading ? "..." : ""}
+                    </Button>
+                  )}
+                  <Button
+                    type="submit" // ✅ use form submit here
+                    sx={{
+                      background: "linear-gradient(to right, #10B981, #059669)",
+                      color: "#FFFFFF",
+                      fontSize: { xs: "0.9rem", md: "1rem" },
+                      fontWeight: "600",
+                      padding: "0.75rem 2.5rem",
+                      borderRadius: "10px",
+                      textTransform: "none",
+                      "&:hover": {
+                        background:
+                          "linear-gradient(to right, #059669, #047857)",
+                      },
+                      "&.Mui-disabled": {
+                        background: "#D1D5DB",
+                        color: "#9CA3AF",
+                      },
+                    }}
+                    disabled={buttonLoading || loading}
+                  >
+                    Submit{buttonLoading ? "..." : ""}
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </form>
+        </Grid>
+      </Grid>
 
       <MessageModal
         open={messageModalOpen}

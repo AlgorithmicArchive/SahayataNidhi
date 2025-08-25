@@ -47,6 +47,7 @@ import ViewCorrigendumDetails from "../screens/officer/ViewCorrigendumDetails";
 import Corrections from "../screens/designer/Corrections";
 import UpdateExpiringDocument from "../screens/user/UpdateExpiringDocument";
 import Withheld from "../screens/officer/Withheld";
+import ValidateAadhaar from "../screens/officer/ValidateAadhaar";
 
 const RoutesComponent = () => {
   return (
@@ -93,6 +94,10 @@ const RoutesComponent = () => {
           <Route
             path="viewcorrigendumdetails"
             element={<ViewCorrigendumDetails />}
+          />
+          <Route
+            path="validateaadhaar"
+            element={<ValidateAadhaar />}
           />
         </Route>
       </Route>

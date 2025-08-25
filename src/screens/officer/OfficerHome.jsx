@@ -22,6 +22,7 @@ import {
   Card,
   Tooltip as MuiTooltip,
   CardContent,
+  Divider,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import axiosInstance from "../../axiosConfig";
@@ -56,6 +57,17 @@ import {
   Reply,
   SyncAlt,
   ArrowRightAlt,
+  Summarize,
+  ForwardToInbox,
+  Verified,
+  Block,
+  Description,
+  AccessTime,
+  Inventory,
+  PauseCircle,
+  DoNotDisturbAlt,
+  Person,
+  SwapHoriz,
 } from "@mui/icons-material";
 
 // Register Chart.js components and datalabels plugin
@@ -69,16 +81,26 @@ ChartJS.register(
   ChartDataLabels,
 );
 
-// Styled components
+// Styled components with minor improvements
 const StatCard = styled(Card)(({ theme }) => ({
-  minWidth: 250,
-  border: "1px solid black",
-  borderRadius: "16px",
-  boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+  width: "380px",
+  height: "180px",
+  borderRadius: "14px", // slightly more rounded
+  boxShadow: "0 4px 15px rgba(0,0,0,0.12)", // softer shadow
+  transition:
+    "transform 0.26s ease, box-shadow 0.26s ease, border-color 0.2s ease",
+  border: "1px solid rgba(0,0,0,0.08)",
+  margin: "8px 0", // added vertical space between cards
   "&:hover": {
-    transform: "translateY(-6px)",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+    transform: "translateY(-6px) scale(1.03)", // subtle scale and shadow
+    boxShadow: "0 14px 32px rgba(0,0,0,0.17)",
+    borderColor: "rgba(0,0,0,0.15)",
+  },
+  [theme.breakpoints.down("sm")]: {
+    width: "100%",
+    maxWidth: "340px",
+    height: "220px", // improved mobile card ratio
+    marginBottom: "24px", // more space below on mobile
   },
 }));
 
@@ -86,9 +108,10 @@ const StyledButton = styled(Button)`
   background: linear-gradient(45deg, #1976d2, #2196f3);
   padding: 12px 24px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 8px; /* fixed radius */
   text-transform: none;
   color: #ffffff;
+  margin-left: 4px;
   &:hover {
     background: linear-gradient(45deg, #1565c0, #1976d2);
     transform: scale(1.05);
@@ -101,23 +124,24 @@ const StyledButton = styled(Button)`
 
 const StyledDialog = styled(Dialog)`
   & .MuiDialog-paper {
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.13);
     background: #ffffff;
-    padding: 16px;
-    max-width: 500px;
+    padding: 28px; /* more padding */
+    max-width: 94vw;
   }
 `;
 
 const StyledCard = styled(Card)(({ theme }) => ({
   background: "linear-gradient(135deg, #ffffff, #f8f9fa)",
-  border: "1px solid black",
+  border: "1px solid #e0e0e0", // changed black to gentle border
   borderRadius: "16px",
-  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
-  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+  boxShadow: "0 6px 24px rgba(0,0,0,0.11)",
+  transition: "transform 0.30s ease, box-shadow 0.30s ease",
+  marginBottom: "24px",
   "&:hover": {
-    transform: "translateY(-5px)",
-    boxShadow: "0 6px 25px rgba(0, 0, 0, 0.15)",
+    transform: "translateY(-3px) scale(1.01)",
+    boxShadow: "0 12px 36px rgba(0,0,0,0.13)",
   },
 }));
 
@@ -130,6 +154,7 @@ export default function OfficerHome() {
   const [legacyCountList, setLegacyCountList] = useState([]); // New state for legacy counts
   const [temporaryCountList, setTemporaryCountList] = useState([]);
   const [withheldCountList, setWithheldCountList] = useState([]);
+  const [citizenPendingList, setCitizenPendingList] = useState([]);
   const [counts, setCounts] = useState({
     total: 0,
     pending: 0,
@@ -187,82 +212,98 @@ export default function OfficerHome() {
     reset,
   } = useForm();
 
-  const iconMap = useMemo(
-    () => ({
-      "Total Applications": (
-        <EditNote sx={{ fontSize: 28, color: "inherit" }} />
-      ),
-      Pending: <HourglassEmpty sx={{ fontSize: 28, color: "inherit" }} />,
-      Forwarded: <Forward sx={{ fontSize: 28, color: "inherit" }} />,
-      Returned: <Reply sx={{ fontSize: 28, color: "inherit" }} />,
-      "Pending With Citizen": <Group sx={{ fontSize: 28, color: "inherit" }} />,
-      "Pendig With Citizen": <Group sx={{ fontSize: 28, color: "inherit" }} />,
-      Rejected: <Cancel sx={{ fontSize: 28, color: "inherit" }} />,
-      Sanctioned: <CheckCircle sx={{ fontSize: 28, color: "inherit" }} />,
-      "Shifted To Another Location": (
-        <SyncAlt sx={{ fontSize: 28, color: "inherit" }} />
-      ),
-      "Total Corrigendum": <EditNote sx={{ fontSize: 28, color: "inherit" }} />,
-      "Total Correction": <EditNote sx={{ fontSize: 28, color: "inherit" }} />,
-      Issued: <CheckCircle sx={{ fontSize: 28, color: "inherit" }} />,
-      "Total Withheld Applications": (
-        <EditNote sx={{ fontSize: 28, color: "inherit" }} />
-      ),
-      "Temporary Withheld": (
-        <HourglassEmpty sx={{ fontSize: 28, color: "inherit" }} />
-      ),
-      "Permanent Withheld": <Cancel sx={{ fontSize: 28, color: "inherit" }} />,
-    }),
-    [],
-  );
-
   const statusColors = useMemo(
     () => ({
-      "Total Applications": "#C2D0FF",
-      Pending: "#EBFFC2",
-      Forwarded: "#C2EDFE",
-      Returned: "#C2EDFE",
-      "Pending With Citizen": "#DAC2FE",
-      "Pendig With Citizen": "#DAC2FE",
-      Rejected: "#FEC2C2",
-      Sanctioned: "#C9F2CA",
-      "Shifted To Another Location": "#00897B",
-      "Total Corrigendum": "#C2D0FF",
-      "Total Correction": "#C2D0FF",
-      Issued: "#C9F2CA",
-      "Pension's Stopped": "#DAC2FE",
-      "PCP Applications": "#C2D0FF",
-      "PCP-UDID Expires 3 Months": "#C9F2CA",
-      "Total Withheld Applications": "#C2D0FF",
-      "Temporary Withheld": "#EBFFC2",
-      "Permanent Withheld": "#FEC2C2",
+      "Total Applications": "#009dd6",
+      Pending: "#ffd42f",
+      Forwarded: "#009dd6",
+      Returned: "#fb6330",
+      "Pending With Citizen": "#7849b8",
+      Rejected: "#ec111a",
+      Sanctioned: "#138468",
+      "Shifted To Another Location": "#f2609e",
+      "Total Corrigendum": "#009dd6",
+      "Total Correction": "#009dd6",
+      Issued: "#138468",
+      "Pension's Stopped": "#7849b8",
+      "PCP Applications": "#009dd6",
+      "PCP-UDID Expires 3 Months": "#138468",
+      "Total Withheld Applications": "#009dd6",
+      "Temporary Withheld": "#ffd42f",
+      "Permanent Withheld": "#ec111a",
     }),
     [],
   );
 
   const textColors = useMemo(
     () => ({
-      "Total Applications": "#000000",
+      "Total Applications": "#FFFFFF",
       Pending: "#000000",
-      Forwarded: "#000000",
-      Returned: "#000000",
-      "Pending With Citizen": "#000000",
-      "Pendig With Citizen": "#000000",
-      Rejected: "#000000",
-      Sanctioned: "#000000",
-      "Shifted To Another Location": "#000000",
-      "Total Corrigendum": "#000000",
-      "Total Correction": "#000000",
-      Issued: "#000000",
-      "Pension's Stopped": "#000000",
-      "PCP Applications": "#000000",
-      "PCP-UDID Expires 3 Months": "#000000",
-      "Total Withheld Applications": "#000000",
+      Forwarded: "#FFFFFF",
+      Returned: "#FFFFFF",
+      "Pending With Citizen": "#FFFFFF",
+      Rejected: "#FFFFFF",
+      Sanctioned: "#FFFFFF",
+      "Shifted To Another Location": "#FFFFFF",
+      "Total Corrigendum": "#FFFFFF",
+      "Total Correction": "#FFFFFF",
+      Issued: "#FFFFFF",
+      "Pension's Stopped": "#FFFFFF",
+      "PCP Applications": "#FFFFFF",
+      "PCP-UDID Expires 3 Months": "#FFFFFF",
+      "Total Withheld Applications": "#FFFFFF",
       "Temporary Withheld": "#000000",
-      "Permanent Withheld": "#000000",
+      "Permanent Withheld": "#FFFFFF",
     }),
     [],
   );
+
+  const iconMap = useMemo(() => {
+    const makeIcon = (Icon, key) => (
+      <Box
+        sx={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          backgroundColor: "#FFFFFF",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Icon sx={{ fontSize: 28, color: statusColors[key] }} />
+      </Box>
+    );
+
+    return {
+      "Total Applications": makeIcon(Summarize, "Total Applications"),
+      Pending: makeIcon(HourglassEmpty, "Pending"),
+      Forwarded: makeIcon(ForwardToInbox, "Forwarded"),
+      Returned: makeIcon(Reply, "Returned"),
+      "Pending With Citizen": makeIcon(Person, "Pending With Citizen"),
+      Rejected: makeIcon(Cancel, "Rejected"),
+      Sanctioned: makeIcon(Verified, "Sanctioned"),
+      "Shifted To Another Location": makeIcon(
+        SwapHoriz,
+        "Shifted To Another Location",
+      ),
+      "Total Corrigendum": makeIcon(EditNote, "Total Corrigendum"),
+      "Total Correction": makeIcon(EditNote, "Total Correction"),
+      Issued: makeIcon(CheckCircle, "Issued"),
+      "Pension's Stopped": makeIcon(Block, "Pension's Stopped"),
+      "PCP Applications": makeIcon(Description, "PCP Applications"),
+      "PCP-UDID Expires 3 Months": makeIcon(
+        AccessTime,
+        "PCP-UDID Expires 3 Months",
+      ),
+      "Total Withheld Applications": makeIcon(
+        Inventory,
+        "Total Withheld Applications",
+      ),
+      "Temporary Withheld": makeIcon(PauseCircle, "Temporary Withheld"),
+      "Permanent Withheld": makeIcon(DoNotDisturbAlt, "Permanent Withheld"),
+    };
+  }, [statusColors, textColors]);
 
   const debouncedHandleRecords = useCallback(
     debounce(async (newServiceId) => {
@@ -285,6 +326,7 @@ export default function OfficerHome() {
         setCorrectionList(response.data.correctionList || []);
         setTemporaryCountList(response.data.temporaryCountList || []);
         setWithheldCountList(response.data.withheldCountList || []);
+        setCitizenPendingList(response.data.citizenPendingList || []);
         setCanSanction(response.data.canSanction);
         setCanHavePool(response.data.canHavePool);
         setOfficerAuthorities(response.data.officerAuthorities);
@@ -312,10 +354,10 @@ export default function OfficerHome() {
               ?.count || 0,
           citizenPending:
             response.data.countList.find(
-              (item) =>
-                item.label === "Pending With Citizen" ||
-                item.label === "Pendig With Citizen",
-            )?.count || 0,
+              (item) => item.label === "Pending With Citizen",
+            )?.count ||
+            response.data.citizenPendingList[0]?.count ||
+            0,
           rejected:
             response.data.countList.find((item) => item.label === "Rejected")
               ?.count || 0,
@@ -419,11 +461,9 @@ export default function OfficerHome() {
         isCorrigendum || isCorrection || isLegacy ? "sanctioned" : "sanctioned",
       Issued: isCorrigendum ? "sanctioned" : "verified",
       "Pending With Citizen": "returntoedit",
-      "Pendig With Citizen": "returntoedit",
       "Shifted To Another Location": "shifted",
       "Pension's Stopped": "pensionstopped",
-      "PCP - UDID Card Expires 3 Months In Next 3 Months":
-        "expiringeligibility",
+      "PCP-UDID Expires 3 Months": "expiringeligibility",
       "PCP Applications": "totalpcpapplication",
     };
 
@@ -442,7 +482,7 @@ export default function OfficerHome() {
     const url =
       type === "Corrigendum" || type === "Correction"
         ? "/Officer/GetCorrigendumApplications"
-        : statusName === "PCP - UDID Card Expires 3 Months In Next 3 Months" ||
+        : statusName === "PCP-UDID Expires 3 Months" ||
           statusName === "PCP Applications"
         ? "/Officer/GetTemporaryDisability"
         : statusName.includes("Withheld")
@@ -567,8 +607,9 @@ export default function OfficerHome() {
       sendExpirationEmail: async (row) => {
         setLoading(true);
         const userdata = row.original;
+        console.log(userdata);
         const referenceNumber = userdata.referenceNumber;
-        const expirationDate = userdata.expirationDate;
+        const expirationDate = userdata.expiryDate.split(" ")[0];
         const formdata = new FormData();
         formdata.append("referenceNumber", referenceNumber);
         formdata.append("expirationDate", expirationDate);
@@ -1104,40 +1145,40 @@ export default function OfficerHome() {
   const barData = useMemo(() => {
     const labels = ["Total", "Pending"];
     const data = [counts.total, counts.pending];
-    const backgroundColor = ["#C2D0FF", "#EBFFC2"];
-    const borderColor = ["#C2D0FF", "#EBFFC2"];
+    const backgroundColor = ["#009dd6", "#ffd42f"]; // Total=Blue, Pending=Yellow
+    const borderColor = ["#009dd6", "#ffd42f"];
 
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
       data.push(counts.forwarded);
-      backgroundColor.push("#C2EDFE");
-      borderColor.push("#C2EDFE");
+      backgroundColor.push("#009dd6"); // Blue
+      borderColor.push("#009dd6");
     }
 
     if (officerAuthorities.canReturnToCitizen) {
       labels.push("Citizen Pending");
       data.push(counts.citizenPending);
-      backgroundColor.push("#DAC2FE");
-      borderColor.push("#DAC2FE");
+      backgroundColor.push("#7849b8"); // Purple
+      borderColor.push("#7849b8");
     }
 
     if (officerAuthorities.canReturnToPlayer) {
       labels.push("Returned");
       data.push(counts.returnedCount);
-      backgroundColor.push("#C2EDFE");
-      borderColor.push("#C2EDFE");
+      backgroundColor.push("#fb6330"); // Orange
+      borderColor.push("#fb6330");
     }
 
     labels.push("Rejected");
     data.push(counts.rejected);
-    backgroundColor.push("#FEC2C2");
-    borderColor.push("#FEC2C2");
+    backgroundColor.push("#ec111a"); // Red
+    borderColor.push("#ec111a");
 
     if (officerAuthorities.canSanction) {
       labels.push("Sanctioned");
       data.push(counts.sanctioned);
-      backgroundColor.push("#C9F2CA");
-      borderColor.push("#C9F2CA");
+      backgroundColor.push("#138468"); // Teal Green
+      borderColor.push("#138468");
     }
 
     return {
@@ -1157,34 +1198,34 @@ export default function OfficerHome() {
   const pieData = useMemo(() => {
     const labels = ["Pending"];
     const data = [counts.pending];
-    const backgroundColor = ["#EBFFC2"];
+    const backgroundColor = ["#ffd42f"]; // Yellow
 
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
       data.push(counts.forwarded);
-      backgroundColor.push("#C2EDFE");
+      backgroundColor.push("#009dd6"); // Blue
     }
 
     if (officerAuthorities.canReturnToPlayer) {
       labels.push("Returned");
       data.push(counts.returnedCount);
-      backgroundColor.push("#C2EDFE");
+      backgroundColor.push("#fb6330"); // Orange
     }
 
     if (officerAuthorities.canReturnToCitizen) {
       labels.push("Citizen Pending");
       data.push(counts.citizenPending);
-      backgroundColor.push("rgba(218, 194, 254, 1)");
+      backgroundColor.push("#7849b8"); // Purple
     }
 
     labels.push("Rejected");
     data.push(counts.rejected);
-    backgroundColor.push("#FEC2C2");
+    backgroundColor.push("#ec111a"); // Red
 
     if (officerAuthorities.canSanction) {
       labels.push("Sanctioned");
       data.push(counts.sanctioned);
-      backgroundColor.push("#C9F2CA");
+      backgroundColor.push("#138468"); // Teal Green
     }
 
     return {
@@ -1380,7 +1421,6 @@ export default function OfficerHome() {
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "space-between",
-                      height: "160px",
                     }}
                     onClick={() =>
                       handleCardClick(
@@ -1402,7 +1442,7 @@ export default function OfficerHome() {
                         sx={{
                           fontWeight: "bold",
                           color: textColors[item.label] || "#FFFFFF",
-                          fontSize: "0.85rem",
+                          fontSize: "1rem",
                         }}
                       >
                         {item.label}
@@ -1412,22 +1452,12 @@ export default function OfficerHome() {
                         iconMap[item.label] || (
                           <AssignmentTurnedIn sx={{ fontSize: 16 }} />
                         ),
-                        {
-                          style: {
-                            color: "#000000",
-                          },
-                        },
                       )}
                     </Box>
 
                     <MuiTooltip
                       title={
-                        item.tooltipText ||
-                        `View ${
-                          item.label === "Pendig With Citizen"
-                            ? "Pending With Citizen"
-                            : item.label
-                        } applications`
+                        item.tooltipText || `View ${item.label} applications`
                       }
                       enterTouchDelay={0}
                       leaveTouchDelay={2000}
@@ -1439,7 +1469,7 @@ export default function OfficerHome() {
                           fontWeight: "bold",
                           color: textColors[item.label] || "#FFFFFF",
                           textAlign: "left",
-                          fontSize: "2.5rem",
+                          fontSize: "3rem",
                         }}
                       >
                         {item.count}
@@ -1461,14 +1491,14 @@ export default function OfficerHome() {
                           sx={{
                             fontWeight: "bold",
                             fontSize: "0.8rem",
-                            color: "#000000",
+                            color: "#ffffffff",
                             cursor: "pointer",
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
                             console.log("Sanctioned Applications");
                             handleCardClick(
-                              "Sanctioned",
+                              "Forwarded",
                               "application",
                               item.tableTitle,
                             );
@@ -1485,9 +1515,9 @@ export default function OfficerHome() {
                           <Typography
                             variant="body2"
                             sx={{
-                              fontWeight: "bold",
+                              fontWeight: "bolder",
                               fontSize: "0.8rem",
-                              color: "#000000",
+                              color: "#ffffffff",
                             }}
                           >
                             New: {item.count}
@@ -1495,9 +1525,9 @@ export default function OfficerHome() {
                           <Typography
                             variant="body2"
                             sx={{
-                              fontWeight: "bold",
+                              fontWeight: "bolder",
                               fontSize: "0.8rem",
-                              color: "#000000",
+                              color: "#ffffffff",
                             }}
                           >
                             Legacy: {legacyCountList[0].count}
@@ -1524,7 +1554,163 @@ export default function OfficerHome() {
                 </Col>
               ))}
             </Row>
+            <Divider
+              sx={{
+                borderColor: "#000", // sets the divider color
+                borderBottomWidth: 2, // thickness of the line
+              }}
+            />
 
+            {!officerAuthorities.CanReturnToCitizen &&
+              citizenPendingList.length > 0 && (
+                <>
+                  <MuiTooltip title=" Pending With Citizens" arrow>
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 3,
+                        fontWeight: 600,
+                        color: "#2d3748",
+                        textAlign: "center",
+                        fontFamily: "'Inter', sans-serif",
+                        mt: 2,
+                      }}
+                    >
+                      Pending With Citizens
+                    </Typography>
+                  </MuiTooltip>
+                  <Row
+                    className="mb-1 justify-content-center"
+                    style={{ width: "100%" }}
+                  >
+                    {citizenPendingList.map((item, index) => (
+                      <Col
+                        key={index}
+                        xs={12}
+                        sm={6}
+                        md={4}
+                        lg={2}
+                        className="mb-4"
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <StatCard
+                          sx={{
+                            backgroundColor:
+                              statusColors[item.label] || "#1976d2",
+                            padding: "16px",
+                            borderRadius: "12px",
+                            cursor: "pointer",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
+                            height: "160px",
+                          }}
+                          onClick={() =>
+                            handleCardClick(
+                              item.label,
+                              "application",
+                              item.tableTitle,
+                            )
+                          }
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle2"
+                              sx={{
+                                fontWeight: "bold",
+                                color: textColors[item.label] || "#FFFFFF",
+                                fontSize: "0.85rem",
+                              }}
+                            >
+                              {item.label}
+                            </Typography>
+
+                            {React.cloneElement(
+                              iconMap[item.label] || (
+                                <AssignmentTurnedIn sx={{ fontSize: 16 }} />
+                              ),
+                            )}
+                          </Box>
+
+                          <MuiTooltip
+                            title={
+                              item.tooltipText ||
+                              `View ${item.label} applications`
+                            }
+                            enterTouchDelay={0}
+                            leaveTouchDelay={2000}
+                            arrow
+                          >
+                            <Typography
+                              variant="h3"
+                              sx={{
+                                fontWeight: "bold",
+                                color: textColors[item.label] || "#FFFFFF",
+                                textAlign: "left",
+                                fontSize: "2.5rem",
+                              }}
+                            >
+                              {item.count}
+                            </Typography>
+                          </MuiTooltip>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              mt: 1,
+                              width: "100%",
+                            }}
+                          >
+                            {item.forwardedSanctionedCount != null ? (
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontWeight: "bold",
+                                  fontSize: "0.8rem",
+                                  color: "#ffffffff",
+                                }}
+                              >
+                                Sanctioned: {item.forwardedSanctionedCount}
+                              </Typography>
+                            ) : (
+                              <span />
+                            )}
+
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: textColors[item.label] || "#FFFFFF",
+                                fontSize: "0.85rem",
+                                display: "inline-flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              View All{" "}
+                              <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
+                            </Typography>
+                          </Box>
+                        </StatCard>
+                      </Col>
+                    ))}
+                  </Row>
+                  <Divider
+                    sx={{
+                      borderColor: "#000", // sets the divider color
+                      borderBottomWidth: 2, // thickness of the line
+                    }}
+                  />
+                </>
+              )}
             <MuiTooltip title="Withheld Applications After Sanction" arrow>
               <Typography
                 variant="h5"
@@ -1534,9 +1720,10 @@ export default function OfficerHome() {
                   color: "#2d3748",
                   textAlign: "center",
                   fontFamily: "'Inter', sans-serif",
+                  mt: 2,
                 }}
               >
-                Withheld Applications
+                Withheld Application Payments (After Sanction)
               </Typography>
             </MuiTooltip>
             <Row
@@ -1593,22 +1780,12 @@ export default function OfficerHome() {
                         iconMap[item.label] || (
                           <AssignmentTurnedIn sx={{ fontSize: 16 }} />
                         ),
-                        {
-                          style: {
-                            color: "#000000",
-                          },
-                        },
                       )}
                     </Box>
 
                     <MuiTooltip
                       title={
-                        item.tooltipText ||
-                        `View ${
-                          item.label === "Pendig With Citizen"
-                            ? "Pending With Citizen"
-                            : item.label
-                        } applications`
+                        item.tooltipText || `View ${item.label} applications`
                       }
                       enterTouchDelay={0}
                       leaveTouchDelay={2000}
@@ -1667,7 +1844,12 @@ export default function OfficerHome() {
                 </Col>
               ))}
             </Row>
-
+            <Divider
+              sx={{
+                borderColor: "#000", // sets the divider color
+                borderBottomWidth: 2, // thickness of the line
+              }}
+            />
             <Typography
               variant="h5"
               sx={{
@@ -1676,6 +1858,7 @@ export default function OfficerHome() {
                 color: "#2d3748",
                 textAlign: "center",
                 fontFamily: "'Inter', sans-serif",
+                mt: 2,
               }}
             >
               Physically Challenged Applications
@@ -1738,22 +1921,12 @@ export default function OfficerHome() {
                         iconMap[item.label] || (
                           <AssignmentTurnedIn sx={{ fontSize: 16 }} />
                         ),
-                        {
-                          style: {
-                            color: "#000000",
-                          },
-                        },
                       )}
                     </Box>
 
                     <MuiTooltip
                       title={
-                        item.tooltipText ||
-                        `View ${
-                          item.label === "Pendig With Citizen"
-                            ? "Pending With Citizen"
-                            : item.label
-                        } applications`
+                        item.tooltipText || `View ${item.label} applications`
                       }
                       enterTouchDelay={0}
                       leaveTouchDelay={2000}
@@ -1813,7 +1986,12 @@ export default function OfficerHome() {
                 </Col>
               ))}
             </Row>
-
+            <Divider
+              sx={{
+                borderColor: "#000", // sets the divider color
+                borderBottomWidth: 2, // thickness of the line
+              }}
+            />
             {corrigendumList?.length > 0 && (
               <>
                 <MuiTooltip
@@ -1828,6 +2006,7 @@ export default function OfficerHome() {
                       color: "#2d3748",
                       textAlign: "center",
                       fontFamily: "'Inter', sans-serif",
+                      mt: 2,
                     }}
                   >
                     Corrigendums
@@ -1882,31 +2061,20 @@ export default function OfficerHome() {
                               fontSize: "0.85rem",
                             }}
                           >
-                            {item.label === "Pendig With Citizen"
-                              ? "Pending With Citizen"
-                              : item.label}
+                            {item.label}
                           </Typography>
 
                           {React.cloneElement(
                             iconMap[item.label] || (
                               <AssignmentTurnedIn sx={{ fontSize: 16 }} />
                             ),
-                            {
-                              style: {
-                                color: "#000000",
-                              },
-                            },
                           )}
                         </Box>
 
                         <MuiTooltip
                           title={
                             item.tooltipText ||
-                            `View ${
-                              item.label === "Pendig With Citizen"
-                                ? "Pending With Citizen"
-                                : item.label
-                            } corrigendums`
+                            `View ${item.label} corrigendums`
                           }
                           enterTouchDelay={0}
                           leaveTouchDelay={2000}
@@ -1940,7 +2108,7 @@ export default function OfficerHome() {
                               sx={{
                                 fontWeight: "bold",
                                 fontSize: "0.8rem",
-                                color: "#000000",
+                                color: "#ffffffff",
                               }}
                             >
                               Issued: {item.forwardedSanctionedCount}
@@ -1967,7 +2135,12 @@ export default function OfficerHome() {
                 </Row>
               </>
             )}
-
+            <Divider
+              sx={{
+                borderColor: "#000", // sets the divider color
+                borderBottomWidth: 2, // thickness of the line
+              }}
+            />
             {correctionList?.length > 0 && (
               <>
                 <MuiTooltip
@@ -1982,6 +2155,7 @@ export default function OfficerHome() {
                       color: "#2d3748",
                       textAlign: "center",
                       fontFamily: "'Inter', sans-serif",
+                      mt: 2,
                     }}
                   >
                     Corrections
@@ -2036,31 +2210,19 @@ export default function OfficerHome() {
                               fontSize: "0.85rem",
                             }}
                           >
-                            {item.label === "Pendig With Citizen"
-                              ? "Pending With Citizen"
-                              : item.label}
+                            {item.label}
                           </Typography>
 
                           {React.cloneElement(
                             iconMap[item.label] || (
                               <AssignmentTurnedIn sx={{ fontSize: 16 }} />
                             ),
-                            {
-                              style: {
-                                color: "#000000",
-                              },
-                            },
                           )}
                         </Box>
 
                         <MuiTooltip
                           title={
-                            item.tooltipText ||
-                            `View ${
-                              item.label === "Pendig With Citizen"
-                                ? "Pending With Citizen"
-                                : item.label
-                            } corrections`
+                            item.tooltipText || `View ${item.label} corrections`
                           }
                           enterTouchDelay={0}
                           leaveTouchDelay={2000}
@@ -2121,7 +2283,12 @@ export default function OfficerHome() {
                 </Row>
               </>
             )}
-
+            <Divider
+              sx={{
+                borderColor: "#000", // sets the divider color
+                borderBottomWidth: 2, // thickness of the line
+              }}
+            />
             {legacyCountList?.length > 0 && (
               <>
                 <Typography
@@ -2132,6 +2299,7 @@ export default function OfficerHome() {
                     color: "#2d3748",
                     textAlign: "center",
                     fontFamily: "'Inter', sans-serif",
+                    mt: 2,
                   }}
                 >
                   Legacy Applications
@@ -2188,11 +2356,6 @@ export default function OfficerHome() {
                             iconMap[item.label] || (
                               <AssignmentTurnedIn sx={{ fontSize: 16 }} />
                             ),
-                            {
-                              style: {
-                                color: "#000000",
-                              },
-                            },
                           )}
                         </Box>
 

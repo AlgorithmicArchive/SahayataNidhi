@@ -235,6 +235,9 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.Property(e => e.DistrictUidForBank)
                 .HasMaxLength(6)
                 .IsUnicode(false);
+            entity.Property(e => e.ReferenceNumberAlphaNumeric)
+                .HasMaxLength(50)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<Corrigendum>(entity =>

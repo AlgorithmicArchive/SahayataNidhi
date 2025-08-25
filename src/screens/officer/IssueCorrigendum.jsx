@@ -174,6 +174,8 @@ export default function IssueCorrigendum() {
   const [corrigendumFields, setCorrigendumFields] = useState([]);
   const [selectedField, setSelectedField] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [wordCount, setWordCount] = useState(0);
+  const MAX_WORDS = 50;
   const [files, setFiles] = useState([]);
   const [serverFiles, setServerFiles] = useState([]);
   const [errors, setErrors] = useState({});
@@ -210,6 +212,7 @@ export default function IssueCorrigendum() {
     setCorrigendumFields([]);
     setSelectedField("");
     setRemarks("");
+    setWordCount(0);
     setFiles([]);
     setServerFiles([]);
     setErrors({});
@@ -359,7 +362,17 @@ export default function IssueCorrigendum() {
   };
 
   const validateRemarks = (value) => {
-    return value.trim() ? null : "Remarks are required";
+    if (!value.trim()) {
+      return "Remarks are required";
+    }
+    const words = value
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
+    if (words.length > MAX_WORDS) {
+      return `Remarks exceed the maximum of ${MAX_WORDS} words`;
+    }
+    return null;
   };
 
   const validateFiles = (files, serverFiles) => {
@@ -486,6 +499,14 @@ export default function IssueCorrigendum() {
           setData(result.data || []);
           setServerFiles(result.files || []);
           setType(result.corrigendumType);
+          const words = result.remarks
+            ? result.remarks
+                .trim()
+                .split(/\s+/)
+                .filter((word) => word.length > 0)
+            : [];
+          setWordCount(words.length);
+          setRemarks(result.remarks || "");
         }
 
         // Only update if values differ to prevent triggering reset
@@ -793,6 +814,18 @@ export default function IssueCorrigendum() {
     fileInputRef.current?.click();
   };
 
+  const handleRemarksChange = (e) => {
+    const value = e.target.value;
+    const words = value
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
+    if (words.length <= MAX_WORDS) {
+      setRemarks(value);
+      setWordCount(words.length);
+    }
+  };
+
   const handleRemarksBlur = () => {
     setTouched((prev) => ({ ...prev, remarks: true }));
     const error = validateRemarks(remarks);
@@ -962,6 +995,7 @@ export default function IssueCorrigendum() {
         setCorrigendumFields([]);
         setSelectedField("");
         setRemarks("");
+        setWordCount(0);
         setFiles([]);
         setServerFiles([]);
         setCanIssue(false);
@@ -1413,37 +1447,50 @@ export default function IssueCorrigendum() {
               </Box>
             ))}
 
-            <TextField
-              name="remarks"
-              label="Remarks"
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              onBlur={handleRemarksBlur}
-              multiline
-              rows={4}
-              sx={{
-                width: "100%",
-                mt: 2,
-                "& .MuiInputBase-root": {
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                },
-              }}
-              error={!!errors.remarks}
-              helperText={errors.remarks || ""}
-            />
+            <Box sx={{ position: "relative", mt: 2 }}>
+              <TextField
+                name="remarks"
+                label="Remarks"
+                value={remarks}
+                onChange={handleRemarksChange}
+                onBlur={handleRemarksBlur}
+                multiline
+                rows={4}
+                sx={{
+                  width: "100%",
+                  "& .MuiInputBase-root": {
+                    borderRadius: "8px",
+                    backgroundColor: "#fff",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                  },
+                }}
+                error={!!errors.remarks}
+                helperText={errors.remarks || ""}
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  position: "absolute",
+                  bottom: errors.remarks ? 24 : 8,
+                  right: 8,
+                  color:
+                    wordCount > MAX_WORDS ? "error.main" : "text.secondary",
+                }}
+              >
+                {wordCount}/{MAX_WORDS} words
+              </Typography>
+            </Box>
 
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1, color: "#333" }}>
-                Verification Documents
+                Supporting Documents
               </Typography>
               <StyledButton
                 variant="outlined"
                 onClick={handleAddFileClick}
                 sx={{ mb: 2 }}
               >
-                Add Verification Document
+                Upload Bank Passbook (First Page)
               </StyledButton>
               <input
                 type="file"

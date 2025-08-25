@@ -294,13 +294,6 @@ namespace SahayataNidhi.Controllers
             var totalRecords = applications.Count;
 
             var sortedApplications = applications
-                .OrderBy(a =>
-                {
-                    var parts = a.ReferenceNumber.Split('/');
-                    var numberPart = parts.Last();
-                    return int.TryParse(numberPart, out int num) ? num : 0;
-                })
-                .ThenBy(a => a.ReferenceNumber)
                 .ToList();
 
             var pagedApplications = (scope == "InView")

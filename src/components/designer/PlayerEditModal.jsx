@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Modal,
-  TextField,
   FormControlLabel,
   Checkbox,
   Typography,
@@ -34,6 +33,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
     canHavePool: player.canHavePool || false,
     canManageBankFiles: player.canManageBankFiles || false,
     canWithhold: player.canWithhold || false,
+    canValidateAadhaar: player.canValidateAadhaar || false, // Added new field
     actionForm: player.actionForm || [],
   });
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
@@ -119,6 +119,19 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
         return;
       }
     }
+    // New exclusive authority check
+    if (field === "canValidateAadhaar" && value) {
+      const otherValidateAadhaar = players.find(
+        (p) => p.playerId !== editedPlayer.playerId && p.canValidateAadhaar
+      );
+      if (otherValidateAadhaar) {
+        toast.error(
+          `Another player (${otherValidateAadhaar.designation}) already has Can Validate Aadhaar authority.`
+        );
+        return;
+      }
+    }
+
     setEditedPlayer((prev) => ({
       ...prev,
       [field]: value,
@@ -236,9 +249,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canReturnToPlayer}
-                onChange={(e) =>
-                  handleChange("canReturnToPlayer", e.target.checked)
-                }
+                onChange={(e) => handleChange("canReturnToPlayer", e.target.checked)}
               />
             }
             label="Can Return to Player"
@@ -247,9 +258,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canReturnToCitizen}
-                onChange={(e) =>
-                  handleChange("canReturnToCitizen", e.target.checked)
-                }
+                onChange={(e) => handleChange("canReturnToCitizen", e.target.checked)}
               />
             }
             label="Can Return to Citizen"
@@ -258,9 +267,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canForwardToPlayer}
-                onChange={(e) =>
-                  handleChange("canForwardToPlayer", e.target.checked)
-                }
+                onChange={(e) => handleChange("canForwardToPlayer", e.target.checked)}
               />
             }
             label="Can Forward to Player"
@@ -296,9 +303,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canCorrigendum}
-                onChange={(e) =>
-                  handleChange("canCorrigendum", e.target.checked)
-                }
+                onChange={(e) => handleChange("canCorrigendum", e.target.checked)}
               />
             }
             label="Can Corrigendum"
@@ -307,9 +312,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canManageBankFiles}
-                onChange={(e) =>
-                  handleChange("canManageBankFiles", e.target.checked)
-                }
+                onChange={(e) => handleChange("canManageBankFiles", e.target.checked)}
               />
             }
             label="Can Manage Bank Files"
@@ -322,6 +325,16 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
               />
             }
             label="Can Withhold"
+          />
+          {/* New authority checkbox */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={editedPlayer.canValidateAadhaar}
+                onChange={(e) => handleChange("canValidateAadhaar", e.target.checked)}
+              />
+            }
+            label="Can Validate Aadhaar"
           />
         </Box>
         <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
@@ -360,9 +373,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
         >
           Add Action Form Field
         </Button>
-        <Box
-          sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}
-        >
+        <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
           <Button
             variant="contained"
             onClick={handleSave}

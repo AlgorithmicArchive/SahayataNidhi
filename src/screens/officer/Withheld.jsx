@@ -15,10 +15,20 @@ import {
   InputLabel,
   Select,
   Paper,
+  List,
+  ListItem,
+  ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import ServiceSelectionForm from "../../components/ServiceSelectionForm";
 import { fetchServiceList } from "../../assets/fetch";
 import axiosInstance from "../../axiosConfig";
+import BasicModal from "../../components/BasicModal";
 
 export default function Withheld() {
   const [services, setServices] = useState([]);
@@ -31,75 +41,132 @@ export default function Withheld() {
     withheldType: "",
     withheldReason: "",
     isWithheld: true,
+    files: [],
   });
+  const [initialFormData, setInitialFormData] = useState(null); // Track initial form data
   const [applicationDetails, setApplicationDetails] = useState(null);
   const [recordExists, setRecordExists] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const [canCreate, setCanCreate] = useState(false);
   const [canPermanentToTemporary, setCanPermanentToTemporary] = useState(true);
+  const [tableData, setTableData] = useState([]);
+  const [tableColumns, setTableColumns] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState("");
 
   useEffect(() => {
     fetchServiceList(setServices);
   }, []);
 
+  const handleServiceId = (serviceId) => {
+    console.log("Selected serviceId:", serviceId);
+    setServiceId(serviceId);
+  };
+
   const handleCheck = async () => {
-    if (!referenceNumber || !serviceId) {
-      setError("Please enter Reference Number and select a Service.");
+    if (!referenceNumber.trim()) {
+      setError("Please enter a valid Reference Number.");
       return;
     }
+    if (!serviceId || isNaN(parseInt(serviceId))) {
+      setError("Please select a valid Service.");
+      return;
+    }
+
     setError("");
     setSuccessMessage("");
     setLoading(true);
     setHasChecked(false);
     setCanCreate(false);
     setApplicationDetails(null);
+    setTableData([]);
+    setTableColumns([]);
+    setModalOpen(false);
+    setSelectedPdfUrl("");
+    setInitialFormData(null);
 
     try {
       const res = await axiosInstance.get("/Officer/GetWithheldApplication", {
-        params: { referenceNumber, serviceId },
+        params: { referenceNumber, serviceId: parseInt(serviceId) },
       });
 
-      if (res.data?.status && res.data.application) {
-        setRecordExists(true);
-        setFormData({
-          withheldType: res.data.application.withheldType,
-          withheldReason: res.data.application.withheldReason,
-          isWithheld: res.data.application.isWithheld,
-        });
-        setApplicationDetails(res.data.applicationDetails);
-        setCanPermanentToTemporary(res.data.canPermanentToTemporary);
-        setCanCreate(true);
-        setHasChecked(true);
-      } else if (
-        !res.data.status &&
-        res.data.response === "Application not found."
-      ) {
-        setError(res.data.response);
-        setRecordExists(false);
-        setCanCreate(false);
-        setHasChecked(false);
-      } else if (
-        !res.data.status &&
-        res.data.response ===
+      console.log("API response:", res.data);
+
+      if (!res.data.status) {
+        if (res.data.response === "Application not found.") {
+          setError("Application not found.");
+          setRecordExists(false);
+          setCanCreate(false);
+          setHasChecked(false);
+        } else if (
+          res.data.response ===
           "Application is not sanctioned and cannot be withheld."
-      ) {
-        setError(res.data.response);
-        setRecordExists(false);
-        setCanCreate(false);
-        setHasChecked(false);
-      } else {
-        setRecordExists(false);
-        setFormData({
-          withheldType: "",
-          withheldReason: "",
-          isWithheld: true,
-        });
-        setApplicationDetails(res.data.applicationDetails);
-        setCanCreate(true);
-        setHasChecked(true);
+        ) {
+          setError("Application is not sanctioned and cannot be withheld.");
+          setRecordExists(false);
+          setCanCreate(false);
+          setHasChecked(false);
+        } else if (
+          res.data.response === "Error parsing application form details."
+        ) {
+          setError("Error parsing application form details.");
+          setRecordExists(false);
+          setCanCreate(false);
+          setHasChecked(false);
+        } else {
+          setError(res.data.response || "Failed to fetch details.");
+          setRecordExists(false);
+          setCanCreate(false);
+          setHasChecked(false);
+        }
+        return;
       }
+
+      setRecordExists(!!res.data.application);
+      setCanPermanentToTemporary(res.data.canPermanentToTemporary ?? true);
+      setCanCreate(true);
+      setHasChecked(true);
+      setTableData(res.data.data || []);
+      setTableColumns(res.data.columns || []);
+
+      // Handle files for withheld application
+      let withheldFiles = res.data.application?.files || [];
+      if (typeof withheldFiles === "string") {
+        try {
+          withheldFiles = JSON.parse(withheldFiles);
+        } catch (e) {
+          console.error("Failed to parse withheld application files:", e);
+          withheldFiles = [];
+        }
+      }
+      if (!Array.isArray(withheldFiles)) {
+        console.warn("Withheld files is not an array:", withheldFiles);
+        withheldFiles = [];
+      }
+
+      const newFormData = {
+        withheldType: res.data.application?.withheldType || "",
+        withheldReason: res.data.application?.withheldReason || "",
+        isWithheld: res.data.application?.isWithheld ?? true,
+        files: withheldFiles,
+      };
+
+      setFormData(newFormData);
+      // Store initial form data for update comparison
+      if (res.data.application) {
+        setInitialFormData({ ...newFormData });
+      }
+
+      // Handle application details
+      let appDetails = res.data.applicationDetails || {};
+      setApplicationDetails({
+        applicantName: appDetails.applicantName || "N/A",
+        parentage: appDetails.parentage || "N/A",
+        ro: appDetails["r/o"] || "N/A",
+        files: withheldFiles,
+      });
     } catch (err) {
-      console.error(err);
+      console.error("API error:", err);
       setError("Failed to fetch details.");
       setCanCreate(false);
       setHasChecked(false);
@@ -108,7 +175,54 @@ export default function Withheld() {
     }
   };
 
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files).filter(
+      (file) => file.type === "application/pdf",
+    );
+    console.log(
+      "Selected files:",
+      selectedFiles.map((f) => f.name),
+    );
+    setFormData((prev) => ({
+      ...prev,
+      files: [...prev.files, ...selectedFiles], // Append new files
+    }));
+  };
+
+  const handleFileClick = (fileName) => {
+    setSelectedPdfUrl(`${fileName}`);
+    setModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setSelectedPdfUrl("");
+  };
+
   const handleSave = async () => {
+    // Prevent update if no changes were made to withheldType, isWithheld, or withheldReason
+    if (recordExists && initialFormData) {
+      const noFieldChanges =
+        formData.withheldType === initialFormData.withheldType &&
+        formData.isWithheld === initialFormData.isWithheld &&
+        formData.withheldReason === initialFormData.withheldReason;
+
+      const initialFileNames = initialFormData.files
+        .map((file) => (typeof file === "string" ? file : file.name))
+        .sort();
+      const currentFileNames = formData.files
+        .map((file) => (typeof file === "string" ? file : file.name))
+        .sort();
+      const noFileChanges = initialFileNames.join() === currentFileNames.join();
+
+      if (noFieldChanges && noFileChanges) {
+        setError(
+          "No changes detected. Please modify the application details or files to update.",
+        );
+        return;
+      }
+    }
+
     try {
       const form = new FormData();
       form.append("ServiceId", serviceId);
@@ -116,6 +230,15 @@ export default function Withheld() {
       form.append("IsWithheld", formData.isWithheld.toString());
       form.append("WithheldType", formData.withheldType);
       form.append("WithheldReason", formData.withheldReason);
+
+      // Append new files
+      formData.files.forEach((file) => {
+        if (file instanceof File) {
+          form.append("Files", file);
+        } else {
+          form.append("ExistingFiles", file); // Existing files as strings
+        }
+      });
 
       let res;
       if (recordExists) {
@@ -136,30 +259,49 @@ export default function Withheld() {
         );
       }
 
+      console.log("Save response:", res.data);
       setSuccessMessage(res.data.message);
-      setServiceId("");
-      setReferenceNumber("");
+
+      // Update files from response if available
+      let updatedFiles = res.data.files || [];
+      if (typeof updatedFiles === "string") {
+        try {
+          updatedFiles = JSON.parse(updatedFiles);
+        } catch (e) {
+          console.error("Failed to parse response files:", e);
+          updatedFiles = [];
+        }
+      }
+      if (!Array.isArray(updatedFiles)) {
+        updatedFiles = [];
+      }
+
       setFormData({
         withheldType: "",
         withheldReason: "",
         isWithheld: true,
+        files: updatedFiles,
       });
+      setInitialFormData(null);
+
+      // Reset form
+      setServiceId("");
+      setReferenceNumber("");
       setRecordExists(false);
       setHasChecked(false);
       setCanCreate(false);
       setApplicationDetails(null);
       setError("");
-
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
+      setTableData([]);
+      setTableColumns([]);
+      setModalOpen(false);
+      setSelectedPdfUrl("");
     } catch (err) {
-      console.error(err);
-      setError("Failed to save application");
+      console.error("Save error:", err);
+      setError(err.response?.data?.message || "Failed to save application");
     }
   };
 
-  // Helper function to format keys for display
   const formatKey = (key) => {
     if (key === "r/o") return "Residence";
     return key
@@ -226,27 +368,19 @@ export default function Withheld() {
         Withheld Application Management
       </Typography>
 
-      {successMessage && (
-        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
-          {successMessage}
-        </Alert>
-      )}
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-          {error}
-        </Alert>
-      )}
-
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <FormControl fullWidth sx={formControlStyles}>
+        <FormControl
+          fullWidth
+          sx={formControlStyles}
+          error={error.includes("Service")}
+        >
           <ServiceSelectionForm
             services={services}
             value={serviceId}
-            onServiceSelect={(id) => setServiceId(id)}
+            onServiceSelect={handleServiceId}
           />
-          {!serviceId && error.includes("Service") && (
-            <FormHelperText error>Please select a service</FormHelperText>
+          {error.includes("Service") && (
+            <FormHelperText>Please select a valid service</FormHelperText>
           )}
         </FormControl>
 
@@ -254,12 +388,15 @@ export default function Withheld() {
           fullWidth
           label="Reference Number"
           value={referenceNumber}
-          onChange={(e) => setReferenceNumber(e.target.value)}
+          onChange={(e) => {
+            console.log("Reference Number:", e.target.value);
+            setReferenceNumber(e.target.value);
+          }}
           sx={formControlStyles}
-          error={!referenceNumber && error.includes("Reference Number")}
+          error={error.includes("Reference Number")}
           helperText={
-            !referenceNumber && error.includes("Reference Number")
-              ? "Please enter a reference number"
+            error.includes("Reference Number")
+              ? "Please enter a valid reference number"
               : ""
           }
         />
@@ -268,7 +405,7 @@ export default function Withheld() {
           variant="contained"
           sx={buttonStyles}
           onClick={handleCheck}
-          disabled={loading}
+          disabled={loading || !services.length}
           startIcon={loading && <CircularProgress size={20} />}
         >
           {loading ? "Checking..." : "Check Application"}
@@ -279,13 +416,122 @@ export default function Withheld() {
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               Application Details
             </Typography>
-            {Object.entries(applicationDetails).map(([key, value]) => (
-              <Typography key={key} variant="body2">
-                <strong>{formatKey(key)}:</strong> {value || "N/A"}
-              </Typography>
-            ))}
+            {Object.entries(applicationDetails).map(
+              ([key, value]) =>
+                key !== "files" && (
+                  <Typography key={key} variant="body2">
+                    <strong>{formatKey(key)}:</strong> {value || "N/A"}
+                  </Typography>
+                ),
+            )}
+            {Array.isArray(formData.files) && formData.files.length > 0 && (
+              <>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 2 }}>
+                  Uploaded Files
+                </Typography>
+                <List dense>
+                  {formData.files.map((file, index) => (
+                    <ListItem key={index}>
+                      <ListItemText
+                        primary={typeof file === "string" ? file : file.name}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </>
+            )}
+
+            {hasChecked && tableData.length > 0 && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                  Action History
+                </Typography>
+                <TableContainer
+                  component={Paper}
+                  sx={{
+                    bgcolor: "grey.100",
+                    borderRadius: 2,
+                    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
+                  }}
+                >
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        {tableColumns.map((column, index) => (
+                          <TableCell
+                            key={index}
+                            sx={{
+                              fontWeight: 600,
+                              color: "text.primary",
+                              backgroundColor: "grey.200",
+                            }}
+                          >
+                            {column.header}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {tableData.map((row, index) => (
+                        <TableRow key={index}>
+                          {tableColumns.map((column, colIndex) => (
+                            <TableCell key={colIndex}>
+                              {row[column.accessorKey] || "N/A"}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+
+            {hasChecked &&
+              Array.isArray(formData.files) &&
+              formData.files.length > 0 && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: 600, mb: 2 }}
+                  >
+                    View Documents
+                  </Typography>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+                    {formData.files.map((file, index) => (
+                      <Button
+                        key={index}
+                        variant="outlined"
+                        sx={{
+                          textTransform: "none",
+                          borderColor: "primary.main",
+                          color: "primary.main",
+                          "&:hover": {
+                            backgroundColor: "primary.light",
+                            borderColor: "primary.dark",
+                          },
+                        }}
+                        onClick={() =>
+                          handleFileClick(
+                            typeof file === "string" ? file : file.name,
+                          )
+                        }
+                      >
+                        {typeof file === "string" ? file : file.name}
+                      </Button>
+                    ))}
+                  </Box>
+                </Box>
+              )}
           </Box>
         )}
+
+        <BasicModal
+          open={modalOpen}
+          handleClose={handleModalClose}
+          Title="View Document"
+          pdf={selectedPdfUrl}
+        />
 
         {hasChecked && canCreate && (
           <Paper
@@ -368,6 +614,33 @@ export default function Withheld() {
               </RadioGroup>
             </FormControl>
 
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: 600, color: "text.primary" }}
+              >
+                Upload PDF Files
+              </Typography>
+              <input
+                type="file"
+                accept="application/pdf"
+                multiple
+                onChange={handleFileChange}
+                style={{ marginTop: "8px" }}
+              />
+              {Array.isArray(formData.files) && formData.files.length > 0 && (
+                <List dense>
+                  {formData.files.map((file, index) => (
+                    <ListItem key={index}>
+                      <ListItemText
+                        primary={typeof file === "string" ? file : file.name}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Box>
+
             <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-start" }}>
               <Button
                 variant="contained"
@@ -381,6 +654,17 @@ export default function Withheld() {
           </Paper>
         )}
       </Box>
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+          {successMessage}
+        </Alert>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
     </Box>
   );
 }

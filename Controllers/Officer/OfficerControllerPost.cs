@@ -1,9 +1,15 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
+using Microsoft.Data.SqlClient; // SqlParameter, SqlException (recommended for .NET Core)
+using System.Data;              // IDataParameter, DbType, etc. (optional but handy)
+using System.Threading.Tasks;   // Task
+using Microsoft.Extensions.Logging; // ILogger<T>
+
 
 namespace SahayataNidhi.Controllers.Officer
 {
@@ -305,7 +311,7 @@ namespace SahayataNidhi.Controllers.Officer
 
                     var newHistoryEntry = new
                     {
-                        officer = officer.Role + " " + GetOfficerArea(officer.Role!, formDetailsJObject),
+                        actionTaker = officer.Role + " " + GetOfficerArea(officer.Role!, formDetailsJObject),
                         status = "forwarded",
                         remarks = remarks,
                         actionTakenOn = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
@@ -516,7 +522,7 @@ namespace SahayataNidhi.Controllers.Officer
                 var corrigendumHistory = JsonConvert.DeserializeObject<List<dynamic>>(corrigendum.History ?? "[]");
                 var newCorrigendumHistory = new
                 {
-                    officer = officer.Role + " " + GetOfficerArea(officer.Role!, formDetails),
+                    actionTaker = officer.Role + " " + GetOfficerArea(officer.Role!, formDetails),
                     status = action,
                     remarks = remarks,
                     actionTakenOn = DateTime.Now.ToString("dd MMMM yyyy hh:mm:ss tt"),
@@ -700,7 +706,11 @@ namespace SahayataNidhi.Controllers.Officer
             var formDetailsJson = JObject.Parse(application!.FormDetails!);
             string email = GetFieldValue("Email", formDetailsJson);
             string applicantName = GetFieldValue("ApplicantName", formDetailsJson);
-            DateTime parsedExpirationDate = DateTime.Parse(expirationDate);
+            DateTime parsedExpirationDate = DateTime.ParseExact(
+                expirationDate,
+                "dd/MM/yyyy",
+                CultureInfo.InvariantCulture
+            );
             string htmlMessage = $@"
             <div style='font-family: Arial, sans-serif;'>
                 <h2 style='color: #2e6c80;'>UDID Card Validity Expiring</h2>
@@ -733,7 +743,7 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         [HttpPost]
-        public IActionResult CreateWithheldApplication([FromForm] IFormCollection form)
+        public async Task<IActionResult> CreateWithheldApplication([FromForm] IFormCollection form)
         {
             try
             {
@@ -769,6 +779,21 @@ namespace SahayataNidhi.Controllers.Officer
                     return BadRequest(new { status = false, message = "Application already exists." });
                 }
 
+                // Handle file uploads
+                var fileNames = new List<string>();
+                var files = form.Files.GetFiles("Files");
+                foreach (var file in files)
+                {
+                    if (file.Length > 0)
+                    {
+                        var fileName = await helper.GetFilePath(file);
+                        if (!string.IsNullOrEmpty(fileName) && fileName != "No file provided.")
+                        {
+                            fileNames.Add(fileName);
+                        }
+                    }
+                }
+
                 // Create new application
                 var newApplication = new WithheldApplication
                 {
@@ -777,13 +802,21 @@ namespace SahayataNidhi.Controllers.Officer
                     IsWithheld = isWithheld,
                     WithheldType = withheldType.ToString(),
                     WithheldReason = withheldReason.ToString(),
+                    Files = fileNames.Count != 0 ? JsonConvert.SerializeObject(fileNames) : null,
                     // WithheldOn is not set explicitly as it has a default value of GETDATE() in the database
                 };
 
                 dbcontext.WithheldApplications.Add(newApplication);
-                dbcontext.SaveChanges();
+                await dbcontext.SaveChangesAsync();
 
-                helper.InsertHistory(referenceNumber!, $"Withheld Application ({withheldType})", officer.Role!, withheldReason!, officer.AccessLevel!, (int)officer.AccessCode!);
+                helper.InsertHistory(
+                    referenceNumber!,
+                    $"Withheld Application ({withheldType})",
+                    officer.Role!,
+                    withheldReason!,
+                    officer.AccessLevel!,
+                    (int)officer.AccessCode!
+                );
 
                 return Ok(new { status = true, message = "Application created successfully." });
             }
@@ -791,11 +824,10 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 return StatusCode(500, new { status = false, message = "Failed to create application: " + ex.Message });
             }
-
         }
 
         [HttpPut]
-        public IActionResult UpdateWithheldApplication([FromForm] IFormCollection form)
+        public async Task<IActionResult> UpdateWithheldApplication([FromForm] IFormCollection form)
         {
             try
             {
@@ -831,22 +863,58 @@ namespace SahayataNidhi.Controllers.Officer
                     return NotFound(new { status = false, message = "Application not found." });
                 }
 
+                // Handle file uploads
+                var fileNames = new List<string>();
+                if (!string.IsNullOrEmpty(application.Files))
+                {
+                    fileNames = JsonConvert.DeserializeObject<List<string>>(application.Files) ?? [];
+                }
+
+                // Process new files
+                var files = form.Files.GetFiles("Files");
+                foreach (var file in files)
+                {
+                    if (file.Length > 0)
+                    {
+                        var fileName = await helper.GetFilePath(file);
+                        if (!string.IsNullOrEmpty(fileName) && fileName != "No file provided.")
+                        {
+                            fileNames.Add(fileName);
+                        }
+                    }
+                }
+
                 // Update application
                 application.IsWithheld = isWithheld;
                 application.WithheldType = withheldType.ToString();
                 application.WithheldReason = withheldReason.ToString();
-                // WithheldOn is not updated as it's typically set only on creation
+                application.Files = fileNames.Count != 0 ? JsonConvert.SerializeObject(fileNames) : null;
 
-                dbcontext.SaveChanges();
+                await dbcontext.SaveChangesAsync();
+
                 if (isWithheld)
                 {
-                    helper.InsertHistory(referenceNumber!, $"Withheld Application ({withheldType})", officer.Role!, withheldReason!, officer.AccessLevel!, (int)officer.AccessCode!);
+                    helper.InsertHistory(
+                        referenceNumber!,
+                        $"Withheld Application ({withheldType})",
+                        officer.Role!,
+                        withheldReason!,
+                        officer.AccessLevel!,
+                        (int)officer.AccessCode!
+                    );
                 }
                 else
                 {
-                    helper.InsertHistory(referenceNumber!, $"Removed Application From Withheld", officer.Role!, withheldReason!, officer.AccessLevel!, (int)officer.AccessCode!);
-
+                    helper.InsertHistory(
+                        referenceNumber!,
+                        $"Removed Application From Withheld",
+                        officer.Role!,
+                        withheldReason!,
+                        officer.AccessLevel!,
+                        (int)officer.AccessCode!
+                    );
                 }
+
                 return Ok(new { status = true, message = "Application updated successfully." });
             }
             catch (Exception ex)
@@ -854,6 +922,54 @@ namespace SahayataNidhi.Controllers.Officer
                 return StatusCode(500, new { status = false, message = "Failed to update application: " + ex.Message });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateAadhaarToken([FromForm] IFormCollection form)
+        {
+            if (form == null)
+                return BadRequest(new { success = false, message = "Form data is required." });
+
+            var referenceNumber = form["referenceNumber"].ToString().Trim();
+            var aadhaarToken = form["aadhaarToken"].ToString().Trim();
+
+            if (string.IsNullOrWhiteSpace(referenceNumber))
+                return BadRequest(new { success = false, message = "ReferenceNumber is required." });
+
+            if (string.IsNullOrWhiteSpace(aadhaarToken))
+                return BadRequest(new { success = false, message = "AadhaarToken is required." });
+
+            try
+            {
+                var pReference = new Microsoft.Data.SqlClient.SqlParameter("@ReferenceNumber", System.Data.SqlDbType.NVarChar, 100)
+                {
+                    Value = referenceNumber
+                };
+
+                var pToken = new Microsoft.Data.SqlClient.SqlParameter("@AadhaarToken", System.Data.SqlDbType.NVarChar, 4000)
+                {
+                    Value = aadhaarToken
+                };
+
+                // Execute SP — we don't rely on rowsAffected
+                await dbcontext.Database.ExecuteSqlRawAsync(
+                    "EXEC dbo.UpdateAadhaarTokenByReference @ReferenceNumber, @AadhaarToken",
+                    pReference, pToken);
+
+                // Return success if no exception
+                return Ok(new { success = true, message = "Aadhaar token updated successfully." });
+            }
+            catch (Microsoft.Data.SqlClient.SqlException sqlEx)
+            {
+                _logger.LogError(sqlEx, "SQL error updating Aadhaar token for {Ref}", referenceNumber);
+                return StatusCode(500, new { success = false, message = "Database error." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating Aadhaar token for {Ref}", referenceNumber);
+                return StatusCode(500, new { success = false, message = "Server error." });
+            }
+        }
+
 
     }
 }

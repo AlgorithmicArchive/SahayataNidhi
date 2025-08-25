@@ -7,6 +7,8 @@ public partial class CitizenApplication
 {
     public string ReferenceNumber { get; set; } = null!;
 
+    public string? ReferenceNumberAlphaNumeric { get; set; }
+
     public int CitizenId { get; set; }
 
     public int ServiceId { get; set; }

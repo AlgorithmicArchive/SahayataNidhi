@@ -121,13 +121,17 @@ namespace SahayataNidhi.Controllers.User
 
                 var workFlow = filteredWorkflow.ToString(Formatting.None);
                 var finYear = helper.GetCurrentFinancialYear();
-                ReferenceNumber = "JK-" + service.NameShort + "-" + districtShort + "/" + finYear + "/" + count;
+                var ReferenceNumberAlphaNumber = "JK-" + service.NameShort + "-" + districtShort + "/" + finYear + "/" + count;
+                var random = new Random();
+                ReferenceNumber = "01" + service.ServiceId.ToString("D2") + districtDetails.DistrictId.ToString("D2") + finYear.Split("-")[1] + random.Next(100, 1000) + count;
+
                 var createdAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
 
                 // Store the updated JSON (with file paths) in the database.
                 var newFormDetails = new CitizenApplication
                 {
                     ReferenceNumber = ReferenceNumber,
+                    ReferenceNumberAlphaNumeric = ReferenceNumberAlphaNumber,
                     CitizenId = userId,
                     ServiceId = serviceId,
                     DistrictUidForBank = null,

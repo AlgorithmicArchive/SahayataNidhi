@@ -719,18 +719,6 @@ export default function UserDetails() {
         role="main"
         aria-labelledby="user-details-title"
       >
-        {/* <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 700,
-            color: "primary.main",
-            textAlign: "center",
-            mt: 4,
-            mb: 4,
-          }}
-        >
-          Citizen Application Details
-        </Typography> */}
         <CollapsibleFormDetails
           formDetails={formDetails}
           formatKey={formatKey}
@@ -740,18 +728,6 @@ export default function UserDetails() {
           applicationId={applicationId}
         />
 
-        {/* <Typography
-          variant="h4"
-          id="user-details-title"
-          sx={{
-            fontWeight: 700,
-            color: "primary.main",
-            textAlign: "center",
-            mb: 4,
-          }}
-        >
-          Application Movement History
-        </Typography> */}
         <CollapsibleActionHistory
           detailsOpen={historyOpen}
           setDetailsOpen={setHistoryOpen}

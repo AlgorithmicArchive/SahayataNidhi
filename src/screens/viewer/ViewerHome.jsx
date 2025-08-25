@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Box,
   Card,
@@ -8,8 +8,7 @@ import {
   MenuItem,
   Button,
   CircularProgress,
-  Grid2,
-  Chip,
+  Grid,
   Avatar,
   Paper,
   Container,
@@ -24,21 +23,19 @@ import {
   Cancel,
   HourglassEmpty,
   Group,
-  TrendingUp,
-  TrendingDown,
-  AccountBalanceWallet,
-  MonetizationOn,
-  ErrorOutline,
-  EmojiEvents,
   ArrowRightAlt,
   FilterList,
   Refresh,
   PieChart,
   Assessment,
-  TrendingFlat,
+  ErrorOutline,
 } from "@mui/icons-material";
 import { styled, keyframes } from "@mui/material/styles";
-import Chart from "chart.js/auto";
+import { Chart } from "chart.js/auto";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import axiosIntance from "../../axiosConfig";
+
+Chart.register(ChartDataLabels);
 
 // Animations
 const float = keyframes`
@@ -46,218 +43,17 @@ const float = keyframes`
   50% { transform: translateY(-10px); }
 `;
 
-const pulse = keyframes`
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-`;
-
-// Mock API functions
-const mockDashboardData = (params) => {
-  const { state, division, district, tehsil } = params;
-  let multiplier = 1;
-  if (tehsil != null) multiplier = 0.1;
-  else if (district != null) multiplier = 0.2;
-  else if (division != null) multiplier = 0.5;
-  else if (state != null && state !== "") multiplier = 1;
-
-  return defaultCardData.map((card) => {
-    let newValue;
-    if (card.value.startsWith("₹")) {
-      const amount = parseInt(card.value.replace(/[^0-9]/g, ""), 10);
-      newValue = `₹${Math.round(amount * multiplier).toLocaleString()}`;
-    } else {
-      const num = parseInt(card.value.replace(/[^0-9]/g, ""), 10);
-      newValue = Math.round(num * multiplier).toString();
-    }
-    return { ...card, value: newValue };
-  });
-};
-
-const mockAxiosInstance = {
-  get: (url, config) => {
-    if (url === "/api/dashboard/stats") {
-      return Promise.resolve({ data: mockDashboardData(config.params) });
-    }
-    if (url === "/Base/GetDistricts") {
-      return Promise.resolve({
-        data: {
-          districts: [
-            { districtName: "Srinagar", districtId: 1 },
-            { districtName: "Jammu", districtId: 2 },
-            { districtName: "Anantnag", districtId: 3 },
-          ],
-        },
-      });
-    }
-    if (url === "/Base/GetTeshilForDistrict") {
-      return Promise.resolve({
-        data: {
-          tehsils: [
-            { tehsilName: "Central", tehsilId: 1 },
-            { tehsilName: "North", tehsilId: 2 },
-            { tehsilName: "South", tehsilId: 3 },
-          ],
-        },
-      });
-    }
-    return Promise.reject(new Error("Unknown endpoint"));
-  },
-};
-
-// Enhanced card data with Material UI colors
-const defaultCardData = [
-  {
-    title: "Applications Received",
-    value: "1,234",
-    change: "+12%",
-    trend: "up",
-    category: "application",
-    color: "primary",
-    bgColor: "#e3f2fd",
-    gradientStart: "#1976d2",
-    gradientEnd: "#1565c0",
-  },
-  {
-    title: "Sanctioned",
-    value: "856",
-    change: "+8%",
-    trend: "up",
-    category: "application",
-    color: "success",
-    bgColor: "#e8f5e8",
-    gradientStart: "#388e3c",
-    gradientEnd: "#2e7d32",
-  },
-  {
-    title: "Under Process",
-    value: "200",
-    change: "0%",
-    trend: "neutral",
-    category: "application",
-    color: "warning",
-    bgColor: "#fff3e0",
-    gradientStart: "#f57c00",
-    gradientEnd: "#ef6c00",
-  },
-  {
-    title: "Pending with Citizen",
-    value: "20",
-    change: "+15%",
-    trend: "up",
-    category: "application",
-    color: "secondary",
-    bgColor: "#f3e5f5",
-    gradientStart: "#7b1fa2",
-    gradientEnd: "#6a1b9a",
-  },
-  {
-    title: "Rejected",
-    value: "178",
-    change: "-3%",
-    trend: "down",
-    category: "application",
-    color: "error",
-    bgColor: "#ffebee",
-    gradientStart: "#d32f2f",
-    gradientEnd: "#c62828",
-  },
-  {
-    title: "Total Amount Disbursed",
-    value: "₹5,67,89,000",
-    change: "+22%",
-    trend: "up",
-    category: "disbursement",
-    color: "success",
-    bgColor: "#e8f5e8",
-    gradientStart: "#388e3c",
-    gradientEnd: "#2e7d32",
-  },
-  {
-    title: "New Sanctions",
-    value: "320",
-    change: "+18%",
-    trend: "up",
-    category: "disbursement",
-    color: "info",
-    bgColor: "#e1f5fe",
-    gradientStart: "#0288d1",
-    gradientEnd: "#0277bd",
-  },
-  {
-    title: "Beneficiaries Paid",
-    value: "542",
-    change: "+12%",
-    trend: "up",
-    category: "disbursement",
-    color: "primary",
-    bgColor: "#e3f2fd",
-    gradientStart: "#1976d2",
-    gradientEnd: "#1565c0",
-  },
-  {
-    title: "Successful Disbursements",
-    value: "519",
-    change: "+10%",
-    trend: "up",
-    category: "disbursement",
-    color: "success",
-    bgColor: "#e8f5e8",
-    gradientStart: "#388e3c",
-    gradientEnd: "#2e7d32",
-  },
-  {
-    title: "Failed Disbursements",
-    value: "23",
-    change: "-8%",
-    trend: "down",
-    category: "disbursement",
-    color: "error",
-    bgColor: "#ffebee",
-    gradientStart: "#d32f2f",
-    gradientEnd: "#c62828",
-  },
-  {
-    title: "Arrear Amount Disbursed",
-    value: "₹12,50,000",
-    change: "+25%",
-    trend: "up",
-    category: "disbursement",
-    color: "warning",
-    bgColor: "#fff3e0",
-    gradientStart: "#f57c00",
-    gradientEnd: "#ef6c00",
-  },
-];
-
-// Icon mapping (corrected)
-const iconMap = {
-  "Applications Received": AssignmentTurnedIn,
-  Sanctioned: CheckCircle,
-  "Under Process": HourglassEmpty,
-  "Pending with Citizen": Group,
-  Rejected: Cancel,
-  "Total Amount Disbursed": MonetizationOn,
-  "New Sanctions": TrendingUp,
-  "Beneficiaries Paid": AccountBalanceWallet,
-  "Successful Disbursements": EmojiEvents,
-  "Failed Disbursements": ErrorOutline,
-  "Arrear Amount Disbursed": MonetizationOn, // Corrected from "Ar_factors"
-};
-
 // Styled components
 const GradientCard = styled(Card)(
   ({ theme, bgcolor, gradientstart, gradientend }) => ({
     borderRadius: theme.spacing(2),
-    background: `linear-gradient(135deg, ${bgcolor} 0%, ${alpha(
-      bgcolor,
-      0.7,
-    )} 100%)`,
-    backdropFilter: "blur(10px)",
-    border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
+    background: bgcolor,
+    border: `1px solid ${alpha(gradientstart, 0.1)}`,
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     cursor: "pointer",
     position: "relative",
     overflow: "hidden",
+    height: "100%",
     "&::before": {
       content: '""',
       position: "absolute",
@@ -265,75 +61,38 @@ const GradientCard = styled(Card)(
       left: 0,
       right: 0,
       bottom: 0,
-      background: `linear-gradient(135deg, ${gradientstart}20 0%, ${gradientend}10 100%)`,
+      background: `linear-gradient(135deg, ${gradientstart}08 0%, ${gradientend}05 100%)`,
       opacity: 0,
       transition: "opacity 0.3s ease",
     },
     "&:hover": {
-      transform: "translateY(-8px) scale(1.02)",
-      boxShadow: `0 20px 40px ${alpha(gradientstart, 0.3)}`,
-      "&::before": {
-        opacity: 1,
-      },
-    },
-    "&:active": {
-      transform: "translateY(-4px) scale(1.01)",
+      transform: "translateY(-4px)",
+      boxShadow: `0 12px 24px ${alpha(gradientstart, 0.15)}`,
+      "&::before": { opacity: 1 },
     },
   }),
 );
 
 const IconAvatar = styled(Avatar)(({ theme, gradientstart, gradientend }) => ({
   background: `linear-gradient(135deg, ${gradientstart} 0%, ${gradientend} 100%)`,
-  width: 56,
-  height: 56,
-  boxShadow: `0 8px 16px ${alpha(gradientstart, 0.3)}`,
+  width: 48,
+  height: 48,
+  boxShadow: `0 4px 12px ${alpha(gradientstart, 0.25)}`,
   animation: `${float} 6s ease-in-out infinite`,
   "& .MuiSvgIcon-root": {
-    fontSize: "1.5rem",
+    fontSize: "1.3rem",
+    color: "#ffffff",
   },
 }));
 
-const TrendChip = styled(Chip)(({ trend, theme }) => {
-  let colors = {};
-  if (trend === "up") {
-    colors = {
-      bgcolor: alpha(theme.palette.success.main, 0.1),
-      color: theme.palette.success.main,
-      borderColor: alpha(theme.palette.success.main, 0.3),
-    };
-  } else if (trend === "down") {
-    colors = {
-      bgcolor: alpha(theme.palette.error.main, 0.1),
-      color: theme.palette.error.main,
-      borderColor: alpha(theme.palette.error.main, 0.3),
-    };
-  } else {
-    colors = {
-      bgcolor: alpha(theme.palette.grey[500], 0.1),
-      color: theme.palette.grey[600],
-      borderColor: alpha(theme.palette.grey[500], 0.3),
-    };
-  }
-
-  return {
-    ...colors,
-    border: `1px solid ${colors.borderColor}`,
-    fontWeight: 600,
-    fontSize: "0.75rem",
-    height: 24,
-    "& .MuiChip-icon": {
-      fontSize: "1rem",
-      color: "inherit",
-    },
-  };
-});
-
 const GlassCard = styled(Card)(({ theme }) => ({
-  background: alpha(theme.palette.background.paper, 0.8),
+  background: "rgba(255, 255, 255, 0.95)",
   backdropFilter: "blur(20px)",
-  border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
+  border: `1px solid ${alpha(theme.palette.common.white, 0.3)}`,
   borderRadius: theme.spacing(3),
-  boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.1)}`,
+  boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.08)}`,
+  width: "100%",
+  padding: theme.spacing(3),
 }));
 
 const SectionHeader = styled(Box)(({ theme }) => ({
@@ -346,111 +105,566 @@ const SectionHeader = styled(Box)(({ theme }) => ({
     left: 0,
     width: 60,
     height: 4,
-    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+    background: `linear-gradient(90deg, #4f46e5, #3b82f6)`,
     borderRadius: 2,
   },
 }));
 
-// Modern StatCard component
-const ModernStatCard = ({ card, onClick }) => {
+// Constants
+const defaultCardData = [
+  {
+    title: "Applications Received",
+    value: "0",
+    category: "application",
+    color: "primary",
+    bgColor: "#f8faff",
+    gradientStart: "#4f46e5",
+    gradientEnd: "#3b82f6",
+  },
+  {
+    title: "Sanctioned",
+    value: "0",
+    category: "application",
+    color: "success",
+    bgColor: "#f0fdf4",
+    gradientStart: "#059669",
+    gradientEnd: "#10b981",
+  },
+  {
+    title: "Under Process",
+    value: "0",
+    category: "application",
+    color: "warning",
+    bgColor: "#fffbeb",
+    gradientStart: "#f59e0b",
+    gradientEnd: "#fbbf24",
+  },
+  {
+    title: "Pending with Citizen",
+    value: "0",
+    category: "application",
+    color: "info",
+    bgColor: "#f0f9ff",
+    gradientStart: "#0ea5e9",
+    gradientEnd: "#38bdf8",
+  },
+  {
+    title: "Rejected",
+    value: "0",
+    category: "application",
+    color: "error",
+    bgColor: "#fef2f2",
+    gradientStart: "#ef4444",
+    gradientEnd: "#f87171",
+  },
+];
+
+const defaultCategoryData = [
+  { name: "Old Age Pension", value: 0, color: "#4f46e5" },
+  { name: "Women In Distress", value: 0, color: "#059669" },
+  { name: "Physically Challenged Person", value: 0, color: "#f59e0b" },
+  { name: "Transgender", value: 0, color: "#0ea5e9" },
+];
+
+const iconMap = {
+  "Applications Received": AssignmentTurnedIn,
+  Sanctioned: CheckCircle,
+  "Under Process": HourglassEmpty,
+  "Pending with Citizen": Group,
+  Rejected: Cancel,
+};
+
+// Custom Hook for Filter Management
+const useFilters = (category) => {
+  const [state, setState] = useState("0");
+  const [division, setDivision] = useState("");
+  const [districts, setDistricts] = useState([]);
+  const [district, setDistrict] = useState("");
+  const [tehsils, setTehsils] = useState([]);
+  const [tehsil, setTehsil] = useState("");
+  const [wise, setWise] = useState("State");
+  const [wiseName, setWiseName] = useState("Jammu & Kashmir");
+  const [filterLoading, setFilterLoading] = useState(false);
+
+  const resetFilters = useCallback(() => {
+    setState("0");
+    setDivision("");
+    setDistrict("");
+    setTehsil("");
+    setDistricts([]);
+    setTehsils([]);
+    setWise("State");
+    setWiseName("Jammu & Kashmir");
+  }, []);
+
+  const getFilterTitle = (type, value) => {
+    if (!value) return type;
+    if (type === "State") return value === "0" ? "Jammu & Kashmir" : type;
+    if (type === "Division")
+      return value === "1" ? "Jammu" : value === "2" ? "Kashmir" : type;
+    if (type === "District") {
+      return districts.find((d) => d.value === value)?.label || type;
+    }
+    if (type === "Tehsil") {
+      return tehsils.find((t) => t.value === value)?.label || type;
+    }
+    return type;
+  };
+
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      if (division) {
+        setFilterLoading(true);
+        try {
+          const response = await axiosIntance.get("/Base/GetDistricts", {
+            params: { division },
+          });
+          setDistricts(
+            response.data.districts.map((item) => ({
+              label: item.districtName,
+              value: item.districtId,
+            })),
+          );
+          setDistrict("");
+          setTehsils([]);
+          setTehsil("");
+        } catch (err) {
+          console.error(`Failed to fetch districts for ${category}:`, err);
+          setDistricts([]);
+        } finally {
+          setFilterLoading(false);
+        }
+      } else {
+        setDistricts([]);
+        setDistrict("");
+        setTehsils([]);
+        setTehsil("");
+      }
+    };
+    fetchDistricts();
+  }, [division, category]);
+
+  useEffect(() => {
+    const fetchTehsils = async () => {
+      if (district) {
+        setFilterLoading(true);
+        try {
+          const response = await axiosIntance.get(
+            "/Base/GetTeshilForDistrict",
+            {
+              params: { districtId: district },
+            },
+          );
+          setTehsils(
+            response.data.tehsils.map((item) => ({
+              label: item.tehsilName,
+              value: item.tehsilId,
+            })),
+          );
+          setTehsil("");
+        } catch (err) {
+          console.error(`Failed to fetch tehsils for ${category}:`, err);
+          setTehsils([]);
+        } finally {
+          setFilterLoading(false);
+        }
+      } else {
+        setTehsils([]);
+        setTehsil("");
+      }
+    };
+    fetchTehsils();
+  }, [district, category]);
+
+  useEffect(() => {
+    if (tehsil) {
+      setWise("Tehsil");
+      setWiseName(
+        tehsils.find((item) => item.value === tehsil)?.label || "Tehsil",
+      );
+    } else if (district) {
+      setWise("District");
+      setWiseName(
+        districts.find((item) => item.value === district)?.label || "District",
+      );
+    } else if (division) {
+      setWise("Division");
+      setWiseName(
+        division === "1" ? "Jammu" : division === "2" ? "Kashmir" : "Division",
+      );
+    } else {
+      setWise("State");
+      setWiseName("Jammu & Kashmir");
+    }
+  }, [division, district, tehsil, districts, tehsils]);
+
+  return {
+    state,
+    setState,
+    division,
+    setDivision,
+    district,
+    setDistrict,
+    tehsil,
+    setTehsil,
+    districts,
+    tehsils,
+    wise,
+    wiseName,
+    filterLoading,
+    resetFilters,
+    getFilterTitle,
+  };
+};
+
+// Custom Hook for Dashboard Data
+const useDashboardData = (category, filters) => {
+  const [data, setData] = useState(
+    defaultCardData.filter((c) => c.category === category),
+  );
+  const [categoryData, setCategoryData] = useState(defaultCategoryData);
+  const [locationData, setLocationData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const params = {
+        serviceId: "1",
+        division: filters.division || null,
+        district: filters.district || null,
+        tehsil: filters.tehsil || null,
+      };
+      const response = await axiosIntance.get("/Viewer/GetApplicationStatus", {
+        params,
+      });
+      setData(response.data.dataList.filter((c) => c.category === category));
+      setCategoryData(response.data.categoryData || defaultCategoryData);
+      setLocationData(response.data.locationData || []);
+    } catch (err) {
+      setError(`Failed to fetch ${category} data`);
+      setData(defaultCardData.filter((c) => c.category === category));
+      setCategoryData(defaultCategoryData);
+      setLocationData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters.division, filters.district, filters.tehsil, category]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, categoryData, locationData, isLoading, error };
+};
+
+// Donut Chart Component
+const DonutChart = ({ data, chartTitle }) => {
+  const theme = useTheme();
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
+
+  useEffect(() => {
+    if (chartRef.current && data.length > 0) {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+
+      const total = data.reduce((sum, item) => sum + item.value, 0);
+      chartInstance.current = new Chart(chartRef.current, {
+        type: "doughnut",
+        data: {
+          labels: data.map((item) => item.name),
+          datasets: [
+            {
+              data: data.map((item) => item.value),
+              backgroundColor: data.map((item) => item.color),
+              borderColor: data.map((item) => alpha(item.color, 0.3)),
+              borderWidth: 2,
+              hoverBorderWidth: 3,
+              hoverBackgroundColor: data.map((item) => alpha(item.color, 0.8)),
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "65%",
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                boxWidth: 16,
+                padding: 15,
+                font: { size: 11, family: theme.typography.fontFamily },
+                color: theme.palette.text.primary,
+                usePointStyle: true,
+              },
+            },
+            tooltip: {
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              titleColor: "#374151",
+              bodyColor: "#374151",
+              titleFont: { size: 14, weight: "bold" },
+              bodyFont: { size: 12 },
+              borderColor: "#e5e7eb",
+              borderWidth: 1,
+              cornerRadius: 8,
+              callbacks: {
+                label: (context) =>
+                  `${context.label}: ${context.parsed.toLocaleString("en-IN")}`,
+              },
+            },
+            datalabels: {
+              color: "#ffffff",
+              formatter: (value) => `${((value / total) * 100).toFixed(1)}%`,
+              font: { weight: "bold", size: 12 },
+              textAlign: "center",
+              anchor: "center",
+              align: "center",
+            },
+          },
+        },
+      });
+
+      return () => {
+        if (chartInstance.current) {
+          chartInstance.current.destroy();
+        }
+      };
+    }
+  }, [data, theme]);
+
+  return (
+    <Box sx={{ width: "100%", height: 350, position: "relative" }}>
+      <canvas ref={chartRef} style={{ maxWidth: "100%" }} />
+      {data.length === 0 && (
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          align="center"
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          No data available
+        </Typography>
+      )}
+    </Box>
+  );
+};
+
+// Stat Card Component
+const ModernStatCard = ({ card, onCardClick }) => {
   const theme = useTheme();
   const IconComponent = iconMap[card.title] || AssignmentTurnedIn;
 
-  const getTrendIcon = () => {
-    switch (card.trend) {
-      case "up":
-        return <TrendingUp />;
-      case "down":
-        return <TrendingDown />;
-      default:
-        return <TrendingFlat />;
-    }
-  };
-
   return (
     <GradientCard
-      onClick={() => onClick(card.title, card.category)}
+      onClick={() => onCardClick(card.title, card.category)}
       bgcolor={card.bgColor}
       gradientstart={card.gradientStart}
       gradientend={card.gradientEnd}
-      elevation={0}
     >
-      <CardContent sx={{ p: 3, position: "relative", zIndex: 1 }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="flex-start"
-          mb={2}
-        >
+      <CardContent sx={{ p: 3, zIndex: 1, height: "100%" }}>
+        <Stack spacing={2} sx={{ height: "100%" }}>
           <IconAvatar
             gradientstart={card.gradientStart}
             gradientend={card.gradientEnd}
           >
             <IconComponent />
           </IconAvatar>
-          <TrendChip
-            icon={getTrendIcon()}
-            label={card.change}
-            trend={card.trend}
-            size="small"
-          />
-        </Stack>
-
-        <Typography
-          variant="h4"
-          component="div"
-          fontWeight="bold"
-          color="text.primary"
-          mb={1}
-          sx={{
-            background: `linear-gradient(135deg, ${card.gradientStart}, ${card.gradientEnd})`,
-            backgroundClip: "text",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}
-        >
-          {card.value}
-        </Typography>
-
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          fontWeight="medium"
-          mb={2}
-        >
-          {card.title}
-        </Typography>
-
-        <Box display="flex" alignItems="center" justifyContent="flex-end">
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          >
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              fontWeight="medium"
+              sx={{
+                fontSize: "1.3rem",
+                minHeight: "2.6em",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              title={card.title}
+            >
+              {card.title}
+            </Typography>
+            <Typography
+              variant="h4"
+              fontWeight="bold"
+              sx={{
+                background: `linear-gradient(135deg, ${card.gradientStart}, ${card.gradientEnd})`,
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                wordBreak: "break-all",
+              }}
+              title={card.value}
+            >
+              {card.value}
+            </Typography>
+          </Box>
           <Typography
             variant="caption"
-            color="primary"
-            fontWeight="600"
             sx={{
+              color: card.gradientStart,
+              fontWeight: 600,
               display: "flex",
               alignItems: "center",
+              justifyContent: "flex-end",
               opacity: 0.8,
-              transition: "opacity 0.3s ease",
               "&:hover": { opacity: 1 },
             }}
           >
-            View Details
+            Details
             <ArrowRightAlt sx={{ ml: 0.5, fontSize: "1rem" }} />
           </Typography>
-        </Box>
+        </Stack>
       </CardContent>
     </GradientCard>
   );
 };
 
-// StatusChart component (using Chart.js)
-const StatusChart = ({ data }) => {
-  const theme = useTheme();
-  const chartRef = useRef(null);
-  const chartInstance = useRef(null);
+// Filter Section Component
+const FilterSection = ({ category, filters, filterLoading }) => {
+  const {
+    state,
+    setState,
+    division,
+    setDivision,
+    district,
+    setDistrict,
+    tehsil,
+    setTehsil,
+    districts,
+    tehsils,
+    resetFilters,
+    getFilterTitle,
+  } = filters;
 
-  // Prepare chart data
-  const chartData = data
+  return (
+    <GlassCard sx={{ p: 3, mb: 4 }}>
+      <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+        <Avatar sx={{ bgcolor: "#4f46e5" }}>
+          <FilterList />
+        </Avatar>
+        <Typography variant="h6" fontWeight="bold">
+          {category.charAt(0).toUpperCase() + category.slice(1)} Filters
+        </Typography>
+        {filterLoading && <CircularProgress size={20} sx={{ ml: 2 }} />}
+      </Stack>
+      <Grid container spacing={2}>
+        {[
+          {
+            label: "State",
+            value: state,
+            onChange: setState,
+            options: [{ value: "0", label: "Jammu & Kashmir" }],
+          },
+          {
+            label: "Division",
+            value: division,
+            onChange: setDivision,
+            options: [
+              { value: "1", label: "Jammu" },
+              { value: "2", label: "Kashmir" },
+            ],
+          },
+          {
+            label: "District",
+            value: district,
+            onChange: setDistrict,
+            options: districts,
+          },
+          {
+            label: "Tehsil",
+            value: tehsil,
+            onChange: setTehsil,
+            options: tehsils,
+          },
+        ].map(({ label, value, onChange, options }, index) => (
+          <Grid item xs={12} sm={6} md={2.4} key={index}>
+            <TextField
+              select
+              fullWidth
+              label={getFilterTitle(label, value)}
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              variant="outlined"
+              size="small"
+            >
+              <MenuItem value="">Select {label}</MenuItem>
+              {options.map((item, idx) => (
+                <MenuItem key={idx} value={item.value}>
+                  {item.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+        ))}
+        <Grid item xs={12} sm={6} md={2.4}>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={resetFilters}
+            startIcon={<Refresh />}
+            sx={{
+              height: 40,
+              background: "linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #4338ca 0%, #2563eb 100%)",
+              },
+            }}
+          >
+            Reset
+          </Button>
+        </Grid>
+      </Grid>
+    </GlassCard>
+  );
+};
+
+// Main Dashboard Component
+export default function ModernMUIDashboard() {
+  const theme = useTheme();
+  const appFilters = useFilters("application");
+  const {
+    data: appData,
+    categoryData,
+    locationData,
+    isLoading: appLoading,
+    error: appError,
+  } = useDashboardData("application", appFilters);
+  const [selectedTable, setSelectedTable] = useState(null);
+
+  const handleCardClick = useCallback((title, category) => {
+    setSelectedTable({ title, category });
+    setTimeout(() => {
+      const tableId = `table-${title.replace(/\s+/g, "-").toLowerCase()}`;
+      const element = document.getElementById(tableId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
+  }, []);
+
+  const statusDistributionData = appData
     .filter((card) =>
       [
         "Sanctioned",
@@ -460,378 +674,51 @@ const StatusChart = ({ data }) => {
       ].includes(card.title),
     )
     .map((card) => ({
-      name: card.title === "Pending with Citizen" ? "Pending" : card.title,
+      name: card.title,
       value: parseInt(card.value.replace(/[^0-9]/g, ""), 10) || 0,
       color: card.gradientStart,
     }))
-    .filter((item) => item.value > 0); // Ensure no zero or invalid values
+    .filter((item) => item.value > 0);
 
-  // Debug log to verify chart data
-  console.log("Chart Data:", chartData);
-
-  const COLORS = ["#388e3c", "#f57c00", "#7b1fa2", "#d32f2f"];
-
-  useEffect(() => {
-    if (chartRef.current && chartData.length > 0) {
-      // Destroy existing chart instance if it exists
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-
-      // Create new Chart.js instance
-      chartInstance.current = new Chart(chartRef.current, {
-        type: "pie",
-        data: {
-          labels: chartData.map((item) => item.name),
-          datasets: [
-            {
-              data: chartData.map((item) => item.value),
-              backgroundColor: COLORS,
-              borderColor: COLORS.map((color) => alpha(color, 0.3)),
-              borderWidth: 2,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: {
-                boxWidth: 20,
-                padding: 20,
-                font: {
-                  size: 12,
-                  family: theme.typography.fontFamily,
-                },
-                color: theme.palette.text.primary,
-                usePointStyle: true,
-              },
-            },
-            tooltip: {
-              backgroundColor: alpha(theme.palette.background.paper, 0.95),
-              titleFont: { size: 14, weight: "bold" },
-              bodyFont: { size: 16 },
-              borderColor: alpha(theme.palette.divider, 0.2),
-              borderWidth: 1,
-              cornerRadius: 8,
-              callbacks: {
-                label: (context) => {
-                  const label = context.label || "";
-                  const value = context.parsed || 0;
-                  return `${label}: ${value.toLocaleString()}`;
-                },
-              },
-            },
-          },
-        },
-      });
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-    };
-  }, [chartData, theme]);
-
-  return (
-    <Box sx={{ width: "100%", height: 400 }}>
-      {chartData.length === 0 ? (
-        <Typography variant="body1" color="text.secondary" align="center">
-          No data available for the chart
-        </Typography>
-      ) : (
-        <canvas ref={chartRef} />
-      )}
-    </Box>
-  );
-};
-
-// Main dashboard component
-export default function ModernMUIDashboard() {
-  const theme = useTheme();
-  const [state, setState] = useState("");
-  const [division, setDivision] = useState("");
-  const [districts, setDistricts] = useState([]);
-  const [district, setDistrict] = useState("");
-  const [tehsils, setTehsils] = useState([]);
-  const [tehsil, setTehsil] = useState("");
-  const [dashboardData, setDashboardData] = useState(defaultCardData);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  // API calls
-  useEffect(() => {
-    const fetchDistricts = async () => {
-      if (division !== "") {
-        try {
-          const response = await mockAxiosInstance.get("/Base/GetDistricts", {
-            params: { division },
-          });
-          const result = response.data;
-          const Districts = result.districts.map((item) => ({
-            label: item.districtName,
-            value: item.districtId,
-          }));
-          setDistricts(Districts);
-        } catch (err) {
-          console.error("Failed to fetch districts", err);
-          setError("Failed to fetch districts");
-        }
-      } else {
-        setDistricts([]);
-      }
-    };
-    fetchDistricts();
-  }, [division]);
-
-  useEffect(() => {
-    const fetchTehsils = async () => {
-      if (district !== "") {
-        try {
-          const response = await mockAxiosInstance.get(
-            "/Base/GetTeshilForDistrict",
-            {
-              params: { districtId: district },
-            },
-          );
-          const result = response.data;
-          const Tehsils = result.tehsils.map((item) => ({
-            label: item.tehsilName,
-            value: item.tehsilId,
-          }));
-          setTehsils(Tehsils);
-        } catch (err) {
-          console.error("Failed to fetch tehsils", err);
-          setError("Failed to fetch tehsils");
-        }
-      } else {
-        setTehsils([]);
-      }
-    };
-    fetchTehsils();
-  }, [district]);
-
-  useEffect(() => {
-    setDistrict("");
-    setTehsil("");
-  }, [division]);
-
-  useEffect(() => {
-    setTehsil("");
-  }, [district]);
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const params = {};
-        if (state !== "") params.state = state;
-        if (division !== "") params.division = division;
-        if (district !== "") params.district = district;
-        if (tehsil !== "") params.tehsil = tehsil;
-
-        const response = await mockAxiosInstance.get("/api/dashboard/stats", {
-          params,
-        });
-        setDashboardData(response.data);
-      } catch (err) {
-        setError("Failed to fetch dashboard data");
-        console.error(err);
-        setDashboardData(defaultCardData);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchDashboardData();
-  }, [state, division, district, tehsil]);
-
-  const handleCardClick = (label, type) => {
-    console.log(`Clicked card: ${label}, type: ${type}`);
-  };
-
-  const handleResetFilters = () => {
-    setState("");
-    setDivision("");
-    setDistrict("");
-    setTehsil("");
-  };
-
-  const applicationCards = dashboardData.filter(
-    (card) => card.category === "application",
-  );
-  const disbursementCards = dashboardData.filter(
-    (card) => card.category === "disbursement",
-  );
+  const appDynamicTitle = `${
+    appFilters.wise === "State"
+      ? "Division"
+      : appFilters.wise === "Division"
+      ? "District"
+      : "Tehsil"
+  }-wise Sanctioned Applications`;
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
         py: 2,
       }}
     >
-      {/* Header */}
       <Box
         sx={{
-          background: alpha(theme.palette.background.paper, 0.9),
+          background: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(20px)",
           borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-          position: "sticky",
-          top: 0,
-          zIndex: 1000,
           py: 2,
         }}
       >
         <Container maxWidth="xl">
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Box>
-              <Typography variant="h4" fontWeight="bold" color="primary">
-                Dashboard Overview
-              </Typography>
-              <Typography variant="body2" color="text.secondary" mt={0.5}>
-                Real-time application and disbursement metrics
-              </Typography>
-            </Box>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Box
-                sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  bgcolor: "success.main",
-                  animation: `${pulse} 2s infinite`,
-                }}
-              />
-              <Typography variant="caption" color="text.secondary">
-                Live Data
-              </Typography>
-            </Stack>
-          </Stack>
+          <Typography variant="h4" fontWeight="bold" sx={{ color: "#1e293b" }}>
+            Dashboard
+          </Typography>
         </Container>
       </Box>
 
       <Container maxWidth="xl" sx={{ mt: 4 }}>
-        {/* Filters */}
-        <GlassCard sx={{ p: 3, mb: 4 }}>
-          <Stack direction="row" alignItems="center" spacing={2} mb={3}>
-            <Avatar sx={{ bgcolor: "primary.main" }}>
-              <FilterList />
-            </Avatar>
-            <Box>
-              <Typography variant="h6" fontWeight="bold">
-                Filter Options
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Customize your data view
-              </Typography>
-            </Box>
-          </Stack>
+        <FilterSection
+          category="application"
+          filters={appFilters}
+          filterLoading={appFilters.filterLoading}
+        />
 
-          <Grid2 container spacing={3}>
-            <Grid2 xs={12} sm={6} md={2.4}>
-              <TextField
-                select
-                fullWidth
-                label="State"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
-                variant="outlined"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              >
-                <MenuItem value="">Select State</MenuItem>
-                <MenuItem value="0">Jammu & Kashmir</MenuItem>
-              </TextField>
-            </Grid2>
-
-            <Grid2 xs={12} sm={6} md={2.4}>
-              <TextField
-                select
-                fullWidth
-                label="Division"
-                value={division}
-                onChange={(e) => setDivision(e.target.value)}
-                variant="outlined"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              >
-                <MenuItem value="">Select Division</MenuItem>
-                <MenuItem value="1">Jammu</MenuItem>
-                <MenuItem value="2">Kashmir</MenuItem>
-              </TextField>
-            </Grid2>
-
-            <Grid2 xs={12} sm={6} md={2.4}>
-              <TextField
-                select
-                fullWidth
-                label="District"
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                variant="outlined"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              >
-                <MenuItem value="">Select District</MenuItem>
-                {districts.map((item, index) => (
-                  <MenuItem key={index} value={item.value}>
-                    {item.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid2>
-
-            <Grid2 xs={12} sm={6} md={2.4}>
-              <TextField
-                select
-                fullWidth
-                label="Tehsil"
-                value={tehsil}
-                onChange={(e) => setTehsil(e.target.value)}
-                variant="outlined"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              >
-                <MenuItem value="">Select Tehsil</MenuItem>
-                {tehsils.map((item, index) => (
-                  <MenuItem key={index} value={item.value}>
-                    {item.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid2>
-
-            <Grid2 xs={12} sm={6} md={2.4}>
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={handleResetFilters}
-                startIcon={<Refresh />}
-                sx={{
-                  height: "56px",
-                  borderRadius: 2,
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  "&:hover": {
-                    background:
-                      "linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)",
-                  },
-                }}
-              >
-                Reset
-              </Button>
-            </Grid2>
-          </Grid2>
-        </GlassCard>
-
-        {/* Main Content */}
-        {isLoading ? (
+        {appLoading ? (
           <Box
             display="flex"
             justifyContent="center"
@@ -843,7 +730,7 @@ export default function ModernMUIDashboard() {
               Loading dashboard data...
             </Typography>
           </Box>
-        ) : error ? (
+        ) : appError ? (
           <Paper
             sx={{
               p: 4,
@@ -854,91 +741,127 @@ export default function ModernMUIDashboard() {
           >
             <ErrorOutline sx={{ fontSize: 60, color: "error.main", mb: 2 }} />
             <Typography variant="h6" color="error.main">
-              {error}
+              {appError}
             </Typography>
           </Paper>
         ) : (
-          <Grid2 container spacing={4}>
-            {/* Application Status Section */}
-            <Grid2 xs={12}>
-              <GlassCard sx={{ p: 4 }}>
-                <SectionHeader>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar
-                      sx={{ bgcolor: "primary.main", width: 48, height: 48 }}
+          <>
+            <GlassCard sx={{ p: 3, mb: 4 }}>
+              <SectionHeader>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Avatar sx={{ bgcolor: "#4f46e5", width: 48, height: 48 }}>
+                    <Assessment />
+                  </Avatar>
+                  <Typography variant="h5" fontWeight="bold">
+                    Application Status ({appFilters.wise}-{appFilters.wiseName})
+                  </Typography>
+                </Stack>
+              </SectionHeader>
+              <Grid container spacing={3} mb={4}>
+                {appData.map((card, index) => (
+                  <Grid item xs={12} sm={6} md={4} lg={2.4} key={index}>
+                    <ModernStatCard card={card} onCardClick={handleCardClick} />
+                  </Grid>
+                ))}
+              </Grid>
+              <Divider sx={{ my: 3 }} />
+              <Box
+                sx={{ bgcolor: alpha("#f8fafc", 0.5), borderRadius: 3, p: 3 }}
+                id="application-charts"
+              >
+                <Typography variant="h6" fontWeight="bold" mb={3}>
+                  Status Distribution
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={appFilters.tehsil ? 6 : 4}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={2}
+                      mb={2}
                     >
-                      <Assessment />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h5" fontWeight="bold">
-                        Application Status
+                      <PieChart sx={{ color: "#4f46e5" }} />
+                      <Typography variant="subtitle1" fontWeight="medium">
+                        Status of Applications ({appFilters.wise}-
+                        {appFilters.wiseName})
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Overview of application processing status
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </SectionHeader>
-
-                <Grid2 container spacing={3} mb={4}>
-                  {applicationCards.map((card, index) => (
-                    <Grid2 xs={12} sm={6} md={4} lg={2.4} key={index}>
-                      <ModernStatCard card={card} onClick={handleCardClick} />
-                    </Grid2>
-                  ))}
-                </Grid2>
-
-                <Divider sx={{ my: 4 }} />
-
-                <Box
-                  sx={{
-                    bgcolor: alpha(theme.palette.background.default, 0.5),
-                    borderRadius: 3,
-                    p: 4,
-                  }}
-                >
-                  <Stack direction="row" alignItems="center" spacing={2} mb={3}>
-                    <PieChart color="primary" />
-                    <Typography variant="h6" fontWeight="bold">
-                      Status Distribution
-                    </Typography>
-                  </Stack>
-                  <StatusChart data={dashboardData} />
-                </Box>
-              </GlassCard>
-            </Grid2>
-
-            {/* Disbursement Metrics Section */}
-            <Grid2 xs={12}>
-              <GlassCard sx={{ p: 4 }}>
-                <SectionHeader>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar
-                      sx={{ bgcolor: "success.main", width: 48, height: 48 }}
+                    </Stack>
+                    <DonutChart
+                      data={statusDistributionData}
+                      chartTitle="Application Status"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={appFilters.tehsil ? 6 : 4}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={2}
+                      mb={2}
                     >
-                      <MonetizationOn />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h5" fontWeight="bold">
-                        Disbursement Metrics
+                      <PieChart sx={{ color: "#059669" }} />
+                      <Typography variant="subtitle1" fontWeight="medium">
+                        Category-wise Sanctioned Applications ({appFilters.wise}
+                        -{appFilters.wiseName})
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Financial disbursement and beneficiary statistics
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </SectionHeader>
+                    </Stack>
+                    <DonutChart
+                      data={categoryData}
+                      chartTitle="Category-wise Sanctioned Applications"
+                    />
+                  </Grid>
+                  {!appFilters.tehsil && (
+                    <Grid item xs={12} md={4}>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={2}
+                        mb={2}
+                      >
+                        <PieChart sx={{ color: "#0ea5e9" }} />
+                        <Typography variant="subtitle1" fontWeight="medium">
+                          {appDynamicTitle}
+                        </Typography>
+                      </Stack>
+                      <DonutChart
+                        data={locationData}
+                        chartTitle={appDynamicTitle}
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              </Box>
+            </GlassCard>
 
-                <Grid2 container spacing={3}>
-                  {disbursementCards.map((card, index) => (
-                    <Grid2 xs={12} sm={6} md={4} key={index}>
-                      <ModernStatCard card={card} onClick={handleCardClick} />
-                    </Grid2>
-                  ))}
-                </Grid2>
-              </GlassCard>
-            </Grid2>
-          </Grid2>
+            <GlassCard sx={{ p: 3 }}>
+              {selectedTable && (
+                <>
+                  <Divider sx={{ my: 3 }} />
+                  <ServerSideTable
+                    url={`/api/${
+                      selectedTable.category
+                    }/details?title=${encodeURIComponent(selectedTable.title)}`}
+                    extraParams={{
+                      state: appFilters.state,
+                      division: appFilters.division,
+                      district: appFilters.district,
+                      tehsil: appFilters.tehsil,
+                    }}
+                    Title={selectedTable.title}
+                    actionFunctions={{}}
+                    canSanction={false}
+                    canHavePool={false}
+                    pendingApplications={false}
+                    serviceId={null}
+                    onPushToPool={() => {}}
+                    onExecuteAction={() => {}}
+                    actionOptions={[]}
+                    selectedAction=""
+                    setSelectedAction={() => {}}
+                  />
+                </>
+              )}
+            </GlassCard>
+          </>
         )}
       </Container>
     </Box>

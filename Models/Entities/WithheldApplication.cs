@@ -17,5 +17,7 @@ public partial class WithheldApplication
 
     public string WithheldReason { get; set; } = null!;
 
+    public string? Files { get; set; }
+
     public DateOnly? WithheldOn { get; set; }
 }

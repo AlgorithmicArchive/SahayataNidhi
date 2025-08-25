@@ -128,7 +128,6 @@ namespace SahayataNidhi.Controllers.Officer
                 countList,
             });
         }
-
         [HttpGet]
         public IActionResult GetApplicationsCount(int ServiceId)
         {
@@ -173,7 +172,8 @@ namespace SahayataNidhi.Controllers.Officer
                 CanCorrigendum = authorities.canCorrigendum ?? false,
                 CanReturnToCitizen = authorities.canReturnToCitizen ?? false,
                 CanManageBankFiles = authorities.canManageBankFiles ?? false,
-                CanWithhold = authorities.canWithhold ?? false
+                CanWithhold = authorities.canWithhold ?? false,
+                CanValidateAadhaar = authorities.canValidateAadhaar ?? false
             };
 
             // Prepare SQL parameters
@@ -217,6 +217,20 @@ namespace SahayataNidhi.Controllers.Officer
             var correctionList = BuildCorrectionCounts(counts, officerAuthorities);
             var temporaryCountList = new List<dynamic>();
             var withheldCountList = new List<dynamic>();
+            var citizenPendingList = new List<dynamic>();
+
+            if (!(bool)officerAuthorities.CanReturnToCitizen)
+            {
+                citizenPendingList.Add(new
+                {
+                    label = "Pending With Citizen",
+                    count = counts.ReturnToEditCount,
+                    bgColor = "#CE93D8",
+                    textColor = "#4A148C",
+                    tooltipText = "Application is pending at Citizen level for correction.",
+                    tableTitle = "Pending With Citizen Applications",
+                });
+            }
 
             // Add Shifted Count only if count is greater than 0
             if (shiftedCount.ShiftedCount > 0)
@@ -293,6 +307,7 @@ namespace SahayataNidhi.Controllers.Officer
                 correctionList,
                 temporaryCountList,
                 withheldCountList,
+                citizenPendingList,
                 canSanction = officerAuthorities.CanSanction,
                 canHavePool = officerAuthorities.CanHavePool,
                 canCorrigendum = officerAuthorities.CanCorrigendum,
@@ -436,6 +451,17 @@ namespace SahayataNidhi.Controllers.Officer
                     });
                 }
 
+                if (type == "returntoedit" && !canPull)
+                {
+                    customActions.Add(new
+                    {
+                        type = "View",
+                        tooltip = "View",
+                        color = "#F0C38E",
+                        actionFunction = "handleViewApplication"
+                    });
+                }
+
                 var currentStatus = (string)officers[currentPlayer!]!["status"]!;
                 if (currentStatus != "returntoedit" && currentStatus != "sanctioned")
                 {
@@ -527,7 +553,13 @@ namespace SahayataNidhi.Controllers.Officer
             ? type.Split('_')[1]
             : type;
 
-            var response = dbcontext.WithheldApplications.Where(wh => wh.ServiceId == Convert.ToInt32(serviceId) && wh.WithheldType == withheldType).ToList();
+            _logger.LogInformation($"----- Withheld Type: {withheldType} --------------");
+
+            var response = dbcontext.WithheldApplications
+            .Where(wh => wh.ServiceId == Convert.ToInt32(serviceId) &&
+                        (withheldType == "total" || wh.WithheldType == withheldType))
+            .ToList();
+
             List<dynamic> columns =
             [
                 new { accessorKey = "sno", header = "S.No" },
@@ -543,13 +575,22 @@ namespace SahayataNidhi.Controllers.Officer
                 var details = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == application.ReferenceNumber);
                 var formdetails = JToken.Parse(details!.FormDetails!);
                 var applicantName = FindFieldRecursively(formdetails, "ApplicantName");
+                var customActions = new List<dynamic>();
+                customActions.Add(new
+                {
+                    type = "View",
+                    tooltip = "View",
+                    color = "#F0C38E",
+                    actionFunction = "handleViewApplication"
+                });
                 data.Add(new
                 {
                     sno = index,
                     referenceNumber = application.ReferenceNumber,
                     applicantName = (string)applicantName!["value"]!,
                     withheldType = application.WithheldType,
-                    withheldReason = application.WithheldReason
+                    withheldReason = application.WithheldReason,
+                    customActions
                 });
             }
 
@@ -778,6 +819,10 @@ namespace SahayataNidhi.Controllers.Officer
                .ToList();
 
             var formDetailsToken = JToken.Parse(details.FormDetails!);
+            // var extraFiles = new List<dynamic>
+            // {
+            //     sanctionedFile = new {}
+            // };
 
             bool hasPending = false;
             if (IsCorrigendumPending.Count != 0)
@@ -1788,7 +1833,8 @@ namespace SahayataNidhi.Controllers.Officer
 
 
                     var currentOfficer = workFlow!.FirstOrDefault(o => (string)o["designation"]! == officer.Role);
-
+                    var officerWithApplication = workFlow.FirstOrDefault(o => (int)o["playerId"]! == application.CurrentPlayer!);
+                    string? CurrentStatus = (string)officerWithApplication!["status"]!;
                     // Add Pull if applicable
                     bool canPull = currentOfficer?["canPull"] != null && (bool)currentOfficer["canPull"]!;
 
@@ -1809,13 +1855,14 @@ namespace SahayataNidhi.Controllers.Officer
 
 
                         bool isToEdit = matchedItem != null && (string?)matchedItem["status"] == "pending" && (int?)matchedItem["playerId"] == application.CurrentPlayer && authorities != null && (bool)authorities!.canCorrigendum && (string)firstAction["actionTaker"]! != "Citizen";
-                        string actionFunction = isToEdit ? "handleEditCorrigendumApplication" : "handleViewCorrigendumApplication";
+                        string actionFunction = isToEdit ? "handleEditCorrigendumApplication" : application.Status == "Sanctioned" ? "handleViewPdf" : "handleViewCorrigendumApplication";
                         customActions.Add
                         (
                             new
                             {
-                                type = "View",
-                                tooltip = "View",
+                                type = application.Status == "sanctioned" ? "View" : "DownloadCorrigendum",
+                                tooltip = "View Corrigendum",
+                                corrigendumId = application.CorrigendumId,
                                 color = "#F0C38E",
                                 actionFunction,
                             }
@@ -1831,6 +1878,7 @@ namespace SahayataNidhi.Controllers.Officer
                         applicationId = application.CorrigendumId,
                         createdBy = (string)firstAction["actionTaken"]! == "Citizen" ? "Citizent" : creationOfficerDesignation + " " + officerArea,
                         applicantName = GetFieldValue("ApplicantName", formDetails),
+                        currentStatus = CurrentStatus == "sanctioned" ? "Issued" : CurrentStatus,
                         creationDate = application.CreatedAt.ToString("dd MMM yyyy hh:mm:ss tt"),
                         applicationType = applicationType,
                         serviceId = citizenApp.ServiceId,
@@ -1844,6 +1892,7 @@ namespace SahayataNidhi.Controllers.Officer
                 new { accessorKey = "applicationId", header = applicationType + " Id" },
                 new { accessorKey = "createdBy", header = "Creation Officer" },
                 new { accessorKey = "applicantName", header = "Applicant Name" },
+                new { accessorKey = "currentStatus", header = "Current Status" },
                 new { accessorKey = "creationDate", header = applicationType + " Creation Date" },
                 new { accessorKey = "applicationType", header = "Application Type" }
             };
@@ -1910,6 +1959,17 @@ namespace SahayataNidhi.Controllers.Officer
 
             UpdateWorkflowFlags(applicationWorkFlow!, application.CurrentPlayer);
             application.WorkFlow = JsonConvert.SerializeObject(applicationWorkFlow);
+
+            if (!string.IsNullOrEmpty(corrigendumApplication.WorkFlow))
+            {
+                var corrigendumWorkFlow = JsonConvert.DeserializeObject<JArray>(corrigendumApplication.WorkFlow);
+
+                // Use the CurrentPlayer (or similar property) from corrigendumApplication
+                UpdateWorkflowFlags(corrigendumWorkFlow!, corrigendumApplication.CurrentPlayer);
+
+                corrigendumApplication.WorkFlow = JsonConvert.SerializeObject(corrigendumWorkFlow);
+            }
+
             dbcontext.SaveChanges();
 
             if (applicationWorkFlow != null)
@@ -2010,7 +2070,7 @@ namespace SahayataNidhi.Controllers.Officer
                     data.Add(new
                     {
                         sno = index,
-                        officer = officerName,
+                        actionTaker = officerName,
                         actionTaken = status,
                         remarks = historyRemarks,
                         actionTakenOn,
@@ -2225,8 +2285,38 @@ namespace SahayataNidhi.Controllers.Officer
             }
 
             bool canPermanentToTemporary = true;
+            var history = dbcontext.ActionHistories.Where(ah => ah.ReferenceNumber == referenceNumber && ah.ActionTaken.Contains("Withheld")).ToList();
+            var columns = new List<dynamic>
+            {
+                new { header = "S.No", accessorKey="sno" },
+                new { header = "Action Taker", accessorKey="actionTaker" },
+                new { header = "Action Taken",accessorKey="actionTaken" },
+                new { header = "Remarks", accessorKey="remarks" },
+                new { header = "Action Taken On",accessorKey="actionTakenOn" },
+            };
+            int index = 1;
+            List<dynamic> data = [];
+            foreach (var item in history)
+            {
+                string officerArea = GetOfficerAreaForHistory(item.LocationLevel!, item.LocationValue);
+
+                data.Add(new
+                {
+                    sno = index,
+                    actionTaker = item.ActionTaker != "Citizen" ? item.ActionTaker + " " + officerArea : item.ActionTaker,
+                    actionTaken = item.ActionTaken! == "ReturnToCitizen" ? "Returned to citizen for correction" : item.ActionTaken,
+                    remarks = item.Remarks,
+                    actionTakenOn = item.ActionTakenDate,
+                });
+                index++;
+            }
 
             var application = new ExpandoObject() as IDictionary<string, object>;
+            var Withheld = new ExpandoObject() as IDictionary<string, dynamic>;
+            Withheld["withheldType"] = withheldApplication!.WithheldType;
+            Withheld["withheldReason"] = withheldApplication!.WithheldReason;
+            Withheld["isWithheld"] = withheldApplication.IsWithheld;
+            Withheld["files"] = JsonConvert.DeserializeObject<List<string>>(withheldApplication.Files!)!;
             if (citizenApplication?.FormDetails != null)
             {
                 try
@@ -2251,13 +2341,161 @@ namespace SahayataNidhi.Controllers.Officer
                 application["applicantName"] = "N/A";
                 application["parentage"] = "N/A";
             }
-
             return Json(new
             {
                 status = true,
-                application = withheldApplication,
+                application = Withheld,
                 canPermanentToTemporary,
-                applicationDetails = application
+                applicationDetails = application,
+                data,
+                columns,
+            });
+        }
+
+        [HttpGet]
+       public IActionResult GetApplicationsForAadhaarValidation(int pageIndex = 0, int pageSize = 10, int serviceId = 1)
+    {
+        var officerDetails = GetOfficerDetails();
+
+        var role = new SqlParameter("@Role", officerDetails.Role);
+        var accessLevel = new SqlParameter("@AccessLevel", officerDetails.AccessLevel);
+        var accessCode = new SqlParameter("@AccessCode", officerDetails.AccessCode);
+        var applicationStatus = new SqlParameter("@ApplicationStatus", "sanctioned");
+        var ServiceId = new SqlParameter("@ServiceId", serviceId);
+        var pageIndexParam = new SqlParameter("@PageIndex", pageIndex);
+        var pageSizeParam = new SqlParameter("@PageSize", pageSize);
+        var isPaginated = new SqlParameter("@IsPaginated", 1);
+        var dataTypeParam = new SqlParameter("@DataType", "legacy");
+        var aadhaarFilterParam = new SqlParameter("@AadhaarFilter", "empty"); // Added for pending validations
+        var totalRecordsParam = new SqlParameter
+        {
+            ParameterName = "@TotalRecords",
+            SqlDbType = System.Data.SqlDbType.Int,
+            Direction = System.Data.ParameterDirection.Output
+        };
+
+        var response = dbcontext.CitizenApplications
+             .FromSqlRaw(
+                 "EXEC GetApplicationForAadhaarValidation @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @AadhaarFilter, @TotalRecords OUTPUT",
+                 role, accessLevel, accessCode, applicationStatus, ServiceId,
+                 pageIndexParam, pageSizeParam, isPaginated, dataTypeParam, aadhaarFilterParam, totalRecordsParam
+             )
+             .ToList();
+
+        int totalRecords = (int)(totalRecordsParam.Value ?? 0);
+
+        List<dynamic> columns =
+        [
+            new { accessorKey = "sno", header = "S.No" },
+            new { accessorKey = "referenceNumber", header = "Reference Number" },
+            new { accessorKey = "applicantName", header = "Applicant Name" },
+            new { accessorKey = "parentage", header = "Parentage" },
+            new { accessorKey = "dob", header = "Date Of Birth" },
+        ];
+        List<dynamic> data = [];
+
+        foreach(var app in response)
+        {
+            var customActions = new List<dynamic>();
+            customActions.Add(new
+            {
+                type = "ValidateAadhaar",
+                tooltip = "Validate",
+                color = "#F0C38E",
+                actionFunction = "handleValidateAadhaar"
+            });
+            var formDetails = JObject.Parse(app.FormDetails!);
+            var dob = GetFieldValue("DateOfBirth", formDetails);
+            if(DateTime.TryParse(dob, out DateTime dobDate))
+            {
+                dob = dobDate.ToString("dd MMM yyyy");
+            }
+            data.Add(new
+            {
+                sno = data.Count + 1 + (pageIndex * pageSize),
+                referenceNumber = app.ReferenceNumber,
+                applicantName = GetFieldValue("ApplicantName", formDetails) ?? "N/A",
+                parentage = GetFieldValue("RelationName", formDetails) ?? "N/A",
+                dob = dob ?? "N/A",
+                input = true,
+                customActions,
+            });
+        }
+
+        return Json(new
+        {
+            data,
+            columns,
+            totalRecords
+        });
+    }
+
+         public IActionResult GetValidatedAadhaarApplications(int pageIndex = 0, int pageSize = 10, int serviceId = 1)
+        {
+            var officerDetails = GetOfficerDetails();
+
+            var role = new SqlParameter("@Role", officerDetails.Role);
+            var accessLevel = new SqlParameter("@AccessLevel", officerDetails.AccessLevel);
+            var accessCode = new SqlParameter("@AccessCode", officerDetails.AccessCode);
+            var applicationStatus = new SqlParameter("@ApplicationStatus", "sanctioned");
+            var ServiceId = new SqlParameter("@ServiceId", serviceId);
+            var pageIndexParam = new SqlParameter("@PageIndex", pageIndex);
+            var pageSizeParam = new SqlParameter("@PageSize", pageSize);
+            var isPaginated = new SqlParameter("@IsPaginated", 1);
+            var dataTypeParam = new SqlParameter("@DataType", "legacy");
+            var aadhaarFilterParam = new SqlParameter("@AadhaarFilter", "not_empty");
+            var totalRecordsParam = new SqlParameter
+            {
+                ParameterName = "@TotalRecords",
+                SqlDbType = System.Data.SqlDbType.Int,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            var response = dbcontext.CitizenApplications
+                .FromSqlRaw(
+                    "EXEC GetApplicationForAadhaarValidation @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @AadhaarFilter, @TotalRecords OUTPUT",
+                    role, accessLevel, accessCode, applicationStatus, ServiceId,
+                    pageIndexParam, pageSizeParam, isPaginated, dataTypeParam, aadhaarFilterParam, totalRecordsParam
+                )
+                .ToList();
+
+            int totalRecords = (int)(totalRecordsParam.Value ?? 0);
+
+            List<dynamic> columns =
+            [
+                new { accessorKey = "sno", header = "S.No" },
+                new { accessorKey = "referenceNumber", header = "Reference Number" },
+                new { accessorKey = "applicantName", header = "Applicant Name" },
+                new { accessorKey = "parentage", header = "Parentage" },
+                new { accessorKey = "dob", header = "Date Of Birth" },
+                new { accessorKey = "aadhaarStatus", header = "Aadhaar Status" }
+            ];
+            List<dynamic> data = [];
+
+            foreach(var app in response)
+            {
+                var formDetails = JObject.Parse(app.FormDetails!);
+                var dob = GetFieldValue("DateOfBirth", formDetails);
+                if(DateTime.TryParse(dob, out DateTime dobDate))
+                {
+                    dob = dobDate.ToString("dd MMM yyyy");
+                }
+                data.Add(new
+                {
+                    sno = data.Count + 1 + (pageIndex * pageSize),
+                    referenceNumber = app.ReferenceNumber,
+                    applicantName = GetFieldValue("ApplicantName", formDetails) ?? "N/A",
+                    parentage = GetFieldValue("RelationName", formDetails) ?? "N/A",
+                    dob = dob ?? "N/A",
+                    aadhaarStatus = "Validated"
+                });
+            }
+
+            return Json(new
+            {
+                data,
+                columns,
+                totalRecords
             });
         }
 

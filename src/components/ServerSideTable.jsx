@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { MaterialReactTable } from "material-react-table";
 import {
   Box,
@@ -14,6 +14,7 @@ import {
   MenuItem,
   Menu,
   IconButton,
+  TextField,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -117,6 +118,52 @@ const StyledFormControl = styled(FormControl)`
   margin-right: 1rem;
 `;
 
+// Memoized Input Cell Component to prevent re-renders and focus loss
+const InputCell = React.memo(({ row, inputValues, setInputValues }) => {
+  const [localValue, setLocalValue] = useState(
+    inputValues[row.original.sno] || "",
+  );
+
+  // Sync local value with parent state only when parent state changes externally
+  useEffect(() => {
+    if (inputValues[row.original.sno] !== localValue) {
+      setLocalValue(inputValues[row.original.sno] || "");
+    }
+  }, [inputValues[row.original.sno], row.original.sno]); // Removed localValue from dependencies
+
+  const handleInputChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setLocalValue(value);
+
+      // Immediate update to parent state without debouncing
+      setInputValues((prev) => ({
+        ...prev,
+        [row.original.sno]: value,
+      }));
+    },
+    [row.original.sno, setInputValues],
+  );
+
+  return (
+    <TextField
+      type="text"
+      variant="outlined"
+      size="small"
+      value={localValue}
+      onChange={handleInputChange}
+      fullWidth
+      autoComplete="off"
+      placeholder="Enter Aadhaar Number"
+      inputProps={{
+        maxLength: 12,
+        pattern: "[0-9]*",
+      }}
+      onFocus={(e) => e.target.select()}
+    />
+  );
+});
+
 const ServerSideTable = React.forwardRef(
   (
     {
@@ -154,6 +201,7 @@ const ServerSideTable = React.forwardRef(
     const [columnVisibility, setColumnVisibility] = useState({});
     const [anchorEl, setAnchorEl] = useState(null);
     const [downloadType, setDownloadType] = useState(null);
+    const [inputValues, setInputValues] = useState({});
 
     // Storage key unique to the table instance
     const storageKey = Title.toLowerCase()
@@ -161,6 +209,11 @@ const ServerSideTable = React.forwardRef(
         index === 0 ? word.toLowerCase() : word.toUpperCase(),
       )
       .replace(/\s+/g, "");
+
+    // Memoized setInputValues to prevent unnecessary re-renders
+    const memoizedSetInputValues = useCallback((updater) => {
+      setInputValues(updater);
+    }, []);
 
     // Log props for debugging
     useEffect(() => {
@@ -230,6 +283,24 @@ const ServerSideTable = React.forwardRef(
       }
     }, [columnOrder, columnVisibility, saveColumnSettings]);
 
+    // Memoized function to create input column - removed inputValues dependency
+    const createInputColumn = useCallback(() => {
+      return {
+        accessorKey: "customInput",
+        header: "Aadhaar Number",
+        size: 150,
+        enableSorting: false,
+        enableColumnFilter: false,
+        Cell: ({ row }) => (
+          <InputCell
+            row={row}
+            inputValues={inputValues}
+            setInputValues={memoizedSetInputValues}
+          />
+        ),
+      };
+    }, [memoizedSetInputValues]); // Removed inputValues from dependencies
+
     const fetchData = useCallback(async () => {
       if (!url) {
         console.error("URL is undefined, cannot fetch data.");
@@ -251,15 +322,25 @@ const ServerSideTable = React.forwardRef(
             ...extraParams,
           },
         });
+
         const json = response.data;
+
         const hasAnyActions =
           json.data?.some((row) => row.customActions?.length > 0) ||
           json.poolData?.some((row) => row.customActions?.length > 0) ||
           false;
 
-        const updatedColumns = Object.values(json.columns || {}).map((col) =>
+        // base column config
+        let updatedColumns = Object.values(json.columns || {}).map((col) =>
           col.accessorKey === "sno" ? { ...col, size: 20 } : col,
         );
+
+        // 🔑 check if any row has "input: true"
+        const hasInputColumn = json.data?.some((row) => row.input === true);
+
+        if (hasInputColumn) {
+          updatedColumns.push(createInputColumn());
+        }
 
         setHasActions(hasAnyActions);
         setColumns(updatedColumns);
@@ -320,6 +401,7 @@ const ServerSideTable = React.forwardRef(
       pagination.pageSize,
       extraParams,
       refreshTrigger,
+      // Removed createInputColumn from dependencies to prevent refresh on input
     ]);
 
     useEffect(() => {
@@ -357,6 +439,11 @@ const ServerSideTable = React.forwardRef(
           Object.entries(extraParams).forEach(([key, value]) => {
             formData.append(key, value.toString());
           });
+        }
+
+        // Include input values in download
+        if (Object.keys(inputValues).length > 0) {
+          formData.append("inputValues", JSON.stringify(inputValues));
         }
 
         console.log("Sending formData:", {
@@ -430,6 +517,10 @@ const ServerSideTable = React.forwardRef(
         setRowSelection({});
       }
     };
+
+    // Memoize the table data to prevent unnecessary re-renders
+    const memoizedTableData = useMemo(() => tableData, [tableData]);
+    const memoizedColumns = useMemo(() => columns, [columns]);
 
     return (
       <TableContainer ref={ref}>
@@ -525,9 +616,9 @@ const ServerSideTable = React.forwardRef(
             </Box>
           )}
           <MaterialReactTable
-            key={`${pagination.pageIndex}-${pagination.pageSize}`}
-            columns={columns}
-            data={tableData}
+            key={`table-${Title}`} // Stable key instead of pagination-based
+            columns={memoizedColumns}
+            data={memoizedTableData}
             state={{
               pagination,
               isLoading,
@@ -640,6 +731,10 @@ const ServerSideTable = React.forwardRef(
                             actionFunctions[action.actionFunction]?.(
                               row,
                               action,
+                              {
+                                inputValue: inputValues[row.original.sno] || "",
+                                allInputValues: inputValues,
+                              },
                             )
                           }
                           aria-label={`${
@@ -669,7 +764,7 @@ const ServerSideTable = React.forwardRef(
                     <ActionButton
                       variant="contained"
                       disabled={selectedRows.length === 0}
-                      onClick={() => onPushToPool(selectedRows)}
+                      onClick={() => onPushToPool(selectedRows, inputValues)}
                       aria-label="Push selected applications to pool"
                     >
                       Push to Pool
@@ -700,7 +795,7 @@ const ServerSideTable = React.forwardRef(
                     <ActionButton
                       variant="contained"
                       disabled={selectedRows.length === 0}
-                      onClick={() => onExecuteAction(selectedRows)}
+                      onClick={() => onExecuteAction(selectedRows, inputValues)}
                       aria-label={`Execute ${selectedAction.toLowerCase()} action`}
                     >
                       Execute

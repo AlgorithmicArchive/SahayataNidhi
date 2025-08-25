@@ -295,19 +295,32 @@ const MyNavbar = () => {
                       Corrections/Corrigendum
                     </NavDropdown.Item>
                   )}
-                  {officerAuthorities.canWithhold &&(
-                  <NavDropdown.Item
-                    as={Link}
-                    to="/officer/withheld"
-                    style={getNavItemStyle(
-                      "officer-withheld",
-                      "/officer/withheld",
-                    )}
-                    onClick={() => setExpanded(false)}
-                  >
-                    Withheld Application
-                  </NavDropdown.Item>
-                 )}
+                  {officerAuthorities.canWithhold && (
+                    <NavDropdown.Item
+                      as={Link}
+                      to="/officer/withheld"
+                      style={getNavItemStyle(
+                        "officer-withheld",
+                        "/officer/withheld",
+                      )}
+                      onClick={() => setExpanded(false)}
+                    >
+                      Withheld Application
+                    </NavDropdown.Item>
+                  )}
+                  {officerAuthorities.canValidateAadhaar && (
+                    <NavDropdown.Item
+                      as={Link}
+                      to="/officer/validateaadhaar"
+                      style={getNavItemStyle(
+                        "officer-validateaadhaar",
+                        "/officer/validateaadhaar",
+                      )}
+                      onClick={() => setExpanded(false)}
+                    >
+                      Validate Aadhaar
+                    </NavDropdown.Item>
+                  )}
                 </NavDropdown>
               </>
             )}

@@ -311,16 +311,6 @@ export default function ViewApplicationDetails() {
           } details:`,
           error,
         );
-        toast.error(
-          `Failed to load ${
-            isCorrection ? "correction" : "corrigendum"
-          } details. Please try again.`,
-          {
-            position: "top-center",
-            autoClose: 3000,
-            theme: "colored",
-          },
-        );
       } finally {
         setLoading(false);
       }
@@ -331,11 +321,6 @@ export default function ViewApplicationDetails() {
         await fetchUserDetail(referenceNumber, setFormDetails);
       } catch (error) {
         console.error("Error fetching user details:", error);
-        toast.error("Failed to load user details. Please try again.", {
-          position: "top-center",
-          autoClose: 3000,
-          theme: "colored",
-        });
       } finally {
         setLoading(false);
       }

@@ -31,7 +31,6 @@ namespace SahayataNidhi.Controllers.User
             return Json(new { status = true, formDetails = JsonConvert.DeserializeObject<dynamic>(application!.FormDetails!) });
         }
 
-
         [HttpGet]
         public IActionResult GetFormDetails(string applicationId)
         {
@@ -181,7 +180,8 @@ namespace SahayataNidhi.Controllers.User
                     // Only proceed if there is NO initiated corrigendum
                     if (!hasInitiatedCorrection && DateTime.TryParse(expiringEligibility.ExpirationDate, out DateTime expirationDate))
                     {
-                        bool isExpiringSoon = expirationDate > DateTime.Today && expirationDate <= DateTime.Today.AddMonths(3);
+                        int daysLeft = (expirationDate - DateTime.Today).Days;
+                        bool isExpiringSoon = daysLeft >= 0 && daysLeft <= 90;
                         if (isExpiringSoon && application.Status == "Sanctioned")
                         {
                             actions.Clear();
@@ -227,13 +227,6 @@ namespace SahayataNidhi.Controllers.User
             var totalRecords = applications.Count;
 
             var pagedApplications = applications
-                .OrderBy(a =>
-                {
-                    var parts = a.ReferenceNumber.Split('/');
-                    var numberPart = parts.Last(); // Get the last part (e.g., "1", "10")
-                    return int.Parse(numberPart); // Convert to integer for numerical sorting
-                })
-                .ThenBy(a => a.ReferenceNumber)
                 .Skip(pageIndex * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -248,12 +241,12 @@ namespace SahayataNidhi.Controllers.User
 
             // Correctly initialize data list
             List<dynamic> data = [];
-            List<dynamic> actions = [];
             int index = 0;
 
 
             foreach (var application in pagedApplications)
             {
+                List<dynamic> actions = [];
                 var formDetails = JsonConvert.DeserializeObject<dynamic>(application.FormDetails!);
                 actions.Add(new { id = (pageIndex * pageSize) + index + 1, tooltip = "Edit", color = "#F0C38E", actionFunction = "IncompleteForm" });
                 data.Add(new
@@ -283,7 +276,7 @@ namespace SahayataNidhi.Controllers.User
             var players = JsonConvert.DeserializeObject<dynamic>(application!.WorkFlow!) as JArray;
             int currentPlayerIndex = (int)application.CurrentPlayer!;
             var currentPlayer = players!.FirstOrDefault(o => (int)o["playerId"]! == currentPlayerIndex);
-            var history = await dbcontext.ActionHistories.Where(ah => ah.ReferenceNumber == ApplicationId).ToListAsync();
+            var history = await dbcontext.ActionHistories.Where(ah => ah.ReferenceNumber == ApplicationId && !ah.ActionTaken.Contains("Withheld")).ToListAsync();
             var formDetails = JsonConvert.DeserializeObject<dynamic>(application.FormDetails!);
 
             var columns = new List<dynamic>
@@ -291,6 +284,7 @@ namespace SahayataNidhi.Controllers.User
                 new { header = "S.No", accessorKey="sno" },
                 new { header = "Action Taker", accessorKey="actionTaker" },
                 new { header = "Action Taken",accessorKey="actionTaken" },
+                new { header = "Remarks", accessorKey="remarks" },
                 new { header = "Action Taken On",accessorKey="actionTakenOn" },
             };
             int index = 1;
@@ -298,13 +292,13 @@ namespace SahayataNidhi.Controllers.User
             foreach (var item in history)
             {
                 string officerArea = GetOfficerAreaForHistory(item.LocationLevel!, item.LocationValue);
-                _logger.LogInformation($"------ OFFICER AREA: {officerArea} ---------------------");
 
                 data.Add(new
                 {
                     sno = index,
                     actionTaker = item.ActionTaker != "Citizen" ? item.ActionTaker + " " + officerArea : item.ActionTaker,
                     actionTaken = item.ActionTaken! == "ReturnToCitizen" ? "Returned to citizen for correction" : item.ActionTaken,
+                    remarks = item.Remarks,
                     actionTakenOn = item.ActionTakenDate,
                 });
                 index++;

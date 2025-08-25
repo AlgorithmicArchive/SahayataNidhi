@@ -84,7 +84,7 @@ export default function Form() {
         {
           label: "Applicant Image",
           name: "ApplicantImage",
-          File: "/assets/dummyDocs/Male2.jpg",
+          File: "a1cfecb01ca7.jpg",
         },
         {
           label: "Date of Birth",
@@ -160,10 +160,27 @@ export default function Form() {
             },
             {
               label: "Present Ward",
-              name: "PresentWard",
+              name: "PresentWardNo",
               value: "11013",
             },
           ],
+        },
+        {
+          label: "Present Pincode",
+          name: "PresentPincode",
+          value: "180001",
+        },
+      ],
+      "Permanent Address Details": [
+        {
+          label: "Permanent Address  (H.No., Street Name)",
+          name: "PermanentAddress",
+          value: "123, Main Street, Jammu",
+        },
+        {
+          label: "Permanent Address Type",
+          name: "PermanentAddressType",
+          value: "Urban",
         },
         {
           label: "Present Pincode",
@@ -289,7 +306,7 @@ export default function Form() {
         {
           label: "Applicant Image",
           name: "ApplicantImage",
-          File: "/assets/dummyDocs/Male2.jpg",
+          File: "a1cfecb01ca7.jpg",
         },
         {
           label: "Date of Birth",
@@ -365,10 +382,27 @@ export default function Form() {
             },
             {
               label: "Present Ward",
-              name: "PresentWard",
+              name: "PresentWardNo",
               value: "11013",
             },
           ],
+        },
+        {
+          label: "Present Pincode",
+          name: "PresentPincode",
+          value: "180001",
+        },
+      ],
+      "Permanent Address Details": [
+        {
+          label: "Permanent Address  (H.No., Street Name)",
+          name: "PermanentAddress",
+          value: "123, Main Street, Jammu",
+        },
+        {
+          label: "Permanent Address Type",
+          name: "PermanentAddressType",
+          value: "Urban",
         },
         {
           label: "Present Pincode",
@@ -473,7 +507,7 @@ export default function Form() {
         {
           label: "Applicant Image",
           name: "ApplicantImage",
-          File: "/assets/dummyDocs/Female2.jpg",
+          File: "a1cfecb01ca7.jpg",
         },
         {
           label: "Date of Birth",
@@ -549,10 +583,27 @@ export default function Form() {
             },
             {
               label: "Present Ward",
-              name: "PresentWard",
+              name: "PresentWardNo",
               value: "11013",
             },
           ],
+        },
+        {
+          label: "Present Pincode",
+          name: "PresentPincode",
+          value: "180001",
+        },
+      ],
+      "Permanent Address Details": [
+        {
+          label: "Permanent Address  (H.No., Street Name)",
+          name: "PermanentAddress",
+          value: "123, Main Street, Jammu",
+        },
+        {
+          label: "Permanent Address Type",
+          name: "PermanentAddressType",
+          value: "Urban",
         },
         {
           label: "Present Pincode",
