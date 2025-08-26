@@ -2353,84 +2353,84 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         [HttpGet]
-       public IActionResult GetApplicationsForAadhaarValidation(int pageIndex = 0, int pageSize = 10, int serviceId = 1)
-    {
-        var officerDetails = GetOfficerDetails();
-
-        var role = new SqlParameter("@Role", officerDetails.Role);
-        var accessLevel = new SqlParameter("@AccessLevel", officerDetails.AccessLevel);
-        var accessCode = new SqlParameter("@AccessCode", officerDetails.AccessCode);
-        var applicationStatus = new SqlParameter("@ApplicationStatus", "sanctioned");
-        var ServiceId = new SqlParameter("@ServiceId", serviceId);
-        var pageIndexParam = new SqlParameter("@PageIndex", pageIndex);
-        var pageSizeParam = new SqlParameter("@PageSize", pageSize);
-        var isPaginated = new SqlParameter("@IsPaginated", 1);
-        var dataTypeParam = new SqlParameter("@DataType", "legacy");
-        var aadhaarFilterParam = new SqlParameter("@AadhaarFilter", "empty"); // Added for pending validations
-        var totalRecordsParam = new SqlParameter
+        public IActionResult GetApplicationsForAadhaarValidation(int pageIndex = 0, int pageSize = 10, int serviceId = 1)
         {
-            ParameterName = "@TotalRecords",
-            SqlDbType = System.Data.SqlDbType.Int,
-            Direction = System.Data.ParameterDirection.Output
-        };
+            var officerDetails = GetOfficerDetails();
 
-        var response = dbcontext.CitizenApplications
-             .FromSqlRaw(
-                 "EXEC GetApplicationForAadhaarValidation @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @AadhaarFilter, @TotalRecords OUTPUT",
-                 role, accessLevel, accessCode, applicationStatus, ServiceId,
-                 pageIndexParam, pageSizeParam, isPaginated, dataTypeParam, aadhaarFilterParam, totalRecordsParam
-             )
-             .ToList();
+            var role = new SqlParameter("@Role", officerDetails.Role);
+            var accessLevel = new SqlParameter("@AccessLevel", officerDetails.AccessLevel);
+            var accessCode = new SqlParameter("@AccessCode", officerDetails.AccessCode);
+            var applicationStatus = new SqlParameter("@ApplicationStatus", "sanctioned");
+            var ServiceId = new SqlParameter("@ServiceId", serviceId);
+            var pageIndexParam = new SqlParameter("@PageIndex", pageIndex);
+            var pageSizeParam = new SqlParameter("@PageSize", pageSize);
+            var isPaginated = new SqlParameter("@IsPaginated", 1);
+            var dataTypeParam = new SqlParameter("@DataType", "legacy");
+            var aadhaarFilterParam = new SqlParameter("@AadhaarFilter", "empty"); // Added for pending validations
+            var totalRecordsParam = new SqlParameter
+            {
+                ParameterName = "@TotalRecords",
+                SqlDbType = System.Data.SqlDbType.Int,
+                Direction = System.Data.ParameterDirection.Output
+            };
 
-        int totalRecords = (int)(totalRecordsParam.Value ?? 0);
+            var response = dbcontext.CitizenApplications
+                 .FromSqlRaw(
+                     "EXEC GetApplicationForAadhaarValidation @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @AadhaarFilter, @TotalRecords OUTPUT",
+                     role, accessLevel, accessCode, applicationStatus, ServiceId,
+                     pageIndexParam, pageSizeParam, isPaginated, dataTypeParam, aadhaarFilterParam, totalRecordsParam
+                 )
+                 .ToList();
 
-        List<dynamic> columns =
-        [
-            new { accessorKey = "sno", header = "S.No" },
+            int totalRecords = (int)(totalRecordsParam.Value ?? 0);
+
+            List<dynamic> columns =
+            [
+                new { accessorKey = "sno", header = "S.No" },
             new { accessorKey = "referenceNumber", header = "Reference Number" },
             new { accessorKey = "applicantName", header = "Applicant Name" },
             new { accessorKey = "parentage", header = "Parentage" },
             new { accessorKey = "dob", header = "Date Of Birth" },
         ];
-        List<dynamic> data = [];
+            List<dynamic> data = [];
 
-        foreach(var app in response)
-        {
-            var customActions = new List<dynamic>();
-            customActions.Add(new
+            foreach (var app in response)
             {
-                type = "ValidateAadhaar",
-                tooltip = "Validate",
-                color = "#F0C38E",
-                actionFunction = "handleValidateAadhaar"
-            });
-            var formDetails = JObject.Parse(app.FormDetails!);
-            var dob = GetFieldValue("DateOfBirth", formDetails);
-            if(DateTime.TryParse(dob, out DateTime dobDate))
-            {
-                dob = dobDate.ToString("dd MMM yyyy");
+                var customActions = new List<dynamic>();
+                customActions.Add(new
+                {
+                    type = "ValidateAadhaar",
+                    tooltip = "Validate",
+                    color = "#F0C38E",
+                    actionFunction = "handleValidateAadhaar"
+                });
+                var formDetails = JObject.Parse(app.FormDetails!);
+                var dob = GetFieldValue("DateOfBirth", formDetails);
+                if (DateTime.TryParse(dob, out DateTime dobDate))
+                {
+                    dob = dobDate.ToString("dd MMM yyyy");
+                }
+                data.Add(new
+                {
+                    sno = data.Count + 1 + (pageIndex * pageSize),
+                    referenceNumber = app.ReferenceNumber,
+                    applicantName = GetFieldValue("ApplicantName", formDetails) ?? "N/A",
+                    parentage = GetFieldValue("RelationName", formDetails) ?? "N/A",
+                    dob = dob ?? "N/A",
+                    input = true,
+                    customActions,
+                });
             }
-            data.Add(new
+
+            return Json(new
             {
-                sno = data.Count + 1 + (pageIndex * pageSize),
-                referenceNumber = app.ReferenceNumber,
-                applicantName = GetFieldValue("ApplicantName", formDetails) ?? "N/A",
-                parentage = GetFieldValue("RelationName", formDetails) ?? "N/A",
-                dob = dob ?? "N/A",
-                input = true,
-                customActions,
+                data,
+                columns,
+                totalRecords
             });
         }
 
-        return Json(new
-        {
-            data,
-            columns,
-            totalRecords
-        });
-    }
-
-         public IActionResult GetValidatedAadhaarApplications(int pageIndex = 0, int pageSize = 10, int serviceId = 1)
+        public IActionResult GetValidatedAadhaarApplications(int pageIndex = 0, int pageSize = 10, int serviceId = 1)
         {
             var officerDetails = GetOfficerDetails();
 
@@ -2472,11 +2472,11 @@ namespace SahayataNidhi.Controllers.Officer
             ];
             List<dynamic> data = [];
 
-            foreach(var app in response)
+            foreach (var app in response)
             {
                 var formDetails = JObject.Parse(app.FormDetails!);
                 var dob = GetFieldValue("DateOfBirth", formDetails);
-                if(DateTime.TryParse(dob, out DateTime dobDate))
+                if (DateTime.TryParse(dob, out DateTime dobDate))
                 {
                     dob = dobDate.ToString("dd MMM yyyy");
                 }
@@ -2499,5 +2499,157 @@ namespace SahayataNidhi.Controllers.Officer
             });
         }
 
+
+        public class AadhaarValidationCount
+        {
+            public int TotalSanctioned { get; set; }
+            public int AadhaarValidated { get; set; }
+            public int AadhaarNotValidated { get; set; }
+        }
+
+        public IActionResult GetAadhaarValidationCount(string serviceId, string? division = null, string? district = null, string? tehsil = null)
+        {
+            var officerDetails = GetOfficerDetails();
+
+            // Compute restricted filters based on officer access
+            string officerAccessLevel = officerDetails.AccessLevel!;
+            int? officerAccessCode = officerDetails.AccessCode;
+            int? restrictedDivision = null;
+            int? restrictedDistrict = null;
+            int? restrictedTehsil = null;
+
+            if (officerAccessLevel == "Division")
+            {
+                restrictedDivision = officerAccessCode;
+            }
+            else if (officerAccessLevel == "District")
+            {
+                var districtEntity = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == officerAccessCode);
+                if (districtEntity != null)
+                {
+                    restrictedDivision = districtEntity.Division; // Assuming DivisionId property
+                    restrictedDistrict = officerAccessCode;
+                }
+            }
+            else if (officerAccessLevel == "Tehsil")
+            {
+                var tehsilEntity = dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == officerAccessCode);
+                if (tehsilEntity != null)
+                {
+                    restrictedDistrict = tehsilEntity.DistrictId;
+                    var districtEntity = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == tehsilEntity.DistrictId);
+                    if (districtEntity != null)
+                    {
+                        restrictedDivision = districtEntity.Division;
+                    }
+                    restrictedTehsil = officerAccessCode;
+                }
+            }
+
+            // Enforce restrictions by overriding input parameters if necessary
+            if (restrictedTehsil != null)
+            {
+                tehsil = restrictedTehsil.ToString();
+            }
+            if (restrictedDistrict != null)
+            {
+                district = restrictedDistrict.ToString();
+            }
+            if (restrictedDivision != null)
+            {
+                division = restrictedDivision.ToString();
+            }
+
+            string accessLevel;
+            object? accessCode = DBNull.Value;
+            object? divisionCode = DBNull.Value;
+
+            // Pick correct access level
+            if (!string.IsNullOrWhiteSpace(tehsil))
+            {
+                accessLevel = "Tehsil";
+                accessCode = int.TryParse(tehsil, out var tehsilVal) ? tehsilVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(district))
+            {
+                accessLevel = "District";
+                accessCode = int.TryParse(district, out var districtVal) ? districtVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(division))
+            {
+                accessLevel = "Division";
+                accessCode = int.TryParse(division, out var divisionVal) ? divisionVal : DBNull.Value;
+                divisionCode = accessCode; // For compatibility with SQL proc
+            }
+            else
+            {
+                accessLevel = "State";
+            }
+
+            var parameters = new List<SqlParameter>
+    {
+        new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
+        new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
+        new("@AccessCode", SqlDbType.Int) { Value = accessCode ?? DBNull.Value },
+        new("@DivisionCode", SqlDbType.Int) { Value = divisionCode ?? DBNull.Value },
+        new("@AadhaarFilter", SqlDbType.VarChar) { Value = DBNull.Value } // null by default
+    };
+
+            // Fetch Aadhaar validation counts
+            var counts = dbcontext.Database
+                .SqlQueryRaw<AadhaarValidationCount>(
+                    "EXEC GetAadhaarValidationCount @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @AadhaarFilter",
+                    parameters.ToArray()
+                )
+                .AsEnumerable()
+                .FirstOrDefault() ?? new AadhaarValidationCount();
+
+            // Define application status data
+            var dataList = new List<dynamic>
+    {
+        new
+        {
+            title = "Total Sanctioned",
+            value = counts.TotalSanctioned.ToString("N0"),
+            category = "application",
+            color = "primary",
+            bgColor = "#f8faff",
+            gradientStart = "#4f46e5",
+            gradientEnd = "#3b82f6",
+        },
+        new
+        {
+            title = "Aadhaar Validated",
+            value = counts.AadhaarValidated.ToString("N0"),
+            category = "application",
+            color = "success",
+            bgColor = "#f0fdf4",
+            gradientStart = "#059669",
+            gradientEnd = "#10b981",
+        },
+        new
+        {
+            title = "Aadhaar Not Validated",
+            value = counts.AadhaarNotValidated.ToString("N0"),
+            category = "application",
+            color = "warning",
+            bgColor = "#fffbeb",
+            gradientStart = "#f59e0b",
+            gradientEnd = "#fbbf24",
+        },
+    };
+
+            // Prepare officer access info for frontend
+            var officerAccess = new
+            {
+                accessLevel = officerAccessLevel,
+                accessCode = officerAccessCode,
+                restrictedDivision,
+                restrictedDistrict,
+                restrictedTehsil
+            };
+
+            return Json(new { dataList, officerAccess });
+        }
     }
 }

@@ -322,6 +322,21 @@ const MyNavbar = () => {
                     </NavDropdown.Item>
                   )}
                 </NavDropdown>
+                <Nav.Link
+                  as={Link}
+                  to="/officer/aadhaarvalidations"
+                  style={getNavItemStyle(
+                    "officer-aadhaarvalidations",
+                    "/officer/aadhaarvalidations",
+                  )}
+                  onClick={() => setExpanded(false)}
+                  onMouseEnter={() =>
+                    handleMouseEnter("officer-aadhaarvalidations")
+                  }
+                  onMouseLeave={handleMouseLeave}
+                >
+                  Aadhaar Validations
+                </Nav.Link>
               </>
             )}
 
@@ -336,6 +351,21 @@ const MyNavbar = () => {
                   onMouseLeave={handleMouseLeave}
                 >
                   Home
+                </Nav.Link>
+                <Nav.Link
+                  as={Link}
+                  to="/viewer/aadhaarvalidations"
+                  style={getNavItemStyle(
+                    "viewer-aadhaarvalidations",
+                    "/viewer/aadhaarvalidations",
+                  )}
+                  onClick={() => setExpanded(false)}
+                  onMouseEnter={() =>
+                    handleMouseEnter("viewer-aadhaarvalidations")
+                  }
+                  onMouseLeave={handleMouseLeave}
+                >
+                  Aadhaar Validations
                 </Nav.Link>
               </>
             )}

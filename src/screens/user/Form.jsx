@@ -192,17 +192,17 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "JAMMU AND KASHMIR BANK",
+          value: "77",
         },
         {
           label: "Branch Name",
           name: "BranchName",
-          value: "MAIN BAZAR",
+          value: "92453",
         },
         {
           label: "IFSC Code",
           name: "IfscCode",
-          value: "JAKA0KEEPER",
+          value: "887110",
         },
         {
           label: "Account Number",
@@ -414,17 +414,17 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "JAMMU AND KASHMIR BANK",
+          value: "77",
         },
         {
           label: "Branch Name",
           name: "BranchName",
-          value: "MAIN BAZAR",
+          value: "92453",
         },
         {
           label: "IFSC Code",
           name: "IfscCode",
-          value: "JAKA0KEEPER",
+          value: "887110",
         },
         {
           label: "Account Number",
@@ -615,17 +615,17 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "JAMMU AND KASHMIR BANK",
+          value: "77",
         },
         {
           label: "Branch Name",
           name: "BranchName",
-          value: "MAIN BAZAR",
+          value: "92453",
         },
         {
           label: "IFSC Code",
           name: "IfscCode",
-          value: "JAKA0KEEPER",
+          value: "887110",
         },
         {
           label: "Account Number",

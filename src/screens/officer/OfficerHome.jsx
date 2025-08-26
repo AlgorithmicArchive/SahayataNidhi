@@ -1711,7 +1711,7 @@ export default function OfficerHome() {
                   />
                 </>
               )}
-            <MuiTooltip title="Withheld Applications After Sanction" arrow>
+            <MuiTooltip title="Withheld Payments After Sanction" arrow>
               <Typography
                 variant="h5"
                 sx={{
@@ -1723,7 +1723,7 @@ export default function OfficerHome() {
                   mt: 2,
                 }}
               >
-                Withheld Application Payments (After Sanction)
+                Withheld Payments (After Sanction)
               </Typography>
             </MuiTooltip>
             <Row
@@ -2417,7 +2417,7 @@ export default function OfficerHome() {
                       variant="h6"
                       sx={{ mb: 3, fontWeight: 600, color: "#2d3748" }}
                     >
-                      Application Status Distribution
+                      Status of New Applications
                     </Typography>
                     <Box sx={{ height: "350px" }}>
                       <Pie data={pieData} options={chartOptions} />
@@ -2432,7 +2432,7 @@ export default function OfficerHome() {
                       variant="h6"
                       sx={{ mb: 3, fontWeight: 600, color: "#2d3748" }}
                     >
-                      Application Counts
+                      New Applications Count
                     </Typography>
                     <Box sx={{ height: "350px" }}>
                       <Bar data={barData} options={chartOptions} />

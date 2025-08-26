@@ -48,6 +48,8 @@ import Corrections from "../screens/designer/Corrections";
 import UpdateExpiringDocument from "../screens/user/UpdateExpiringDocument";
 import Withheld from "../screens/officer/Withheld";
 import ValidateAadhaar from "../screens/officer/ValidateAadhaar";
+import AadhaarValidations from "../screens/viewer/AadhaarValidations";
+import OfficerAadhaarValidations from "../screens/officer/AadhaarValidations";
 
 const RoutesComponent = () => {
   return (
@@ -92,18 +94,20 @@ const RoutesComponent = () => {
           <Route path="issuecorrigendum" element={<IssueCorrigendum />} />
           <Route path="withheld" element={<Withheld />} />
           <Route
+            path="aadhaarvalidations"
+            element={<OfficerAadhaarValidations />}
+          />
+          <Route
             path="viewcorrigendumdetails"
             element={<ViewCorrigendumDetails />}
           />
-          <Route
-            path="validateaadhaar"
-            element={<ValidateAadhaar />}
-          />
+          <Route path="validateaadhaar" element={<ValidateAadhaar />} />
         </Route>
       </Route>
       <Route element={<ProtectedRoute requiredRoles={["Viewer"]} />}>
         <Route path="/viewer" element={<ViewerLayout />}>
           <Route path="home" element={<ViewerHome />} />
+          <Route path="aadhaarvalidations" element={<AadhaarValidations />} />
         </Route>
       </Route>
       <Route element={<ProtectedRoute requiredRoles={["Admin"]} />}>

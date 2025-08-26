@@ -289839,7 +289839,18 @@ var MyNavbar = function MyNavbar() {
     onClick: function onClick() {
       return setExpanded(false);
     }
-  }, "Validate Aadhaar"))), userType === "Viewer" && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement((react__WEBPACK_IMPORTED_MODULE_1___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
+  }, "Validate Aadhaar")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
+    as: react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Link,
+    to: "/officer/aadhaarvalidations",
+    style: getNavItemStyle("officer-aadhaarvalidations", "/officer/aadhaarvalidations"),
+    onClick: function onClick() {
+      return setExpanded(false);
+    },
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("officer-aadhaarvalidations");
+    },
+    onMouseLeave: handleMouseLeave
+  }, "Aadhaar Validations")), userType === "Viewer" && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement((react__WEBPACK_IMPORTED_MODULE_1___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
     as: react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Link,
     to: "/viewer/home",
     style: getNavItemStyle("viewer-home", "/viewer/home"),
@@ -289850,7 +289861,18 @@ var MyNavbar = function MyNavbar() {
       return handleMouseEnter("viewer-home");
     },
     onMouseLeave: handleMouseLeave
-  }, "Home")), userType === "Admin" && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement((react__WEBPACK_IMPORTED_MODULE_1___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
+  }, "Home"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
+    as: react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Link,
+    to: "/viewer/aadhaarvalidations",
+    style: getNavItemStyle("viewer-aadhaarvalidations", "/viewer/aadhaarvalidations"),
+    onClick: function onClick() {
+      return setExpanded(false);
+    },
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("viewer-aadhaarvalidations");
+    },
+    onMouseLeave: handleMouseLeave
+  }, "Aadhaar Validations")), userType === "Admin" && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement((react__WEBPACK_IMPORTED_MODULE_1___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
     as: react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Link,
     to: "/admin/home",
     style: getNavItemStyle("admin-home", "/admin/home"),
@@ -290217,6 +290239,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _screens_user_UpdateExpiringDocument__WEBPACK_IMPORTED_MODULE_46__ = __webpack_require__(/*! ../screens/user/UpdateExpiringDocument */ "./src/screens/user/UpdateExpiringDocument.jsx");
 /* harmony import */ var _screens_officer_Withheld__WEBPACK_IMPORTED_MODULE_47__ = __webpack_require__(/*! ../screens/officer/Withheld */ "./src/screens/officer/Withheld.jsx");
 /* harmony import */ var _screens_officer_ValidateAadhaar__WEBPACK_IMPORTED_MODULE_48__ = __webpack_require__(/*! ../screens/officer/ValidateAadhaar */ "./src/screens/officer/ValidateAadhaar.jsx");
+/* harmony import */ var _screens_viewer_AadhaarValidations__WEBPACK_IMPORTED_MODULE_49__ = __webpack_require__(/*! ../screens/viewer/AadhaarValidations */ "./src/screens/viewer/AadhaarValidations.jsx");
+/* harmony import */ var _screens_officer_AadhaarValidations__WEBPACK_IMPORTED_MODULE_50__ = __webpack_require__(/*! ../screens/officer/AadhaarValidations */ "./src/screens/officer/AadhaarValidations.jsx");
 // RoutesComponent.jsx
 
 
@@ -290232,6 +290256,8 @@ __webpack_require__.r(__webpack_exports__);
 
  // Import the ProtectedRoute component
  // Create this component
+
+
 
 
 
@@ -290358,6 +290384,9 @@ var RoutesComponent = function RoutesComponent() {
     path: "withheld",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_screens_officer_Withheld__WEBPACK_IMPORTED_MODULE_47__["default"], null)
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
+    path: "aadhaarvalidations",
+    element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_screens_officer_AadhaarValidations__WEBPACK_IMPORTED_MODULE_50__["default"], null)
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "viewcorrigendumdetails",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_screens_officer_ViewCorrigendumDetails__WEBPACK_IMPORTED_MODULE_44__["default"], null)
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
@@ -290373,6 +290402,9 @@ var RoutesComponent = function RoutesComponent() {
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "home",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_screens_viewer_ViewerHome__WEBPACK_IMPORTED_MODULE_42__["default"], null)
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
+    path: "aadhaarvalidations",
+    element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_screens_viewer_AadhaarValidations__WEBPACK_IMPORTED_MODULE_49__["default"], null)
   }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ProtectedRoute__WEBPACK_IMPORTED_MODULE_12__["default"], {
       requiredRoles: ["Admin"]
@@ -294998,8 +295030,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
-/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
-/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/esm/typeof.js");
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/esm/typeof.js");
+/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
 /* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
 /* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
@@ -295323,72 +295355,30 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
   // Effect to manage non-rendered fields
   (0,react__WEBPACK_IMPORTED_MODULE_7__.useEffect)(function () {
     if (!formSections.length) return;
-    var formData = getValues();
-    var renderedFields = collectRenderedFields(formSections, formData);
-    var allPossibleFields = new Set();
-
-    // Collect all possible fields to identify non-rendered ones
-    formSections.forEach(function (section) {
-      section.fields.forEach(function (field) {
-        allPossibleFields.add(field.name);
-        if (field.type === "enclosure") {
-          allPossibleFields.add("".concat(field.name, "_select"));
-          allPossibleFields.add("".concat(field.name, "_file"));
-        }
-        if (field.additionalFields) {
-          Object.values(field.additionalFields).flat().forEach(function (af) {
-            var nestedFieldName = af.name || "".concat(field.name, "_").concat(af.id);
-            allPossibleFields.add(nestedFieldName);
-            if (af.type === "enclosure") {
-              allPossibleFields.add("".concat(nestedFieldName, "_select"));
-              allPossibleFields.add("".concat(nestedFieldName, "_file"));
-            }
-            if (af.additionalFields) {
-              Object.values(af.additionalFields).flat().forEach(function (nestedAf) {
-                var nestedNestedFieldName = nestedAf.name || "".concat(nestedFieldName, "_").concat(nestedAf.id);
-                allPossibleFields.add(nestedNestedFieldName);
-                if (nestedAf.type === "enclosure") {
-                  allPossibleFields.add("".concat(nestedNestedFieldName, "_select"));
-                  allPossibleFields.add("".concat(nestedNestedFieldName, "_file"));
-                }
-              });
-            }
-          });
-        }
-      });
-    });
-
-    // Clear non-rendered fields
-    Array.from(allPossibleFields).forEach(function (fieldName) {
-      if (!renderedFields.includes(fieldName)) {
-        setValue(fieldName, null, {
-          shouldValidate: false
-        });
-        unregister(fieldName, {
-          keepValue: false
-        });
-      }
-    });
-  }, [formSections, watch, getValues, setValue, unregister, JSON.stringify(watchedDependableValues)]);
-  (0,react__WEBPACK_IMPORTED_MODULE_7__.useEffect)(function () {
-    if (!formSections.length) return;
     formSections.forEach(function (section) {
       section.fields.forEach(function (field) {
         var _field$dependentValue;
         // Handle dependent selects
         if (field.type === "select" && field.dependentOn && field.dependentOptions) {
           var parentValue = watch(field.dependentOn);
-          var options = field.dependentOptions[parentValue] || [];
+          var options = field.dependentOptions[parentValue] || field.options || [];
           var currentValue = getValues(field.name);
-          if (options.length > 0) {
-            var _options$;
-            // If current value is not in options, reset to first available
-            setValue(field.name, ((_options$ = options[1]) === null || _options$ === void 0 ? void 0 : _options$.value) || "", {
-              shouldValidate: true
+
+          // Only reset if current value is invalid AND we're not in initial load
+          if (options.length > 0 && currentValue && currentValue !== "Please Select") {
+            var isValueValid = options.some(function (opt) {
+              return opt.value.toString() === currentValue.toString();
             });
-          } else if (currentValue) {
-            // If no options and value is set, clear it
-            setValue(field.name, "", {
+
+            // Only reset if the current value is not in the available options
+            if (!isValueValid) {
+              setValue(field.name, "Please Select", {
+                shouldValidate: true
+              });
+            }
+          } else if (options.length === 0 && currentValue && currentValue !== "Please Select") {
+            // If no options available and value is set, clear it
+            setValue(field.name, "Please Select", {
               shouldValidate: true
             });
           }
@@ -295401,15 +295391,21 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           additionalFields.forEach(function (af) {
             if (af.type === "select" && af.dependentOn && af.dependentOptions) {
               var _parentValue = watch(af.dependentOn);
-              var _options = af.dependentOptions[_parentValue] || [];
+              var _options = af.dependentOptions[_parentValue] || af.options || [];
               var _currentValue = getValues(af.name);
-              if (_options.length > 0) {
-                var _options$2;
-                setValue(af.name, ((_options$2 = _options[1]) === null || _options$2 === void 0 ? void 0 : _options$2.value) || "", {
-                  shouldValidate: true
+
+              // Only reset if current value is invalid
+              if (_options.length > 0 && _currentValue && _currentValue !== "Please Select") {
+                var _isValueValid = _options.some(function (opt) {
+                  return opt.value.toString() === _currentValue.toString();
                 });
-              } else if (_currentValue) {
-                setValue(af.name, "", {
+                if (!_isValueValid) {
+                  setValue(af.name, "Please Select", {
+                    shouldValidate: true
+                  });
+                }
+              } else if (_options.length === 0 && _currentValue && _currentValue !== "Please Select") {
+                setValue(af.name, "Please Select", {
                   shouldValidate: true
                 });
               }
@@ -295431,7 +295427,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               shouldValidate: true
             });
             return;
-          } else if (initialData[field.name] && (getValues(selectFieldName) == null || getValues(fileFieldName) == null)) {
+          } else if (initialData !== null && initialData !== void 0 && initialData[field.name] && (getValues(selectFieldName) == null || getValues(fileFieldName) == null)) {
             setValue(selectFieldName, initialData[field.name].selected || "", {
               shouldValidate: true
             });
@@ -295442,7 +295438,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
         }
       });
     });
-  }, [formSections, getValues, setValue, JSON.stringify(watchedDependableValues)]);
+  }, [formSections, getValues, setValue, initialData, JSON.stringify(watchedDependableValues)]);
   function isDocumentInData(fieldName, flatDetails) {
     return Object.keys(flatDetails).includes(fieldName);
   }
@@ -295578,7 +295574,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
     }
     function _loadForm() {
       _loadForm = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee2() {
-        var _ref5, ServiceId, _referenceNumber, config, result, _yield$fetchFormDetai, formDetails, _additionalDetails, value, flatDetails, resetData, returnFields, dependableFields, _flatDetails, _resetData, _t2;
+        var _bankResponse$data, _ref5, ServiceId, _referenceNumber, config, bankResponse, bankOptions, result, updatedConfig, _yield$fetchFormDetai, formDetails, _additionalDetails, value, flatDetails, resetData, returnFields, dependableFields, _branchResponse$data, branchResponse, branchOptions, _ifscResponse$data, ifscResponse, ifscOptions, _flatDetails, _resetData, _branchResponse$data2, _branchResponse, _branchOptions, _ifscResponse$data2, _ifscResponse, _ifscOptions, _t2;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
@@ -295588,30 +295584,61 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               if (_referenceNumber) {
                 setReferenceNumber(_referenceNumber);
               }
+
+              // Fetch bank names
               _context2.next = 1;
-              return (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_26__.GetServiceContent)(ServiceId);
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetBanks");
             case 1:
+              bankResponse = _context2.sent;
+              bankOptions = [{
+                label: "Please Select",
+                value: "Please Select"
+              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_bankResponse$data = bankResponse.data) === null || _bankResponse$data === void 0 ? void 0 : _bankResponse$data.data) || []).map(function (bank) {
+                return {
+                  value: bank.id,
+                  label: bank.name
+                };
+              })));
+              _context2.next = 2;
+              return (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_26__.GetServiceContent)(ServiceId);
+            case 2:
               result = _context2.sent;
               if (result && result.status) {
                 try {
                   config = JSON.parse(result.formElement);
-                  setFormSections(sanitizeFormSections(config));
+
+                  // Inject bank options into BankName
+                  updatedConfig = config.map(function (section) {
+                    if (section.section === "Bank Details") {
+                      return _objectSpread(_objectSpread({}, section), {}, {
+                        fields: section.fields.map(function (field) {
+                          return field.name === "BankName" ? _objectSpread(_objectSpread({}, field), {}, {
+                            options: bankOptions
+                          }) : field;
+                        })
+                      });
+                    }
+                    return section;
+                  });
+                  setFormSections(sanitizeFormSections(updatedConfig));
                 } catch (err) {
                   console.error("Error parsing formElements:", err);
                   setFormSections([]);
                 }
               }
+
+              // Handle edit/incomplete mode
               if (!((mode === "incomplete" || mode === "edit") && _referenceNumber)) {
-                _context2.next = 3;
+                _context2.next = 7;
                 break;
               }
-              _context2.next = 2;
+              _context2.next = 3;
               return (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_26__.fetchFormDetails)(_referenceNumber);
-            case 2:
+            case 3:
               _yield$fetchFormDetai = _context2.sent;
               formDetails = _yield$fetchFormDetai.formDetails;
               _additionalDetails = _yield$fetchFormDetai.additionalDetails;
-              if (mode === "edit" || mode == "incomplete") {
+              if (mode === "edit" || mode === "incomplete") {
                 value = getValues("AadharNumber");
                 if (value && value.length > 12) {
                   setAadhaarValid(true);
@@ -295619,12 +295646,13 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               }
               flatDetails = flattenFormDetails(formDetails);
               setInitialData(flatDetails);
+
+              // Prepare resetData
               resetData = _objectSpread(_objectSpread({}, flatDetails), Object.keys(flatDetails).reduce(function (acc, key) {
-                if (flatDetails[key] && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(flatDetails[key]) === "object" && "selected" in flatDetails[key]) {
+                if (flatDetails[key] && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(flatDetails[key]) === "object" && "selected" in flatDetails[key]) {
                   acc["".concat(key, "_select")] = flatDetails[key].selected;
                   acc["".concat(key, "_file")] = flatDetails[key].file;
                   setDefaultFile("".concat(key, "_file"), flatDetails[key].file, false);
-                  // Set OtherDocument from Other enclosure's selected value
                   if (key === "Other") {
                     acc["OtherDocument"] = flatDetails[key].selected || "";
                   }
@@ -295635,22 +295663,205 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               dependableFields = getDependableFields(config, returnFields, flatDetails);
               setAreas(formDetails);
               setDependableFields(dependableFields);
+
+              // Reset form with values
               reset(resetData);
 
+              // Load Branches if BankName already present
+              if (!(flatDetails.BankName && flatDetails.BankName !== "Please Select")) {
+                _context2.next = 6;
+                break;
+              }
+              _context2.next = 4;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetBranches?bankId=".concat(flatDetails.BankName));
+            case 4:
+              branchResponse = _context2.sent;
+              branchOptions = [{
+                label: "Please Select",
+                value: "Please Select"
+              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_branchResponse$data = branchResponse.data) === null || _branchResponse$data === void 0 ? void 0 : _branchResponse$data.data) || []).map(function (branch) {
+                return {
+                  value: branch.id,
+                  label: branch.name
+                };
+              })));
+              setFormSections(function (prevSections) {
+                return prevSections.map(function (section) {
+                  return section.section === "Bank Details" ? _objectSpread(_objectSpread({}, section), {}, {
+                    fields: section.fields.map(function (field) {
+                      return field.name === "BranchName" ? _objectSpread(_objectSpread({}, field), {}, {
+                        options: branchOptions
+                      }) : field;
+                    })
+                  }) : section;
+                });
+              });
+
+              // Set BranchName after options are updated
+              if (flatDetails.BranchName && branchOptions.some(function (opt) {
+                return opt.value.toString() === flatDetails.BranchName.toString();
+              })) {
+                setValue("BranchName", flatDetails.BranchName, {
+                  shouldValidate: true
+                });
+              } else {
+                setValue("BranchName", "Please Select", {
+                  shouldValidate: true
+                });
+              }
+
+              // Load IFSC codes if BranchName already present
+              if (!(flatDetails.BranchName && flatDetails.BranchName !== "Please Select")) {
+                _context2.next = 6;
+                break;
+              }
+              _context2.next = 5;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetIfscCodes?branchId=".concat(flatDetails.BranchName));
+            case 5:
+              ifscResponse = _context2.sent;
+              ifscOptions = [{
+                label: "Please Select",
+                value: "Please Select"
+              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_ifscResponse$data = ifscResponse.data) === null || _ifscResponse$data === void 0 ? void 0 : _ifscResponse$data.data) || []).map(function (ifsc) {
+                return {
+                  value: ifsc.name,
+                  label: ifsc.name
+                };
+              })));
+              setFormSections(function (prevSections) {
+                return prevSections.map(function (section) {
+                  return section.section === "Bank Details" ? _objectSpread(_objectSpread({}, section), {}, {
+                    fields: section.fields.map(function (field) {
+                      return field.name === "IfscCode" ? _objectSpread(_objectSpread({}, field), {}, {
+                        options: ifscOptions
+                      }) : field;
+                    })
+                  }) : section;
+                });
+              });
+
+              // Set IfscCode after options are updated
+              if (flatDetails.IfscCode) {
+                setValue("IfscCode", flatDetails.IfscCode, {
+                  shouldValidate: true
+                });
+              }
+            case 6:
+              _context2.next = 11;
+              break;
+            case 7:
+              if (!(data !== null && data !== undefined)) {
+                _context2.next = 11;
+                break;
+              }
+              _flatDetails = flattenFormDetails(data);
+              _resetData = _objectSpread(_objectSpread({}, _flatDetails), Object.keys(_flatDetails).reduce(function (acc, key) {
+                if (_flatDetails[key] && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(_flatDetails[key]) === "object" && "selected" in _flatDetails[key]) {
+                  acc["".concat(key, "_select")] = _flatDetails[key].selected;
+                  acc["".concat(key, "_file")] = _flatDetails[key].file;
+                  setDefaultFile("".concat(key, "_file"), _flatDetails[key].file, false);
+                  if (key === "Other") {
+                    acc["OtherDocument"] = _flatDetails[key].selected || "";
+                  }
+                }
+                return acc;
+              }, {}));
+              setInitialData(_flatDetails);
+              reset(_resetData);
+
+              // Load Branches if BankName already present
+              if (!(_flatDetails.BankName && _flatDetails.BankName !== "Please Select")) {
+                _context2.next = 10;
+                break;
+              }
+              _context2.next = 8;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetBranches?bankId=".concat(_flatDetails.BankName));
+            case 8:
+              _branchResponse = _context2.sent;
+              _branchOptions = [{
+                label: "Please Select",
+                value: "Please Select"
+              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_branchResponse$data2 = _branchResponse.data) === null || _branchResponse$data2 === void 0 ? void 0 : _branchResponse$data2.data) || []).map(function (branch) {
+                return {
+                  value: branch.id,
+                  label: branch.name
+                };
+              })));
+              setFormSections(function (prevSections) {
+                return prevSections.map(function (section) {
+                  return section.section === "Bank Details" ? _objectSpread(_objectSpread({}, section), {}, {
+                    fields: section.fields.map(function (field) {
+                      return field.name === "BranchName" ? _objectSpread(_objectSpread({}, field), {}, {
+                        options: _branchOptions
+                      }) : field;
+                    })
+                  }) : section;
+                });
+              });
+
+              // Set BranchName after options are updated
+              if (_flatDetails.BranchName && _branchOptions.some(function (opt) {
+                return opt.value.toString() === _flatDetails.BranchName.toString();
+              })) {
+                setValue("BranchName", _flatDetails.BranchName, {
+                  shouldValidate: true
+                });
+              } else {
+                setValue("BranchName", "Please Select", {
+                  shouldValidate: true
+                });
+              }
+
+              // Load IFSC codes if BranchName already present
+              if (!(_flatDetails.BranchName && _flatDetails.BranchName !== "Please Select")) {
+                _context2.next = 10;
+                break;
+              }
+              _context2.next = 9;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetIfscCodes?branchId=".concat(_flatDetails.BranchName));
+            case 9:
+              _ifscResponse = _context2.sent;
+              _ifscOptions = [{
+                label: "Please Select",
+                value: "Please Select"
+              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_ifscResponse$data2 = _ifscResponse.data) === null || _ifscResponse$data2 === void 0 ? void 0 : _ifscResponse$data2.data) || []).map(function (ifsc) {
+                return {
+                  value: ifsc.name,
+                  label: ifsc.name
+                };
+              })));
+              setFormSections(function (prevSections) {
+                return prevSections.map(function (section) {
+                  return section.section === "Bank Details" ? _objectSpread(_objectSpread({}, section), {}, {
+                    fields: section.fields.map(function (field) {
+                      return field.name === "IfscCode" ? _objectSpread(_objectSpread({}, field), {}, {
+                        options: _ifscOptions
+                      }) : field;
+                    })
+                  }) : section;
+                });
+              });
+
+              // Set IfscCode after options are updated
+              if (_flatDetails.IfscCode) {
+                setValue("IfscCode", _flatDetails.IfscCode, {
+                  shouldValidate: true
+                });
+              }
+            case 10:
               // Set default files for enclosures
               formSections.forEach(function (section) {
                 section.fields.forEach(function (field) {
                   if (field.type === "enclosure") {
                     var _flatDetails$field$na;
                     var fileFieldName = "".concat(field.name, "_file");
-                    var fileUrl = (_flatDetails$field$na = flatDetails[field.name]) === null || _flatDetails$field$na === void 0 ? void 0 : _flatDetails$field$na.file;
+                    var fileUrl = (_flatDetails$field$na = _flatDetails[field.name]) === null || _flatDetails$field$na === void 0 ? void 0 : _flatDetails$field$na.file;
                     if (fileUrl && typeof fileUrl === "string") {
                       var _field$dependentValue2;
-                      // Check if the enclosure is dependent and visible
                       if (field.isDependentEnclosure && field.dependentField && ((_field$dependentValue2 = field.dependentValues) === null || _field$dependentValue2 === void 0 ? void 0 : _field$dependentValue2.length) > 0) {
-                        var parentValue = flatDetails[field.dependentField];
+                        var parentValue = _flatDetails[field.dependentField];
                         if (!field.dependentValues.includes(parentValue)) {
-                          return; // Skip if dependency condition is not met
+                          return;
                         }
                       }
                       setDefaultFile(fileFieldName, fileUrl);
@@ -295658,67 +295869,28 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                   }
                 });
               });
-              setAdditionalDetails(_additionalDetails);
-              _context2.next = 4;
-              break;
-            case 3:
-              if (data !== null && data !== undefined) {
-                _flatDetails = flattenFormDetails(data);
-                _resetData = _objectSpread(_objectSpread({}, _flatDetails), Object.keys(_flatDetails).reduce(function (acc, key) {
-                  if (_flatDetails[key] && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(_flatDetails[key]) === "object" && "selected" in _flatDetails[key]) {
-                    acc["".concat(key, "_select")] = _flatDetails[key].selected;
-                    acc["".concat(key, "_file")] = _flatDetails[key].file;
-                    // Set OtherDocument from Other enclosure's selected value
-                    if (key === "Other") {
-                      acc["OtherDocument"] = _flatDetails[key].selected || "";
-                    }
-                  }
-                  return acc;
-                }, {}));
-                setInitialData(_flatDetails);
-                reset(_resetData);
-
-                // Set default files for enclosures
-                formSections.forEach(function (section) {
-                  section.fields.forEach(function (field) {
-                    if (field.type === "enclosure") {
-                      var _flatDetails$field$na2;
-                      var fileFieldName = "".concat(field.name, "_file");
-                      var fileUrl = (_flatDetails$field$na2 = _flatDetails[field.name]) === null || _flatDetails$field$na2 === void 0 ? void 0 : _flatDetails$field$na2.file;
-                      if (fileUrl && typeof fileUrl === "string") {
-                        var _field$dependentValue3;
-                        // Check if the enclosure is dependent and visible
-                        if (field.isDependentEnclosure && field.dependentField && ((_field$dependentValue3 = field.dependentValues) === null || _field$dependentValue3 === void 0 ? void 0 : _field$dependentValue3.length) > 0) {
-                          var parentValue = _flatDetails[field.dependentField];
-                          if (!field.dependentValues.includes(parentValue)) {
-                            return; // Skip if dependency condition is not met
-                          }
-                        }
-                        setDefaultFile(fileFieldName, fileUrl);
-                      }
-                    }
-                  });
-                });
-              }
-            case 4:
+            case 11:
+              // Loop through data and trigger dependent changes
               if (data != null) {
                 Object.keys(data).forEach(function (key, sectionIndex) {
-                  data[key].map(function (item, index) {
+                  data[key].map(function (item) {
                     if (item.name.toLowerCase().includes("district")) {
                       handleAreaChange(sectionIndex, {
                         name: item.name
                       }, item.value);
+                    } else if (item.name.toLowerCase().includes("bank") || item.name.toLowerCase().includes("branch") || item.name.toLowerCase().includes("ifsc")) {
+                      handleBankChange(sectionIndex, item, item.value);
                     }
                     setValue(item.name, item.value);
                     if (item.additionalFields) {
                       var fieldsArray = [];
                       if (Array.isArray(item.additionalFields)) {
                         fieldsArray = item.additionalFields;
-                      } else if ((0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(item.additionalFields) === "object" && !Array.isArray(item.additionalFields)) {
+                      } else if ((0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(item.additionalFields) === "object" && !Array.isArray(item.additionalFields)) {
                         Object.values(item.additionalFields).forEach(function (arr) {
                           if (Array.isArray(arr)) {
                             var _fieldsArray;
-                            (_fieldsArray = fieldsArray).push.apply(_fieldsArray, (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(arr));
+                            (_fieldsArray = fieldsArray).push.apply(_fieldsArray, (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(arr));
                           }
                         });
                       }
@@ -295743,21 +295915,21 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                   });
                 });
               }
-              _context2.next = 6;
+              _context2.next = 13;
               break;
-            case 5:
-              _context2.prev = 5;
+            case 12:
+              _context2.prev = 12;
               _t2 = _context2["catch"](0);
               console.error("Error fetching service content:", _t2);
-            case 6:
-              _context2.prev = 6;
+            case 13:
+              _context2.prev = 13;
               setLoading(false);
-              return _context2.finish(6);
-            case 7:
+              return _context2.finish(13);
+            case 14:
             case "end":
               return _context2.stop();
           }
-        }, _callee2, null, [[0, 5, 6, 7]]);
+        }, _callee2, null, [[0, 12, 13, 14]]);
       }));
       return _loadForm.apply(this, arguments);
     }
@@ -295830,15 +296002,15 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
     if (!formSections.length) return;
     formSections.forEach(function (section) {
       section.fields.forEach(function (field) {
-        var _field$dependentValue4;
+        var _field$dependentValue3;
         // Handle dependent selects
         if (field.type === "select" && field.dependentOn && field.dependentOptions) {
           var parentValue = watch(field.dependentOn);
           var options = field.dependentOptions[parentValue] || [];
           var currentValue = getValues(field.name);
           if (options.length > 0) {
-            var _options$3;
-            setValue(field.name, ((_options$3 = options[1]) === null || _options$3 === void 0 ? void 0 : _options$3.value) || "", {
+            var _options$;
+            setValue(field.name, ((_options$ = options[1]) === null || _options$ === void 0 ? void 0 : _options$.value) || "", {
               shouldValidate: true
             });
           } else if (currentValue) {
@@ -295872,7 +296044,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
         }
 
         // Handle dependent enclosures
-        if (field.type === "enclosure" && field.isDependentEnclosure && field.dependentField && ((_field$dependentValue4 = field.dependentValues) === null || _field$dependentValue4 === void 0 ? void 0 : _field$dependentValue4.length) > 0) {
+        if (field.type === "enclosure" && field.isDependentEnclosure && field.dependentField && ((_field$dependentValue3 = field.dependentValues) === null || _field$dependentValue3 === void 0 ? void 0 : _field$dependentValue3.length) > 0) {
           var watchedValue = getValues(field.dependentField);
           var shouldShow = field.dependentValues.includes(watchedValue);
           var selectFieldName = "".concat(field.name, "_select");
@@ -295889,7 +296061,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
         }
       });
     });
-  }, [watch].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(enclosureDependentFields.map(function (_ref6) {
+  }, [watch].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(enclosureDependentFields.map(function (_ref6) {
     var dependentField = _ref6.dependentField;
     return watch(dependentField);
   }))));
@@ -295981,7 +296153,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                     presentField = _arr[_i];
                     fieldValue = getValues(presentField.name);
                     permanentFieldName = presentField.name.replace("Present", "Permanent");
-                    permanentField = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(permanentSection.fields), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(permanentAdditionalFields)).find(function (f) {
+                    permanentField = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(permanentSection.fields), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(permanentAdditionalFields)).find(function (f) {
                       return f.name.toLowerCase() === permanentFieldName.toLowerCase();
                     });
                     if (permanentField) {
@@ -296008,9 +296180,9 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                 }
               }, _loop);
             });
-            _i = 0, _arr = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(presentSection.fields.filter(function (f) {
+            _i = 0, _arr = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(presentSection.fields.filter(function (f) {
               return f.name !== presentTypeField.name;
-            })), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(presentAdditionalFields));
+            })), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(presentAdditionalFields));
           case 5:
             if (!(_i < _arr.length)) {
               _context5.next = 8;
@@ -296038,7 +296210,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                       _context4.next = 1;
                       return trigger(permanentTypeField.name);
                     case 1:
-                      _i2 = 0, _arr2 = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(permanentSection.fields), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(permanentAdditionalFields));
+                      _i2 = 0, _arr2 = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(permanentSection.fields), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(permanentAdditionalFields));
                     case 2:
                       if (!(_i2 < _arr2.length)) {
                         _context4.next = 7;
@@ -296253,11 +296425,11 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
             return _context9.abrupt("return");
           case 1:
             // Normalize to arrays
-            childFieldNames = (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(match.childname) === "object" ? match.childname[AddressType] : match.childname;
+            childFieldNames = (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(match.childname) === "object" ? match.childname[AddressType] : match.childname;
             if (!Array.isArray(childFieldNames)) {
               childFieldNames = [childFieldNames];
             }
-            tableNames = (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(match.respectiveTable) === "object" ? match.respectiveTable[AddressType] : match.respectiveTable;
+            tableNames = (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(match.respectiveTable) === "object" ? match.respectiveTable[AddressType] : match.respectiveTable;
             if (!Array.isArray(tableNames)) {
               tableNames = [tableNames];
             }
@@ -296309,7 +296481,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                       });
                     }
                     setFormSections(function (prevSections) {
-                      var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(prevSections);
+                      var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
                       var section = newSections[sectionIndex];
                       var updated = false;
                       section.fields = section.fields.map(function (f) {
@@ -296322,7 +296494,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                         }
 
                         // Check nested fields in additionalFields for Urban and Rural
-                        if (f.additionalFields && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(f.additionalFields) === "object") {
+                        if (f.additionalFields && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(f.additionalFields) === "object") {
                           // Handle Urban fields
                           if (Array.isArray(f.additionalFields.Urban)) {
                             f.additionalFields.Urban = f.additionalFields.Urban.map(function (af) {
@@ -296396,6 +296568,177 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
       return _ref1.apply(this, arguments);
     };
   }();
+  var handleBankChange = /*#__PURE__*/function () {
+    var _ref10 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee8(sectionIndex, field, value) {
+      var _response$data2, pleaseSelectOption, childField, nextChild, currentChildValue, currentNextValue, fieldNames, match, childFieldName, endpoint, response, _data, uniqueOptions, seenValues, newOptions, currentValue, isValueValid, currentIfscValue, _pleaseSelectOption, _childField, _t6;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context0) {
+        while (1) switch (_context0.prev = _context0.next) {
+          case 0:
+            _context0.prev = 0;
+            pleaseSelectOption = [{
+              label: "Please Select",
+              value: "Please Select"
+            }];
+            if (!(value === "Please Select")) {
+              _context0.next = 1;
+              break;
+            }
+            childField = field.name === "BankName" ? "BranchName" : "IfscCode";
+            nextChild = field.name === "BankName" ? "IfscCode" : null; // Only reset child fields, don't force set them
+            currentChildValue = getValues(childField);
+            if (currentChildValue && currentChildValue !== "Please Select") {
+              setValue(childField, "Please Select", {
+                shouldValidate: true
+              });
+            }
+            setFormSections(function (prevSections) {
+              var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+              newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(function (f) {
+                return f.name === childField ? _objectSpread(_objectSpread({}, f), {}, {
+                  options: pleaseSelectOption
+                }) : f;
+              });
+              return newSections;
+            });
+            if (nextChild) {
+              currentNextValue = getValues(nextChild);
+              if (currentNextValue && currentNextValue !== "Please Select") {
+                setValue(nextChild, "Please Select", {
+                  shouldValidate: true
+                });
+              }
+              setFormSections(function (prevSections) {
+                var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+                newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(function (f) {
+                  return f.name === nextChild ? _objectSpread(_objectSpread({}, f), {}, {
+                    options: pleaseSelectOption
+                  }) : f;
+                });
+                return newSections;
+              });
+            }
+            return _context0.abrupt("return");
+          case 1:
+            fieldNames = [{
+              name: "BankName",
+              childname: "BranchName",
+              respectiveTable: "Branches"
+            }, {
+              name: "BranchName",
+              childname: "IfscCode",
+              respectiveTable: "IfscCodes"
+            }];
+            match = fieldNames.find(function (f) {
+              return f.name === field.name;
+            });
+            if (match) {
+              _context0.next = 2;
+              break;
+            }
+            console.warn("Field \"".concat(field.name, "\" not found in bank fieldNames."));
+            return _context0.abrupt("return");
+          case 2:
+            childFieldName = match.childname;
+            if (field.name === "BankName") {
+              endpoint = "/Base/GetBranches?bankId=".concat(value);
+            } else if (field.name === "BranchName") {
+              endpoint = "/Base/GetIfscCodes?branchId=".concat(value);
+            }
+            _context0.next = 3;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get(endpoint);
+          case 3:
+            response = _context0.sent;
+            _data = ((_response$data2 = response.data) === null || _response$data2 === void 0 ? void 0 : _response$data2.data) || []; // Deduplicate options
+            uniqueOptions = [];
+            seenValues = new Set();
+            _data.forEach(function (item) {
+              var _item$id2;
+              var optionValue = (_item$id2 = item.id) !== null && _item$id2 !== void 0 ? _item$id2 : item.value;
+              if (!seenValues.has(optionValue)) {
+                var _item$name2;
+                seenValues.add(optionValue);
+                uniqueOptions.push({
+                  value: optionValue,
+                  label: (_item$name2 = item.name) !== null && _item$name2 !== void 0 ? _item$name2 : item.label
+                });
+              }
+            });
+            newOptions = [{
+              label: "Please Select",
+              value: "Please Select"
+            }].concat(uniqueOptions); // Update child field options
+            setFormSections(function (prevSections) {
+              var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+              var section = newSections[sectionIndex];
+              section.fields = section.fields.map(function (f) {
+                return f.name === childFieldName ? _objectSpread(_objectSpread({}, f), {}, {
+                  options: newOptions
+                }) : f;
+              });
+              return newSections;
+            });
+
+            // CRITICAL: Only reset if the current value is NOT in the new options
+            currentValue = getValues(childFieldName);
+            isValueValid = newOptions.some(function (option) {
+              return option.value.toString() === (currentValue === null || currentValue === void 0 ? void 0 : currentValue.toString());
+            }); // Only reset if current value is invalid (not in new options)
+            if (currentValue && !isValueValid && currentValue !== "Please Select") {
+              setValue(childFieldName, "Please Select", {
+                shouldValidate: true
+              });
+            }
+
+            // Reset IfscCode when BankName changes (but only if it's not valid)
+            if (field.name === "BankName") {
+              currentIfscValue = getValues("IfscCode"); // Always reset IFSC when bank changes since it depends on branch
+              setValue("IfscCode", "Please Select", {
+                shouldValidate: true
+              });
+              setFormSections(function (prevSections) {
+                var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+                newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(function (f) {
+                  return f.name === "IfscCode" ? _objectSpread(_objectSpread({}, f), {}, {
+                    options: pleaseSelectOption
+                  }) : f;
+                });
+                return newSections;
+              });
+            }
+            _context0.next = 5;
+            break;
+          case 4:
+            _context0.prev = 4;
+            _t6 = _context0["catch"](0);
+            console.error("Error fetching options for ".concat(field.name, ":"), _t6);
+            react_toastify__WEBPACK_IMPORTED_MODULE_38__.toast.error("Failed to load options for ".concat(field.label, ". Please try again."));
+            _pleaseSelectOption = [{
+              label: "Please Select",
+              value: "Please Select"
+            }];
+            _childField = field.name === "BankName" ? "BranchName" : "IfscCode";
+            setValue(_childField, "Please Select", {
+              shouldValidate: true
+            });
+            setFormSections(function (prevSections) {
+              var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+              newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(function (f) {
+                return f.name === _childField ? _objectSpread(_objectSpread({}, f), {}, {
+                  options: _pleaseSelectOption
+                }) : f;
+              });
+              return newSections;
+            });
+          case 5:
+          case "end":
+            return _context0.stop();
+        }
+      }, _callee8, null, [[0, 4]]);
+    }));
+    return function handleBankChange(_x8, _x9, _x0) {
+      return _ref10.apply(this, arguments);
+    };
+  }();
   var _processField = function processField(field, formData, initialData) {
     if (field.type === "enclosure" && field.isDependentEnclosure) {
       var parentValue = formData[field.dependentField] || initialData[field.dependentField];
@@ -296446,20 +296789,20 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
     return sectionFormData;
   };
   var onSubmit = /*#__PURE__*/function () {
-    var _ref10 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee8(data, operationType) {
-      var scrollX, scrollY, groupedFormData, returnFieldsArray, returnFields, formdata, section, url, response, result, _t6;
-      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context0) {
-        while (1) switch (_context0.prev = _context0.next) {
+    var _ref11 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee9(data, operationType) {
+      var scrollX, scrollY, groupedFormData, returnFieldsArray, returnFields, formdata, section, url, response, result, _t7;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context1) {
+        while (1) switch (_context1.prev = _context1.next) {
           case 0:
             scrollX = window.scrollX;
             scrollY = window.scrollY;
             data = getValues();
             if (!(!aadhaarValid && operationType !== "save")) {
-              _context0.next = 1;
+              _context1.next = 1;
               break;
             }
             alert("Aadhaar Number is not validated.");
-            return _context0.abrupt("return");
+            return _context1.abrupt("return");
           case 1:
             setLoading(true);
             groupedFormData = {};
@@ -296508,11 +296851,11 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               url = "/User/UpdateApplicationDetails";
             }
             console.log("formdata", formdata);
-            _context0.prev = 2;
-            _context0.next = 3;
+            _context1.prev = 2;
+            _context1.next = 3;
             return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].post(url, formdata);
           case 3:
-            response = _context0.sent;
+            response = _context1.sent;
             result = response.data;
             setLoading(false);
             if (result.status) {
@@ -296539,24 +296882,24 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               console.error("Submission failed:", result);
               react_toastify__WEBPACK_IMPORTED_MODULE_38__.toast.error("Failed to save form details.");
             }
-            _context0.next = 5;
+            _context1.next = 5;
             break;
           case 4:
-            _context0.prev = 4;
-            _t6 = _context0["catch"](2);
-            console.error("Error submitting form:", _t6);
+            _context1.prev = 4;
+            _t7 = _context1["catch"](2);
+            console.error("Error submitting form:", _t7);
             setLoading(false);
             react_toastify__WEBPACK_IMPORTED_MODULE_38__.toast.error("An error occurred while saving the form.");
           case 5:
             window.scrollTo(scrollX, scrollY);
           case 6:
           case "end":
-            return _context0.stop();
+            return _context1.stop();
         }
-      }, _callee8, null, [[2, 4]]);
+      }, _callee9, null, [[2, 4]]);
     }));
-    return function onSubmit(_x8, _x9) {
-      return _ref10.apply(this, arguments);
+    return function onSubmit(_x1, _x10) {
+      return _ref11.apply(this, arguments);
     };
   }();
   var addDynamicEnclosure = function addDynamicEnclosure(sectionId) {
@@ -296586,7 +296929,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
     setFormSections(function (prevSections) {
       return prevSections.map(function (section) {
         return section.id === sectionId ? _objectSpread(_objectSpread({}, section), {}, {
-          fields: [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(section.fields), [newField])
+          fields: [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(section.fields), [newField])
         }) : section;
       });
     });
@@ -296705,38 +297048,38 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: "",
           rules: {
             validate: function () {
-              var _validate = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee9(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context1) {
-                  while (1) switch (_context1.prev = _context1.next) {
+              var _validate = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee0(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context10) {
+                  while (1) switch (_context10.prev = _context10.next) {
                     case 0:
                       if (!(field.name === "AadharNumber" && (mode === "edit" || mode == "incomplete" || aadhaarValid))) {
-                        _context1.next = 1;
+                        _context10.next = 1;
                         break;
                       }
-                      return _context1.abrupt("return", true);
+                      return _context10.abrupt("return", true);
                     case 1:
-                      _context1.next = 2;
+                      _context10.next = 2;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value, getValues(), referenceNumber);
                     case 2:
-                      return _context1.abrupt("return", _context1.sent);
+                      return _context10.abrupt("return", _context10.sent);
                     case 3:
                     case "end":
-                      return _context1.stop();
+                      return _context10.stop();
                   }
-                }, _callee9);
+                }, _callee0);
               }));
-              function validate(_x0) {
+              function validate(_x11) {
                 return _validate.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref11) {
+          render: function render(_ref12) {
             var _errors$field$name;
-            var _ref11$field = _ref11.field,
-              _onChange = _ref11$field.onChange,
-              value = _ref11$field.value,
-              ref = _ref11$field.ref;
+            var _ref12$field = _ref12.field,
+              _onChange = _ref12$field.onChange,
+              value = _ref12$field.value,
+              ref = _ref12$field.ref;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
               sx: {
                 display: "flex",
@@ -296834,61 +297177,61 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: field.isConsentCheckbox ? false : ((_field$options = field.options) === null || _field$options === void 0 ? void 0 : _field$options.length) > 0 ? [] : "",
           rules: {
             validate: function () {
-              var _validate2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee0(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context10) {
-                  while (1) switch (_context10.prev = _context10.next) {
+              var _validate2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee1(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context11) {
+                  while (1) switch (_context11.prev = _context11.next) {
                     case 0:
                       if (!field.required) {
-                        _context10.next = 4;
+                        _context11.next = 4;
                         break;
                       }
                       if (!field.isConsentCheckbox) {
-                        _context10.next = 1;
+                        _context11.next = 1;
                         break;
                       }
-                      return _context10.abrupt("return", true);
+                      return _context11.abrupt("return", true);
                     case 1:
                       if (!Array.isArray(value)) {
-                        _context10.next = 3;
+                        _context11.next = 3;
                         break;
                       }
                       if (!(!value || value.length === 0)) {
-                        _context10.next = 2;
+                        _context11.next = 2;
                         break;
                       }
-                      return _context10.abrupt("return", "At least one option must be selected");
+                      return _context11.abrupt("return", "At least one option must be selected");
                     case 2:
-                      _context10.next = 4;
+                      _context11.next = 4;
                       break;
                     case 3:
                       if (value) {
-                        _context10.next = 4;
+                        _context11.next = 4;
                         break;
                       }
-                      return _context10.abrupt("return", "This field is required");
+                      return _context11.abrupt("return", "This field is required");
                     case 4:
-                      _context10.next = 5;
+                      _context11.next = 5;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value, getValues(), referenceNumber);
                     case 5:
-                      return _context10.abrupt("return", _context10.sent);
+                      return _context11.abrupt("return", _context11.sent);
                     case 6:
                     case "end":
-                      return _context10.stop();
+                      return _context11.stop();
                   }
-                }, _callee0);
+                }, _callee1);
               }));
-              function validate(_x1) {
+              function validate(_x12) {
                 return _validate2.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref12) {
+          render: function render(_ref13) {
             var _field$options2, _errors$field$name2;
-            var _ref12$field = _ref12.field,
-              _onChange2 = _ref12$field.onChange,
-              value = _ref12$field.value,
-              ref = _ref12$field.ref;
+            var _ref13$field = _ref13.field,
+              _onChange2 = _ref13$field.onChange,
+              value = _ref13$field.value,
+              ref = _ref13$field.ref;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
               component: "fieldset",
               fullWidth: true,
@@ -296931,7 +297274,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                   onChange: function onChange(e) {
                     var checked = e.target.checked;
                     if (Array.isArray(value)) {
-                      var newValue = checked ? [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(value), [option.value]) : value.filter(function (val) {
+                      var newValue = checked ? [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(value), [option.value]) : value.filter(function (val) {
                         return val !== option.value;
                       });
                       _onChange2(newValue);
@@ -296958,31 +297301,31 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: null,
           rules: {
             validate: function () {
-              var _validate3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee1(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context11) {
-                  while (1) switch (_context11.prev = _context11.next) {
+              var _validate3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee10(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context12) {
+                  while (1) switch (_context12.prev = _context12.next) {
                     case 0:
-                      _context11.next = 1;
+                      _context12.next = 1;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value);
                     case 1:
-                      return _context11.abrupt("return", _context11.sent);
+                      return _context12.abrupt("return", _context12.sent);
                     case 2:
                     case "end":
-                      return _context11.stop();
+                      return _context12.stop();
                   }
-                }, _callee1);
+                }, _callee10);
               }));
-              function validate(_x10) {
+              function validate(_x13) {
                 return _validate3.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref13) {
+          render: function render(_ref14) {
             var _errors$field$name3;
-            var _ref13$field = _ref13.field,
-              _onChange3 = _ref13$field.onChange,
-              ref = _ref13$field.ref;
+            var _ref14$field = _ref14.field,
+              _onChange3 = _ref14$field.onChange,
+              ref = _ref14$field.ref;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
               fullWidth: true,
               margin: "normal",
@@ -297018,35 +297361,35 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_8__.Controller, {
           name: field.name,
           control: control,
-          defaultValue: ((_field$options$ = field.options[0]) === null || _field$options$ === void 0 ? void 0 : _field$options$.value) || "",
+          defaultValue: ((_field$options$ = field.options[0]) === null || _field$options$ === void 0 ? void 0 : _field$options$.value) || "Please Select",
           rules: {
             validate: function () {
-              var _validate4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee10(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context12) {
-                  while (1) switch (_context12.prev = _context12.next) {
+              var _validate4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee11(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context13) {
+                  while (1) switch (_context13.prev = _context13.next) {
                     case 0:
-                      _context12.next = 1;
+                      _context13.next = 1;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value, getValues());
                     case 1:
-                      return _context12.abrupt("return", _context12.sent);
+                      return _context13.abrupt("return", _context13.sent);
                     case 2:
                     case "end":
-                      return _context12.stop();
+                      return _context13.stop();
                   }
-                }, _callee10);
+                }, _callee11);
               }));
-              function validate(_x11) {
+              function validate(_x14) {
                 return _validate4.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref14) {
+          render: function render(_ref15) {
             var _errors$field$name4;
-            var _ref14$field = _ref14.field,
-              _onChange4 = _ref14$field.onChange,
-              value = _ref14$field.value,
-              ref = _ref14$field.ref;
+            var _ref15$field = _ref15.field,
+              _onChange4 = _ref15$field.onChange,
+              value = _ref15$field.value,
+              ref = _ref15$field.ref;
             var options = [];
             if (field.dependentOn && field.dependentOn != "") {
               var _parentValue3 = watch(field.dependentOn);
@@ -297057,7 +297400,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
             if (value && !options.some(function (opt) {
               return opt.value.toString() === value.toString();
             })) {
-              options = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(options), [{
+              options = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(options), [{
                 value: value,
                 label: value.toString()
               }]);
@@ -297067,18 +297410,22 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               fullWidth: true,
               variant: "outlined",
               label: getLabelWithAsteriskJSX(field),
-              value: value || "",
+              value: value || "Please Select",
               id: "field-".concat(field.id),
               onChange: function onChange(e) {
                 _onChange4(e);
                 var newValue = e.target.value;
-                handleAreaChange(sectionIndex, field, newValue);
+                if (field.name === "BankName" || field.name === "BranchName") {
+                  handleBankChange(sectionIndex, field, newValue);
+                } else {
+                  handleAreaChange(sectionIndex, field, newValue);
+                }
                 // Unregister additional fields that do not belong to the current value
                 if (field.additionalFields) {
-                  Object.entries(field.additionalFields).forEach(function (_ref15) {
-                    var _ref16 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_ref15, 2),
-                      key = _ref16[0],
-                      additionalFields = _ref16[1];
+                  Object.entries(field.additionalFields).forEach(function (_ref16) {
+                    var _ref17 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_ref16, 2),
+                      key = _ref17[0],
+                      additionalFields = _ref17[1];
                     if (key !== newValue) {
                       additionalFields.forEach(function (additionalField) {
                         var nestedFieldName = additionalField.name || "".concat(field.name, "_").concat(additionalField.id);
@@ -297180,9 +297527,9 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           rules: {
             required: "Enclosure name is required"
           },
-          render: function render(_ref17) {
+          render: function render(_ref18) {
             var _errors$selectFieldNa;
-            var field = _ref17.field;
+            var field = _ref18.field;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
               label: "Enclosure Name",
               fullWidth: true,
@@ -297198,28 +297545,28 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: (initialData === null || initialData === void 0 || (_initialData$field$na5 = initialData[field.name]) === null || _initialData$field$na5 === void 0 ? void 0 : _initialData$field$na5.selected) || "",
           rules: {
             validate: function () {
-              var _validate5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee11(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context13) {
-                  while (1) switch (_context13.prev = _context13.next) {
+              var _validate5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee12(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context14) {
+                  while (1) switch (_context14.prev = _context14.next) {
                     case 0:
-                      return _context13.abrupt("return", field.required && !value ? "Please select an option" : true);
+                      return _context14.abrupt("return", field.required && !value ? "Please select an option" : true);
                     case 1:
                     case "end":
-                      return _context13.stop();
+                      return _context14.stop();
                   }
-                }, _callee11);
+                }, _callee12);
               }));
-              function validate(_x12) {
+              function validate(_x15) {
                 return _validate5.apply(this, arguments);
               }
               return validate;
             }() // Only validate that a selection is made if required
           },
-          render: function render(_ref18) {
+          render: function render(_ref19) {
             var _errors$selectFieldNa2;
-            var _ref18$field = _ref18.field,
-              _onChange5 = _ref18$field.onChange,
-              value = _ref18$field.value;
+            var _ref19$field = _ref19.field,
+              _onChange5 = _ref19$field.onChange,
+              value = _ref19$field.value;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
               select: true,
               label: getLabelWithAsteriskJSX(field),
@@ -297254,56 +297601,56 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: (initialData === null || initialData === void 0 || (_initialData$field$na6 = initialData[field.name]) === null || _initialData$field$na6 === void 0 ? void 0 : _initialData$field$na6.file) || null,
           rules: {
             validate: function () {
-              var _validate6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee12(value) {
+              var _validate6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee13(value) {
                 var selectValue, extension;
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context14) {
-                  while (1) switch (_context14.prev = _context14.next) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context15) {
+                  while (1) switch (_context15.prev = _context15.next) {
                     case 0:
                       selectValue = getValues(selectFieldName);
                       if (!(field.required && !value && selectValue)) {
-                        _context14.next = 1;
+                        _context15.next = 1;
                         break;
                       }
-                      return _context14.abrupt("return", "Please upload a file");
+                      return _context15.abrupt("return", "Please upload a file");
                     case 1:
                       if (!(value instanceof File)) {
-                        _context14.next = 3;
+                        _context15.next = 3;
                         break;
                       }
                       if (!(value.size > 200000)) {
-                        _context14.next = 2;
+                        _context15.next = 2;
                         break;
                       }
-                      return _context14.abrupt("return", "File must be under 200KB");
+                      return _context15.abrupt("return", "File must be under 200KB");
                     case 2:
                       extension = ".".concat(value.name.split(".").pop().toLowerCase());
                       if (field.accept.split(",").includes(extension)) {
-                        _context14.next = 3;
+                        _context15.next = 3;
                         break;
                       }
-                      return _context14.abrupt("return", "Invalid file type. Accepted types: ".concat(field.accept));
+                      return _context15.abrupt("return", "Invalid file type. Accepted types: ".concat(field.accept));
                     case 3:
-                      _context14.next = 4;
+                      _context15.next = 4;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value, getValues(), referenceNumber);
                     case 4:
-                      return _context14.abrupt("return", _context14.sent);
+                      return _context15.abrupt("return", _context15.sent);
                     case 5:
                     case "end":
-                      return _context14.stop();
+                      return _context15.stop();
                   }
-                }, _callee12);
+                }, _callee13);
               }));
-              function validate(_x13) {
+              function validate(_x16) {
                 return _validate6.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref19) {
+          render: function render(_ref20) {
             var _errors$fileFieldName;
-            var _ref19$field = _ref19.field,
-              _onChange6 = _ref19$field.onChange,
-              value = _ref19$field.value;
+            var _ref20$field = _ref20.field,
+              _onChange6 = _ref20$field.onChange,
+              value = _ref20$field.value;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], null, value && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
               display: "flex",
               alignItems: "center",
@@ -308696,6 +309043,1094 @@ function Verification() {
 
 /***/ }),
 
+/***/ "./src/screens/officer/AadhaarValidations.jsx":
+/*!****************************************************!*\
+  !*** ./src/screens/officer/AadhaarValidations.jsx ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ OfficerAadhaarValidations)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/taggedTemplateLiteral */ "./node_modules/@babel/runtime/helpers/esm/taggedTemplateLiteral.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Card/Card.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/node_modules/@mui/system/esm/colorManipulator/colorManipulator.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Avatar/Avatar.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CardContent/CardContent.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Stack/Stack.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Grid/Grid.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Container/Container.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Paper/Paper.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Divider/Divider.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/styles/useTheme.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/ArrowRightAlt.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Assessment.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/AssignmentTurnedIn.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Cancel.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/CheckCircle.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/ErrorOutline.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/FilterList.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Group.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/HourglassEmpty.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/PieChart.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Refresh.js");
+/* harmony import */ var _mui_material_styles__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! @mui/material/styles */ "./node_modules/@emotion/react/dist/emotion-react.browser.development.esm.js");
+/* harmony import */ var _mui_material_styles__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! @mui/material/styles */ "./node_modules/@mui/material/styles/styled.js");
+/* harmony import */ var chart_js_auto__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! chart.js/auto */ "./node_modules/chart.js/auto/auto.js");
+/* harmony import */ var chartjs_plugin_datalabels__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! chartjs-plugin-datalabels */ "./node_modules/chartjs-plugin-datalabels/dist/chartjs-plugin-datalabels.esm.js");
+/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
+/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_37__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
+
+
+
+var _templateObject;
+
+
+
+
+
+
+
+
+
+chart_js_auto__WEBPACK_IMPORTED_MODULE_34__.Chart.register(chartjs_plugin_datalabels__WEBPACK_IMPORTED_MODULE_35__["default"]);
+
+// Animations
+var _float = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_32__.keyframes)(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  0%, 100% { transform: translateY(0px); }\n  50% { transform: translateY(-10px); }\n"])));
+
+// Styled components
+var GradientCard = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_33__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(function (_ref) {
+  var theme = _ref.theme,
+    bgcolor = _ref.bgcolor,
+    gradientstart = _ref.gradientstart,
+    gradientend = _ref.gradientend;
+  return {
+    borderRadius: theme.spacing(2),
+    background: bgcolor,
+    border: "1px solid ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(gradientstart, 0.1)),
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    cursor: "pointer",
+    position: "relative",
+    overflow: "hidden",
+    height: "100%",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "linear-gradient(135deg, ".concat(gradientstart, "08 0%, ").concat(gradientend, "05 100%)"),
+      opacity: 0,
+      transition: "opacity 0.3s ease"
+    },
+    "&:hover": {
+      transform: "translateY(-4px)",
+      boxShadow: "0 12px 24px ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(gradientstart, 0.15)),
+      "&::before": {
+        opacity: 1
+      }
+    }
+  };
+});
+var IconAvatar = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_33__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"])(function (_ref2) {
+  var theme = _ref2.theme,
+    gradientstart = _ref2.gradientstart,
+    gradientend = _ref2.gradientend;
+  return {
+    background: "linear-gradient(135deg, ".concat(gradientstart, " 0%, ").concat(gradientend, " 100%)"),
+    width: 48,
+    height: 48,
+    boxShadow: "0 4px 12px ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(gradientstart, 0.25)),
+    animation: "".concat(_float, " 6s ease-in-out infinite"),
+    "& .MuiSvgIcon-root": {
+      fontSize: "1.3rem",
+      color: "#ffffff"
+    }
+  };
+});
+var GlassCard = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_33__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(function (_ref3) {
+  var theme = _ref3.theme;
+  return {
+    background: "rgba(255, 255, 255, 0.95)",
+    backdropFilter: "blur(20px)",
+    border: "1px solid ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.common.white, 0.3)),
+    borderRadius: theme.spacing(3),
+    boxShadow: "0 8px 32px ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.common.black, 0.08)),
+    width: "100%",
+    padding: theme.spacing(3)
+  };
+});
+var SectionHeader = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_33__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"])(function (_ref4) {
+  var theme = _ref4.theme;
+  return {
+    position: "relative",
+    marginBottom: theme.spacing(3),
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      bottom: -8,
+      left: 0,
+      width: 60,
+      height: 4,
+      background: "linear-gradient(90deg, #4f46e5, #3b82f6)",
+      borderRadius: 2
+    }
+  };
+});
+
+// Constants
+var defaultCardData = [{
+  title: "Applications Received",
+  value: "0",
+  category: "application",
+  color: "primary",
+  bgColor: "#f8faff",
+  gradientStart: "#4f46e5",
+  gradientEnd: "#3b82f6"
+}, {
+  title: "Sanctioned",
+  value: "0",
+  category: "application",
+  color: "success",
+  bgColor: "#f0fdf4",
+  gradientStart: "#059669",
+  gradientEnd: "#10b981"
+}, {
+  title: "Under Process",
+  value: "0",
+  category: "application",
+  color: "warning",
+  bgColor: "#fffbeb",
+  gradientStart: "#fbbf24",
+  gradientEnd: "#fbbf24"
+}, {
+  title: "Pending with Citizen",
+  value: "0",
+  category: "application",
+  color: "info",
+  bgColor: "#f0f9ff",
+  gradientStart: "#0ea5e9",
+  gradientEnd: "#38bdf8"
+}, {
+  title: "Rejected",
+  value: "0",
+  category: "application",
+  color: "error",
+  bgColor: "#fef2f2",
+  gradientStart: "#ef4444",
+  gradientEnd: "#f87171"
+}];
+var defaultCategoryData = [{
+  name: "Old Age Pension",
+  value: 0,
+  color: "#4f46e5"
+}, {
+  name: "Women In Distress",
+  value: 0,
+  color: "#059669"
+}, {
+  name: "Physically Challenged Person",
+  value: 0,
+  color: "#f59e0b"
+}, {
+  name: "Transgender",
+  value: 0,
+  color: "#0ea5e9"
+}];
+var iconMap = {
+  "Applications Received": _mui_icons_material__WEBPACK_IMPORTED_MODULE_23__["default"],
+  Sanctioned: _mui_icons_material__WEBPACK_IMPORTED_MODULE_25__["default"],
+  "Under Process": _mui_icons_material__WEBPACK_IMPORTED_MODULE_29__["default"],
+  "Pending with Citizen": _mui_icons_material__WEBPACK_IMPORTED_MODULE_28__["default"],
+  Rejected: _mui_icons_material__WEBPACK_IMPORTED_MODULE_24__["default"]
+};
+
+// Custom Hook for Filter Management
+var useFilters = function useFilters(category) {
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)("0"),
+    _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState, 2),
+    state = _useState2[0],
+    setState = _useState2[1];
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
+    _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState3, 2),
+    division = _useState4[0],
+    setDivision = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
+    _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState5, 2),
+    districts = _useState6[0],
+    setDistricts = _useState6[1];
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
+    _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState7, 2),
+    district = _useState8[0],
+    setDistrict = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
+    _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState9, 2),
+    tehsils = _useState0[0],
+    setTehsils = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
+    _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState1, 2),
+    tehsil = _useState10[0],
+    setTehsil = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)("State"),
+    _useState12 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState11, 2),
+    wise = _useState12[0],
+    setWise = _useState12[1];
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)("Jammu & Kashmir"),
+    _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState13, 2),
+    wiseName = _useState14[0],
+    setWiseName = _useState14[1];
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState16 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState15, 2),
+    filterLoading = _useState16[0],
+    setFilterLoading = _useState16[1];
+  var resetFilters = (0,react__WEBPACK_IMPORTED_MODULE_4__.useCallback)(function () {
+    setState("0");
+    setDivision("");
+    setDistrict("");
+    setTehsil("");
+    setDistricts([]);
+    setTehsils([]);
+    setWise("State");
+    setWiseName("Jammu & Kashmir");
+  }, []);
+  var getFilterTitle = function getFilterTitle(type, value) {
+    if (!value) return type;
+    if (type === "State") return value === "0" ? "Jammu & Kashmir" : type;
+    if (type === "Division") return value === "1" ? "Jammu" : value === "2" ? "Kashmir" : type;
+    if (type === "District") {
+      var _districts$find;
+      return ((_districts$find = districts.find(function (d) {
+        return d.value === value;
+      })) === null || _districts$find === void 0 ? void 0 : _districts$find.label) || type;
+    }
+    if (type === "Tehsil") {
+      var _tehsils$find;
+      return ((_tehsils$find = tehsils.find(function (t) {
+        return t.value === value;
+      })) === null || _tehsils$find === void 0 ? void 0 : _tehsils$find.label) || type;
+    }
+    return type;
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    var fetchDistricts = /*#__PURE__*/function () {
+      var _ref5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee() {
+        var response, _t;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              if (!division) {
+                _context.next = 6;
+                break;
+              }
+              setFilterLoading(true);
+              _context.prev = 1;
+              _context.next = 2;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_36__["default"].get("/Base/GetDistricts", {
+                params: {
+                  division: division
+                }
+              });
+            case 2:
+              response = _context.sent;
+              setDistricts(response.data.districts.map(function (item) {
+                return {
+                  label: item.districtName,
+                  value: item.districtId
+                };
+              }));
+              setDistrict("");
+              setTehsils([]);
+              setTehsil("");
+              _context.next = 4;
+              break;
+            case 3:
+              _context.prev = 3;
+              _t = _context["catch"](1);
+              console.error("Failed to fetch districts for ".concat(category, ":"), _t);
+              setDistricts([]);
+            case 4:
+              _context.prev = 4;
+              setFilterLoading(false);
+              return _context.finish(4);
+            case 5:
+              _context.next = 7;
+              break;
+            case 6:
+              setDistricts([]);
+              setDistrict("");
+              setTehsils([]);
+              setTehsil("");
+            case 7:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee, null, [[1, 3, 4, 5]]);
+      }));
+      return function fetchDistricts() {
+        return _ref5.apply(this, arguments);
+      };
+    }();
+    fetchDistricts();
+  }, [division, category]);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    var fetchTehsils = /*#__PURE__*/function () {
+      var _ref6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2() {
+        var response, _t2;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context2) {
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              if (!district) {
+                _context2.next = 6;
+                break;
+              }
+              setFilterLoading(true);
+              _context2.prev = 1;
+              _context2.next = 2;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_36__["default"].get("/Base/GetTeshilForDistrict", {
+                params: {
+                  districtId: district
+                }
+              });
+            case 2:
+              response = _context2.sent;
+              setTehsils(response.data.tehsils.map(function (item) {
+                return {
+                  label: item.tehsilName,
+                  value: item.tehsilId
+                };
+              }));
+              setTehsil("");
+              _context2.next = 4;
+              break;
+            case 3:
+              _context2.prev = 3;
+              _t2 = _context2["catch"](1);
+              console.error("Failed to fetch tehsils for ".concat(category, ":"), _t2);
+              setTehsils([]);
+            case 4:
+              _context2.prev = 4;
+              setFilterLoading(false);
+              return _context2.finish(4);
+            case 5:
+              _context2.next = 7;
+              break;
+            case 6:
+              setTehsils([]);
+              setTehsil("");
+            case 7:
+            case "end":
+              return _context2.stop();
+          }
+        }, _callee2, null, [[1, 3, 4, 5]]);
+      }));
+      return function fetchTehsils() {
+        return _ref6.apply(this, arguments);
+      };
+    }();
+    fetchTehsils();
+  }, [district, category]);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    if (tehsil) {
+      var _tehsils$find2;
+      setWise("Tehsil");
+      setWiseName(((_tehsils$find2 = tehsils.find(function (item) {
+        return item.value === tehsil;
+      })) === null || _tehsils$find2 === void 0 ? void 0 : _tehsils$find2.label) || "Tehsil");
+    } else if (district) {
+      var _districts$find2;
+      setWise("District");
+      setWiseName(((_districts$find2 = districts.find(function (item) {
+        return item.value === district;
+      })) === null || _districts$find2 === void 0 ? void 0 : _districts$find2.label) || "District");
+    } else if (division) {
+      setWise("Division");
+      setWiseName(division === "1" ? "Jammu" : division === "2" ? "Kashmir" : "Division");
+    } else {
+      setWise("State");
+      setWiseName("Jammu & Kashmir");
+    }
+  }, [division, district, tehsil, districts, tehsils]);
+  return {
+    state: state,
+    setState: setState,
+    division: division,
+    setDivision: setDivision,
+    district: district,
+    setDistrict: setDistrict,
+    tehsil: tehsil,
+    setTehsil: setTehsil,
+    districts: districts,
+    tehsils: tehsils,
+    wise: wise,
+    wiseName: wiseName,
+    filterLoading: filterLoading,
+    resetFilters: resetFilters,
+    getFilterTitle: getFilterTitle
+  };
+};
+
+// Custom Hook for Dashboard Data
+var useDashboardData = function useDashboardData(category, filters) {
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(defaultCardData.filter(function (c) {
+      return c.category === category;
+    })),
+    _useState18 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState17, 2),
+    data = _useState18[0],
+    setData = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(defaultCategoryData),
+    _useState20 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState19, 2),
+    categoryData = _useState20[0],
+    setCategoryData = _useState20[1];
+  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
+    _useState22 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState21, 2),
+    locationData = _useState22[0],
+    setLocationData = _useState22[1];
+  var _useState23 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)({}),
+    _useState24 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState23, 2),
+    officerAccess = _useState24[0],
+    setOfficerAccess = _useState24[1];
+  var _useState25 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState26 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState25, 2),
+    isLoading = _useState26[0],
+    setIsLoading = _useState26[1];
+  var _useState27 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
+    _useState28 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState27, 2),
+    error = _useState28[0],
+    setError = _useState28[1];
+  var fetchData = (0,react__WEBPACK_IMPORTED_MODULE_4__.useCallback)(/*#__PURE__*/(0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee3() {
+    var params, response, _t3;
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          setIsLoading(true);
+          setError(null);
+          _context3.prev = 1;
+          params = {
+            serviceId: "1",
+            division: filters.division || null,
+            district: filters.district || null,
+            tehsil: filters.tehsil || null
+          };
+          _context3.next = 2;
+          return _axiosConfig__WEBPACK_IMPORTED_MODULE_36__["default"].get("/Officer/GetAadhaarValidationCount", {
+            params: params
+          });
+        case 2:
+          response = _context3.sent;
+          setData(response.data.dataList.filter(function (c) {
+            return c.category === category;
+          }));
+          setCategoryData(response.data.categoryData || defaultCategoryData);
+          setLocationData(response.data.locationData || []);
+          setOfficerAccess(response.data.officerAccess || {});
+          _context3.next = 4;
+          break;
+        case 3:
+          _context3.prev = 3;
+          _t3 = _context3["catch"](1);
+          setError("Failed to fetch ".concat(category, " data"));
+          setData(defaultCardData.filter(function (c) {
+            return c.category === category;
+          }));
+          setCategoryData(defaultCategoryData);
+          setLocationData([]);
+        case 4:
+          _context3.prev = 4;
+          setIsLoading(false);
+          return _context3.finish(4);
+        case 5:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3, null, [[1, 3, 4, 5]]);
+  })), [filters.division, filters.district, filters.tehsil, category]);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    fetchData();
+  }, [fetchData]);
+  return {
+    data: data,
+    categoryData: categoryData,
+    locationData: locationData,
+    officerAccess: officerAccess,
+    isLoading: isLoading,
+    error: error
+  };
+};
+
+// Donut Chart Component
+var DonutChart = function DonutChart(_ref8) {
+  var data = _ref8.data,
+    chartTitle = _ref8.chartTitle;
+  var theme = (0,_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"])();
+  var chartRef = (0,react__WEBPACK_IMPORTED_MODULE_4__.useRef)(null);
+  var chartInstance = (0,react__WEBPACK_IMPORTED_MODULE_4__.useRef)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    if (chartRef.current && data.length > 0) {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+      var total = data.reduce(function (sum, item) {
+        return sum + item.value;
+      }, 0);
+      chartInstance.current = new chart_js_auto__WEBPACK_IMPORTED_MODULE_34__.Chart(chartRef.current, {
+        type: "doughnut",
+        data: {
+          labels: data.map(function (item) {
+            return item.name;
+          }),
+          datasets: [{
+            data: data.map(function (item) {
+              return item.value;
+            }),
+            backgroundColor: data.map(function (item) {
+              return item.color;
+            }),
+            borderColor: data.map(function (item) {
+              return (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(item.color, 0.3);
+            }),
+            borderWidth: 2,
+            hoverBorderWidth: 3,
+            hoverBackgroundColor: data.map(function (item) {
+              return (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(item.color, 0.8);
+            })
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "65%",
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                boxWidth: 16,
+                padding: 15,
+                font: {
+                  size: 11,
+                  family: theme.typography.fontFamily
+                },
+                color: theme.palette.text.primary,
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              titleColor: "#374151",
+              bodyColor: "#374151",
+              titleFont: {
+                size: 14,
+                weight: "bold"
+              },
+              bodyFont: {
+                size: 12
+              },
+              borderColor: "#e5e7eb",
+              borderWidth: 1,
+              cornerRadius: 8,
+              callbacks: {
+                label: function label(context) {
+                  return "".concat(context.label, ": ").concat(context.parsed.toLocaleString("en-IN"));
+                }
+              }
+            },
+            datalabels: {
+              color: "#ffffff",
+              formatter: function formatter(value) {
+                return "".concat((value / total * 100).toFixed(1), "%");
+              },
+              font: {
+                weight: "bold",
+                size: 12
+              },
+              textAlign: "center",
+              anchor: "center",
+              align: "center"
+            }
+          }
+        }
+      });
+      return function () {
+        if (chartInstance.current) {
+          chartInstance.current.destroy();
+        }
+      };
+    }
+  }, [data, theme]);
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      width: "100%",
+      height: 350,
+      position: "relative"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("canvas", {
+    ref: chartRef,
+    style: {
+      maxWidth: "100%"
+    }
+  }), data.length === 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "body1",
+    color: "text.secondary",
+    align: "center",
+    sx: {
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)"
+    }
+  }, "No data available"));
+};
+
+// Stat Card Component
+var ModernStatCard = function ModernStatCard(_ref9) {
+  var card = _ref9.card,
+    onCardClick = _ref9.onCardClick;
+  var theme = (0,_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"])();
+  var IconComponent = iconMap[card.title] || _mui_icons_material__WEBPACK_IMPORTED_MODULE_23__["default"];
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(GradientCard, {
+    onClick: function onClick() {
+      return onCardClick(card.title, card.category);
+    },
+    bgcolor: card.bgColor,
+    gradientstart: card.gradientStart,
+    gradientend: card.gradientEnd
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    sx: {
+      p: 3,
+      zIndex: 1,
+      height: "100%"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    spacing: 2,
+    sx: {
+      height: "100%"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(IconAvatar, {
+    gradientstart: card.gradientStart,
+    gradientend: card.gradientEnd
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(IconComponent, null)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "body2",
+    color: "text.secondary",
+    fontWeight: "medium",
+    sx: {
+      fontSize: "1.3rem",
+      minHeight: "2.6em",
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",
+      textOverflow: "ellipsis"
+    },
+    title: card.title
+  }, card.title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h4",
+    fontWeight: "bold",
+    sx: {
+      background: "linear-gradient(135deg, ".concat(card.gradientStart, ", ").concat(card.gradientEnd, ")"),
+      backgroundClip: "text",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      fontSize: {
+        xs: "1.5rem",
+        sm: "2rem",
+        md: "2.125rem"
+      },
+      wordBreak: "break-all"
+    },
+    title: card.value
+  }, card.value)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "caption",
+    sx: {
+      color: card.gradientStart,
+      fontWeight: 600,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      opacity: 0.8,
+      "&:hover": {
+        opacity: 1
+      }
+    }
+  }, "Details", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
+    sx: {
+      ml: 0.5,
+      fontSize: "1rem"
+    }
+  })))));
+};
+
+// Filter Section Component
+var FilterSection = function FilterSection(_ref0) {
+  var category = _ref0.category,
+    filters = _ref0.filters,
+    filterLoading = _ref0.filterLoading,
+    restrictedFilters = _ref0.restrictedFilters;
+  var state = filters.state,
+    setState = filters.setState,
+    division = filters.division,
+    setDivision = filters.setDivision,
+    district = filters.district,
+    setDistrict = filters.setDistrict,
+    tehsil = filters.tehsil,
+    setTehsil = filters.setTehsil,
+    districts = filters.districts,
+    tehsils = filters.tehsils,
+    resetFilters = filters.resetFilters,
+    getFilterTitle = filters.getFilterTitle;
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(GlassCard, {
+    sx: {
+      p: 3,
+      mb: 4
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    direction: "row",
+    alignItems: "center",
+    spacing: 2,
+    mb: 3
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    sx: {
+      bgcolor: "#4f46e5"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_27__["default"], null)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h6",
+    fontWeight: "bold"
+  }, category.charAt(0).toUpperCase() + category.slice(1), " Filters"), filterLoading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    size: 20,
+    sx: {
+      ml: 2
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    container: true,
+    spacing: 2
+  }, [{
+    label: "State",
+    value: state,
+    onChange: setState,
+    options: [{
+      value: "0",
+      label: "Jammu & Kashmir"
+    }],
+    disabled: false // State is always fixed, but can adjust if needed
+  }, {
+    label: "Division",
+    value: division,
+    onChange: setDivision,
+    options: [{
+      value: "1",
+      label: "Jammu"
+    }, {
+      value: "2",
+      label: "Kashmir"
+    }],
+    disabled: !!(restrictedFilters !== null && restrictedFilters !== void 0 && restrictedFilters.restrictedDivision)
+  }, {
+    label: "District",
+    value: district,
+    onChange: setDistrict,
+    options: districts,
+    disabled: !!(restrictedFilters !== null && restrictedFilters !== void 0 && restrictedFilters.restrictedDistrict)
+  }, {
+    label: "Tehsil",
+    value: tehsil,
+    onChange: setTehsil,
+    options: tehsils,
+    disabled: !!(restrictedFilters !== null && restrictedFilters !== void 0 && restrictedFilters.restrictedTehsil)
+  }].map(function (_ref1, index) {
+    var label = _ref1.label,
+      value = _ref1.value,
+      _onChange = _ref1.onChange,
+      options = _ref1.options,
+      disabled = _ref1.disabled;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+      item: true,
+      xs: 12,
+      sm: 6,
+      md: 2.4,
+      key: index
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
+      select: true,
+      fullWidth: true,
+      label: getFilterTitle(label, value),
+      value: value,
+      onChange: function onChange(e) {
+        return _onChange(e.target.value);
+      },
+      variant: "outlined",
+      size: "small",
+      disabled: disabled
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+      value: ""
+    }, "Select ", label), options.map(function (item, idx) {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        key: idx,
+        value: item.value
+      }, item.label);
+    })));
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6,
+    md: 2.4
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+    fullWidth: true,
+    variant: "contained",
+    onClick: resetFilters,
+    startIcon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_31__["default"], null),
+    sx: {
+      height: 40,
+      background: "linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)",
+      "&:hover": {
+        background: "linear-gradient(135deg, #4338ca 0%, #2563eb 100%)"
+      }
+    }
+  }, "Reset"))));
+};
+
+// Main Dashboard Component
+function OfficerAadhaarValidations() {
+  var theme = (0,_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"])();
+  var appFilters = useFilters("application");
+  var _useDashboardData = useDashboardData("application", appFilters),
+    appData = _useDashboardData.data,
+    categoryData = _useDashboardData.categoryData,
+    locationData = _useDashboardData.locationData,
+    officerAccess = _useDashboardData.officerAccess,
+    appLoading = _useDashboardData.isLoading,
+    appError = _useDashboardData.error;
+  var _useState29 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
+    _useState30 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState29, 2),
+    selectedTable = _useState30[0],
+    setSelectedTable = _useState30[1];
+  var tableRef = (0,react__WEBPACK_IMPORTED_MODULE_4__.useRef)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    if ((officerAccess === null || officerAccess === void 0 ? void 0 : officerAccess.restrictedDivision) != null && appFilters.division !== officerAccess.restrictedDivision.toString()) {
+      appFilters.setDivision(officerAccess.restrictedDivision.toString());
+    }
+    if ((officerAccess === null || officerAccess === void 0 ? void 0 : officerAccess.restrictedDistrict) != null && appFilters.district !== officerAccess.restrictedDistrict.toString()) {
+      appFilters.setDistrict(officerAccess.restrictedDistrict.toString());
+    }
+    if ((officerAccess === null || officerAccess === void 0 ? void 0 : officerAccess.restrictedTehsil) != null && appFilters.tehsil !== officerAccess.restrictedTehsil.toString()) {
+      appFilters.setTehsil(officerAccess.restrictedTehsil.toString());
+    }
+  }, [officerAccess, appFilters]);
+  var handleCardClick = (0,react__WEBPACK_IMPORTED_MODULE_4__.useCallback)(function (title, category) {
+    // Map card title to type parameter for GetMainApplicationStatusData
+    var titleToTypeMap = {
+      "Total Sanctioned": "sanctioned",
+      "Aadhaar Validated": "not_empty",
+      "Aadhaar Not Validated": "empty"
+    };
+    var type = titleToTypeMap[title] || "total"; // Default to "total" if no match
+
+    setSelectedTable({
+      title: title,
+      category: category,
+      type: type
+    });
+    setTimeout(function () {
+      var _tableRef$current;
+      (_tableRef$current = tableRef.current) === null || _tableRef$current === void 0 || _tableRef$current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }, 100);
+  }, []);
+  var statusDistributionData = appData.filter(function (card) {
+    return ["Sanctioned", "Aadhaar Validated", "Aadhaar Not Validated"].includes(card.title);
+  }).map(function (card) {
+    return {
+      name: card.title,
+      value: parseInt(card.value.replace(/[^0-9]/g, ""), 10) || 0,
+      color: card.gradientStart
+    };
+  }).filter(function (item) {
+    return item.value > 0;
+  });
+  var appDynamicTitle = "".concat(appFilters.wise === "State" ? "Division" : appFilters.wise === "Division" ? "District" : "Tehsil", "-wise Sanctioned Applications");
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+      py: 2
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      background: "rgba(255, 255, 255, 0.95)",
+      backdropFilter: "blur(20px)",
+      borderBottom: "1px solid ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.divider, 0.1)),
+      py: 2
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
+    maxWidth: "xl"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h4",
+    fontWeight: "bold",
+    sx: {
+      color: "#1e293b"
+    }
+  }, "Dashboard"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
+    maxWidth: "xl",
+    sx: {
+      mt: 4
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(FilterSection, {
+    category: "application",
+    filters: appFilters,
+    filterLoading: appFilters.filterLoading,
+    restrictedFilters: officerAccess
+  }), appLoading ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    py: 8
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    size: 60,
+    thickness: 4
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h6",
+    ml: 3,
+    color: "text.secondary"
+  }, "Loading dashboard data...")) : appError ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], {
+    sx: {
+      p: 4,
+      textAlign: "center",
+      bgcolor: (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.error.main, 0.1),
+      border: "1px solid ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.error.main, 0.2))
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_26__["default"], {
+    sx: {
+      fontSize: 60,
+      color: "error.main",
+      mb: 2
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h6",
+    color: "error.main"
+  }, appError)) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement((react__WEBPACK_IMPORTED_MODULE_4___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(GlassCard, {
+    sx: {
+      p: 3,
+      mb: 4
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(SectionHeader, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    direction: "row",
+    alignItems: "center",
+    spacing: 2
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    sx: {
+      bgcolor: "#4f46e5",
+      width: 48,
+      height: 48
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_22__["default"], null)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h5",
+    fontWeight: "bold"
+  }, "Legacy Data Application Status (", appFilters.wise, "-", appFilters.wiseName, ")"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    container: true,
+    spacing: 3,
+    mb: 4
+  }, appData.map(function (card, index) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+      item: true,
+      xs: 12,
+      sm: 6,
+      md: 4,
+      lg: 4,
+      key: index
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(ModernStatCard, {
+      card: card,
+      onCardClick: handleCardClick
+    }));
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
+    sx: {
+      my: 3
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      bgcolor: (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)("#f8fafc", 0.5),
+      borderRadius: 3,
+      p: 3
+    },
+    id: "application-charts"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h6",
+    fontWeight: "bold",
+    mb: 3
+  }, "Status Distribution"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    container: true,
+    spacing: 3
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    item: true,
+    xs: 12,
+    md: 12
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    direction: "row",
+    alignItems: "center",
+    spacing: 2,
+    mb: 2
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_30__["default"], {
+    sx: {
+      color: "#4f46e5"
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "subtitle1",
+    fontWeight: "medium"
+  }, "Status of Applications (", appFilters.wise, "-", appFilters.wiseName, ")")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(DonutChart, {
+    data: statusDistributionData,
+    chartTitle: "Application Status"
+  }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(GlassCard, {
+    sx: {
+      p: 3
+    }
+  }, selectedTable && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement((react__WEBPACK_IMPORTED_MODULE_4___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
+    sx: {
+      my: 3
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_37__["default"], {
+    ref: tableRef,
+    url: "/Viewer/GetAadhaarValidationData?serviceId=1&type=".concat(encodeURIComponent(selectedTable.type)),
+    extraParams: {
+      state: appFilters.state,
+      division: appFilters.division,
+      district: appFilters.district,
+      tehsil: appFilters.tehsil
+    },
+    Title: selectedTable.title,
+    actionFunctions: {},
+    canSanction: false,
+    canHavePool: false,
+    pendingApplications: false,
+    serviceId: "1",
+    onPushToPool: function onPushToPool() {},
+    onExecuteAction: function onExecuteAction() {},
+    actionOptions: [],
+    selectedAction: "",
+    setSelectedAction: function setSelectedAction() {}
+  }))))));
+}
+
+/***/ }),
+
 /***/ "./src/screens/officer/BankFile.jsx":
 /*!******************************************!*\
   !*** ./src/screens/officer/BankFile.jsx ***!
@@ -313117,7 +314552,7 @@ function OfficerHome() {
       borderBottomWidth: 2 // thickness of the line
     }
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
-    title: "Withheld Applications After Sanction",
+    title: "Withheld Payments After Sanction",
     arrow: true
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
     variant: "h5",
@@ -313129,7 +314564,7 @@ function OfficerHome() {
       fontFamily: "'Inter', sans-serif",
       mt: 2
     }
-  }, "Withheld Application Payments (After Sanction)")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_26__["default"], {
+  }, "Withheld Payments (After Sanction)")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_26__["default"], {
     className: "mb-1 justify-content-center",
     style: {
       width: "100%"
@@ -313653,7 +315088,7 @@ function OfficerHome() {
       fontWeight: 600,
       color: "#2d3748"
     }
-  }, "Application Status Distribution"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  }, "Status of New Applications"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
     sx: {
       height: "350px"
     }
@@ -313671,7 +315106,7 @@ function OfficerHome() {
       fontWeight: 600,
       color: "#2d3748"
     }
-  }, "Application Counts"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  }, "New Applications Count"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
     sx: {
       height: "350px"
     }
@@ -319383,15 +320818,15 @@ function Form() {
     "Bank Details": [{
       label: "Bank",
       name: "BankName",
-      value: "JAMMU AND KASHMIR BANK"
+      value: "77"
     }, {
       label: "Branch Name",
       name: "BranchName",
-      value: "MAIN BAZAR"
+      value: "92453"
     }, {
       label: "IFSC Code",
       name: "IfscCode",
-      value: "JAKA0KEEPER"
+      value: "887110"
     }, {
       label: "Account Number",
       name: "AccountNumber",
@@ -319554,15 +320989,15 @@ function Form() {
     "Bank Details": [{
       label: "Bank",
       name: "BankName",
-      value: "JAMMU AND KASHMIR BANK"
+      value: "77"
     }, {
       label: "Branch Name",
       name: "BranchName",
-      value: "MAIN BAZAR"
+      value: "92453"
     }, {
       label: "IFSC Code",
       name: "IfscCode",
-      value: "JAKA0KEEPER"
+      value: "887110"
     }, {
       label: "Account Number",
       name: "AccountNumber",
@@ -319708,15 +321143,15 @@ function Form() {
     "Bank Details": [{
       label: "Bank",
       name: "BankName",
-      value: "JAMMU AND KASHMIR BANK"
+      value: "77"
     }, {
       label: "Branch Name",
       name: "BranchName",
-      value: "MAIN BAZAR"
+      value: "92453"
     }, {
       label: "IFSC Code",
       name: "IfscCode",
-      value: "JAKA0KEEPER"
+      value: "887110"
     }, {
       label: "Account Number",
       name: "AccountNumber",
@@ -321133,6 +322568,1068 @@ function UserLayout() {
 
 /***/ }),
 
+/***/ "./src/screens/viewer/AadhaarValidations.jsx":
+/*!***************************************************!*\
+  !*** ./src/screens/viewer/AadhaarValidations.jsx ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ AadhaarValidations)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/taggedTemplateLiteral */ "./node_modules/@babel/runtime/helpers/esm/taggedTemplateLiteral.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Card/Card.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/node_modules/@mui/system/esm/colorManipulator/colorManipulator.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Avatar/Avatar.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CardContent/CardContent.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Stack/Stack.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Grid/Grid.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Container/Container.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Paper/Paper.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Divider/Divider.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/styles/useTheme.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/ArrowRightAlt.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Assessment.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/AssignmentTurnedIn.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Cancel.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/CheckCircle.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/ErrorOutline.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/FilterList.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Group.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/HourglassEmpty.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/PieChart.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Refresh.js");
+/* harmony import */ var _mui_material_styles__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! @mui/material/styles */ "./node_modules/@emotion/react/dist/emotion-react.browser.development.esm.js");
+/* harmony import */ var _mui_material_styles__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! @mui/material/styles */ "./node_modules/@mui/material/styles/styled.js");
+/* harmony import */ var chart_js_auto__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! chart.js/auto */ "./node_modules/chart.js/auto/auto.js");
+/* harmony import */ var chartjs_plugin_datalabels__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! chartjs-plugin-datalabels */ "./node_modules/chartjs-plugin-datalabels/dist/chartjs-plugin-datalabels.esm.js");
+/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
+/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_37__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
+
+
+
+var _templateObject;
+
+
+
+
+
+
+
+
+
+chart_js_auto__WEBPACK_IMPORTED_MODULE_34__.Chart.register(chartjs_plugin_datalabels__WEBPACK_IMPORTED_MODULE_35__["default"]);
+
+// Animations
+var _float = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_32__.keyframes)(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  0%, 100% { transform: translateY(0px); }\n  50% { transform: translateY(-10px); }\n"])));
+
+// Styled components
+var GradientCard = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_33__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(function (_ref) {
+  var theme = _ref.theme,
+    bgcolor = _ref.bgcolor,
+    gradientstart = _ref.gradientstart,
+    gradientend = _ref.gradientend;
+  return {
+    borderRadius: theme.spacing(2),
+    background: bgcolor,
+    border: "1px solid ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(gradientstart, 0.1)),
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    cursor: "pointer",
+    position: "relative",
+    overflow: "hidden",
+    height: "100%",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "linear-gradient(135deg, ".concat(gradientstart, "08 0%, ").concat(gradientend, "05 100%)"),
+      opacity: 0,
+      transition: "opacity 0.3s ease"
+    },
+    "&:hover": {
+      transform: "translateY(-4px)",
+      boxShadow: "0 12px 24px ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(gradientstart, 0.15)),
+      "&::before": {
+        opacity: 1
+      }
+    }
+  };
+});
+var IconAvatar = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_33__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"])(function (_ref2) {
+  var theme = _ref2.theme,
+    gradientstart = _ref2.gradientstart,
+    gradientend = _ref2.gradientend;
+  return {
+    background: "linear-gradient(135deg, ".concat(gradientstart, " 0%, ").concat(gradientend, " 100%)"),
+    width: 48,
+    height: 48,
+    boxShadow: "0 4px 12px ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(gradientstart, 0.25)),
+    animation: "".concat(_float, " 6s ease-in-out infinite"),
+    "& .MuiSvgIcon-root": {
+      fontSize: "1.3rem",
+      color: "#ffffff"
+    }
+  };
+});
+var GlassCard = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_33__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(function (_ref3) {
+  var theme = _ref3.theme;
+  return {
+    background: "rgba(255, 255, 255, 0.95)",
+    backdropFilter: "blur(20px)",
+    border: "1px solid ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.common.white, 0.3)),
+    borderRadius: theme.spacing(3),
+    boxShadow: "0 8px 32px ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.common.black, 0.08)),
+    width: "100%",
+    padding: theme.spacing(3)
+  };
+});
+var SectionHeader = (0,_mui_material_styles__WEBPACK_IMPORTED_MODULE_33__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"])(function (_ref4) {
+  var theme = _ref4.theme;
+  return {
+    position: "relative",
+    marginBottom: theme.spacing(3),
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      bottom: -8,
+      left: 0,
+      width: 60,
+      height: 4,
+      background: "linear-gradient(90deg, #4f46e5, #3b82f6)",
+      borderRadius: 2
+    }
+  };
+});
+
+// Constants
+var defaultCardData = [{
+  title: "Applications Received",
+  value: "0",
+  category: "application",
+  color: "primary",
+  bgColor: "#f8faff",
+  gradientStart: "#4f46e5",
+  gradientEnd: "#3b82f6"
+}, {
+  title: "Sanctioned",
+  value: "0",
+  category: "application",
+  color: "success",
+  bgColor: "#f0fdf4",
+  gradientStart: "#059669",
+  gradientEnd: "#10b981"
+}, {
+  title: "Under Process",
+  value: "0",
+  category: "application",
+  color: "warning",
+  bgColor: "#fffbeb",
+  gradientStart: "#fbbf24",
+  gradientEnd: "#fbbf24"
+}, {
+  title: "Pending with Citizen",
+  value: "0",
+  category: "application",
+  color: "info",
+  bgColor: "#f0f9ff",
+  gradientStart: "#0ea5e9",
+  gradientEnd: "#38bdf8"
+}, {
+  title: "Rejected",
+  value: "0",
+  category: "application",
+  color: "error",
+  bgColor: "#fef2f2",
+  gradientStart: "#ef4444",
+  gradientEnd: "#f87171"
+}];
+var defaultCategoryData = [{
+  name: "Old Age Pension",
+  value: 0,
+  color: "#4f46e5"
+}, {
+  name: "Women In Distress",
+  value: 0,
+  color: "#059669"
+}, {
+  name: "Physically Challenged Person",
+  value: 0,
+  color: "#f59e0b"
+}, {
+  name: "Transgender",
+  value: 0,
+  color: "#0ea5e9"
+}];
+var iconMap = {
+  "Applications Received": _mui_icons_material__WEBPACK_IMPORTED_MODULE_23__["default"],
+  Sanctioned: _mui_icons_material__WEBPACK_IMPORTED_MODULE_25__["default"],
+  "Under Process": _mui_icons_material__WEBPACK_IMPORTED_MODULE_29__["default"],
+  "Pending with Citizen": _mui_icons_material__WEBPACK_IMPORTED_MODULE_28__["default"],
+  Rejected: _mui_icons_material__WEBPACK_IMPORTED_MODULE_24__["default"]
+};
+
+// Custom Hook for Filter Management
+var useFilters = function useFilters(category) {
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)("0"),
+    _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState, 2),
+    state = _useState2[0],
+    setState = _useState2[1];
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
+    _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState3, 2),
+    division = _useState4[0],
+    setDivision = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
+    _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState5, 2),
+    districts = _useState6[0],
+    setDistricts = _useState6[1];
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
+    _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState7, 2),
+    district = _useState8[0],
+    setDistrict = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
+    _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState9, 2),
+    tehsils = _useState0[0],
+    setTehsils = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
+    _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState1, 2),
+    tehsil = _useState10[0],
+    setTehsil = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)("State"),
+    _useState12 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState11, 2),
+    wise = _useState12[0],
+    setWise = _useState12[1];
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)("Jammu & Kashmir"),
+    _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState13, 2),
+    wiseName = _useState14[0],
+    setWiseName = _useState14[1];
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState16 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState15, 2),
+    filterLoading = _useState16[0],
+    setFilterLoading = _useState16[1];
+  var resetFilters = (0,react__WEBPACK_IMPORTED_MODULE_4__.useCallback)(function () {
+    setState("0");
+    setDivision("");
+    setDistrict("");
+    setTehsil("");
+    setDistricts([]);
+    setTehsils([]);
+    setWise("State");
+    setWiseName("Jammu & Kashmir");
+  }, []);
+  var getFilterTitle = function getFilterTitle(type, value) {
+    if (!value) return type;
+    if (type === "State") return value === "0" ? "Jammu & Kashmir" : type;
+    if (type === "Division") return value === "1" ? "Jammu" : value === "2" ? "Kashmir" : type;
+    if (type === "District") {
+      var _districts$find;
+      return ((_districts$find = districts.find(function (d) {
+        return d.value === value;
+      })) === null || _districts$find === void 0 ? void 0 : _districts$find.label) || type;
+    }
+    if (type === "Tehsil") {
+      var _tehsils$find;
+      return ((_tehsils$find = tehsils.find(function (t) {
+        return t.value === value;
+      })) === null || _tehsils$find === void 0 ? void 0 : _tehsils$find.label) || type;
+    }
+    return type;
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    var fetchDistricts = /*#__PURE__*/function () {
+      var _ref5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee() {
+        var response, _t;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              if (!division) {
+                _context.next = 6;
+                break;
+              }
+              setFilterLoading(true);
+              _context.prev = 1;
+              _context.next = 2;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_36__["default"].get("/Base/GetDistricts", {
+                params: {
+                  division: division
+                }
+              });
+            case 2:
+              response = _context.sent;
+              setDistricts(response.data.districts.map(function (item) {
+                return {
+                  label: item.districtName,
+                  value: item.districtId
+                };
+              }));
+              setDistrict("");
+              setTehsils([]);
+              setTehsil("");
+              _context.next = 4;
+              break;
+            case 3:
+              _context.prev = 3;
+              _t = _context["catch"](1);
+              console.error("Failed to fetch districts for ".concat(category, ":"), _t);
+              setDistricts([]);
+            case 4:
+              _context.prev = 4;
+              setFilterLoading(false);
+              return _context.finish(4);
+            case 5:
+              _context.next = 7;
+              break;
+            case 6:
+              setDistricts([]);
+              setDistrict("");
+              setTehsils([]);
+              setTehsil("");
+            case 7:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee, null, [[1, 3, 4, 5]]);
+      }));
+      return function fetchDistricts() {
+        return _ref5.apply(this, arguments);
+      };
+    }();
+    fetchDistricts();
+  }, [division, category]);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    var fetchTehsils = /*#__PURE__*/function () {
+      var _ref6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2() {
+        var response, _t2;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context2) {
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              if (!district) {
+                _context2.next = 6;
+                break;
+              }
+              setFilterLoading(true);
+              _context2.prev = 1;
+              _context2.next = 2;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_36__["default"].get("/Base/GetTeshilForDistrict", {
+                params: {
+                  districtId: district
+                }
+              });
+            case 2:
+              response = _context2.sent;
+              setTehsils(response.data.tehsils.map(function (item) {
+                return {
+                  label: item.tehsilName,
+                  value: item.tehsilId
+                };
+              }));
+              setTehsil("");
+              _context2.next = 4;
+              break;
+            case 3:
+              _context2.prev = 3;
+              _t2 = _context2["catch"](1);
+              console.error("Failed to fetch tehsils for ".concat(category, ":"), _t2);
+              setTehsils([]);
+            case 4:
+              _context2.prev = 4;
+              setFilterLoading(false);
+              return _context2.finish(4);
+            case 5:
+              _context2.next = 7;
+              break;
+            case 6:
+              setTehsils([]);
+              setTehsil("");
+            case 7:
+            case "end":
+              return _context2.stop();
+          }
+        }, _callee2, null, [[1, 3, 4, 5]]);
+      }));
+      return function fetchTehsils() {
+        return _ref6.apply(this, arguments);
+      };
+    }();
+    fetchTehsils();
+  }, [district, category]);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    if (tehsil) {
+      var _tehsils$find2;
+      setWise("Tehsil");
+      setWiseName(((_tehsils$find2 = tehsils.find(function (item) {
+        return item.value === tehsil;
+      })) === null || _tehsils$find2 === void 0 ? void 0 : _tehsils$find2.label) || "Tehsil");
+    } else if (district) {
+      var _districts$find2;
+      setWise("District");
+      setWiseName(((_districts$find2 = districts.find(function (item) {
+        return item.value === district;
+      })) === null || _districts$find2 === void 0 ? void 0 : _districts$find2.label) || "District");
+    } else if (division) {
+      setWise("Division");
+      setWiseName(division === "1" ? "Jammu" : division === "2" ? "Kashmir" : "Division");
+    } else {
+      setWise("State");
+      setWiseName("Jammu & Kashmir");
+    }
+  }, [division, district, tehsil, districts, tehsils]);
+  return {
+    state: state,
+    setState: setState,
+    division: division,
+    setDivision: setDivision,
+    district: district,
+    setDistrict: setDistrict,
+    tehsil: tehsil,
+    setTehsil: setTehsil,
+    districts: districts,
+    tehsils: tehsils,
+    wise: wise,
+    wiseName: wiseName,
+    filterLoading: filterLoading,
+    resetFilters: resetFilters,
+    getFilterTitle: getFilterTitle
+  };
+};
+
+// Custom Hook for Dashboard Data
+var useDashboardData = function useDashboardData(category, filters) {
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(defaultCardData.filter(function (c) {
+      return c.category === category;
+    })),
+    _useState18 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState17, 2),
+    data = _useState18[0],
+    setData = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(defaultCategoryData),
+    _useState20 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState19, 2),
+    categoryData = _useState20[0],
+    setCategoryData = _useState20[1];
+  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
+    _useState22 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState21, 2),
+    locationData = _useState22[0],
+    setLocationData = _useState22[1];
+  var _useState23 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState24 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState23, 2),
+    isLoading = _useState24[0],
+    setIsLoading = _useState24[1];
+  var _useState25 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
+    _useState26 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState25, 2),
+    error = _useState26[0],
+    setError = _useState26[1];
+  var fetchData = (0,react__WEBPACK_IMPORTED_MODULE_4__.useCallback)(/*#__PURE__*/(0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee3() {
+    var params, response, _t3;
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          setIsLoading(true);
+          setError(null);
+          _context3.prev = 1;
+          params = {
+            serviceId: "1",
+            division: filters.division || null,
+            district: filters.district || null,
+            tehsil: filters.tehsil || null
+          };
+          _context3.next = 2;
+          return _axiosConfig__WEBPACK_IMPORTED_MODULE_36__["default"].get("/Viewer/GetAadhaarValidationCount", {
+            params: params
+          });
+        case 2:
+          response = _context3.sent;
+          setData(response.data.dataList.filter(function (c) {
+            return c.category === category;
+          }));
+          setCategoryData(response.data.categoryData || defaultCategoryData);
+          setLocationData(response.data.locationData || []);
+          _context3.next = 4;
+          break;
+        case 3:
+          _context3.prev = 3;
+          _t3 = _context3["catch"](1);
+          setError("\n\nFailed to fetch ".concat(category, " data"));
+          setData(defaultCardData.filter(function (c) {
+            return c.category === category;
+          }));
+          setCategoryData(defaultCategoryData);
+          setLocationData([]);
+        case 4:
+          _context3.prev = 4;
+          setIsLoading(false);
+          return _context3.finish(4);
+        case 5:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3, null, [[1, 3, 4, 5]]);
+  })), [filters.division, filters.district, filters.tehsil, category]);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    fetchData();
+  }, [fetchData]);
+  return {
+    data: data,
+    categoryData: categoryData,
+    locationData: locationData,
+    isLoading: isLoading,
+    error: error
+  };
+};
+
+// Donut Chart Component
+var DonutChart = function DonutChart(_ref8) {
+  var data = _ref8.data,
+    chartTitle = _ref8.chartTitle;
+  var theme = (0,_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"])();
+  var chartRef = (0,react__WEBPACK_IMPORTED_MODULE_4__.useRef)(null);
+  var chartInstance = (0,react__WEBPACK_IMPORTED_MODULE_4__.useRef)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    if (chartRef.current && data.length > 0) {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+      var total = data.reduce(function (sum, item) {
+        return sum + item.value;
+      }, 0);
+      chartInstance.current = new chart_js_auto__WEBPACK_IMPORTED_MODULE_34__.Chart(chartRef.current, {
+        type: "doughnut",
+        data: {
+          labels: data.map(function (item) {
+            return item.name;
+          }),
+          datasets: [{
+            data: data.map(function (item) {
+              return item.value;
+            }),
+            backgroundColor: data.map(function (item) {
+              return item.color;
+            }),
+            borderColor: data.map(function (item) {
+              return (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(item.color, 0.3);
+            }),
+            borderWidth: 2,
+            hoverBorderWidth: 3,
+            hoverBackgroundColor: data.map(function (item) {
+              return (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(item.color, 0.8);
+            })
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "65%",
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                boxWidth: 16,
+                padding: 15,
+                font: {
+                  size: 11,
+                  family: theme.typography.fontFamily
+                },
+                color: theme.palette.text.primary,
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              titleColor: "#374151",
+              bodyColor: "#374151",
+              titleFont: {
+                size: 14,
+                weight: "bold"
+              },
+              bodyFont: {
+                size: 12
+              },
+              borderColor: "#e5e7eb",
+              borderWidth: 1,
+              cornerRadius: 8,
+              callbacks: {
+                label: function label(context) {
+                  return "".concat(context.label, ": ").concat(context.parsed.toLocaleString("en-IN"));
+                }
+              }
+            },
+            datalabels: {
+              color: "#ffffff",
+              formatter: function formatter(value) {
+                return "".concat((value / total * 100).toFixed(1), "%");
+              },
+              font: {
+                weight: "bold",
+                size: 12
+              },
+              textAlign: "center",
+              anchor: "center",
+              align: "center"
+            }
+          }
+        }
+      });
+      return function () {
+        if (chartInstance.current) {
+          chartInstance.current.destroy();
+        }
+      };
+    }
+  }, [data, theme]);
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      width: "100%",
+      height: 350,
+      position: "relative"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("canvas", {
+    ref: chartRef,
+    style: {
+      maxWidth: "100%"
+    }
+  }), data.length === 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "body1",
+    color: "text.secondary",
+    align: "center",
+    sx: {
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)"
+    }
+  }, "No data available"));
+};
+
+// Stat Card Component
+var ModernStatCard = function ModernStatCard(_ref9) {
+  var card = _ref9.card,
+    onCardClick = _ref9.onCardClick;
+  var theme = (0,_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"])();
+  var IconComponent = iconMap[card.title] || _mui_icons_material__WEBPACK_IMPORTED_MODULE_23__["default"];
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(GradientCard, {
+    onClick: function onClick() {
+      return onCardClick(card.title, card.category);
+    },
+    bgcolor: card.bgColor,
+    gradientstart: card.gradientStart,
+    gradientend: card.gradientEnd
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    sx: {
+      p: 3,
+      zIndex: 1,
+      height: "100%"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    spacing: 2,
+    sx: {
+      height: "100%"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(IconAvatar, {
+    gradientstart: card.gradientStart,
+    gradientend: card.gradientEnd
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(IconComponent, null)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "body2",
+    color: "text.secondary",
+    fontWeight: "medium",
+    sx: {
+      fontSize: "1.3rem",
+      minHeight: "2.6em",
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",
+      textOverflow: "ellipsis"
+    },
+    title: card.title
+  }, card.title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h4",
+    fontWeight: "bold",
+    sx: {
+      background: "linear-gradient(135deg, ".concat(card.gradientStart, ", ").concat(card.gradientEnd, ")"),
+      backgroundClip: "text",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      fontSize: {
+        xs: "1.5rem",
+        sm: "2rem",
+        md: "2.125rem"
+      },
+      wordBreak: "break-all"
+    },
+    title: card.value
+  }, card.value)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "caption",
+    sx: {
+      color: card.gradientStart,
+      fontWeight: 600,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      opacity: 0.8,
+      "&:hover": {
+        opacity: 1
+      }
+    }
+  }, "Details", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
+    sx: {
+      ml: 0.5,
+      fontSize: "1rem"
+    }
+  })))));
+};
+
+// Filter Section Component
+var FilterSection = function FilterSection(_ref0) {
+  var category = _ref0.category,
+    filters = _ref0.filters,
+    filterLoading = _ref0.filterLoading;
+  var state = filters.state,
+    setState = filters.setState,
+    division = filters.division,
+    setDivision = filters.setDivision,
+    district = filters.district,
+    setDistrict = filters.setDistrict,
+    tehsil = filters.tehsil,
+    setTehsil = filters.setTehsil,
+    districts = filters.districts,
+    tehsils = filters.tehsils,
+    resetFilters = filters.resetFilters,
+    getFilterTitle = filters.getFilterTitle;
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(GlassCard, {
+    sx: {
+      p: 3,
+      mb: 4
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    direction: "row",
+    alignItems: "center",
+    spacing: 2,
+    mb: 3
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    sx: {
+      bgcolor: "#4f46e5"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_27__["default"], null)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h6",
+    fontWeight: "bold"
+  }, category.charAt(0).toUpperCase() + category.slice(1), " Filters"), filterLoading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    size: 20,
+    sx: {
+      ml: 2
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    container: true,
+    spacing: 2
+  }, [{
+    label: "State",
+    value: state,
+    onChange: setState,
+    options: [{
+      value: "0",
+      label: "Jammu & Kashmir"
+    }]
+  }, {
+    label: "Division",
+    value: division,
+    onChange: setDivision,
+    options: [{
+      value: "1",
+      label: "Jammu"
+    }, {
+      value: "2",
+      label: "Kashmir"
+    }]
+  }, {
+    label: "District",
+    value: district,
+    onChange: setDistrict,
+    options: districts
+  }, {
+    label: "Tehsil",
+    value: tehsil,
+    onChange: setTehsil,
+    options: tehsils
+  }].map(function (_ref1, index) {
+    var label = _ref1.label,
+      value = _ref1.value,
+      _onChange = _ref1.onChange,
+      options = _ref1.options;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+      item: true,
+      xs: 12,
+      sm: 6,
+      md: 2.4,
+      key: index
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
+      select: true,
+      fullWidth: true,
+      label: getFilterTitle(label, value),
+      value: value,
+      onChange: function onChange(e) {
+        return _onChange(e.target.value);
+      },
+      variant: "outlined",
+      size: "small"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+      value: ""
+    }, "Select ", label), options.map(function (item, idx) {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        key: idx,
+        value: item.value
+      }, item.label);
+    })));
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6,
+    md: 2.4
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+    fullWidth: true,
+    variant: "contained",
+    onClick: resetFilters,
+    startIcon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_31__["default"], null),
+    sx: {
+      height: 40,
+      background: "linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)",
+      "&:hover": {
+        background: "linear-gradient(135deg, #4338ca 0%, #2563eb 100%)"
+      }
+    }
+  }, "Reset"))));
+};
+
+// Main Dashboard Component
+function AadhaarValidations() {
+  var theme = (0,_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"])();
+  var appFilters = useFilters("application");
+  var _useDashboardData = useDashboardData("application", appFilters),
+    appData = _useDashboardData.data,
+    categoryData = _useDashboardData.categoryData,
+    locationData = _useDashboardData.locationData,
+    appLoading = _useDashboardData.isLoading,
+    appError = _useDashboardData.error;
+  var _useState27 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
+    _useState28 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState27, 2),
+    selectedTable = _useState28[0],
+    setSelectedTable = _useState28[1];
+  var tableRef = (0,react__WEBPACK_IMPORTED_MODULE_4__.useRef)(null);
+  var handleCardClick = (0,react__WEBPACK_IMPORTED_MODULE_4__.useCallback)(function (title, category) {
+    // Map card title to type parameter for GetMainApplicationStatusData
+    var titleToTypeMap = {
+      "Total Sanctioned": "sanctioned",
+      "Aadhaar Validated": "not_empty",
+      "Aadhaar Not Validated": "empty"
+    };
+    var type = titleToTypeMap[title] || "total"; // Default to "total" if no match
+
+    setSelectedTable({
+      title: title,
+      category: category,
+      type: type
+    });
+    setTimeout(function () {
+      var _tableRef$current;
+      (_tableRef$current = tableRef.current) === null || _tableRef$current === void 0 || _tableRef$current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }, 100);
+  }, []);
+  var statusDistributionData = appData.filter(function (card) {
+    return ["Sanctioned", "Aadhaar Validated", "Aadhaar Not Validated"].includes(card.title);
+  }).map(function (card) {
+    return {
+      name: card.title,
+      value: parseInt(card.value.replace(/[^0-9]/g, ""), 10) || 0,
+      color: card.gradientStart
+    };
+  }).filter(function (item) {
+    return item.value > 0;
+  });
+  var appDynamicTitle = "".concat(appFilters.wise === "State" ? "Division" : appFilters.wise === "Division" ? "District" : "Tehsil", "-wise Sanctioned Applications");
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+      py: 2
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      background: "rgba(255, 255, 255, 0.95)",
+      backdropFilter: "blur(20px)",
+      borderBottom: "1px solid ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.divider, 0.1)),
+      py: 2
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
+    maxWidth: "xl"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h4",
+    fontWeight: "bold",
+    sx: {
+      color: "#1e293b"
+    }
+  }, "Dashboard"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
+    maxWidth: "xl",
+    sx: {
+      mt: 4
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(FilterSection, {
+    category: "application",
+    filters: appFilters,
+    filterLoading: appFilters.filterLoading
+  }), appLoading ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    py: 8
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    size: 60,
+    thickness: 4
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h6",
+    ml: 3,
+    color: "text.secondary"
+  }, "Loading dashboard data...")) : appError ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], {
+    sx: {
+      p: 4,
+      textAlign: "center",
+      bgcolor: (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.error.main, 0.1),
+      border: "1px solid ".concat((0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)(theme.palette.error.main, 0.2))
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_26__["default"], {
+    sx: {
+      fontSize: 60,
+      color: "error.main",
+      mb: 2
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h6",
+    color: "error.main"
+  }, appError)) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement((react__WEBPACK_IMPORTED_MODULE_4___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(GlassCard, {
+    sx: {
+      p: 3,
+      mb: 4
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(SectionHeader, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    direction: "row",
+    alignItems: "center",
+    spacing: 2
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    sx: {
+      bgcolor: "#4f46e5",
+      width: 48,
+      height: 48
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_22__["default"], null)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h5",
+    fontWeight: "bold"
+  }, "Legacy Data Application Status (", appFilters.wise, "-", appFilters.wiseName, ")"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    container: true,
+    spacing: 3,
+    mb: 4
+  }, appData.map(function (card, index) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+      item: true,
+      xs: 12,
+      sm: 6,
+      md: 4,
+      lg: 4,
+      key: index
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(ModernStatCard, {
+      card: card,
+      onCardClick: handleCardClick
+    }));
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
+    sx: {
+      my: 3
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      bgcolor: (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__.alpha)("#f8fafc", 0.5),
+      borderRadius: 3,
+      p: 3
+    },
+    id: "application-charts"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "h6",
+    fontWeight: "bold",
+    mb: 3
+  }, "Status Distribution"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    container: true,
+    spacing: 3
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    item: true,
+    xs: 12,
+    md: 12
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    direction: "row",
+    alignItems: "center",
+    spacing: 2,
+    mb: 2
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_30__["default"], {
+    sx: {
+      color: "#4f46e5"
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    variant: "subtitle1",
+    fontWeight: "medium"
+  }, "Status of Applications (", appFilters.wise, "-", appFilters.wiseName, ")")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(DonutChart, {
+    data: statusDistributionData,
+    chartTitle: "Application Status"
+  }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(GlassCard, {
+    sx: {
+      p: 3
+    }
+  }, selectedTable && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement((react__WEBPACK_IMPORTED_MODULE_4___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
+    sx: {
+      my: 3
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_37__["default"], {
+    ref: tableRef,
+    url: "/Viewer/GetAadhaarValidationData?serviceId=1&type=".concat(encodeURIComponent(selectedTable.type)),
+    extraParams: {
+      state: appFilters.state,
+      division: appFilters.division,
+      district: appFilters.district,
+      tehsil: appFilters.tehsil
+    },
+    Title: selectedTable.title,
+    actionFunctions: {},
+    canSanction: false,
+    canHavePool: false,
+    pendingApplications: false,
+    serviceId: "1",
+    onPushToPool: function onPushToPool() {},
+    onExecuteAction: function onExecuteAction() {},
+    actionOptions: [],
+    selectedAction: "",
+    setSelectedAction: function setSelectedAction() {}
+  }))))));
+}
+
+/***/ }),
+
 /***/ "./src/screens/viewer/ViewerHome.jsx":
 /*!*******************************************!*\
   !*** ./src/screens/viewer/ViewerHome.jsx ***!
@@ -321183,10 +323680,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var chart_js_auto__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! chart.js/auto */ "./node_modules/chart.js/auto/auto.js");
 /* harmony import */ var chartjs_plugin_datalabels__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! chartjs-plugin-datalabels */ "./node_modules/chartjs-plugin-datalabels/dist/chartjs-plugin-datalabels.esm.js");
 /* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
+/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_37__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
 
 
 
 var _templateObject;
+
 
 
 
@@ -321542,8 +324041,8 @@ var useFilters = function useFilters(category) {
     } else if (district) {
       var _districts$find2;
       setWise("District");
-      setWiseName(((_districts$find2 = districts.find(function (item) {
-        return item.value === district;
+      setWiseName(((_districts$find2 = districts.find(function (d) {
+        return d.value === district;
       })) === null || _districts$find2 === void 0 ? void 0 : _districts$find2.label) || "District");
     } else if (division) {
       setWise("Division");
@@ -321996,20 +324495,29 @@ function ModernMUIDashboard() {
     _useState28 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState27, 2),
     selectedTable = _useState28[0],
     setSelectedTable = _useState28[1];
+  var tableRef = (0,react__WEBPACK_IMPORTED_MODULE_4__.useRef)(null);
   var handleCardClick = (0,react__WEBPACK_IMPORTED_MODULE_4__.useCallback)(function (title, category) {
+    // Map card title to type parameter for GetMainApplicationStatusData
+    var titleToTypeMap = {
+      "Applications Received": "total",
+      Sanctioned: "sanctioned",
+      "Under Process": "pending",
+      "Pending with Citizen": "returntoedit",
+      Rejected: "rejected"
+    };
+    var type = titleToTypeMap[title] || "total"; // Default to "total" if no match
+
     setSelectedTable({
       title: title,
-      category: category
+      category: category,
+      type: type
     });
     setTimeout(function () {
-      var tableId = "table-".concat(title.replace(/\s+/g, "-").toLowerCase());
-      var element = document.getElementById(tableId);
-      if (element) {
-        element.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }
+      var _tableRef$current;
+      (_tableRef$current = tableRef.current) === null || _tableRef$current === void 0 || _tableRef$current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     }, 100);
   }, []);
   var statusDistributionData = appData.filter(function (card) {
@@ -322199,8 +324707,9 @@ function ModernMUIDashboard() {
     sx: {
       my: 3
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(ServerSideTable, {
-    url: "/api/".concat(selectedTable.category, "/details?title=").concat(encodeURIComponent(selectedTable.title)),
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_37__["default"], {
+    ref: tableRef,
+    url: "/Viewer/GetMainApplicationStatusData?serviceId=1&type=".concat(encodeURIComponent(selectedTable.type)),
     extraParams: {
       state: appFilters.state,
       division: appFilters.division,
@@ -322212,7 +324721,7 @@ function ModernMUIDashboard() {
     canSanction: false,
     canHavePool: false,
     pendingApplications: false,
-    serviceId: null,
+    serviceId: "1",
     onPushToPool: function onPushToPool() {},
     onExecuteAction: function onExecuteAction() {},
     actionOptions: [],

@@ -23,9 +23,13 @@ public partial class SocialWelfareDepartmentContext : DbContext
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
+    public virtual DbSet<Bank> Banks { get; set; }
+
     public virtual DbSet<BankDetail> BankDetails { get; set; }
 
     public virtual DbSet<Block> Blocks { get; set; }
+
+    public virtual DbSet<Branch> Branches { get; set; }
 
     public virtual DbSet<Certificate> Certificates { get; set; }
 
@@ -38,6 +42,8 @@ public partial class SocialWelfareDepartmentContext : DbContext
     public virtual DbSet<EmailSetting> EmailSettings { get; set; }
 
     public virtual DbSet<HalqaPanchayat> HalqaPanchayats { get; set; }
+
+    public virtual DbSet<IfscCode> IfscCodes { get; set; }
 
     public virtual DbSet<Muncipality> Muncipalities { get; set; }
 
@@ -148,6 +154,21 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .HasConstraintName("FK_AuditLogs_Users");
         });
 
+        modelBuilder.Entity<Bank>(entity =>
+        {
+            entity.HasKey(e => e.BankId).HasName("PK__BANK__06D33C46B8F65530");
+
+            entity.ToTable("BANK");
+
+            entity.HasIndex(e => e.BankName, "UQ__BANK__AEC7A8EF60CCDF50").IsUnique();
+
+            entity.Property(e => e.BankId).HasColumnName("BANK_ID");
+            entity.Property(e => e.BankName)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("BANK_NAME");
+        });
+
         modelBuilder.Entity<BankDetail>(entity =>
         {
             entity.HasNoKey();
@@ -198,6 +219,49 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.Property(e => e.BlockName)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Branch>(entity =>
+        {
+            entity.HasKey(e => e.BranchId).HasName("PK__BRANCH__766E0D23319098E1");
+
+            entity.ToTable("BRANCH");
+
+            entity.Property(e => e.BranchId).HasColumnName("BRANCH_ID");
+            entity.Property(e => e.Address)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("ADDRESS");
+            entity.Property(e => e.BankId).HasColumnName("BANK_ID");
+            entity.Property(e => e.BranchName)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("BRANCH_NAME");
+            entity.Property(e => e.City1)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("CITY1");
+            entity.Property(e => e.City2)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("CITY2");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("PHONE");
+            entity.Property(e => e.State)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("STATE");
+            entity.Property(e => e.StdCode)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("STD_CODE");
+
+            entity.HasOne(d => d.Bank).WithMany(p => p.Branches)
+                .HasForeignKey(d => d.BankId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__BRANCH__BANK_ID__57A801BA");
         });
 
         modelBuilder.Entity<Certificate>(entity =>
@@ -310,6 +374,25 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.Property(e => e.Uuid)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("UUID");
+        });
+
+        modelBuilder.Entity<IfscCode>(entity =>
+        {
+            entity.HasKey(e => e.IfscId).HasName("PK__IFSC_COD__C4D0CD25239601D2");
+
+            entity.ToTable("IFSC_CODE");
+
+            entity.Property(e => e.IfscId).HasColumnName("IFSC_ID");
+            entity.Property(e => e.BranchId).HasColumnName("BRANCH_ID");
+            entity.Property(e => e.IfscCode1)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("IFSC_CODE");
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.IfscCodes)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__IFSC_CODE__BRANC__5F492382");
         });
 
         modelBuilder.Entity<Muncipality>(entity =>

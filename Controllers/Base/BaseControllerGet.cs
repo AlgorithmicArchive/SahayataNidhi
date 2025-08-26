@@ -559,5 +559,58 @@ namespace SahayataNidhi.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetBanks()
+        {
+            try
+            {
+                var banks = await dbcontext.Banks
+                    .OrderBy(b => b.BankName)
+                    .Select(b => new { id = b.BankId, name = b.BankName })
+                    .ToListAsync();
+                return Ok(new { status = true, data = banks });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBranches(int bankId)
+        {
+            try
+            {
+                var branches = await dbcontext.Branches
+                    .Where(b => b.BankId == bankId)
+                    .OrderBy(b => b.BranchName)
+                    .Select(b => new { id = b.BranchId, name = b.BranchName })
+                    .ToListAsync();
+                return Ok(new { status = true, data = branches });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetIfscCodes(int branchId)
+        {
+            try
+            {
+                var ifscCodes = await dbcontext.IfscCodes
+                    .Where(i => i.BranchId == branchId)
+                    .OrderBy(i => i.IfscCode1)
+                    .Select(i => new { id = i.IfscId, name = i.IfscCode1 })
+                    .ToListAsync();
+                return Ok(new { status = true, data = ifscCodes });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = ex.Message });
+            }
+        }
+
     }
 }

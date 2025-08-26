@@ -234,65 +234,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   useEffect(() => {
     if (!formSections.length) return;
 
-    const formData = getValues();
-    const renderedFields = collectRenderedFields(formSections, formData);
-    const allPossibleFields = new Set();
-
-    // Collect all possible fields to identify non-rendered ones
-    formSections.forEach((section) => {
-      section.fields.forEach((field) => {
-        allPossibleFields.add(field.name);
-        if (field.type === "enclosure") {
-          allPossibleFields.add(`${field.name}_select`);
-          allPossibleFields.add(`${field.name}_file`);
-        }
-        if (field.additionalFields) {
-          Object.values(field.additionalFields)
-            .flat()
-            .forEach((af) => {
-              const nestedFieldName = af.name || `${field.name}_${af.id}`;
-              allPossibleFields.add(nestedFieldName);
-              if (af.type === "enclosure") {
-                allPossibleFields.add(`${nestedFieldName}_select`);
-                allPossibleFields.add(`${nestedFieldName}_file`);
-              }
-              if (af.additionalFields) {
-                Object.values(af.additionalFields)
-                  .flat()
-                  .forEach((nestedAf) => {
-                    const nestedNestedFieldName =
-                      nestedAf.name || `${nestedFieldName}_${nestedAf.id}`;
-                    allPossibleFields.add(nestedNestedFieldName);
-                    if (nestedAf.type === "enclosure") {
-                      allPossibleFields.add(`${nestedNestedFieldName}_select`);
-                      allPossibleFields.add(`${nestedNestedFieldName}_file`);
-                    }
-                  });
-              }
-            });
-        }
-      });
-    });
-
-    // Clear non-rendered fields
-    Array.from(allPossibleFields).forEach((fieldName) => {
-      if (!renderedFields.includes(fieldName)) {
-        setValue(fieldName, null, { shouldValidate: false });
-        unregister(fieldName, { keepValue: false });
-      }
-    });
-  }, [
-    formSections,
-    watch,
-    getValues,
-    setValue,
-    unregister,
-    JSON.stringify(watchedDependableValues),
-  ]);
-
-  useEffect(() => {
-    if (!formSections.length) return;
-
     formSections.forEach((section) => {
       section.fields.forEach((field) => {
         // Handle dependent selects
@@ -302,17 +243,33 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           field.dependentOptions
         ) {
           const parentValue = watch(field.dependentOn);
-          const options = field.dependentOptions[parentValue] || [];
+          const options =
+            field.dependentOptions[parentValue] || field.options || [];
           const currentValue = getValues(field.name);
 
-          if (options.length > 0) {
-            // If current value is not in options, reset to first available
-            setValue(field.name, options[1]?.value || "", {
-              shouldValidate: true,
-            });
-          } else if (currentValue) {
-            // If no options and value is set, clear it
-            setValue(field.name, "", { shouldValidate: true });
+          // Only reset if current value is invalid AND we're not in initial load
+          if (
+            options.length > 0 &&
+            currentValue &&
+            currentValue !== "Please Select"
+          ) {
+            const isValueValid = options.some(
+              (opt) => opt.value.toString() === currentValue.toString(),
+            );
+
+            // Only reset if the current value is not in the available options
+            if (!isValueValid) {
+              setValue(field.name, "Please Select", {
+                shouldValidate: true,
+              });
+            }
+          } else if (
+            options.length === 0 &&
+            currentValue &&
+            currentValue !== "Please Select"
+          ) {
+            // If no options available and value is set, clear it
+            setValue(field.name, "Please Select", { shouldValidate: true });
           }
         }
 
@@ -324,15 +281,30 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           additionalFields.forEach((af) => {
             if (af.type === "select" && af.dependentOn && af.dependentOptions) {
               const parentValue = watch(af.dependentOn);
-              const options = af.dependentOptions[parentValue] || [];
+              const options =
+                af.dependentOptions[parentValue] || af.options || [];
               const currentValue = getValues(af.name);
 
-              if (options.length > 0) {
-                setValue(af.name, options[1]?.value || "", {
-                  shouldValidate: true,
-                });
-              } else if (currentValue) {
-                setValue(af.name, "", { shouldValidate: true });
+              // Only reset if current value is invalid
+              if (
+                options.length > 0 &&
+                currentValue &&
+                currentValue !== "Please Select"
+              ) {
+                const isValueValid = options.some(
+                  (opt) => opt.value.toString() === currentValue.toString(),
+                );
+                if (!isValueValid) {
+                  setValue(af.name, "Please Select", {
+                    shouldValidate: true,
+                  });
+                }
+              } else if (
+                options.length === 0 &&
+                currentValue &&
+                currentValue !== "Please Select"
+              ) {
+                setValue(af.name, "Please Select", { shouldValidate: true });
               }
             }
           });
@@ -355,7 +327,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             setValue(fileFieldName, null, { shouldValidate: true });
             return;
           } else if (
-            initialData[field.name] &&
+            initialData?.[field.name] &&
             (getValues(selectFieldName) == null ||
               getValues(fileFieldName) == null)
           ) {
@@ -373,6 +345,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     formSections,
     getValues,
     setValue,
+    initialData,
     JSON.stringify(watchedDependableValues),
   ]);
 
@@ -493,22 +466,50 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         if (referenceNumber) {
           setReferenceNumber(referenceNumber);
         }
+
+        // Fetch bank names
+        const bankResponse = await axiosInstance.get("/Base/GetBanks");
+        const bankOptions = [
+          { label: "Please Select", value: "Please Select" },
+          ...(bankResponse.data?.data || []).map((bank) => ({
+            value: bank.id,
+            label: bank.name,
+          })),
+        ];
+
         const result = await GetServiceContent(ServiceId);
         if (result && result.status) {
           try {
             config = JSON.parse(result.formElement);
-            setFormSections(sanitizeFormSections(config));
+
+            // Inject bank options into BankName
+            const updatedConfig = config.map((section) => {
+              if (section.section === "Bank Details") {
+                return {
+                  ...section,
+                  fields: section.fields.map((field) =>
+                    field.name === "BankName"
+                      ? { ...field, options: bankOptions }
+                      : field,
+                  ),
+                };
+              }
+              return section;
+            });
+            setFormSections(sanitizeFormSections(updatedConfig));
           } catch (err) {
             console.error("Error parsing formElements:", err);
             setFormSections([]);
           }
         }
+
+        // Handle edit/incomplete mode
         if ((mode === "incomplete" || mode === "edit") && referenceNumber) {
           const { formDetails, additionalDetails } = await fetchFormDetails(
             referenceNumber,
           );
 
-          if (mode === "edit" || mode == "incomplete") {
+          if (mode === "edit" || mode === "incomplete") {
             const value = getValues("AadharNumber");
             if (value && value.length > 12) {
               setAadhaarValid(true);
@@ -517,6 +518,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
           const flatDetails = flattenFormDetails(formDetails);
           setInitialData(flatDetails);
+
+          // Prepare resetData
           const resetData = {
             ...flatDetails,
             ...Object.keys(flatDetails).reduce((acc, key) => {
@@ -528,7 +531,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                 acc[`${key}_select`] = flatDetails[key].selected;
                 acc[`${key}_file`] = flatDetails[key].file;
                 setDefaultFile(`${key}_file`, flatDetails[key].file, false);
-                // Set OtherDocument from Other enclosure's selected value
+
                 if (key === "Other") {
                   acc["OtherDocument"] = flatDetails[key].selected || "";
                 }
@@ -536,6 +539,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               return acc;
             }, {}),
           };
+
           const returnFields = JSON.parse(
             additionalDetails?.returnFields || "[]",
           );
@@ -546,33 +550,95 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           );
           setAreas(formDetails);
           setDependableFields(dependableFields);
+
+          // Reset form with values
           reset(resetData);
 
-          // Set default files for enclosures
-          formSections.forEach((section) => {
-            section.fields.forEach((field) => {
-              if (field.type === "enclosure") {
-                const fileFieldName = `${field.name}_file`;
-                const fileUrl = flatDetails[field.name]?.file;
-                if (fileUrl && typeof fileUrl === "string") {
-                  // Check if the enclosure is dependent and visible
-                  if (
-                    field.isDependentEnclosure &&
-                    field.dependentField &&
-                    field.dependentValues?.length > 0
-                  ) {
-                    const parentValue = flatDetails[field.dependentField];
-                    if (!field.dependentValues.includes(parentValue)) {
-                      return; // Skip if dependency condition is not met
-                    }
-                  }
-                  setDefaultFile(fileFieldName, fileUrl);
-                }
-              }
-            });
-          });
+          // Load Branches if BankName already present
+          if (
+            flatDetails.BankName &&
+            flatDetails.BankName !== "Please Select"
+          ) {
+            const branchResponse = await axiosInstance.get(
+              `/Base/GetBranches?bankId=${flatDetails.BankName}`,
+            );
+            const branchOptions = [
+              { label: "Please Select", value: "Please Select" },
+              ...(branchResponse.data?.data || []).map((branch) => ({
+                value: branch.id,
+                label: branch.name,
+              })),
+            ];
 
-          setAdditionalDetails(additionalDetails);
+            setFormSections((prevSections) =>
+              prevSections.map((section) =>
+                section.section === "Bank Details"
+                  ? {
+                      ...section,
+                      fields: section.fields.map((field) =>
+                        field.name === "BranchName"
+                          ? { ...field, options: branchOptions }
+                          : field,
+                      ),
+                    }
+                  : section,
+              ),
+            );
+
+            // Set BranchName after options are updated
+            if (
+              flatDetails.BranchName &&
+              branchOptions.some(
+                (opt) =>
+                  opt.value.toString() === flatDetails.BranchName.toString(),
+              )
+            ) {
+              setValue("BranchName", flatDetails.BranchName, {
+                shouldValidate: true,
+              });
+            } else {
+              setValue("BranchName", "Please Select", { shouldValidate: true });
+            }
+
+            // Load IFSC codes if BranchName already present
+            if (
+              flatDetails.BranchName &&
+              flatDetails.BranchName !== "Please Select"
+            ) {
+              const ifscResponse = await axiosInstance.get(
+                `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
+              );
+              const ifscOptions = [
+                { label: "Please Select", value: "Please Select" },
+                ...(ifscResponse.data?.data || []).map((ifsc) => ({
+                  value: ifsc.name,
+                  label: ifsc.name,
+                })),
+              ];
+
+              setFormSections((prevSections) =>
+                prevSections.map((section) =>
+                  section.section === "Bank Details"
+                    ? {
+                        ...section,
+                        fields: section.fields.map((field) =>
+                          field.name === "IfscCode"
+                            ? { ...field, options: ifscOptions }
+                            : field,
+                        ),
+                      }
+                    : section,
+                ),
+              );
+
+              // Set IfscCode after options are updated
+              if (flatDetails.IfscCode) {
+                setValue("IfscCode", flatDetails.IfscCode, {
+                  shouldValidate: true,
+                });
+              }
+            }
+          }
         } else if (data !== null && data !== undefined) {
           const flatDetails = flattenFormDetails(data);
 
@@ -586,7 +652,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               ) {
                 acc[`${key}_select`] = flatDetails[key].selected;
                 acc[`${key}_file`] = flatDetails[key].file;
-                // Set OtherDocument from Other enclosure's selected value
+                setDefaultFile(`${key}_file`, flatDetails[key].file, false);
+
                 if (key === "Other") {
                   acc["OtherDocument"] = flatDetails[key].selected || "";
                 }
@@ -594,8 +661,95 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               return acc;
             }, {}),
           };
+
           setInitialData(flatDetails);
           reset(resetData);
+
+          // Load Branches if BankName already present
+          if (
+            flatDetails.BankName &&
+            flatDetails.BankName !== "Please Select"
+          ) {
+            const branchResponse = await axiosInstance.get(
+              `/Base/GetBranches?bankId=${flatDetails.BankName}`,
+            );
+            const branchOptions = [
+              { label: "Please Select", value: "Please Select" },
+              ...(branchResponse.data?.data || []).map((branch) => ({
+                value: branch.id,
+                label: branch.name,
+              })),
+            ];
+
+            setFormSections((prevSections) =>
+              prevSections.map((section) =>
+                section.section === "Bank Details"
+                  ? {
+                      ...section,
+                      fields: section.fields.map((field) =>
+                        field.name === "BranchName"
+                          ? { ...field, options: branchOptions }
+                          : field,
+                      ),
+                    }
+                  : section,
+              ),
+            );
+
+            // Set BranchName after options are updated
+            if (
+              flatDetails.BranchName &&
+              branchOptions.some(
+                (opt) =>
+                  opt.value.toString() === flatDetails.BranchName.toString(),
+              )
+            ) {
+              setValue("BranchName", flatDetails.BranchName, {
+                shouldValidate: true,
+              });
+            } else {
+              setValue("BranchName", "Please Select", { shouldValidate: true });
+            }
+
+            // Load IFSC codes if BranchName already present
+            if (
+              flatDetails.BranchName &&
+              flatDetails.BranchName !== "Please Select"
+            ) {
+              const ifscResponse = await axiosInstance.get(
+                `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
+              );
+              const ifscOptions = [
+                { label: "Please Select", value: "Please Select" },
+                ...(ifscResponse.data?.data || []).map((ifsc) => ({
+                  value: ifsc.name,
+                  label: ifsc.name,
+                })),
+              ];
+
+              setFormSections((prevSections) =>
+                prevSections.map((section) =>
+                  section.section === "Bank Details"
+                    ? {
+                        ...section,
+                        fields: section.fields.map((field) =>
+                          field.name === "IfscCode"
+                            ? { ...field, options: ifscOptions }
+                            : field,
+                        ),
+                      }
+                    : section,
+                ),
+              );
+
+              // Set IfscCode after options are updated
+              if (flatDetails.IfscCode) {
+                setValue("IfscCode", flatDetails.IfscCode, {
+                  shouldValidate: true,
+                });
+              }
+            }
+          }
 
           // Set default files for enclosures
           formSections.forEach((section) => {
@@ -604,7 +758,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                 const fileFieldName = `${field.name}_file`;
                 const fileUrl = flatDetails[field.name]?.file;
                 if (fileUrl && typeof fileUrl === "string") {
-                  // Check if the enclosure is dependent and visible
                   if (
                     field.isDependentEnclosure &&
                     field.dependentField &&
@@ -612,7 +765,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   ) {
                     const parentValue = flatDetails[field.dependentField];
                     if (!field.dependentValues.includes(parentValue)) {
-                      return; // Skip if dependency condition is not met
+                      return;
                     }
                   }
                   setDefaultFile(fileFieldName, fileUrl);
@@ -622,13 +775,21 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           });
         }
 
+        // Loop through data and trigger dependent changes
         if (data != null) {
           Object.keys(data).forEach((key, sectionIndex) => {
-            data[key].map((item, index) => {
+            data[key].map((item) => {
               if (item.name.toLowerCase().includes("district")) {
                 handleAreaChange(sectionIndex, { name: item.name }, item.value);
+              } else if (
+                item.name.toLowerCase().includes("bank") ||
+                item.name.toLowerCase().includes("branch") ||
+                item.name.toLowerCase().includes("ifsc")
+              ) {
+                handleBankChange(sectionIndex, item, item.value);
               }
               setValue(item.name, item.value);
+
               if (item.additionalFields) {
                 let fieldsArray = [];
 
@@ -1234,6 +1395,162 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       }
     } catch (error) {
       console.error("Error in handleAreaChange:", error);
+    }
+  };
+
+  const handleBankChange = async (sectionIndex, field, value) => {
+    try {
+      const pleaseSelectOption = [
+        { label: "Please Select", value: "Please Select" },
+      ];
+
+      if (value === "Please Select") {
+        const childField =
+          field.name === "BankName" ? "BranchName" : "IfscCode";
+        const nextChild = field.name === "BankName" ? "IfscCode" : null;
+
+        // Only reset child fields, don't force set them
+        const currentChildValue = getValues(childField);
+        if (currentChildValue && currentChildValue !== "Please Select") {
+          setValue(childField, "Please Select", { shouldValidate: true });
+        }
+
+        setFormSections((prevSections) => {
+          const newSections = [...prevSections];
+          newSections[sectionIndex].fields = newSections[
+            sectionIndex
+          ].fields.map((f) =>
+            f.name === childField ? { ...f, options: pleaseSelectOption } : f,
+          );
+          return newSections;
+        });
+
+        if (nextChild) {
+          const currentNextValue = getValues(nextChild);
+          if (currentNextValue && currentNextValue !== "Please Select") {
+            setValue(nextChild, "Please Select", { shouldValidate: true });
+          }
+
+          setFormSections((prevSections) => {
+            const newSections = [...prevSections];
+            newSections[sectionIndex].fields = newSections[
+              sectionIndex
+            ].fields.map((f) =>
+              f.name === nextChild ? { ...f, options: pleaseSelectOption } : f,
+            );
+            return newSections;
+          });
+        }
+        return;
+      }
+
+      const fieldNames = [
+        {
+          name: "BankName",
+          childname: "BranchName",
+          respectiveTable: "Branches",
+        },
+        {
+          name: "BranchName",
+          childname: "IfscCode",
+          respectiveTable: "IfscCodes",
+        },
+      ];
+
+      const match = fieldNames.find((f) => f.name === field.name);
+      if (!match) {
+        console.warn(`Field "${field.name}" not found in bank fieldNames.`);
+        return;
+      }
+
+      const childFieldName = match.childname;
+      let endpoint;
+      if (field.name === "BankName") {
+        endpoint = `/Base/GetBranches?bankId=${value}`;
+      } else if (field.name === "BranchName") {
+        endpoint = `/Base/GetIfscCodes?branchId=${value}`;
+      }
+
+      const response = await axiosInstance.get(endpoint);
+      const data = response.data?.data || [];
+
+      // Deduplicate options
+      const uniqueOptions = [];
+      const seenValues = new Set();
+      data.forEach((item) => {
+        const optionValue = item.id ?? item.value;
+        if (!seenValues.has(optionValue)) {
+          seenValues.add(optionValue);
+          uniqueOptions.push({
+            value: optionValue,
+            label: item.name ?? item.label,
+          });
+        }
+      });
+
+      const newOptions = [
+        { label: "Please Select", value: "Please Select" },
+        ...uniqueOptions,
+      ];
+
+      // Update child field options
+      setFormSections((prevSections) => {
+        const newSections = [...prevSections];
+        const section = newSections[sectionIndex];
+
+        section.fields = section.fields.map((f) =>
+          f.name === childFieldName ? { ...f, options: newOptions } : f,
+        );
+
+        return newSections;
+      });
+
+      // CRITICAL: Only reset if the current value is NOT in the new options
+      const currentValue = getValues(childFieldName);
+      const isValueValid = newOptions.some(
+        (option) => option.value.toString() === currentValue?.toString(),
+      );
+
+      // Only reset if current value is invalid (not in new options)
+      if (currentValue && !isValueValid && currentValue !== "Please Select") {
+        setValue(childFieldName, "Please Select", { shouldValidate: true });
+      }
+
+      // Reset IfscCode when BankName changes (but only if it's not valid)
+      if (field.name === "BankName") {
+        const currentIfscValue = getValues("IfscCode");
+        // Always reset IFSC when bank changes since it depends on branch
+        setValue("IfscCode", "Please Select", { shouldValidate: true });
+        setFormSections((prevSections) => {
+          const newSections = [...prevSections];
+          newSections[sectionIndex].fields = newSections[
+            sectionIndex
+          ].fields.map((f) =>
+            f.name === "IfscCode" ? { ...f, options: pleaseSelectOption } : f,
+          );
+          return newSections;
+        });
+      }
+    } catch (error) {
+      console.error(`Error fetching options for ${field.name}:`, error);
+      toast.error(
+        `Failed to load options for ${field.label}. Please try again.`,
+      );
+
+      const pleaseSelectOption = [
+        { label: "Please Select", value: "Please Select" },
+      ];
+      const childField = field.name === "BankName" ? "BranchName" : "IfscCode";
+
+      setValue(childField, "Please Select", { shouldValidate: true });
+      setFormSections((prevSections) => {
+        const newSections = [...prevSections];
+        newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(
+          (f) =>
+            f.name === childField ? { ...f, options: pleaseSelectOption } : f,
+        );
+        return newSections;
+      });
     }
   };
 
@@ -1868,7 +2185,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           <Controller
             name={field.name}
             control={control}
-            defaultValue={field.options[0]?.value || ""}
+            defaultValue={field.options[0]?.value || "Please Select"}
             rules={{
               validate: async (value) =>
                 await runValidations(field, value, getValues()),
@@ -1900,12 +2217,19 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     fullWidth
                     variant="outlined"
                     label={getLabelWithAsteriskJSX(field)}
-                    value={value || ""}
+                    value={value || "Please Select"}
                     id={`field-${field.id}`}
                     onChange={(e) => {
                       onChange(e);
                       const newValue = e.target.value;
-                      handleAreaChange(sectionIndex, field, newValue);
+                      if (
+                        field.name === "BankName" ||
+                        field.name === "BranchName"
+                      ) {
+                        handleBankChange(sectionIndex, field, newValue);
+                      } else {
+                        handleAreaChange(sectionIndex, field, newValue);
+                      }
                       // Unregister additional fields that do not belong to the current value
                       if (field.additionalFields) {
                         Object.entries(field.additionalFields).forEach(

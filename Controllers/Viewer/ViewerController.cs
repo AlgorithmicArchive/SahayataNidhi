@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
 
 namespace SahayataNidhi.Controllers.Officer
@@ -226,5 +228,343 @@ namespace SahayataNidhi.Controllers.Officer
 
             return Json(new { dataList, categoryData, locationData });
         }
+
+        public class AadhaarValidationCount
+        {
+            public int TotalSanctioned { get; set; }
+            public int AadhaarValidated { get; set; }
+            public int AadhaarNotValidated { get; set; }
+        }
+
+        public IActionResult GetAadhaarValidationCount(string serviceId, string? division = null, string? district = null, string? tehsil = null)
+        {
+            string accessLevel;
+            object? accessCode = DBNull.Value;
+            object? divisionCode = DBNull.Value;
+
+            // Pick correct access level
+            if (!string.IsNullOrWhiteSpace(tehsil))
+            {
+                accessLevel = "Tehsil";
+                accessCode = int.TryParse(tehsil, out var tehsilVal) ? tehsilVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(district))
+            {
+                accessLevel = "District";
+                accessCode = int.TryParse(district, out var districtVal) ? districtVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(division))
+            {
+                accessLevel = "Division";
+                accessCode = int.TryParse(division, out var divisionVal) ? divisionVal : DBNull.Value;
+                divisionCode = accessCode; // For compatibility with SQL proc
+            }
+            else
+            {
+                accessLevel = "State";
+            }
+
+            var parameters = new List<SqlParameter>
+            {
+                new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
+                new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
+                new("@AccessCode", SqlDbType.Int) { Value = accessCode ?? DBNull.Value },
+                new("@DivisionCode", SqlDbType.Int) { Value = divisionCode ?? DBNull.Value },
+                new("@AadhaarFilter", SqlDbType.VarChar) { Value = DBNull.Value } // null by default
+            };
+
+            // Fetch Aadhaar validation counts
+            var counts = dbcontext.Database
+                .SqlQueryRaw<AadhaarValidationCount>(
+                    "EXEC GetAadhaarValidationCount @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @AadhaarFilter",
+                    parameters.ToArray()
+                )
+                .AsEnumerable()
+                .FirstOrDefault() ?? new AadhaarValidationCount();
+
+            // Define application status data
+            var dataList = new List<dynamic>
+    {
+        new
+        {
+            title = "Total Sanctioned",
+            value = counts.TotalSanctioned.ToString("N0"),
+            category = "application",
+            color = "primary",
+            bgColor = "#f8faff",
+            gradientStart = "#4f46e5",
+            gradientEnd = "#3b82f6",
+        },
+        new
+        {
+            title = "Aadhaar Validated",
+            value = counts.AadhaarValidated.ToString("N0"),
+            category = "application",
+            color = "success",
+            bgColor = "#f0fdf4",
+            gradientStart = "#059669",
+            gradientEnd = "#10b981",
+        },
+        new
+        {
+            title = "Aadhaar Not Validated",
+            value = counts.AadhaarNotValidated.ToString("N0"),
+            category = "application",
+            color = "warning",
+            bgColor = "#fffbeb",
+            gradientStart = "#f59e0b",
+            gradientEnd = "#fbbf24",
+        },
+    };
+
+            return Json(new { dataList });
+        }
+
+        public IActionResult GetAadhaarValidationData(string serviceId, string type, int pageIndex = 0, int pageSize = 10, string state = "0", string? division = null, string? district = null, string? tehsil = null)
+        {
+            // Determine AccessLevel and AccessCode based on filters
+            string accessLevel;
+            object accessCode = DBNull.Value;
+            object divisionCode = DBNull.Value;
+
+            if (!string.IsNullOrWhiteSpace(tehsil))
+            {
+                accessLevel = "Tehsil";
+                accessCode = int.TryParse(tehsil, out var tehsilVal) ? tehsilVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(district))
+            {
+                accessLevel = "District";
+                accessCode = int.TryParse(district, out var districtVal) ? districtVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(division))
+            {
+                accessLevel = "Division";
+                accessCode = int.TryParse(division, out var divisionVal) ? divisionVal : DBNull.Value;
+                divisionCode = accessCode;
+            }
+            else
+            {
+                accessLevel = "State";
+                accessCode = state == "0" ? 0 : DBNull.Value; // Assuming "0" represents Jammu & Kashmir
+            }
+
+            // Validate AccessLevel and AccessCode
+            if ((accessLevel == "Tehsil" || accessLevel == "District") && accessCode == DBNull.Value)
+            {
+                return BadRequest("Invalid AccessCode for the specified AccessLevel.");
+            }
+            if (accessLevel == "Division" && divisionCode == DBNull.Value)
+            {
+                return BadRequest("Invalid DivisionCode for Division AccessLevel.");
+            }
+
+            // Parameters for GetMainApplicationStatusData
+            var parameters = new List<SqlParameter>
+            {
+                new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
+                new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
+                new("@AccessCode", SqlDbType.Int) { Value = accessCode },
+                new("@DivisionCode", SqlDbType.Int) { Value = divisionCode },
+                new("@AadhaarFilter", SqlDbType.VarChar) { Value = (object)(type == "sanctioned" ? null : type)! ?? DBNull.Value },
+                new("@PageIndex", SqlDbType.Int) { Value = pageIndex },
+                new("@PageSize", SqlDbType.Int) { Value = pageSize },
+                new("@IsPaginated", SqlDbType.Bit) { Value = 1 },
+                new("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output }
+            };
+
+            // Fetch application data
+            var response = dbcontext.CitizenApplications
+                .FromSqlRaw(
+                    "EXEC GetAadhaarValidationData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @AadhaarFilter, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
+                    parameters.ToArray()
+                )
+                .ToList();
+
+            int totalRecords = (int)parameters.Find(p => p.ParameterName == "@TotalRecords")!.Value;
+
+            // Fetch service details for serviceName
+            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == int.Parse(serviceId));
+            if (service == null)
+            {
+                return NotFound();
+            }
+
+            // Columns for the table
+            List<dynamic> columns =
+            [
+                new { accessorKey = "sno", header = "S.No" },
+                new { accessorKey = "referenceNumber", header = "Reference Number" },
+                new { accessorKey = "applicantName", header = "Applicant Name" },
+                new { accessorKey = "serviceName", header = "Service Name" },
+                new { accessorKey = "status", header = "Application Status" },
+                new { accessorKey = "submissionDate", header = "Submission Date" }
+            ];
+
+            List<dynamic> data = [];
+
+            // Start numbering based on pagination
+            int snoCounter = (pageIndex * pageSize) + 1;
+
+            foreach (var details in response)
+            {
+                var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails!);
+                string serviceName = service.ServiceName!;
+                string status = details.Status!; // Use WorkflowStatus from stored procedure
+
+                var applicationObject = new
+                {
+                    sno = snoCounter++,
+                    referenceNumber = details.ReferenceNumber,
+                    applicantName = GetFieldValue("ApplicantName", formDetails),
+                    submissionDate = details.CreatedAt,
+                    serviceName,
+                    status,
+                    serviceId = details.ServiceId
+                };
+
+                data.Add(applicationObject);
+            }
+
+            return Json(new
+            {
+                data,
+                columns,
+                totalRecords
+            });
+        }
+
+        public string GetFieldValue(string fieldName, dynamic data)
+        {
+            foreach (var section in data)
+            {
+                if (section.First is JArray fields)
+                {
+                    foreach (var field in fields)
+                    {
+                        if (field["name"] != null && field["name"]?.ToString() == fieldName)
+                        {
+                            return field["value"]?.ToString() ?? "";
+                        }
+                    }
+                }
+            }
+            return "";
+        }
+
+        public IActionResult GetMainApplicationStatusData(string serviceId, string type, int pageIndex = 0, int pageSize = 10, string state = "0", string? division = null, string? district = null, string? tehsil = null)
+        {
+            // Determine AccessLevel and AccessCode based on filters
+            string accessLevel;
+            object accessCode = DBNull.Value;
+            object divisionCode = DBNull.Value;
+
+            if (!string.IsNullOrWhiteSpace(tehsil))
+            {
+                accessLevel = "Tehsil";
+                accessCode = int.TryParse(tehsil, out var tehsilVal) ? tehsilVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(district))
+            {
+                accessLevel = "District";
+                accessCode = int.TryParse(district, out var districtVal) ? districtVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(division))
+            {
+                accessLevel = "Division";
+                accessCode = int.TryParse(division, out var divisionVal) ? divisionVal : DBNull.Value;
+                divisionCode = accessCode;
+            }
+            else
+            {
+                accessLevel = "State";
+                accessCode = state == "0" ? 0 : DBNull.Value; // Assuming "0" represents Jammu & Kashmir
+            }
+
+            // Validate AccessLevel and AccessCode
+            if ((accessLevel == "Tehsil" || accessLevel == "District") && accessCode == DBNull.Value)
+            {
+                return BadRequest("Invalid AccessCode for the specified AccessLevel.");
+            }
+            if (accessLevel == "Division" && divisionCode == DBNull.Value)
+            {
+                return BadRequest("Invalid DivisionCode for Division AccessLevel.");
+            }
+
+            // Parameters for GetMainApplicationStatusData
+            var parameters = new List<SqlParameter>
+            {
+                new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
+                new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
+                new("@AccessCode", SqlDbType.Int) { Value = accessCode },
+                new("@DivisionCode", SqlDbType.Int) { Value = divisionCode },
+                new("@ApplicationStatus", SqlDbType.VarChar) { Value = (object)(type == "total" ? null : type)! ?? DBNull.Value },
+                new("@PageIndex", SqlDbType.Int) { Value = pageIndex },
+                new("@PageSize", SqlDbType.Int) { Value = pageSize },
+                new("@IsPaginated", SqlDbType.Bit) { Value = 1 },
+                new("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output }
+            };
+
+            // Fetch application data
+            var response = dbcontext.CitizenApplications
+                .FromSqlRaw(
+                    "EXEC GetMainApplicationStatusData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @ApplicationStatus, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
+                    parameters.ToArray()
+                )
+                .ToList();
+
+            int totalRecords = (int)parameters.Find(p => p.ParameterName == "@TotalRecords")!.Value;
+
+            // Fetch service details for serviceName
+            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == int.Parse(serviceId));
+            if (service == null)
+            {
+                return NotFound();
+            }
+
+            // Columns for the table
+            List<dynamic> columns =
+            [
+                new { accessorKey = "sno", header = "S.No" },
+                new { accessorKey = "referenceNumber", header = "Reference Number" },
+                new { accessorKey = "applicantName", header = "Applicant Name" },
+                new { accessorKey = "serviceName", header = "Service Name" },
+                new { accessorKey = "status", header = "Application Status" },
+                new { accessorKey = "submissionDate", header = "Submission Date" }
+            ];
+
+            List<dynamic> data = [];
+
+            // Start numbering based on pagination
+            int snoCounter = (pageIndex * pageSize) + 1;
+
+            foreach (var details in response)
+            {
+                var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails!);
+                string serviceName = service.ServiceName!;
+                string status = details.Status!; // Use WorkflowStatus from stored procedure
+
+                var applicationObject = new
+                {
+                    sno = snoCounter++,
+                    referenceNumber = details.ReferenceNumber,
+                    applicantName = GetFieldValue("ApplicantName", formDetails),
+                    submissionDate = details.CreatedAt,
+                    serviceName,
+                    status,
+                    serviceId = details.ServiceId
+                };
+
+                data.Add(applicationObject);
+            }
+
+            return Json(new
+            {
+                data,
+                columns,
+                totalRecords
+            });
+        }
+
     }
 }

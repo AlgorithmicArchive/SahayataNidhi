@@ -137,7 +137,7 @@ const defaultCardData = [
     category: "application",
     color: "warning",
     bgColor: "#fffbeb",
-    gradientStart: "#f59e0b",
+    gradientStart: "#fbbf24",
     gradientEnd: "#fbbf24",
   },
   {
@@ -286,7 +286,7 @@ const useFilters = (category) => {
     } else if (district) {
       setWise("District");
       setWiseName(
-        districts.find((d) => d.value === district)?.label || "District",
+        districts.find((item) => item.value === district)?.label || "District",
       );
     } else if (division) {
       setWise("Division");
@@ -325,6 +325,7 @@ const useDashboardData = (category, filters) => {
   );
   const [categoryData, setCategoryData] = useState(defaultCategoryData);
   const [locationData, setLocationData] = useState([]);
+  const [officerAccess, setOfficerAccess] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -338,12 +339,16 @@ const useDashboardData = (category, filters) => {
         district: filters.district || null,
         tehsil: filters.tehsil || null,
       };
-      const response = await axiosIntance.get("/Viewer/GetApplicationStatus", {
-        params,
-      });
+      const response = await axiosIntance.get(
+        "/Officer/GetAadhaarValidationCount",
+        {
+          params,
+        },
+      );
       setData(response.data.dataList.filter((c) => c.category === category));
       setCategoryData(response.data.categoryData || defaultCategoryData);
       setLocationData(response.data.locationData || []);
+      setOfficerAccess(response.data.officerAccess || {});
     } catch (err) {
       setError(`Failed to fetch ${category} data`);
       setData(defaultCardData.filter((c) => c.category === category));
@@ -358,7 +363,7 @@ const useDashboardData = (category, filters) => {
     fetchData();
   }, [fetchData]);
 
-  return { data, categoryData, locationData, isLoading, error };
+  return { data, categoryData, locationData, officerAccess, isLoading, error };
 };
 
 // Donut Chart Component
@@ -543,7 +548,12 @@ const ModernStatCard = ({ card, onCardClick }) => {
 };
 
 // Filter Section Component
-const FilterSection = ({ category, filters, filterLoading }) => {
+const FilterSection = ({
+  category,
+  filters,
+  filterLoading,
+  restrictedFilters,
+}) => {
   const {
     state,
     setState,
@@ -577,6 +587,7 @@ const FilterSection = ({ category, filters, filterLoading }) => {
             value: state,
             onChange: setState,
             options: [{ value: "0", label: "Jammu & Kashmir" }],
+            disabled: false, // State is always fixed, but can adjust if needed
           },
           {
             label: "Division",
@@ -586,20 +597,23 @@ const FilterSection = ({ category, filters, filterLoading }) => {
               { value: "1", label: "Jammu" },
               { value: "2", label: "Kashmir" },
             ],
+            disabled: !!restrictedFilters?.restrictedDivision,
           },
           {
             label: "District",
             value: district,
             onChange: setDistrict,
             options: districts,
+            disabled: !!restrictedFilters?.restrictedDistrict,
           },
           {
             label: "Tehsil",
             value: tehsil,
             onChange: setTehsil,
             options: tehsils,
+            disabled: !!restrictedFilters?.restrictedTehsil,
           },
-        ].map(({ label, value, onChange, options }, index) => (
+        ].map(({ label, value, onChange, options, disabled }, index) => (
           <Grid item xs={12} sm={6} md={2.4} key={index}>
             <TextField
               select
@@ -609,6 +623,7 @@ const FilterSection = ({ category, filters, filterLoading }) => {
               onChange={(e) => onChange(e.target.value)}
               variant="outlined"
               size="small"
+              disabled={disabled}
             >
               <MenuItem value="">Select {label}</MenuItem>
               {options.map((item, idx) => (
@@ -642,13 +657,14 @@ const FilterSection = ({ category, filters, filterLoading }) => {
 };
 
 // Main Dashboard Component
-export default function ModernMUIDashboard() {
+export default function OfficerAadhaarValidations() {
   const theme = useTheme();
   const appFilters = useFilters("application");
   const {
     data: appData,
     categoryData,
     locationData,
+    officerAccess,
     isLoading: appLoading,
     error: appError,
   } = useDashboardData("application", appFilters);
@@ -656,14 +672,33 @@ export default function ModernMUIDashboard() {
   const [selectedTable, setSelectedTable] = useState(null);
   const tableRef = useRef(null);
 
+  useEffect(() => {
+    if (
+      officerAccess?.restrictedDivision != null &&
+      appFilters.division !== officerAccess.restrictedDivision.toString()
+    ) {
+      appFilters.setDivision(officerAccess.restrictedDivision.toString());
+    }
+    if (
+      officerAccess?.restrictedDistrict != null &&
+      appFilters.district !== officerAccess.restrictedDistrict.toString()
+    ) {
+      appFilters.setDistrict(officerAccess.restrictedDistrict.toString());
+    }
+    if (
+      officerAccess?.restrictedTehsil != null &&
+      appFilters.tehsil !== officerAccess.restrictedTehsil.toString()
+    ) {
+      appFilters.setTehsil(officerAccess.restrictedTehsil.toString());
+    }
+  }, [officerAccess, appFilters]);
+
   const handleCardClick = useCallback((title, category) => {
     // Map card title to type parameter for GetMainApplicationStatusData
     const titleToTypeMap = {
-      "Applications Received": "total",
-      Sanctioned: "sanctioned",
-      "Under Process": "pending",
-      "Pending with Citizen": "returntoedit",
-      Rejected: "rejected",
+      "Total Sanctioned": "sanctioned",
+      "Aadhaar Validated": "not_empty",
+      "Aadhaar Not Validated": "empty",
     };
     const type = titleToTypeMap[title] || "total"; // Default to "total" if no match
 
@@ -678,12 +713,9 @@ export default function ModernMUIDashboard() {
 
   const statusDistributionData = appData
     .filter((card) =>
-      [
-        "Sanctioned",
-        "Under Process",
-        "Pending with Citizen",
-        "Rejected",
-      ].includes(card.title),
+      ["Sanctioned", "Aadhaar Validated", "Aadhaar Not Validated"].includes(
+        card.title,
+      ),
     )
     .map((card) => ({
       name: card.title,
@@ -728,6 +760,7 @@ export default function ModernMUIDashboard() {
           category="application"
           filters={appFilters}
           filterLoading={appFilters.filterLoading}
+          restrictedFilters={officerAccess}
         />
 
         {appLoading ? (
@@ -765,13 +798,14 @@ export default function ModernMUIDashboard() {
                     <Assessment />
                   </Avatar>
                   <Typography variant="h5" fontWeight="bold">
-                    Application Status ({appFilters.wise}-{appFilters.wiseName})
+                    Legacy Data Application Status ({appFilters.wise}-
+                    {appFilters.wiseName})
                   </Typography>
                 </Stack>
               </SectionHeader>
               <Grid container spacing={3} mb={4}>
                 {appData.map((card, index) => (
-                  <Grid item xs={12} sm={6} md={4} lg={2.4} key={index}>
+                  <Grid item xs={12} sm={6} md={4} lg={4} key={index}>
                     <ModernStatCard card={card} onCardClick={handleCardClick} />
                   </Grid>
                 ))}
@@ -785,7 +819,7 @@ export default function ModernMUIDashboard() {
                   Status Distribution
                 </Typography>
                 <Grid container spacing={3}>
-                  <Grid item xs={12} md={appFilters.tehsil ? 6 : 4}>
+                  <Grid item xs={12} md={12}>
                     <Stack
                       direction="row"
                       alignItems="center"
@@ -803,43 +837,43 @@ export default function ModernMUIDashboard() {
                       chartTitle="Application Status"
                     />
                   </Grid>
-                  <Grid item xs={12} md={appFilters.tehsil ? 6 : 4}>
+                  {/* <Grid item xs={12} md={appFilters.tehsil ? 6 : 4}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={2}
+                    mb={2}
+                  >
+                    <PieChart sx={{ color: "#059669" }} />
+                    <Typography variant="subtitle1" fontWeight="medium">
+                      Category-wise Sanctioned Applications ({appFilters.wise}
+                      -{appFilters.wiseName})
+                    </Typography>
+                  </Stack>
+                  <DonutChart
+                    data={categoryData}
+                    chartTitle="Category-wise Sanctioned Applications"
+                  />
+                </Grid>
+                {!appFilters.tehsil && (
+                  <Grid item xs={12} md={4}>
                     <Stack
                       direction="row"
                       alignItems="center"
                       spacing={2}
                       mb={2}
                     >
-                      <PieChart sx={{ color: "#059669" }} />
+                      <PieChart sx={{ color: "#0ea5e9" }} />
                       <Typography variant="subtitle1" fontWeight="medium">
-                        Category-wise Sanctioned Applications ({appFilters.wise}
-                        -{appFilters.wiseName})
+                        {appDynamicTitle}
                       </Typography>
                     </Stack>
                     <DonutChart
-                      data={categoryData}
-                      chartTitle="Category-wise Sanctioned Applications"
+                      data={locationData}
+                      chartTitle={appDynamicTitle}
                     />
                   </Grid>
-                  {!appFilters.tehsil && (
-                    <Grid item xs={12} md={4}>
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        spacing={2}
-                        mb={2}
-                      >
-                        <PieChart sx={{ color: "#0ea5e9" }} />
-                        <Typography variant="subtitle1" fontWeight="medium">
-                          {appDynamicTitle}
-                        </Typography>
-                      </Stack>
-                      <DonutChart
-                        data={locationData}
-                        chartTitle={appDynamicTitle}
-                      />
-                    </Grid>
-                  )}
+                )} */}
                 </Grid>
               </Box>
             </GlassCard>
@@ -850,7 +884,7 @@ export default function ModernMUIDashboard() {
                   <Divider sx={{ my: 3 }} />
                   <ServerSideTable
                     ref={tableRef}
-                    url={`/Viewer/GetMainApplicationStatusData?serviceId=1&type=${encodeURIComponent(
+                    url={`/Viewer/GetAadhaarValidationData?serviceId=1&type=${encodeURIComponent(
                       selectedTable.type,
                     )}`}
                     extraParams={{
