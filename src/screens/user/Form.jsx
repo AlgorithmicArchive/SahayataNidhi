@@ -192,17 +192,17 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "77",
+          value: "THE JAMMU AND KASHMIR BANK LTD.",
         },
         {
           label: "Branch Name",
           name: "BranchName",
-          value: "92453",
+          value: "RESIDENCY ROAD JAMMU",
         },
         {
           label: "IFSC Code",
           name: "IfscCode",
-          value: "887110",
+          value: "JAKA0KEEPER",
         },
         {
           label: "Account Number",
@@ -414,17 +414,17 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "77",
+          value: "THE JAMMU AND KASHMIR BANK LTD.",
         },
         {
           label: "Branch Name",
           name: "BranchName",
-          value: "92453",
+          value: "RESIDENCY ROAD JAMMU",
         },
         {
           label: "IFSC Code",
           name: "IfscCode",
-          value: "887110",
+          value: "JAKA0KEEPER",
         },
         {
           label: "Account Number",
@@ -615,17 +615,17 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "77",
+          value: "THE JAMMU AND KASHMIR BANK LTD.",
         },
         {
           label: "Branch Name",
           name: "BranchName",
-          value: "92453",
+          value: "RESIDENCY ROAD JAMMU",
         },
         {
           label: "IFSC Code",
           name: "IfscCode",
-          value: "887110",
+          value: "JAKA0KEEPER",
         },
         {
           label: "Account Number",

@@ -169,6 +169,7 @@ export async function validateFile(field, value) {
 }
 
 export function range(field, value) {
+  console.log(field, value);
   if (value < field.minLength || value > field.maxLength) {
     return `The value must be between ${field.minLength} and ${field.maxLength}.`;
   }

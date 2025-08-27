@@ -467,36 +467,26 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           setReferenceNumber(referenceNumber);
         }
 
-        // Fetch bank names
-        const bankResponse = await axiosInstance.get("/Base/GetBanks");
-        const bankOptions = [
-          { label: "Please Select", value: "Please Select" },
-          ...(bankResponse.data?.data || []).map((bank) => ({
-            value: bank.id,
-            label: bank.name,
-          })),
-        ];
+        // ❌ Fetch bank names (commented)
+        // const bankResponse = await axiosInstance.get("/Base/GetBanks");
+        // const bankOptions = [
+        //   { label: "Please Select", value: "Please Select" },
+        //   ...(bankResponse.data?.data || []).map((bank) => ({
+        //     value: bank.id,
+        //     label: bank.name,
+        //   })),
+        // ];
 
         const result = await GetServiceContent(ServiceId);
         if (result && result.status) {
           try {
             config = JSON.parse(result.formElement);
 
-            // Inject bank options into BankName
-            const updatedConfig = config.map((section) => {
-              if (section.section === "Bank Details") {
-                return {
-                  ...section,
-                  fields: section.fields.map((field) =>
-                    field.name === "BankName"
-                      ? { ...field, options: bankOptions }
-                      : field,
-                  ),
-                };
-              }
-              return section;
-            });
-            setFormSections(sanitizeFormSections(updatedConfig));
+            // ❌ Inject bank options into BankName (commented)
+            // const updatedConfig = config.map((section) => {
+            //   return section;
+            // });
+            setFormSections(sanitizeFormSections(config));
           } catch (err) {
             console.error("Error parsing formElements:", err);
             setFormSections([]);
@@ -509,12 +499,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             referenceNumber,
           );
 
-          if (mode === "edit" || mode === "incomplete") {
-            const value = getValues("AadharNumber");
-            if (value && value.length > 12) {
-              setAadhaarValid(true);
-            }
-          }
+          setAdditionalDetails(additionalDetails);
 
           const flatDetails = flattenFormDetails(formDetails);
           setInitialData(flatDetails);
@@ -554,91 +539,96 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           // Reset form with values
           reset(resetData);
 
-          // Load Branches if BankName already present
-          if (
-            flatDetails.BankName &&
-            flatDetails.BankName !== "Please Select"
-          ) {
-            const branchResponse = await axiosInstance.get(
-              `/Base/GetBranches?bankId=${flatDetails.BankName}`,
-            );
-            const branchOptions = [
-              { label: "Please Select", value: "Please Select" },
-              ...(branchResponse.data?.data || []).map((branch) => ({
-                value: branch.id,
-                label: branch.name,
-              })),
-            ];
-
-            setFormSections((prevSections) =>
-              prevSections.map((section) =>
-                section.section === "Bank Details"
-                  ? {
-                      ...section,
-                      fields: section.fields.map((field) =>
-                        field.name === "BranchName"
-                          ? { ...field, options: branchOptions }
-                          : field,
-                      ),
-                    }
-                  : section,
-              ),
-            );
-
-            // Set BranchName after options are updated
-            if (
-              flatDetails.BranchName &&
-              branchOptions.some(
-                (opt) =>
-                  opt.value.toString() === flatDetails.BranchName.toString(),
-              )
-            ) {
-              setValue("BranchName", flatDetails.BranchName, {
-                shouldValidate: true,
-              });
-            } else {
-              setValue("BranchName", "Please Select", { shouldValidate: true });
-            }
-
-            // Load IFSC codes if BranchName already present
-            if (
-              flatDetails.BranchName &&
-              flatDetails.BranchName !== "Please Select"
-            ) {
-              const ifscResponse = await axiosInstance.get(
-                `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
-              );
-              const ifscOptions = [
-                { label: "Please Select", value: "Please Select" },
-                ...(ifscResponse.data?.data || []).map((ifsc) => ({
-                  value: ifsc.name,
-                  label: ifsc.name,
-                })),
-              ];
-
-              setFormSections((prevSections) =>
-                prevSections.map((section) =>
-                  section.section === "Bank Details"
-                    ? {
-                        ...section,
-                        fields: section.fields.map((field) =>
-                          field.name === "IfscCode"
-                            ? { ...field, options: ifscOptions }
-                            : field,
-                        ),
-                      }
-                    : section,
-                ),
-              );
-
-              // Set IfscCode after options are updated
-              if (flatDetails.IfscCode) {
-                setValue("IfscCode", flatDetails.IfscCode, {
-                  shouldValidate: true,
-                });
-              }
+          if (mode === "edit" || mode === "incomplete") {
+            const value = getValues("AadharNumber");
+            console.log("length", value);
+            if (value && value.length > 0) {
+              setAadhaarValid(true);
             }
           }
+
+          // ❌ Load Branches + IFSC related functionality (commented)
+          // if (
+          //   flatDetails.BankName &&
+          //   flatDetails.BankName !== "Please Select"
+          // ) {
+          //   const branchResponse = await axiosInstance.get(
+          //     `/Base/GetBranches?bankId=${flatDetails.BankName}`,
+          //   );
+          //   const branchOptions = [
+          //     { label: "Please Select", value: "Please Select" },
+          //     ...(branchResponse.data?.data || []).map((branch) => ({
+          //       value: branch.id,
+          //       label: branch.name,
+          //     })),
+          //   ];
+
+          //   setFormSections((prevSections) =>
+          //     prevSections.map((section) =>
+          //       section.section === "Bank Details"
+          //         ? {
+          //             ...section,
+          //             fields: section.fields.map((field) =>
+          //               field.name === "BranchName"
+          //                 ? { ...field, options: branchOptions }
+          //                 : field,
+          //             ),
+          //           }
+          //         : section,
+          //     ),
+          //   );
+
+          //   if (
+          //     flatDetails.BranchName &&
+          //     branchOptions.some(
+          //       (opt) =>
+          //         opt.value.toString() === flatDetails.BranchName.toString(),
+          //     )
+          //   ) {
+          //     setValue("BranchName", flatDetails.BranchName, {
+          //       shouldValidate: true,
+          //     });
+          //   } else {
+          //     setValue("BranchName", "Please Select", { shouldValidate: true });
+          //   }
+
+          //   if (
+          //     flatDetails.BranchName &&
+          //     flatDetails.BranchName !== "Please Select"
+          //   ) {
+          //     const ifscResponse = await axiosInstance.get(
+          //       `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
+          //     );
+          //     const ifscOptions = [
+          //       { label: "Please Select", value: "Please Select" },
+          //       ...(ifscResponse.data?.data || []).map((ifsc) => ({
+          //         value: ifsc.name,
+          //         label: ifsc.name,
+          //       })),
+          //     ];
+
+          //     setFormSections((prevSections) =>
+          //       prevSections.map((section) =>
+          //         section.section === "Bank Details"
+          //           ? {
+          //               ...section,
+          //               fields: section.fields.map((field) =>
+          //                 field.name === "IfscCode"
+          //                   ? { ...field, options: ifscOptions }
+          //                   : field,
+          //               ),
+          //             }
+          //           : section,
+          //       ),
+          //     );
+
+          //     if (flatDetails.IfscCode) {
+          //       setValue("IfscCode", flatDetails.IfscCode, {
+          //         shouldValidate: true,
+          //       });
+          //     }
+          //   }
+          // }
         } else if (data !== null && data !== undefined) {
           const flatDetails = flattenFormDetails(data);
 
@@ -665,91 +655,88 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           setInitialData(flatDetails);
           reset(resetData);
 
-          // Load Branches if BankName already present
-          if (
-            flatDetails.BankName &&
-            flatDetails.BankName !== "Please Select"
-          ) {
-            const branchResponse = await axiosInstance.get(
-              `/Base/GetBranches?bankId=${flatDetails.BankName}`,
-            );
-            const branchOptions = [
-              { label: "Please Select", value: "Please Select" },
-              ...(branchResponse.data?.data || []).map((branch) => ({
-                value: branch.id,
-                label: branch.name,
-              })),
-            ];
+          // ❌ Load Branches + IFSC related functionality (commented)
+          // if (
+          //   flatDetails.BankName &&
+          //   flatDetails.BankName !== "Please Select"
+          // ) {
+          //   const branchResponse = await axiosInstance.get(
+          //     `/Base/GetBranches?bankId=${flatDetails.BankName}`,
+          //   );
+          //   const branchOptions = [
+          //     { label: "Please Select", value: "Please Select" },
+          //     ...(branchResponse.data?.data || []).map((branch) => ({
+          //       value: branch.id,
+          //       label: branch.name,
+          //     })),
+          //   ];
 
-            setFormSections((prevSections) =>
-              prevSections.map((section) =>
-                section.section === "Bank Details"
-                  ? {
-                      ...section,
-                      fields: section.fields.map((field) =>
-                        field.name === "BranchName"
-                          ? { ...field, options: branchOptions }
-                          : field,
-                      ),
-                    }
-                  : section,
-              ),
-            );
+          //   setFormSections((prevSections) =>
+          //     prevSections.map((section) =>
+          //       section.section === "Bank Details"
+          //         ? {
+          //             ...section,
+          //             fields: section.fields.map((field) =>
+          //               field.name === "BranchName"
+          //                 ? { ...field, options: branchOptions }
+          //                 : field,
+          //             ),
+          //           }
+          //         : section,
+          //     ),
+          //   );
 
-            // Set BranchName after options are updated
-            if (
-              flatDetails.BranchName &&
-              branchOptions.some(
-                (opt) =>
-                  opt.value.toString() === flatDetails.BranchName.toString(),
-              )
-            ) {
-              setValue("BranchName", flatDetails.BranchName, {
-                shouldValidate: true,
-              });
-            } else {
-              setValue("BranchName", "Please Select", { shouldValidate: true });
-            }
+          //   if (
+          //     flatDetails.BranchName &&
+          //     branchOptions.some(
+          //       (opt) =>
+          //         opt.value.toString() === flatDetails.BranchName.toString(),
+          //     )
+          //   ) {
+          //     setValue("BranchName", flatDetails.BranchName, {
+          //       shouldValidate: true,
+          //     });
+          //   } else {
+          //     setValue("BranchName", "Please Select", { shouldValidate: true });
+          //   }
 
-            // Load IFSC codes if BranchName already present
-            if (
-              flatDetails.BranchName &&
-              flatDetails.BranchName !== "Please Select"
-            ) {
-              const ifscResponse = await axiosInstance.get(
-                `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
-              );
-              const ifscOptions = [
-                { label: "Please Select", value: "Please Select" },
-                ...(ifscResponse.data?.data || []).map((ifsc) => ({
-                  value: ifsc.name,
-                  label: ifsc.name,
-                })),
-              ];
+          //   if (
+          //     flatDetails.BranchName &&
+          //     flatDetails.BranchName !== "Please Select"
+          //   ) {
+          //     const ifscResponse = await axiosInstance.get(
+          //       `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
+          //     );
+          //     const ifscOptions = [
+          //       { label: "Please Select", value: "Please Select" },
+          //       ...(ifscResponse.data?.data || []).map((ifsc) => ({
+          //         value: ifsc.name,
+          //         label: ifsc.name,
+          //       })),
+          //     ];
 
-              setFormSections((prevSections) =>
-                prevSections.map((section) =>
-                  section.section === "Bank Details"
-                    ? {
-                        ...section,
-                        fields: section.fields.map((field) =>
-                          field.name === "IfscCode"
-                            ? { ...field, options: ifscOptions }
-                            : field,
-                        ),
-                      }
-                    : section,
-                ),
-              );
+          //     setFormSections((prevSections) =>
+          //       prevSections.map((section) =>
+          //         section.section === "Bank Details"
+          //           ? {
+          //               ...section,
+          //               fields: section.fields.map((field) =>
+          //                 field.name === "IfscCode"
+          //                   ? { ...field, options: ifscOptions }
+          //                   : field,
+          //               ),
+          //             }
+          //           : section,
+          //       ),
+          //     );
 
-              // Set IfscCode after options are updated
-              if (flatDetails.IfscCode) {
-                setValue("IfscCode", flatDetails.IfscCode, {
-                  shouldValidate: true,
-                });
-              }
-            }
-          }
+          //     if (flatDetails.IfscCode) {
+          //       setValue("IfscCode", flatDetails.IfscCode, {
+          //         shouldValidate: true,
+          //       });
+          //     }
+          //   }
+          // }
 
           // Set default files for enclosures
           formSections.forEach((section) => {
@@ -781,13 +768,15 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             data[key].map((item) => {
               if (item.name.toLowerCase().includes("district")) {
                 handleAreaChange(sectionIndex, { name: item.name }, item.value);
-              } else if (
-                item.name.toLowerCase().includes("bank") ||
-                item.name.toLowerCase().includes("branch") ||
-                item.name.toLowerCase().includes("ifsc")
-              ) {
-                handleBankChange(sectionIndex, item, item.value);
               }
+              // ❌ skip bank/branch/ifsc dependent handling
+              // else if (
+              //   item.name.toLowerCase().includes("bank") ||
+              //   item.name.toLowerCase().includes("branch") ||
+              //   item.name.toLowerCase().includes("ifsc")
+              // ) {
+              //   handleBankChange(sectionIndex, item, item.value);
+              // }
               setValue(item.name, item.value);
 
               if (item.additionalFields) {
@@ -1640,6 +1629,10 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       section.fields.forEach((field) => {
         const sectionData = processField(field, data, initialData || {});
         if (sectionData !== null) {
+          // Override AadharNumber value based on operationType
+          if (field.name === "AadharNumber") {
+            sectionData.value = operationType === "submit" ? aadhaarNumber : "";
+          }
           groupedFormData[section.section].push(sectionData);
         }
       });
@@ -1687,7 +1680,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       formdata.append("returnFields", JSON.stringify(returnFieldsArray));
       url = "/User/UpdateApplicationDetails";
     }
-    console.log("formdata", formdata);
 
     try {
       const response = await axiosInstance.post(url, formdata);
@@ -2667,7 +2659,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       </Row>
 
                       {/* Add Document button ONLY for Documents section */}
-                      {section.section === "Documents" && (
+                      {section.section === "Documents" && mode != "edit" && (
                         <Box
                           sx={{
                             display: "flex",

@@ -122,7 +122,7 @@ export default function Withheld() {
         return;
       }
 
-      setRecordExists(!!res.data.application);
+      setRecordExists(!!res.data.recordExists);
       setCanPermanentToTemporary(res.data.canPermanentToTemporary ?? true);
       setCanCreate(true);
       setHasChecked(true);
@@ -424,22 +424,48 @@ export default function Withheld() {
                   </Typography>
                 ),
             )}
-            {Array.isArray(formData.files) && formData.files.length > 0 && (
-              <>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 2 }}>
-                  Uploaded Files
-                </Typography>
-                <List dense>
-                  {formData.files.map((file, index) => (
-                    <ListItem key={index}>
-                      <ListItemText
-                        primary={typeof file === "string" ? file : file.name}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </>
-            )}
+            {Array.isArray(formData.files) &&
+              formData.files.length > 0 &&
+              recordExists && (
+                <>
+                  <List dense>
+                    {formData.files.map((file, index) => (
+                      <Box sx={{ mt: 3 }}>
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ fontWeight: 600, mb: 2 }}
+                        >
+                          Uploaded Documents
+                        </Typography>
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+                          {formData.files.map((file, index) => (
+                            <Button
+                              key={index}
+                              variant="outlined"
+                              sx={{
+                                textTransform: "none",
+                                borderColor: "primary.main",
+                                color: "primary.main",
+                                "&:hover": {
+                                  backgroundColor: "primary.light",
+                                  borderColor: "primary.dark",
+                                },
+                              }}
+                              onClick={() =>
+                                handleFileClick(
+                                  typeof file === "string" ? file : file.name,
+                                )
+                              }
+                            >
+                              {typeof file === "string" ? file : file.name}
+                            </Button>
+                          ))}
+                        </Box>
+                      </Box>
+                    ))}
+                  </List>
+                </>
+              )}
 
             {hasChecked && tableData.length > 0 && (
               <Box sx={{ mt: 3 }}>
@@ -487,7 +513,7 @@ export default function Withheld() {
               </Box>
             )}
 
-            {hasChecked &&
+            {/* {hasChecked &&
               Array.isArray(formData.files) &&
               formData.files.length > 0 && (
                 <Box sx={{ mt: 3 }}>
@@ -522,7 +548,7 @@ export default function Withheld() {
                     ))}
                   </Box>
                 </Box>
-              )}
+              )} */}
           </Box>
         )}
 

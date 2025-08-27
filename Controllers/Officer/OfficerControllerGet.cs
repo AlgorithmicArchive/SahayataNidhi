@@ -2313,10 +2313,14 @@ namespace SahayataNidhi.Controllers.Officer
 
             var application = new ExpandoObject() as IDictionary<string, object>;
             var Withheld = new ExpandoObject() as IDictionary<string, dynamic>;
-            Withheld["withheldType"] = withheldApplication!.WithheldType;
-            Withheld["withheldReason"] = withheldApplication!.WithheldReason;
-            Withheld["isWithheld"] = withheldApplication.IsWithheld;
-            Withheld["files"] = JsonConvert.DeserializeObject<List<string>>(withheldApplication.Files!)!;
+
+            if (withheldApplication != null)
+            {
+                Withheld["withheldType"] = withheldApplication!.WithheldType;
+                Withheld["withheldReason"] = withheldApplication!.WithheldReason;
+                Withheld["isWithheld"] = withheldApplication.IsWithheld;
+                Withheld["files"] = JsonConvert.DeserializeObject<List<string>>(withheldApplication.Files!)!;
+            }
             if (citizenApplication?.FormDetails != null)
             {
                 try
@@ -2341,6 +2345,8 @@ namespace SahayataNidhi.Controllers.Officer
                 application["applicantName"] = "N/A";
                 application["parentage"] = "N/A";
             }
+            bool recordExists = withheldApplication != null;
+
             return Json(new
             {
                 status = true,
@@ -2349,6 +2355,7 @@ namespace SahayataNidhi.Controllers.Officer
                 applicationDetails = application,
                 data,
                 columns,
+                recordExists
             });
         }
 
@@ -2405,6 +2412,8 @@ namespace SahayataNidhi.Controllers.Officer
                     actionFunction = "handleValidateAadhaar"
                 });
                 var formDetails = JObject.Parse(app.FormDetails!);
+                _logger.LogInformation($"---------- Form Details: {formDetails} ---------------");
+
                 var dob = GetFieldValue("DateOfBirth", formDetails);
                 if (DateTime.TryParse(dob, out DateTime dobDate))
                 {
@@ -2415,7 +2424,7 @@ namespace SahayataNidhi.Controllers.Officer
                     sno = data.Count + 1 + (pageIndex * pageSize),
                     referenceNumber = app.ReferenceNumber,
                     applicantName = GetFieldValue("ApplicantName", formDetails) ?? "N/A",
-                    parentage = GetFieldValue("RelationName", formDetails) ?? "N/A",
+                    parentage = GetFieldValue("Parentage", formDetails) ?? "N/A",
                     dob = dob ?? "N/A",
                     input = true,
                     customActions,
@@ -2475,6 +2484,8 @@ namespace SahayataNidhi.Controllers.Officer
             foreach (var app in response)
             {
                 var formDetails = JObject.Parse(app.FormDetails!);
+                _logger.LogInformation($"---------- Form Details: {formDetails} ---------------");
+
                 var dob = GetFieldValue("DateOfBirth", formDetails);
                 if (DateTime.TryParse(dob, out DateTime dobDate))
                 {
@@ -2485,7 +2496,7 @@ namespace SahayataNidhi.Controllers.Officer
                     sno = data.Count + 1 + (pageIndex * pageSize),
                     referenceNumber = app.ReferenceNumber,
                     applicantName = GetFieldValue("ApplicantName", formDetails) ?? "N/A",
-                    parentage = GetFieldValue("RelationName", formDetails) ?? "N/A",
+                    parentage = GetFieldValue("Parentage", formDetails) ?? "N/A",
                     dob = dob ?? "N/A",
                     aadhaarStatus = "Validated"
                 });

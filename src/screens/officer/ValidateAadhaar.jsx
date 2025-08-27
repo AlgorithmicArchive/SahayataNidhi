@@ -394,11 +394,28 @@ export default function ValidateAadhaar() {
         open={snack.open}
         autoHideDuration={4000}
         onClose={() => setSnack({ ...snack, open: false })}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+        sx={{
+          zIndex: 9999,
+          "& .MuiSnackbar-root": {
+            top: "80px !important",
+          },
+        }}
       >
         <Alert
           onClose={() => setSnack({ ...snack, open: false })}
           severity={snack.severity}
-          sx={{ width: "100%" }}
+          variant="filled"
+          sx={{
+            width: "100%",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontWeight: 500,
+          }}
         >
           {snack.message}
         </Alert>

@@ -288073,6 +288073,7 @@ function _validateFile() {
   return _validateFile.apply(this, arguments);
 }
 function range(field, value) {
+  console.log(field, value);
   if (value < field.minLength || value > field.maxLength) {
     return "The value must be between ".concat(field.minLength, " and ").concat(field.maxLength, ".");
   }
@@ -295030,8 +295031,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
-/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/esm/typeof.js");
-/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/esm/typeof.js");
 /* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
 /* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
@@ -295574,7 +295575,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
     }
     function _loadForm() {
       _loadForm = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee2() {
-        var _bankResponse$data, _ref5, ServiceId, _referenceNumber, config, bankResponse, bankOptions, result, updatedConfig, _yield$fetchFormDetai, formDetails, _additionalDetails, value, flatDetails, resetData, returnFields, dependableFields, _branchResponse$data, branchResponse, branchOptions, _ifscResponse$data, ifscResponse, ifscOptions, _flatDetails, _resetData, _branchResponse$data2, _branchResponse, _branchOptions, _ifscResponse$data2, _ifscResponse, _ifscOptions, _t2;
+        var _ref5, ServiceId, _referenceNumber, config, result, _yield$fetchFormDetai, formDetails, _additionalDetails, flatDetails, resetData, returnFields, dependableFields, value, _flatDetails, _resetData, _t2;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
@@ -295585,42 +295586,28 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                 setReferenceNumber(_referenceNumber);
               }
 
-              // Fetch bank names
+              // ❌ Fetch bank names (commented)
+              // const bankResponse = await axiosInstance.get("/Base/GetBanks");
+              // const bankOptions = [
+              //   { label: "Please Select", value: "Please Select" },
+              //   ...(bankResponse.data?.data || []).map((bank) => ({
+              //     value: bank.id,
+              //     label: bank.name,
+              //   })),
+              // ];
               _context2.next = 1;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetBanks");
-            case 1:
-              bankResponse = _context2.sent;
-              bankOptions = [{
-                label: "Please Select",
-                value: "Please Select"
-              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_bankResponse$data = bankResponse.data) === null || _bankResponse$data === void 0 ? void 0 : _bankResponse$data.data) || []).map(function (bank) {
-                return {
-                  value: bank.id,
-                  label: bank.name
-                };
-              })));
-              _context2.next = 2;
               return (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_26__.GetServiceContent)(ServiceId);
-            case 2:
+            case 1:
               result = _context2.sent;
               if (result && result.status) {
                 try {
                   config = JSON.parse(result.formElement);
 
-                  // Inject bank options into BankName
-                  updatedConfig = config.map(function (section) {
-                    if (section.section === "Bank Details") {
-                      return _objectSpread(_objectSpread({}, section), {}, {
-                        fields: section.fields.map(function (field) {
-                          return field.name === "BankName" ? _objectSpread(_objectSpread({}, field), {}, {
-                            options: bankOptions
-                          }) : field;
-                        })
-                      });
-                    }
-                    return section;
-                  });
-                  setFormSections(sanitizeFormSections(updatedConfig));
+                  // ❌ Inject bank options into BankName (commented)
+                  // const updatedConfig = config.map((section) => {
+                  //   return section;
+                  // });
+                  setFormSections(sanitizeFormSections(config));
                 } catch (err) {
                   console.error("Error parsing formElements:", err);
                   setFormSections([]);
@@ -295629,27 +295616,22 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
 
               // Handle edit/incomplete mode
               if (!((mode === "incomplete" || mode === "edit") && _referenceNumber)) {
-                _context2.next = 7;
+                _context2.next = 3;
                 break;
               }
-              _context2.next = 3;
+              _context2.next = 2;
               return (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_26__.fetchFormDetails)(_referenceNumber);
-            case 3:
+            case 2:
               _yield$fetchFormDetai = _context2.sent;
               formDetails = _yield$fetchFormDetai.formDetails;
               _additionalDetails = _yield$fetchFormDetai.additionalDetails;
-              if (mode === "edit" || mode === "incomplete") {
-                value = getValues("AadharNumber");
-                if (value && value.length > 12) {
-                  setAadhaarValid(true);
-                }
-              }
+              setAdditionalDetails(_additionalDetails);
               flatDetails = flattenFormDetails(formDetails);
               setInitialData(flatDetails);
 
               // Prepare resetData
               resetData = _objectSpread(_objectSpread({}, flatDetails), Object.keys(flatDetails).reduce(function (acc, key) {
-                if (flatDetails[key] && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(flatDetails[key]) === "object" && "selected" in flatDetails[key]) {
+                if (flatDetails[key] && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(flatDetails[key]) === "object" && "selected" in flatDetails[key]) {
                   acc["".concat(key, "_select")] = flatDetails[key].selected;
                   acc["".concat(key, "_file")] = flatDetails[key].file;
                   setDefaultFile("".concat(key, "_file"), flatDetails[key].file, false);
@@ -295666,210 +295648,220 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
 
               // Reset form with values
               reset(resetData);
-
-              // Load Branches if BankName already present
-              if (!(flatDetails.BankName && flatDetails.BankName !== "Please Select")) {
-                _context2.next = 6;
-                break;
-              }
-              _context2.next = 4;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetBranches?bankId=".concat(flatDetails.BankName));
-            case 4:
-              branchResponse = _context2.sent;
-              branchOptions = [{
-                label: "Please Select",
-                value: "Please Select"
-              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_branchResponse$data = branchResponse.data) === null || _branchResponse$data === void 0 ? void 0 : _branchResponse$data.data) || []).map(function (branch) {
-                return {
-                  value: branch.id,
-                  label: branch.name
-                };
-              })));
-              setFormSections(function (prevSections) {
-                return prevSections.map(function (section) {
-                  return section.section === "Bank Details" ? _objectSpread(_objectSpread({}, section), {}, {
-                    fields: section.fields.map(function (field) {
-                      return field.name === "BranchName" ? _objectSpread(_objectSpread({}, field), {}, {
-                        options: branchOptions
-                      }) : field;
-                    })
-                  }) : section;
-                });
-              });
-
-              // Set BranchName after options are updated
-              if (flatDetails.BranchName && branchOptions.some(function (opt) {
-                return opt.value.toString() === flatDetails.BranchName.toString();
-              })) {
-                setValue("BranchName", flatDetails.BranchName, {
-                  shouldValidate: true
-                });
-              } else {
-                setValue("BranchName", "Please Select", {
-                  shouldValidate: true
-                });
-              }
-
-              // Load IFSC codes if BranchName already present
-              if (!(flatDetails.BranchName && flatDetails.BranchName !== "Please Select")) {
-                _context2.next = 6;
-                break;
-              }
-              _context2.next = 5;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetIfscCodes?branchId=".concat(flatDetails.BranchName));
-            case 5:
-              ifscResponse = _context2.sent;
-              ifscOptions = [{
-                label: "Please Select",
-                value: "Please Select"
-              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_ifscResponse$data = ifscResponse.data) === null || _ifscResponse$data === void 0 ? void 0 : _ifscResponse$data.data) || []).map(function (ifsc) {
-                return {
-                  value: ifsc.name,
-                  label: ifsc.name
-                };
-              })));
-              setFormSections(function (prevSections) {
-                return prevSections.map(function (section) {
-                  return section.section === "Bank Details" ? _objectSpread(_objectSpread({}, section), {}, {
-                    fields: section.fields.map(function (field) {
-                      return field.name === "IfscCode" ? _objectSpread(_objectSpread({}, field), {}, {
-                        options: ifscOptions
-                      }) : field;
-                    })
-                  }) : section;
-                });
-              });
-
-              // Set IfscCode after options are updated
-              if (flatDetails.IfscCode) {
-                setValue("IfscCode", flatDetails.IfscCode, {
-                  shouldValidate: true
-                });
-              }
-            case 6:
-              _context2.next = 11;
-              break;
-            case 7:
-              if (!(data !== null && data !== undefined)) {
-                _context2.next = 11;
-                break;
-              }
-              _flatDetails = flattenFormDetails(data);
-              _resetData = _objectSpread(_objectSpread({}, _flatDetails), Object.keys(_flatDetails).reduce(function (acc, key) {
-                if (_flatDetails[key] && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(_flatDetails[key]) === "object" && "selected" in _flatDetails[key]) {
-                  acc["".concat(key, "_select")] = _flatDetails[key].selected;
-                  acc["".concat(key, "_file")] = _flatDetails[key].file;
-                  setDefaultFile("".concat(key, "_file"), _flatDetails[key].file, false);
-                  if (key === "Other") {
-                    acc["OtherDocument"] = _flatDetails[key].selected || "";
-                  }
+              if (mode === "edit" || mode === "incomplete") {
+                value = getValues("AadharNumber");
+                console.log("length", value);
+                if (value && value.length > 0) {
+                  setAadhaarValid(true);
                 }
-                return acc;
-              }, {}));
-              setInitialData(_flatDetails);
-              reset(_resetData);
-
-              // Load Branches if BankName already present
-              if (!(_flatDetails.BankName && _flatDetails.BankName !== "Please Select")) {
-                _context2.next = 10;
-                break;
-              }
-              _context2.next = 8;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetBranches?bankId=".concat(_flatDetails.BankName));
-            case 8:
-              _branchResponse = _context2.sent;
-              _branchOptions = [{
-                label: "Please Select",
-                value: "Please Select"
-              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_branchResponse$data2 = _branchResponse.data) === null || _branchResponse$data2 === void 0 ? void 0 : _branchResponse$data2.data) || []).map(function (branch) {
-                return {
-                  value: branch.id,
-                  label: branch.name
-                };
-              })));
-              setFormSections(function (prevSections) {
-                return prevSections.map(function (section) {
-                  return section.section === "Bank Details" ? _objectSpread(_objectSpread({}, section), {}, {
-                    fields: section.fields.map(function (field) {
-                      return field.name === "BranchName" ? _objectSpread(_objectSpread({}, field), {}, {
-                        options: _branchOptions
-                      }) : field;
-                    })
-                  }) : section;
-                });
-              });
-
-              // Set BranchName after options are updated
-              if (_flatDetails.BranchName && _branchOptions.some(function (opt) {
-                return opt.value.toString() === _flatDetails.BranchName.toString();
-              })) {
-                setValue("BranchName", _flatDetails.BranchName, {
-                  shouldValidate: true
-                });
-              } else {
-                setValue("BranchName", "Please Select", {
-                  shouldValidate: true
-                });
               }
 
-              // Load IFSC codes if BranchName already present
-              if (!(_flatDetails.BranchName && _flatDetails.BranchName !== "Please Select")) {
-                _context2.next = 10;
-                break;
-              }
-              _context2.next = 9;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].get("/Base/GetIfscCodes?branchId=".concat(_flatDetails.BranchName));
-            case 9:
-              _ifscResponse = _context2.sent;
-              _ifscOptions = [{
-                label: "Please Select",
-                value: "Please Select"
-              }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])((((_ifscResponse$data2 = _ifscResponse.data) === null || _ifscResponse$data2 === void 0 ? void 0 : _ifscResponse$data2.data) || []).map(function (ifsc) {
-                return {
-                  value: ifsc.name,
-                  label: ifsc.name
-                };
-              })));
-              setFormSections(function (prevSections) {
-                return prevSections.map(function (section) {
-                  return section.section === "Bank Details" ? _objectSpread(_objectSpread({}, section), {}, {
-                    fields: section.fields.map(function (field) {
-                      return field.name === "IfscCode" ? _objectSpread(_objectSpread({}, field), {}, {
-                        options: _ifscOptions
-                      }) : field;
-                    })
-                  }) : section;
-                });
-              });
+              // ❌ Load Branches + IFSC related functionality (commented)
+              // if (
+              //   flatDetails.BankName &&
+              //   flatDetails.BankName !== "Please Select"
+              // ) {
+              //   const branchResponse = await axiosInstance.get(
+              //     `/Base/GetBranches?bankId=${flatDetails.BankName}`,
+              //   );
+              //   const branchOptions = [
+              //     { label: "Please Select", value: "Please Select" },
+              //     ...(branchResponse.data?.data || []).map((branch) => ({
+              //       value: branch.id,
+              //       label: branch.name,
+              //     })),
+              //   ];
 
-              // Set IfscCode after options are updated
-              if (_flatDetails.IfscCode) {
-                setValue("IfscCode", _flatDetails.IfscCode, {
-                  shouldValidate: true
-                });
-              }
-            case 10:
-              // Set default files for enclosures
-              formSections.forEach(function (section) {
-                section.fields.forEach(function (field) {
-                  if (field.type === "enclosure") {
-                    var _flatDetails$field$na;
-                    var fileFieldName = "".concat(field.name, "_file");
-                    var fileUrl = (_flatDetails$field$na = _flatDetails[field.name]) === null || _flatDetails$field$na === void 0 ? void 0 : _flatDetails$field$na.file;
-                    if (fileUrl && typeof fileUrl === "string") {
-                      var _field$dependentValue2;
-                      if (field.isDependentEnclosure && field.dependentField && ((_field$dependentValue2 = field.dependentValues) === null || _field$dependentValue2 === void 0 ? void 0 : _field$dependentValue2.length) > 0) {
-                        var parentValue = _flatDetails[field.dependentField];
-                        if (!field.dependentValues.includes(parentValue)) {
-                          return;
-                        }
-                      }
-                      setDefaultFile(fileFieldName, fileUrl);
+              //   setFormSections((prevSections) =>
+              //     prevSections.map((section) =>
+              //       section.section === "Bank Details"
+              //         ? {
+              //             ...section,
+              //             fields: section.fields.map((field) =>
+              //               field.name === "BranchName"
+              //                 ? { ...field, options: branchOptions }
+              //                 : field,
+              //             ),
+              //           }
+              //         : section,
+              //     ),
+              //   );
+
+              //   if (
+              //     flatDetails.BranchName &&
+              //     branchOptions.some(
+              //       (opt) =>
+              //         opt.value.toString() === flatDetails.BranchName.toString(),
+              //     )
+              //   ) {
+              //     setValue("BranchName", flatDetails.BranchName, {
+              //       shouldValidate: true,
+              //     });
+              //   } else {
+              //     setValue("BranchName", "Please Select", { shouldValidate: true });
+              //   }
+
+              //   if (
+              //     flatDetails.BranchName &&
+              //     flatDetails.BranchName !== "Please Select"
+              //   ) {
+              //     const ifscResponse = await axiosInstance.get(
+              //       `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
+              //     );
+              //     const ifscOptions = [
+              //       { label: "Please Select", value: "Please Select" },
+              //       ...(ifscResponse.data?.data || []).map((ifsc) => ({
+              //         value: ifsc.name,
+              //         label: ifsc.name,
+              //       })),
+              //     ];
+
+              //     setFormSections((prevSections) =>
+              //       prevSections.map((section) =>
+              //         section.section === "Bank Details"
+              //           ? {
+              //               ...section,
+              //               fields: section.fields.map((field) =>
+              //                 field.name === "IfscCode"
+              //                   ? { ...field, options: ifscOptions }
+              //                   : field,
+              //               ),
+              //             }
+              //           : section,
+              //       ),
+              //     );
+
+              //     if (flatDetails.IfscCode) {
+              //       setValue("IfscCode", flatDetails.IfscCode, {
+              //         shouldValidate: true,
+              //       });
+              //     }
+              //   }
+              // }
+              _context2.next = 4;
+              break;
+            case 3:
+              if (data !== null && data !== undefined) {
+                _flatDetails = flattenFormDetails(data);
+                _resetData = _objectSpread(_objectSpread({}, _flatDetails), Object.keys(_flatDetails).reduce(function (acc, key) {
+                  if (_flatDetails[key] && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(_flatDetails[key]) === "object" && "selected" in _flatDetails[key]) {
+                    acc["".concat(key, "_select")] = _flatDetails[key].selected;
+                    acc["".concat(key, "_file")] = _flatDetails[key].file;
+                    setDefaultFile("".concat(key, "_file"), _flatDetails[key].file, false);
+                    if (key === "Other") {
+                      acc["OtherDocument"] = _flatDetails[key].selected || "";
                     }
                   }
+                  return acc;
+                }, {}));
+                setInitialData(_flatDetails);
+                reset(_resetData);
+
+                // ❌ Load Branches + IFSC related functionality (commented)
+                // if (
+                //   flatDetails.BankName &&
+                //   flatDetails.BankName !== "Please Select"
+                // ) {
+                //   const branchResponse = await axiosInstance.get(
+                //     `/Base/GetBranches?bankId=${flatDetails.BankName}`,
+                //   );
+                //   const branchOptions = [
+                //     { label: "Please Select", value: "Please Select" },
+                //     ...(branchResponse.data?.data || []).map((branch) => ({
+                //       value: branch.id,
+                //       label: branch.name,
+                //     })),
+                //   ];
+
+                //   setFormSections((prevSections) =>
+                //     prevSections.map((section) =>
+                //       section.section === "Bank Details"
+                //         ? {
+                //             ...section,
+                //             fields: section.fields.map((field) =>
+                //               field.name === "BranchName"
+                //                 ? { ...field, options: branchOptions }
+                //                 : field,
+                //             ),
+                //           }
+                //         : section,
+                //     ),
+                //   );
+
+                //   if (
+                //     flatDetails.BranchName &&
+                //     branchOptions.some(
+                //       (opt) =>
+                //         opt.value.toString() === flatDetails.BranchName.toString(),
+                //     )
+                //   ) {
+                //     setValue("BranchName", flatDetails.BranchName, {
+                //       shouldValidate: true,
+                //     });
+                //   } else {
+                //     setValue("BranchName", "Please Select", { shouldValidate: true });
+                //   }
+
+                //   if (
+                //     flatDetails.BranchName &&
+                //     flatDetails.BranchName !== "Please Select"
+                //   ) {
+                //     const ifscResponse = await axiosInstance.get(
+                //       `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
+                //     );
+                //     const ifscOptions = [
+                //       { label: "Please Select", value: "Please Select" },
+                //       ...(ifscResponse.data?.data || []).map((ifsc) => ({
+                //         value: ifsc.name,
+                //         label: ifsc.name,
+                //       })),
+                //     ];
+
+                //     setFormSections((prevSections) =>
+                //       prevSections.map((section) =>
+                //         section.section === "Bank Details"
+                //           ? {
+                //               ...section,
+                //               fields: section.fields.map((field) =>
+                //                 field.name === "IfscCode"
+                //                   ? { ...field, options: ifscOptions }
+                //                   : field,
+                //               ),
+                //             }
+                //           : section,
+                //       ),
+                //     );
+
+                //     if (flatDetails.IfscCode) {
+                //       setValue("IfscCode", flatDetails.IfscCode, {
+                //         shouldValidate: true,
+                //       });
+                //     }
+                //   }
+                // }
+
+                // Set default files for enclosures
+                formSections.forEach(function (section) {
+                  section.fields.forEach(function (field) {
+                    if (field.type === "enclosure") {
+                      var _flatDetails$field$na;
+                      var fileFieldName = "".concat(field.name, "_file");
+                      var fileUrl = (_flatDetails$field$na = _flatDetails[field.name]) === null || _flatDetails$field$na === void 0 ? void 0 : _flatDetails$field$na.file;
+                      if (fileUrl && typeof fileUrl === "string") {
+                        var _field$dependentValue2;
+                        if (field.isDependentEnclosure && field.dependentField && ((_field$dependentValue2 = field.dependentValues) === null || _field$dependentValue2 === void 0 ? void 0 : _field$dependentValue2.length) > 0) {
+                          var parentValue = _flatDetails[field.dependentField];
+                          if (!field.dependentValues.includes(parentValue)) {
+                            return;
+                          }
+                        }
+                        setDefaultFile(fileFieldName, fileUrl);
+                      }
+                    }
+                  });
                 });
-              });
-            case 11:
+              }
+            case 4:
               // Loop through data and trigger dependent changes
               if (data != null) {
                 Object.keys(data).forEach(function (key, sectionIndex) {
@@ -295878,19 +295870,25 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                       handleAreaChange(sectionIndex, {
                         name: item.name
                       }, item.value);
-                    } else if (item.name.toLowerCase().includes("bank") || item.name.toLowerCase().includes("branch") || item.name.toLowerCase().includes("ifsc")) {
-                      handleBankChange(sectionIndex, item, item.value);
                     }
+                    // ❌ skip bank/branch/ifsc dependent handling
+                    // else if (
+                    //   item.name.toLowerCase().includes("bank") ||
+                    //   item.name.toLowerCase().includes("branch") ||
+                    //   item.name.toLowerCase().includes("ifsc")
+                    // ) {
+                    //   handleBankChange(sectionIndex, item, item.value);
+                    // }
                     setValue(item.name, item.value);
                     if (item.additionalFields) {
                       var fieldsArray = [];
                       if (Array.isArray(item.additionalFields)) {
                         fieldsArray = item.additionalFields;
-                      } else if ((0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(item.additionalFields) === "object" && !Array.isArray(item.additionalFields)) {
+                      } else if ((0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(item.additionalFields) === "object" && !Array.isArray(item.additionalFields)) {
                         Object.values(item.additionalFields).forEach(function (arr) {
                           if (Array.isArray(arr)) {
                             var _fieldsArray;
-                            (_fieldsArray = fieldsArray).push.apply(_fieldsArray, (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(arr));
+                            (_fieldsArray = fieldsArray).push.apply(_fieldsArray, (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(arr));
                           }
                         });
                       }
@@ -295915,21 +295913,21 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                   });
                 });
               }
-              _context2.next = 13;
+              _context2.next = 6;
               break;
-            case 12:
-              _context2.prev = 12;
+            case 5:
+              _context2.prev = 5;
               _t2 = _context2["catch"](0);
               console.error("Error fetching service content:", _t2);
-            case 13:
-              _context2.prev = 13;
+            case 6:
+              _context2.prev = 6;
               setLoading(false);
-              return _context2.finish(13);
-            case 14:
+              return _context2.finish(6);
+            case 7:
             case "end":
               return _context2.stop();
           }
-        }, _callee2, null, [[0, 12, 13, 14]]);
+        }, _callee2, null, [[0, 5, 6, 7]]);
       }));
       return _loadForm.apply(this, arguments);
     }
@@ -296061,7 +296059,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
         }
       });
     });
-  }, [watch].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(enclosureDependentFields.map(function (_ref6) {
+  }, [watch].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(enclosureDependentFields.map(function (_ref6) {
     var dependentField = _ref6.dependentField;
     return watch(dependentField);
   }))));
@@ -296153,7 +296151,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                     presentField = _arr[_i];
                     fieldValue = getValues(presentField.name);
                     permanentFieldName = presentField.name.replace("Present", "Permanent");
-                    permanentField = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(permanentSection.fields), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(permanentAdditionalFields)).find(function (f) {
+                    permanentField = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(permanentSection.fields), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(permanentAdditionalFields)).find(function (f) {
                       return f.name.toLowerCase() === permanentFieldName.toLowerCase();
                     });
                     if (permanentField) {
@@ -296180,9 +296178,9 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                 }
               }, _loop);
             });
-            _i = 0, _arr = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(presentSection.fields.filter(function (f) {
+            _i = 0, _arr = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(presentSection.fields.filter(function (f) {
               return f.name !== presentTypeField.name;
-            })), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(presentAdditionalFields));
+            })), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(presentAdditionalFields));
           case 5:
             if (!(_i < _arr.length)) {
               _context5.next = 8;
@@ -296210,7 +296208,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                       _context4.next = 1;
                       return trigger(permanentTypeField.name);
                     case 1:
-                      _i2 = 0, _arr2 = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(permanentSection.fields), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(permanentAdditionalFields));
+                      _i2 = 0, _arr2 = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(permanentSection.fields), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(permanentAdditionalFields));
                     case 2:
                       if (!(_i2 < _arr2.length)) {
                         _context4.next = 7;
@@ -296425,11 +296423,11 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
             return _context9.abrupt("return");
           case 1:
             // Normalize to arrays
-            childFieldNames = (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(match.childname) === "object" ? match.childname[AddressType] : match.childname;
+            childFieldNames = (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(match.childname) === "object" ? match.childname[AddressType] : match.childname;
             if (!Array.isArray(childFieldNames)) {
               childFieldNames = [childFieldNames];
             }
-            tableNames = (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(match.respectiveTable) === "object" ? match.respectiveTable[AddressType] : match.respectiveTable;
+            tableNames = (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(match.respectiveTable) === "object" ? match.respectiveTable[AddressType] : match.respectiveTable;
             if (!Array.isArray(tableNames)) {
               tableNames = [tableNames];
             }
@@ -296481,7 +296479,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                       });
                     }
                     setFormSections(function (prevSections) {
-                      var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+                      var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(prevSections);
                       var section = newSections[sectionIndex];
                       var updated = false;
                       section.fields = section.fields.map(function (f) {
@@ -296494,7 +296492,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                         }
 
                         // Check nested fields in additionalFields for Urban and Rural
-                        if (f.additionalFields && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(f.additionalFields) === "object") {
+                        if (f.additionalFields && (0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_2__["default"])(f.additionalFields) === "object") {
                           // Handle Urban fields
                           if (Array.isArray(f.additionalFields.Urban)) {
                             f.additionalFields.Urban = f.additionalFields.Urban.map(function (af) {
@@ -296592,7 +296590,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               });
             }
             setFormSections(function (prevSections) {
-              var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+              var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(prevSections);
               newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(function (f) {
                 return f.name === childField ? _objectSpread(_objectSpread({}, f), {}, {
                   options: pleaseSelectOption
@@ -296608,7 +296606,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                 });
               }
               setFormSections(function (prevSections) {
-                var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+                var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(prevSections);
                 newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(function (f) {
                   return f.name === nextChild ? _objectSpread(_objectSpread({}, f), {}, {
                     options: pleaseSelectOption
@@ -296668,7 +296666,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               value: "Please Select"
             }].concat(uniqueOptions); // Update child field options
             setFormSections(function (prevSections) {
-              var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+              var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(prevSections);
               var section = newSections[sectionIndex];
               section.fields = section.fields.map(function (f) {
                 return f.name === childFieldName ? _objectSpread(_objectSpread({}, f), {}, {
@@ -296696,7 +296694,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                 shouldValidate: true
               });
               setFormSections(function (prevSections) {
-                var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+                var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(prevSections);
                 newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(function (f) {
                   return f.name === "IfscCode" ? _objectSpread(_objectSpread({}, f), {}, {
                     options: pleaseSelectOption
@@ -296721,7 +296719,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               shouldValidate: true
             });
             setFormSections(function (prevSections) {
-              var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(prevSections);
+              var newSections = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(prevSections);
               newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(function (f) {
                 return f.name === _childField ? _objectSpread(_objectSpread({}, f), {}, {
                   options: _pleaseSelectOption
@@ -296816,6 +296814,10 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               section.fields.forEach(function (field) {
                 var sectionData = _processField(field, data, initialData || {});
                 if (sectionData !== null) {
+                  // Override AadharNumber value based on operationType
+                  if (field.name === "AadharNumber") {
+                    sectionData.value = operationType === "submit" ? aadhaarNumber : "";
+                  }
                   groupedFormData[section.section].push(sectionData);
                 }
               });
@@ -296850,7 +296852,6 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               formdata.append("returnFields", JSON.stringify(returnFieldsArray));
               url = "/User/UpdateApplicationDetails";
             }
-            console.log("formdata", formdata);
             _context1.prev = 2;
             _context1.next = 3;
             return _axiosConfig__WEBPACK_IMPORTED_MODULE_28__["default"].post(url, formdata);
@@ -296929,7 +296930,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
     setFormSections(function (prevSections) {
       return prevSections.map(function (section) {
         return section.id === sectionId ? _objectSpread(_objectSpread({}, section), {}, {
-          fields: [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(section.fields), [newField])
+          fields: [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(section.fields), [newField])
         }) : section;
       });
     });
@@ -297274,7 +297275,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                   onChange: function onChange(e) {
                     var checked = e.target.checked;
                     if (Array.isArray(value)) {
-                      var newValue = checked ? [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(value), [option.value]) : value.filter(function (val) {
+                      var newValue = checked ? [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(value), [option.value]) : value.filter(function (val) {
                         return val !== option.value;
                       });
                       _onChange2(newValue);
@@ -297400,7 +297401,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
             if (value && !options.some(function (opt) {
               return opt.value.toString() === value.toString();
             })) {
-              options = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__["default"])(options), [{
+              options = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(options), [{
                 value: value,
                 label: value.toString()
               }]);
@@ -297859,7 +297860,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
         }, element);
       }
       return null;
-    })), section.section === "Documents" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    })), section.section === "Documents" && mode != "edit" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
       sx: {
         display: "flex",
         justifyContent: "flex-start",
@@ -310921,6 +310922,20 @@ function IssueCorrigendum() {
     _useState52 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_useState51, 2),
     allowedFormFields = _useState52[0],
     setAllowedFormFields = _useState52[1];
+
+  // New state for success message handling
+  var _useState53 = (0,react__WEBPACK_IMPORTED_MODULE_6__.useState)(false),
+    _useState54 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_useState53, 2),
+    showSuccessMessage = _useState54[0],
+    setShowSuccessMessage = _useState54[1];
+  var _useState55 = (0,react__WEBPACK_IMPORTED_MODULE_6__.useState)({
+      message: "",
+      referenceNumber: "",
+      type: ""
+    }),
+    _useState56 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_useState55, 2),
+    successDetails = _useState56[0],
+    setSuccessDetails = _useState56[1];
   var fileInputRef = (0,react__WEBPACK_IMPORTED_MODULE_6__.useRef)(null);
   var location = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_25__.useLocation)();
   var _ref2 = location.state || {},
@@ -310952,6 +310967,16 @@ function IssueCorrigendum() {
     setData([]);
     setResponseMessage({
       message: "",
+      type: ""
+    });
+  };
+
+  // Function to handle starting a new submission
+  var handleStartNew = function handleStartNew() {
+    setShowSuccessMessage(false);
+    setSuccessDetails({
+      message: "",
+      referenceNumber: "",
       type: ""
     });
   };
@@ -311920,29 +311945,39 @@ function IssueCorrigendum() {
           case 10:
             response = _context8.sent;
             if (response.data.status) {
-              setResponseMessage({
+              // Store success details before clearing form
+              setSuccessDetails({
                 message: response.data.message || "".concat(type, " submitted successfully!"),
-                type: "success"
+                referenceNumber: referenceNumber,
+                type: type
               });
-              setCorrigendumFields([]);
-              setSelectedField("");
-              setRemarks("");
-              setWordCount(0);
-              setFiles([]);
-              setServerFiles([]);
-              setCanIssue(false);
-              setReferenceNumber("");
-              setServiceId("");
-              setType("");
-              setErrors({});
-              setFormData({});
-              setTouched({
-                remarks: false,
-                files: false,
-                type: false
-              });
-              setNextOfficer("");
-              setIsEdit(false);
+              setShowSuccessMessage(true);
+
+              // Clear form state after setting success message
+              setTimeout(function () {
+                setCorrigendumFields([]);
+                setSelectedField("");
+                setRemarks("");
+                setWordCount(0);
+                setFiles([]);
+                setServerFiles([]);
+                setCanIssue(false);
+                setReferenceNumber("");
+                setServiceId("");
+                setType("");
+                setErrors({});
+                setFormData({});
+                setTouched({
+                  remarks: false,
+                  files: false,
+                  type: false
+                });
+                setNextOfficer("");
+                setIsEdit(false);
+                setFormDetailsFields([]);
+                setFormElements([]);
+                setAllowedFormFields([]);
+              }, 100);
             } else {
               setResponseMessage({
                 message: response.data.message || "Failed to submit ".concat(type.toLowerCase(), "."),
@@ -312175,6 +312210,68 @@ function IssueCorrigendum() {
         color: "#1976d2"
       }
     }));
+  }
+
+  // Show success message screen
+  if (showSuccessMessage) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+      sx: {
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "linear-gradient(to bottom, #75aecfff 0%, #417ac5ff 100%)",
+        padding: "40px"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(StyledContainer, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+      sx: {
+        textAlign: "center",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 3
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+      sx: {
+        backgroundColor: "#d4edda",
+        border: "1px solid #c3e6cb",
+        borderRadius: "8px",
+        padding: "20px",
+        width: "100%",
+        maxWidth: "500px"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      variant: "h5",
+      sx: {
+        color: "#155724",
+        fontWeight: "600",
+        mb: 2
+      }
+    }, "\u2705 Success!"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      variant: "body1",
+      sx: {
+        color: "#155724",
+        mb: 2
+      }
+    }, successDetails.message), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      variant: "body2",
+      sx: {
+        color: "#155724",
+        fontStyle: "italic"
+      }
+    }, "Reference Number: ", successDetails.referenceNumber), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      variant: "body2",
+      sx: {
+        color: "#155724",
+        fontStyle: "italic"
+      }
+    }, "Type: ", successDetails.type)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(StyledButton, {
+      onClick: handleStartNew,
+      sx: {
+        mt: 2,
+        minWidth: "200px"
+      }
+    }, "Submit Another ", successDetails.type || "Corrigendum/Correction"))));
   }
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
     sx: {
@@ -318068,6 +318165,16 @@ function ValidateAadhaar() {
       return setSnack(_objectSpread(_objectSpread({}, snack), {}, {
         open: false
       }));
+    },
+    anchorOrigin: {
+      vertical: "top",
+      horizontal: "center"
+    },
+    sx: {
+      zIndex: 9999,
+      "& .MuiSnackbar-root": {
+        top: "80px !important"
+      }
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], {
     onClose: function onClose() {
@@ -318076,8 +318183,13 @@ function ValidateAadhaar() {
       }));
     },
     severity: snack.severity,
+    variant: "filled",
     sx: {
-      width: "100%"
+      width: "100%",
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+      borderRadius: "8px",
+      fontSize: "14px",
+      fontWeight: 500
     }
   }, snack.message)));
 }
@@ -319816,21 +319928,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/List/List.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/ListItem/ListItem.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/ListItemText/ListItemText.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableContainer/TableContainer.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Paper/Paper.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Table/Table.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableHead/TableHead.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableRow/TableRow.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableCell/TableCell.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableBody/TableBody.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/InputLabel/InputLabel.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Select/Select.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/RadioGroup/RadioGroup.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControlLabel/FormControlLabel.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Radio/Radio.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableContainer/TableContainer.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Paper/Paper.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Table/Table.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableHead/TableHead.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableRow/TableRow.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableCell/TableCell.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableBody/TableBody.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/InputLabel/InputLabel.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Select/Select.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/RadioGroup/RadioGroup.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControlLabel/FormControlLabel.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Radio/Radio.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/ListItem/ListItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/ListItemText/ListItemText.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Alert/Alert.js");
 /* harmony import */ var _components_ServiceSelectionForm__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ../../components/ServiceSelectionForm */ "./src/components/ServiceSelectionForm.jsx");
 /* harmony import */ var _assets_fetch__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ../../assets/fetch */ "./src/assets/fetch.js");
@@ -319999,7 +320111,7 @@ function Withheld() {
             }
             return _context.abrupt("return");
           case 5:
-            setRecordExists(!!res.data.application);
+            setRecordExists(!!res.data.recordExists);
             setCanPermanentToTemporary((_res$data$canPermanen = res.data.canPermanentToTemporary) !== null && _res$data$canPermanen !== void 0 ? _res$data$canPermanen : true);
             setCanCreate(true);
             setHasChecked(true);
@@ -320321,20 +320433,43 @@ function Withheld() {
       key: key,
       variant: "body2"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement("strong", null, formatKey(key), ":"), " ", value || "N/A");
-  }), Array.isArray(formData.files) && formData.files.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement((react__WEBPACK_IMPORTED_MODULE_5___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
-    variant: "subtitle2",
-    sx: {
-      fontWeight: 600,
-      mt: 2
-    }
-  }, "Uploaded Files"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+  }), Array.isArray(formData.files) && formData.files.length > 0 && recordExists && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement((react__WEBPACK_IMPORTED_MODULE_5___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
     dense: true
   }, formData.files.map(function (file, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
-      key: index
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
-      primary: typeof file === "string" ? file : file.name
-    }));
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      sx: {
+        mt: 3
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      variant: "subtitle1",
+      sx: {
+        fontWeight: 600,
+        mb: 2
+      }
+    }, "Uploaded Documents"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      sx: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 2
+      }
+    }, formData.files.map(function (file, index) {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+        key: index,
+        variant: "outlined",
+        sx: {
+          textTransform: "none",
+          borderColor: "primary.main",
+          color: "primary.main",
+          "&:hover": {
+            backgroundColor: "primary.light",
+            borderColor: "primary.dark"
+          }
+        },
+        onClick: function onClick() {
+          return handleFileClick(typeof file === "string" ? file : file.name);
+        }
+      }, typeof file === "string" ? file : file.name);
+    })));
   }))), hasChecked && tableData.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
     sx: {
       mt: 3
@@ -320345,15 +320480,15 @@ function Withheld() {
       fontWeight: 600,
       mb: 2
     }
-  }, "Action History"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
-    component: _mui_material__WEBPACK_IMPORTED_MODULE_17__["default"],
+  }, "Action History"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
+    component: _mui_material__WEBPACK_IMPORTED_MODULE_15__["default"],
     sx: {
       bgcolor: "grey.100",
       borderRadius: 2,
       boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)"
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"], null, tableColumns.map(function (column, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], null, tableColumns.map(function (column, index) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
       key: index,
       sx: {
         fontWeight: 600,
@@ -320361,53 +320496,20 @@ function Withheld() {
         backgroundColor: "grey.200"
       }
     }, column.header);
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], null, tableData.map(function (row, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"], {
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"], null, tableData.map(function (row, index) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], {
       key: index
     }, tableColumns.map(function (column, colIndex) {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
         key: colIndex
       }, row[column.accessorKey] || "N/A");
     }));
-  }))))), hasChecked && Array.isArray(formData.files) && formData.files.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
-    sx: {
-      mt: 3
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
-    variant: "subtitle1",
-    sx: {
-      fontWeight: 600,
-      mb: 2
-    }
-  }, "View Documents"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
-    sx: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 2
-    }
-  }, formData.files.map(function (file, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
-      key: index,
-      variant: "outlined",
-      sx: {
-        textTransform: "none",
-        borderColor: "primary.main",
-        color: "primary.main",
-        "&:hover": {
-          backgroundColor: "primary.light",
-          borderColor: "primary.dark"
-        }
-      },
-      onClick: function onClick() {
-        return handleFileClick(typeof file === "string" ? file : file.name);
-      }
-    }, typeof file === "string" ? file : file.name);
-  })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_components_BasicModal__WEBPACK_IMPORTED_MODULE_33__["default"], {
+  })))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_components_BasicModal__WEBPACK_IMPORTED_MODULE_33__["default"], {
     open: modalOpen,
     handleClose: handleModalClose,
     Title: "View Document",
     pdf: selectedPdfUrl
-  }), hasChecked && canCreate && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
+  }), hasChecked && canCreate && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
     sx: {
       p: 3,
       mt: 3,
@@ -320424,9 +320526,9 @@ function Withheld() {
   }, recordExists ? "Update Withheld Application" : "Create New Withheld Application"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
     fullWidth: true,
     sx: formControlStyles
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_23__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
     id: "withheld-type-label"
-  }, "Withheld Type"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
+  }, "Withheld Type"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
     labelId: "withheld-type-label",
     label: "Withheld Type",
     value: formData.withheldType,
@@ -320437,9 +320539,9 @@ function Withheld() {
         });
       });
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_25__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_23__["default"], {
     value: "Permanent"
-  }, "Permanent"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_25__["default"], {
+  }, "Permanent"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_23__["default"], {
     value: "Temporary"
   }, "Temporary"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     label: "Withheld Reason",
@@ -320466,7 +320568,7 @@ function Withheld() {
       fontWeight: 600,
       color: "text.primary"
     }
-  }, "Is Withheld"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_26__["default"], {
+  }, "Is Withheld"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
     row: true,
     value: formData.isWithheld.toString(),
     onChange: function onChange(e) {
@@ -320476,13 +320578,13 @@ function Withheld() {
         });
       });
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_27__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_25__["default"], {
     value: "true",
-    control: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_28__["default"], null),
+    control: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_26__["default"], null),
     label: "Yes"
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_27__["default"], {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_25__["default"], {
     value: "false",
-    control: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_28__["default"], null),
+    control: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_26__["default"], null),
     label: "No"
   }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
     sx: {
@@ -320505,9 +320607,9 @@ function Withheld() {
   }), Array.isArray(formData.files) && formData.files.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
     dense: true
   }, formData.files.map(function (file, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_27__["default"], {
       key: index
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_28__["default"], {
       primary: typeof file === "string" ? file : file.name
     }));
   }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
@@ -320818,15 +320920,15 @@ function Form() {
     "Bank Details": [{
       label: "Bank",
       name: "BankName",
-      value: "77"
+      value: "THE JAMMU AND KASHMIR BANK LTD."
     }, {
       label: "Branch Name",
       name: "BranchName",
-      value: "92453"
+      value: "RESIDENCY ROAD JAMMU"
     }, {
       label: "IFSC Code",
       name: "IfscCode",
-      value: "887110"
+      value: "JAKA0KEEPER"
     }, {
       label: "Account Number",
       name: "AccountNumber",
@@ -320989,15 +321091,15 @@ function Form() {
     "Bank Details": [{
       label: "Bank",
       name: "BankName",
-      value: "77"
+      value: "THE JAMMU AND KASHMIR BANK LTD."
     }, {
       label: "Branch Name",
       name: "BranchName",
-      value: "92453"
+      value: "RESIDENCY ROAD JAMMU"
     }, {
       label: "IFSC Code",
       name: "IfscCode",
-      value: "887110"
+      value: "JAKA0KEEPER"
     }, {
       label: "Account Number",
       name: "AccountNumber",
@@ -321143,15 +321245,15 @@ function Form() {
     "Bank Details": [{
       label: "Bank",
       name: "BankName",
-      value: "77"
+      value: "THE JAMMU AND KASHMIR BANK LTD."
     }, {
       label: "Branch Name",
       name: "BranchName",
-      value: "92453"
+      value: "RESIDENCY ROAD JAMMU"
     }, {
       label: "IFSC Code",
       name: "IfscCode",
-      value: "887110"
+      value: "JAKA0KEEPER"
     }, {
       label: "Account Number",
       name: "AccountNumber",
@@ -321801,15 +321903,13 @@ function UpdateExpiringDocument() {
     setIsLoading = _React$useState6[1];
   var fileInputRef = (0,react__WEBPACK_IMPORTED_MODULE_4__.useRef)(null);
   var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_6__.useForm)({
-      mode: "onChange",
+      mode: "onBlur",
       // Validate on change to catch errors early
       defaultValues: {}
     }),
     control = _useForm.control,
     handleSubmit = _useForm.handleSubmit,
-    _useForm$formState = _useForm.formState,
-    errors = _useForm$formState.errors,
-    isSubmitting = _useForm$formState.isSubmitting,
+    errors = _useForm.formState.errors,
     setValue = _useForm.setValue,
     getValues = _useForm.getValues,
     watch = _useForm.watch;
@@ -321819,7 +321919,12 @@ function UpdateExpiringDocument() {
   react__WEBPACK_IMPORTED_MODULE_4___default().useEffect(function () {
     console.log("Form State:", formState);
     console.log("Validation Errors:", errors);
-  }, [formState, errors]);
+    console.log("Submit Button State:", {
+      fieldsLength: fields.length,
+      errors: Object.keys(errors)
+    });
+    console.log("Fields Configuration:", fields);
+  }, [formState, errors, fields]);
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
     if (!referenceNumber || !ServiceId) {
       setApiError("Missing reference number or service ID.");
@@ -322090,7 +322195,9 @@ function UpdateExpiringDocument() {
         return validate;
       }()
     };
-    if ((_field$validationFunc = field.validationFunctions) !== null && _field$validationFunc !== void 0 && _field$validationFunc.includes("notEmpty")) {
+
+    // Make Percentage field optional by not applying "notEmpty" validation
+    if ((_field$validationFunc = field.validationFunctions) !== null && _field$validationFunc !== void 0 && _field$validationFunc.includes("notEmpty") && field.name !== "percentageOfDisability") {
       validationRules.required = "This field is required";
     }
     if (field.type === "enclosure") {
@@ -322121,8 +322228,7 @@ function UpdateExpiringDocument() {
             onClick: handleAddFileClick,
             sx: {
               mb: 2
-            },
-            disabled: isSubmitting
+            }
           }, "Upload ", field.label), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("input", {
             type: "file",
             accept: field.accept || ".pdf",
@@ -322158,7 +322264,6 @@ function UpdateExpiringDocument() {
             onClick: function onClick() {
               return handleRemoveFile(field.name, _onChange);
             },
-            disabled: isSubmitting,
             sx: {
               "&:hover": {
                 backgroundColor: "rgba(211, 47, 47, 0.1)"
@@ -322201,7 +322306,6 @@ function UpdateExpiringDocument() {
           } : undefined,
           error: !!errors[field.name],
           helperText: ((_errors$field$name2 = errors[field.name]) === null || _errors$field$name2 === void 0 ? void 0 : _errors$field$name2.message) || "",
-          disabled: isSubmitting,
           fullWidth: true,
           sx: {
             "& .MuiInputBase-root": {
@@ -322265,7 +322369,16 @@ function UpdateExpiringDocument() {
       mb: 4,
       textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
     }
-  }, "Update Expiring Document"), apiError && fields.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+  }, "Update Expiring Document"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    variant: "h4",
+    sx: {
+      textAlign: "center",
+      fontWeight: "700",
+      color: "#1976d2",
+      mb: 4,
+      textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+    }
+  }, "Reference Number: ", referenceNumber), apiError && fields.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     color: "error",
     sx: {
       textAlign: "center",
@@ -322274,6 +322387,7 @@ function UpdateExpiringDocument() {
   }, apiError), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
     component: "form",
     autoComplete: "off",
+    noValidate: true,
     onSubmit: handleSubmit(onSubmit),
     sx: {
       display: "flex",
@@ -322286,9 +322400,9 @@ function UpdateExpiringDocument() {
     }, renderInputField(field));
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(StyledButton, {
     type: "submit",
-    disabled: isSubmitting || fields.length === 0 || Object.keys(errors).length > 0,
+    disabled: fields.length === 0 || Object.keys(errors).length > 0,
     fullWidth: true
-  }, isSubmitting ? "Submitting..." : "Submit"))));
+  }, "Submit"))));
 }
 
 /***/ }),

@@ -64,12 +64,12 @@ export default function UpdateExpiringDocument() {
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     setValue,
     getValues,
     watch,
   } = useForm({
-    mode: "onChange", // Validate on change to catch errors early
+    mode: "onBlur", // Validate on change to catch errors early
     defaultValues: {},
   });
 
@@ -78,7 +78,12 @@ export default function UpdateExpiringDocument() {
   React.useEffect(() => {
     console.log("Form State:", formState);
     console.log("Validation Errors:", errors);
-  }, [formState, errors]);
+    console.log("Submit Button State:", {
+      fieldsLength: fields.length,
+      errors: Object.keys(errors),
+    });
+    console.log("Fields Configuration:", fields);
+  }, [formState, errors, fields]);
 
   useEffect(() => {
     if (!referenceNumber || !ServiceId) {
@@ -292,7 +297,11 @@ export default function UpdateExpiringDocument() {
       },
     };
 
-    if (field.validationFunctions?.includes("notEmpty")) {
+    // Make Percentage field optional by not applying "notEmpty" validation
+    if (
+      field.validationFunctions?.includes("notEmpty") &&
+      field.name !== "percentageOfDisability"
+    ) {
       validationRules.required = "This field is required";
     }
 
@@ -313,7 +322,6 @@ export default function UpdateExpiringDocument() {
                 variant="outlined"
                 onClick={handleAddFileClick}
                 sx={{ mb: 2 }}
-                disabled={isSubmitting}
               >
                 Upload {field.label}
               </StyledButton>
@@ -348,7 +356,6 @@ export default function UpdateExpiringDocument() {
                   <IconButton
                     color="error"
                     onClick={() => handleRemoveFile(field.name, onChange)}
-                    disabled={isSubmitting}
                     sx={{
                       "&:hover": {
                         backgroundColor: "rgba(211, 47, 47, 0.1)",
@@ -395,7 +402,6 @@ export default function UpdateExpiringDocument() {
             }
             error={!!errors[field.name]}
             helperText={errors[field.name]?.message || ""}
-            disabled={isSubmitting}
             fullWidth
             sx={{
               "& .MuiInputBase-root": {
@@ -472,6 +478,19 @@ export default function UpdateExpiringDocument() {
           Update Expiring Document
         </Typography>
 
+        <Typography
+          variant="h4"
+          sx={{
+            textAlign: "center",
+            fontWeight: "700",
+            color: "#1976d2",
+            mb: 4,
+            textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          Reference Number: {referenceNumber}
+        </Typography>
+
         {apiError && fields.length > 0 && (
           <Typography color="error" sx={{ textAlign: "center", mb: 2 }}>
             {apiError}
@@ -481,6 +500,7 @@ export default function UpdateExpiringDocument() {
         <Box
           component="form"
           autoComplete="off"
+          noValidate
           onSubmit={handleSubmit(onSubmit)}
           sx={{
             display: "flex",
@@ -494,14 +514,10 @@ export default function UpdateExpiringDocument() {
 
           <StyledButton
             type="submit"
-            disabled={
-              isSubmitting ||
-              fields.length === 0 ||
-              Object.keys(errors).length > 0
-            }
+            disabled={fields.length === 0 || Object.keys(errors).length > 0}
             fullWidth
           >
-            {isSubmitting ? "Submitting..." : "Submit"}
+            Submit
           </StyledButton>
         </Box>
       </StyledContainer>

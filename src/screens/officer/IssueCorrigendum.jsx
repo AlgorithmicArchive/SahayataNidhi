@@ -198,6 +198,15 @@ export default function IssueCorrigendum() {
   const [selectedFileName, setSelectedFileName] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [allowedFormFields, setAllowedFormFields] = useState([]);
+
+  // New state for success message handling
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successDetails, setSuccessDetails] = useState({
+    message: "",
+    referenceNumber: "",
+    type: "",
+  });
+
   const fileInputRef = useRef(null);
 
   const location = useLocation();
@@ -222,6 +231,12 @@ export default function IssueCorrigendum() {
     setColumns([]);
     setData([]);
     setResponseMessage({ message: "", type: "" });
+  };
+
+  // Function to handle starting a new submission
+  const handleStartNew = () => {
+    setShowSuccessMessage(false);
+    setSuccessDetails({ message: "", referenceNumber: "", type: "" });
   };
 
   useEffect(() => {
@@ -988,25 +1003,35 @@ export default function IssueCorrigendum() {
       );
 
       if (response.data.status) {
-        setResponseMessage({
+        // Store success details before clearing form
+        setSuccessDetails({
           message: response.data.message || `${type} submitted successfully!`,
-          type: "success",
+          referenceNumber: referenceNumber,
+          type: type,
         });
-        setCorrigendumFields([]);
-        setSelectedField("");
-        setRemarks("");
-        setWordCount(0);
-        setFiles([]);
-        setServerFiles([]);
-        setCanIssue(false);
-        setReferenceNumber("");
-        setServiceId("");
-        setType("");
-        setErrors({});
-        setFormData({});
-        setTouched({ remarks: false, files: false, type: false });
-        setNextOfficer("");
-        setIsEdit(false);
+        setShowSuccessMessage(true);
+
+        // Clear form state after setting success message
+        setTimeout(() => {
+          setCorrigendumFields([]);
+          setSelectedField("");
+          setRemarks("");
+          setWordCount(0);
+          setFiles([]);
+          setServerFiles([]);
+          setCanIssue(false);
+          setReferenceNumber("");
+          setServiceId("");
+          setType("");
+          setErrors({});
+          setFormData({});
+          setTouched({ remarks: false, files: false, type: false });
+          setNextOfficer("");
+          setIsEdit(false);
+          setFormDetailsFields([]);
+          setFormElements([]);
+          setAllowedFormFields([]);
+        }, 100);
       } else {
         setResponseMessage({
           message:
@@ -1215,6 +1240,94 @@ export default function IssueCorrigendum() {
         }}
       >
         <CircularProgress size={60} sx={{ color: "#1976d2" }} />
+      </Box>
+    );
+  }
+
+  // Show success message screen
+  if (showSuccessMessage) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          background:
+            "linear-gradient(to bottom, #75aecfff 0%, #417ac5ff 100%)",
+          padding: "40px",
+        }}
+      >
+        <StyledContainer>
+          <Box
+            sx={{
+              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 3,
+            }}
+          >
+            <Box
+              sx={{
+                backgroundColor: "#d4edda",
+                border: "1px solid #c3e6cb",
+                borderRadius: "8px",
+                padding: "20px",
+                width: "100%",
+                maxWidth: "500px",
+              }}
+            >
+              <Typography
+                variant="h5"
+                sx={{
+                  color: "#155724",
+                  fontWeight: "600",
+                  mb: 2,
+                }}
+              >
+                ✅ Success!
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#155724",
+                  mb: 2,
+                }}
+              >
+                {successDetails.message}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#155724",
+                  fontStyle: "italic",
+                }}
+              >
+                Reference Number: {successDetails.referenceNumber}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#155724",
+                  fontStyle: "italic",
+                }}
+              >
+                Type: {successDetails.type}
+              </Typography>
+            </Box>
+
+            <StyledButton
+              onClick={handleStartNew}
+              sx={{
+                mt: 2,
+                minWidth: "200px",
+              }}
+            >
+              Submit Another {successDetails.type || "Corrigendum/Correction"}
+            </StyledButton>
+          </Box>
+        </StyledContainer>
       </Box>
     );
   }
