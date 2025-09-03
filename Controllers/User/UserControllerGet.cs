@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using System.Security.Claims;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using Microsoft.AspNetCore.Mvc;
@@ -213,6 +214,22 @@ namespace SahayataNidhi.Controllers.User
                 rowIndex++; // Increment row index for S.No
             }
 
+            // ✅ Sort by submissionDate (latest first) with proper parsing
+            data = data
+                .OrderByDescending(d =>
+                {
+                    DateTime parsedDate;
+                    return DateTime.TryParseExact(
+                        d.submissionDate?.ToString(),
+                        "dd MMM yyyy hh:mm:ss tt",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.None,
+                        out parsedDate
+                    ) ? parsedDate : DateTime.MinValue;
+                })
+                .ToList();
+
+
             return Json(new { data, columns, totalRecords });
         }
         public IActionResult IncompleteApplications(int pageIndex = 0, int pageSize = 10)
@@ -278,6 +295,7 @@ namespace SahayataNidhi.Controllers.User
             var currentPlayer = players!.FirstOrDefault(o => (int)o["playerId"]! == currentPlayerIndex);
             var history = await dbcontext.ActionHistories.Where(ah => ah.ReferenceNumber == ApplicationId && !ah.ActionTaken.Contains("Withheld")).ToListAsync();
             var formDetails = JsonConvert.DeserializeObject<dynamic>(application.FormDetails!);
+            int totalRecords = history.Count;
 
             var columns = new List<dynamic>
             {
@@ -315,9 +333,10 @@ namespace SahayataNidhi.Controllers.User
                     actionTaken = currentPlayer["status"],
                     actionTakenOn = "",
                 });
+                totalRecords++;
             }
 
-            return Json(new { data, columns, customActions = new { } });
+            return Json(new { data, columns, totalRecords, customActions = new { } });
         }
         public IActionResult GetServices(int pageIndex = 0, int pageSize = 10)
         {

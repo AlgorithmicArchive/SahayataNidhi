@@ -678,6 +678,7 @@ export default function Form() {
   return (
     <Box
       sx={{
+        width: "100%",
         minHeight: { xs: "180vh", lg: "90vh" }, // Use min-height to ensure at least full viewport height
         display: { xs: "flex" },
         justifyContent: { xs: "center" }, // Center content vertically

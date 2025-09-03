@@ -284,6 +284,8 @@ namespace SahayataNidhi.Controllers.User
                 return Json(new { status = true, ReferenceNumber, type = "Save" });
             }
         }
+      
+      
         public int GetShiftedFromTo(string location)
         {
             try
@@ -325,7 +327,6 @@ namespace SahayataNidhi.Controllers.User
             string referenceNumber = form["referenceNumber"].ToString();
             string returnFieldsJson = form["returnFields"].ToString();
             string formDetailsJson = form["formDetails"].ToString();
-
 
             var returnFields = JsonConvert.DeserializeObject<List<string>>(returnFieldsJson) ?? new List<string>();
             var submittedFormDetails = JObject.Parse(formDetailsJson);
@@ -419,7 +420,6 @@ namespace SahayataNidhi.Controllers.User
                         }
                         else if (field["File"]?.Type == JTokenType.Object)
                         {
-                            // If File is an empty object or invalid, set to empty string
                             field["File"] = "";
                         }
                     }
@@ -451,32 +451,36 @@ namespace SahayataNidhi.Controllers.User
                 }
             }
 
-            // // Update application.FormDetails with the new formDetails
+            // Update application.FormDetails with the new formDetails
             application.FormDetails = submittedFormDetails.ToString();
             application.AdditionalDetails = null;
+
             var workFlow = JsonConvert.DeserializeObject<JArray>(application.WorkFlow ?? "[]");
             var currentOfficer = workFlow!.FirstOrDefault(o => (int)o["playerId"]! == application.CurrentPlayer);
             if (currentOfficer != null)
             {
                 currentOfficer["status"] = "pending";
-                currentOfficer["shifted"] = true;
-                currentOfficer["shiftedFrom"] = shiftedFrom;
-                currentOfficer["shiftedTo"] = shiftedTo;
+
+                // ✅ Only add shift details if location actually changed
+                if (shiftedFrom != shiftedTo)
+                {
+                    currentOfficer["shifted"] = true;
+                    currentOfficer["shiftedFrom"] = shiftedFrom;
+                    currentOfficer["shiftedTo"] = shiftedTo;
+                }
             }
+
             application.WorkFlow = JsonConvert.SerializeObject(workFlow);
             application.CreatedAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
-
 
             string? locationLevel = GetFormFieldValue(submittedFormDetails, "Tehsil") != null ? "Tehsil" : "District";
             int locationValue = Convert.ToInt32(GetFormFieldValue(submittedFormDetails, locationLevel));
 
-
             dbcontext.SaveChanges();
-            helper.InsertHistory(referenceNumber, "Corrected and Sent Back to Officer", "Citizen", "Corrected", locationLevel, locationValue);
+            helper.InsertHistory(referenceNumber, "Re submission of Application", "Citizen", "Re submitted", locationLevel, locationValue);
 
             return Json(new { status = true, message = "Application updated successfully", type = "Edit", referenceNumber });
         }
-
         [HttpPost]
         public async Task<IActionResult> UpdateExpiringDocumentDetails([FromForm] IFormCollection form)
         {

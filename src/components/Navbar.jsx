@@ -322,21 +322,35 @@ const MyNavbar = () => {
                     </NavDropdown.Item>
                   )}
                 </NavDropdown>
-                <Nav.Link
-                  as={Link}
-                  to="/officer/aadhaarvalidations"
-                  style={getNavItemStyle(
-                    "officer-aadhaarvalidations",
-                    "/officer/aadhaarvalidations",
-                  )}
-                  onClick={() => setExpanded(false)}
-                  onMouseEnter={() =>
-                    handleMouseEnter("officer-aadhaarvalidations")
-                  }
+                <NavDropdown
+                  title="View Applications"
+                  id="view-applications-dropdown"
+                  onMouseEnter={() => handleMouseEnter("applications")}
                   onMouseLeave={handleMouseLeave}
                 >
-                  Aadhaar Validations
-                </Nav.Link>
+                  <NavDropdown.Item
+                    as={Link}
+                    to="/officer/aadhaarvalidations"
+                    style={getNavItemStyle(
+                      "officer-aadhaarvalidations",
+                      "/officer/aadhaarvalidations",
+                    )}
+                    onClick={() => setExpanded(false)}
+                  >
+                    Aadhaar Validations
+                  </NavDropdown.Item>
+                  <NavDropdown.Item
+                    as={Link}
+                    to="/officer/searchapplication"
+                    style={getNavItemStyle(
+                      "officer-searchapplication",
+                      "/officer/searchapplication",
+                    )}
+                    onClick={() => setExpanded(false)}
+                  >
+                    Search Application
+                  </NavDropdown.Item>
+                </NavDropdown>
               </>
             )}
 
@@ -496,6 +510,11 @@ const MyNavbar = () => {
                       onClick={() => handleNavigate("/designer/emailsettings")}
                     >
                       Email
+                    </NavDropdown.Item>
+                    <NavDropdown.Item
+                      onClick={() => handleNavigate("/designer/createreports")}
+                    >
+                      Create Reports
                     </NavDropdown.Item>
                   </NavDropdown>
                 </div>

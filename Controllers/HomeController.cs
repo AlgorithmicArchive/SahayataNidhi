@@ -49,7 +49,6 @@ namespace SahayataNidhi.Controllers
             return otp;
         }
 
-
         public IActionResult Index()
         {
             return View();
@@ -63,8 +62,6 @@ namespace SahayataNidhi.Controllers
             var words = role.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             return string.Concat(words.Select(w => char.ToUpper(w[0])));
         }
-
-
 
         [HttpPost]
         public async Task<IActionResult> OfficerRegistration([FromForm] IFormCollection form)
@@ -106,7 +103,7 @@ namespace SahayataNidhi.Controllers
             {
                 var userId = new SqlParameter("@OfficerId", result[0].UserId);
                 // await _dbContext.Database.ExecuteSqlRawAsync("EXEC UpdateNullOfficer @NewOfficerId, @AccessLevel, @AccessCode, @Role", new SqlParameter("@NewOfficerId", result[0].UserId), designation, accessLevel, accessCode);
-                string otp = GenerateOTP(6);
+                string otp = GenerateOTP(7);
                 _otpStore.StoreOtp("registration", otp);
                 await _emailSender.SendEmail(form["Email"].ToString(), "OTP For Registration.", otp);
                 return Json(new { status = true, result[0].UserId });
@@ -116,14 +113,13 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, response = "Registration failed." });
             }
         }
-
         [HttpGet]
         public async Task<IActionResult> SendLoginOtp(string? username)
         {
             string otpKey;
             otpKey = $"otp:{username}";
 
-            string otp = GenerateOTP(6);
+            string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
             string email = _dbContext.Users.FirstOrDefault(u => u.Username == username)!.Email!;
@@ -142,14 +138,13 @@ namespace SahayataNidhi.Controllers
             return Json(new { status = true });
         }
 
-
         [HttpGet]
         public async Task<IActionResult> SendOtp(string? email)
         {
             string otpKey;
             otpKey = $"otp:{email}";
 
-            string otp = GenerateOTP(6);
+            string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
             string htmlMessage = $@"
@@ -165,7 +160,6 @@ namespace SahayataNidhi.Controllers
             await _emailSender.SendEmail(email!, "OTP For Registration", htmlMessage);
             return Json(new { status = true });
         }
-
 
         [HttpPost]
         public async Task<IActionResult> SendPasswordResetOtp([FromForm] IFormCollection form)
@@ -185,7 +179,7 @@ namespace SahayataNidhi.Controllers
             string otpKey = $"otp:{user.UserId}";
             string userName = user.Name ?? "User";
 
-            string otp = GenerateOTP(6);
+            string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
             string htmlMessage = $@"
@@ -239,16 +233,12 @@ namespace SahayataNidhi.Controllers
             return Json(new { status = true, message = "Username has been sent to your email." });
         }
 
-
-
-
         public class ResetPasswordResult
         {
             public int Result { get; set; }
             public string? Message { get; set; }
             public int UserId { get; set; }
         }
-
 
         [HttpPost]
         public async Task<IActionResult> ValidateOtpAndResetPassword([FromForm] IFormCollection form)
@@ -595,14 +585,14 @@ namespace SahayataNidhi.Controllers
             {
                 string otpKey = $"otp:{usernameClaim}";
                 string? otpCache = _otpStore.RetrieveOtp(otpKey);
-                if (otpCache == otp || otp == "123456")
+                if (otpCache == otp || otp == "1234567")
                 {
                     verified = true;
                 }
             }
             else if (string.IsNullOrEmpty(otp) && !string.IsNullOrEmpty(backupCode))
             {
-                if (backupCode == "123456") verified = true;
+                if (backupCode == "1234567") verified = true;
                 else
                 {
                     var user = _dbContext.Users.FirstOrDefault(u => u.UserId.ToString() == userIdClaim);
@@ -651,7 +641,7 @@ namespace SahayataNidhi.Controllers
             }
 
             string otpKey = $"email_verify_otp:{user.UserId}";
-            string otp = GenerateOTP(6);
+            string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
             string htmlMessage = $@"
@@ -748,7 +738,7 @@ namespace SahayataNidhi.Controllers
             var AadhaarData = new List<dynamic>
             {
                 new {
-                      AadhaarNumber = "690237896873",
+                      AadhaarNumber = "123456789012",
                       Name = "Rahul Sharma",
                       DOB = "1989-01-01",
                       Gender = "M",
@@ -756,7 +746,7 @@ namespace SahayataNidhi.Controllers
                       Email = "randomizerweb129@gmail.com"
                    },
                 new {
-                      AadhaarNumber = "690227896872",
+                      AadhaarNumber = "123456789012",
                       Name = "Rahul Sharma",
                       DOB = "1989-01-01",
                       Gender = "M",
@@ -779,7 +769,7 @@ namespace SahayataNidhi.Controllers
             string email = aadhaarData!.Email;
             otpKey = $"otp:{email}";
 
-            string otp = GenerateOTP(6);
+            string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
             string htmlMessage = $@"
@@ -816,7 +806,7 @@ namespace SahayataNidhi.Controllers
             }
 
             // Verify the OTP
-            if (storedOtp == otp || otp == "123456")
+            if (storedOtp == otp || otp == "1234567")
             {
                 string tokenizeAadhaar = TokenizeAadhaar(aadhaarNumber, "MySecureKey123");
                 return Json(new { status = true, message = "OTP validated successfully.", aadhaarToken = tokenizeAadhaar });

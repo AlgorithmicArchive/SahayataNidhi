@@ -50,6 +50,8 @@ import Withheld from "../screens/officer/Withheld";
 import ValidateAadhaar from "../screens/officer/ValidateAadhaar";
 import AadhaarValidations from "../screens/viewer/AadhaarValidations";
 import OfficerAadhaarValidations from "../screens/officer/AadhaarValidations";
+import SearchApplication from "../screens/officer/SearchApplication";
+import CreateReports from "../screens/designer/CreateReports";
 
 const RoutesComponent = () => {
   return (
@@ -102,6 +104,7 @@ const RoutesComponent = () => {
             element={<ViewCorrigendumDetails />}
           />
           <Route path="validateaadhaar" element={<ValidateAadhaar />} />
+          <Route path="searchapplication" element={<SearchApplication />} />
         </Route>
       </Route>
       <Route element={<ProtectedRoute requiredRoles={["Viewer"]} />}>
@@ -128,6 +131,7 @@ const RoutesComponent = () => {
           <Route path="dynamicform" element={<DynamicScrollableForm />} />
           <Route path="emailsettings" element={<EmailSettings />} />
           <Route path="corrections" element={<Corrections />} />
+          <Route path="createreports" element={<CreateReports />} />
         </Route>
       </Route>
       <Route

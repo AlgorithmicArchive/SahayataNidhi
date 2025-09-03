@@ -397,7 +397,8 @@ namespace SahayataNidhi.Controllers.Officer
                 new { accessorKey = "applicantName", header = "Applicant Name" },
                 new { accessorKey = "serviceName", header = "Service Name" },
                 new { accessorKey = "status", header = "Application Status" },
-                new { accessorKey = "submissionDate", header = "Submission Date" }
+                new { accessorKey = "submissionDate", header = "Citizen Submission Date" },
+                new { accessorKey = "actionTakenOn", header = "Received On" }
             ];
 
             List<dynamic> data = [];
@@ -421,7 +422,37 @@ namespace SahayataNidhi.Controllers.Officer
                 var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails!);
                 var officers = JsonConvert.DeserializeObject<JArray>(details.WorkFlow!);
                 var currentPlayer = details.CurrentPlayer;
+
+                var latestHistory = dbcontext.ActionHistories
+                    .Where(h => h.ReferenceNumber == details.ReferenceNumber)
+                    .AsEnumerable() // force in-memory
+                    .OrderByDescending(h => DateTime.ParseExact(
+                        h.ActionTakenDate,
+                        "dd MMM yyyy hh:mm:ss tt",
+                        CultureInfo.InvariantCulture))
+                    .FirstOrDefault();
+
+                // ✅ Parse into DateTime for sorting
+                var parsedDate = latestHistory != null
+                    ? DateTime.ParseExact(
+                        latestHistory.ActionTakenDate,
+                        "dd MMM yyyy hh:mm:ss tt",
+                        CultureInfo.InvariantCulture)
+                    : DateTime.MinValue;
+
                 string officerDesignation = (string)officers![currentPlayer!]!["designation"]!;
+
+                if (latestHistory != null && officerDesignation == latestHistory.ActionTaker)
+                {
+                    columns = columns
+                        .Select(col =>
+                            col.accessorKey == "actionTakenOn"
+                                ? new { accessorKey = col.accessorKey, header = "Action Taken On" }
+                                : col
+                        )
+                        .ToList<dynamic>();
+                }
+
                 string serviceName = dbcontext.Services.FirstOrDefault(s => s.ServiceId == details.ServiceId)!.ServiceName!;
                 var corrigendums = dbcontext.Corrigenda.Where(co => co.ReferenceNumber == details.ReferenceNumber).ToList();
                 List<string> corrigendumIds = new();
@@ -513,10 +544,12 @@ namespace SahayataNidhi.Controllers.Officer
                     referenceNumber = details.ReferenceNumber,
                     applicantName = GetFieldValue("ApplicantName", formDetails),
                     submissionDate = details.CreatedAt,
+                    actionTakenOn = parsedDate == DateTime.MinValue ? null : parsedDate.ToString("dd MMM yyyy hh:mm:ss tt"),
                     serviceName,
                     status = Status,
                     serviceId = details.ServiceId,
-                    customActions
+                    customActions,
+                    sortDate = parsedDate // ✅ keep raw date for sorting
                 };
 
                 if (type == "shifted")
@@ -535,6 +568,43 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                 }
             }
+
+            // ✅ Final sort by latest ActionTakenOn
+            data = data.OrderByDescending(d => d.sortDate).ToList<dynamic>();
+            poolData = poolData.OrderByDescending(d => d.sortDate).ToList<dynamic>();
+
+            data = data
+            .OrderByDescending(d => d.sortDate)
+            .Select((d, i) => new
+            {
+                sno = (pageIndex * pageSize) + i + 1, // renumber after sort
+                d.referenceNumber,
+                d.applicantName,
+                d.submissionDate,
+                d.actionTakenOn,
+                d.serviceName,
+                d.status,
+                d.serviceId,
+                d.customActions
+            })
+            .ToList<dynamic>();
+
+            poolData = poolData
+                .OrderByDescending(d => d.sortDate)
+                .Select((d, i) => new
+                {
+                    // pick one:
+                    sno = (pageIndex * pageSize) + i + 1, // or keep pagination offset too
+                    d.referenceNumber,
+                    d.applicantName,
+                    d.submissionDate,
+                    d.actionTakenOn,
+                    d.serviceName,
+                    d.status,
+                    d.serviceId,
+                    d.customActions
+                })
+                .ToList<dynamic>();
 
             return Json(new
             {
@@ -713,76 +783,129 @@ namespace SahayataNidhi.Controllers.Officer
             return Json(new { data, columns, totalrecords = applications.Count() });
         }
 
+
+        public class AgeWiseReportDto
+        {
+            public int Age { get; set; }
+            public int CountOfApplicants { get; set; }
+        }
+
+        public class PensionTypeWiseReportDto
+        {
+            public int Age { get; set; }
+            public string? PensionType { get; set; }
+            public int CountOfApplicants { get; set; }
+        }
+
+        public class GenderWiseReportDto
+        {
+            public string? Gender { get; set; }
+            public int CountOfApplicants { get; set; }
+        }
+
         [HttpGet]
-        public IActionResult GetApplicationsForReports(int AccessCode, int ServiceId, string? StatusType = null, int pageIndex = 0, int pageSize = 10)
+        public IActionResult GetApplicationsForReports(
+     int AccessCode,
+     int ServiceId,
+     string? StatusType = null,
+     string ReportType = "TehsilWise",
+     string? DataType = null,
+     DateTime? StartDate = null,
+     DateTime? EndDate = null,
+     int pageIndex = 0,
+     int pageSize = 10)
         {
             try
             {
                 var officer = GetOfficerDetails();
-                // Validate input parameters
-                if (pageIndex < 0 || pageSize <= 0)
+                if (officer == null)
+                    return BadRequest(new { error = "Officer details not found" });
+
+                var accessCodeParam = new SqlParameter("@AccessCode", AccessCode);
+                var serviceIdParam = new SqlParameter("@ServiceId", ServiceId);
+                var accessLevelParam = new SqlParameter("@AccessLevel", officer.AccessLevel == "Tehsil" ? "Tehsil" : "District");
+                var dataTypeParam = new SqlParameter("@DataType", (object?)DataType ?? "new");
+                var applicationStatusParam = new SqlParameter("@ApplicationStatus", (object?)StatusType ?? "total");
+                var startDateParam = new SqlParameter("@StartDate", (object?)StartDate ?? DBNull.Value);
+                var endDateParam = new SqlParameter("@EndDate", (object?)EndDate ?? DBNull.Value);
+
+                List<dynamic> data;
+                List<dynamic> columns;
+                int totalRecords;
+
+                switch (ReportType)
                 {
-                    _logger.LogWarning($"Invalid pagination parameters: pageIndex={pageIndex}, pageSize={pageSize}");
-                    return BadRequest(new { error = "Invalid pageIndex or pageSize" });
-                }
+                    case "AgeWise":
+                        var ageData = dbcontext.Database
+                            .SqlQueryRaw<AgeWiseReportDto>(
+                                "EXEC GetAgeCountsFiltered @ServiceId, @AccessLevel, @AccessCode, @ApplicationStatus, @DataType, @StartDate, @EndDate",
+                                serviceIdParam, accessLevelParam, accessCodeParam, applicationStatusParam, dataTypeParam, startDateParam, endDateParam)
+                            .ToList();
 
-                // Log officer details for debugging
-                var officerDetails = GetOfficerDetails();
-                _logger.LogInformation($"Officer Role: {officerDetails?.Role}, AccessLevel: {officerDetails?.AccessLevel}");
-
-                // Define SQL parameters for the stored procedure
-                var accessCode = new SqlParameter("@AccessCode", AccessCode);
-                var serviceId = new SqlParameter("@ServiceId", ServiceId);
-                var accessLevel = new SqlParameter("@AccessLevel", officer.AccessLevel == "Tehsil" ? "Tehsil" : "District");
-
-                // Execute the stored procedure
-                var response = dbcontext.Database
-                    .SqlQueryRaw<SummaryReports>("EXEC GetApplicationsForReport @AccessCode, @ServiceId, @AccessLevel", accessCode, serviceId, accessLevel)
-                    .ToList();
-
-                _logger.LogInformation($"Fetched {response.Count} records for AccessCode: {AccessCode}, ServiceId: {ServiceId}, Response: {JsonConvert.SerializeObject(response)}");
-
-                // Handle empty result set
-                if (!response.Any())
+                        totalRecords = ageData.Count;
+                        data = ageData.Skip(pageIndex * pageSize).Take(pageSize).ToList<dynamic>();
+                        columns = new List<dynamic>
                 {
-                    _logger.LogWarning($"No data returned for AccessCode: {AccessCode}, ServiceId: {ServiceId}");
-                }
+                    new { accessorKey = "age", header = "Age" },
+                    new { accessorKey = "countOfApplicants", header = "Ben. Count" }
+                };
+                        break;
 
-                // Sorting by TehsilName (optional, as stored procedure already orders by TehsilName)
-                var sortedResponse = response.OrderBy(a => a.TehsilName).ToList();
+                    case "PensionTypeWise":
+                        var pensionData = dbcontext.Database
+                            .SqlQueryRaw<PensionTypeWiseReportDto>(
+                                "EXEC GetAgeAndPensionCounts @ServiceId, @AccessLevel, @AccessCode, @ApplicationStatus, @DataType, @StartDate, @EndDate",
+                                serviceIdParam, accessLevelParam, accessCodeParam, applicationStatusParam, dataTypeParam, startDateParam, endDateParam)
+                            .ToList();
 
-                // Pagination
-                var totalRecords = sortedResponse.Count;
-                var pagedResponse = sortedResponse
-                    .Skip(pageIndex * pageSize)
-                    .Take(pageSize)
-                    .ToList();
+                        totalRecords = pensionData.Count;
+                        data = pensionData.Skip(pageIndex * pageSize).Take(pageSize).ToList<dynamic>();
+                        columns = new List<dynamic>
+                {
+                    new { accessorKey = "age", header = "Age" },
+                    new { accessorKey = "pensionType", header = "Pension Type" },
+                    new { accessorKey = "countOfApplicants", header = "Ben. Count" }
+                };
+                        break;
 
-                // Define columns for the frontend
-                List<dynamic> columns = new()
+                    case "GenderWise":
+                        var genderData = dbcontext.Database
+                            .SqlQueryRaw<GenderWiseReportDto>(
+                                "EXEC GetGenderCounts @ServiceId, @AccessLevel, @AccessCode, @ApplicationStatus, @DataType",
+                                serviceIdParam, accessLevelParam, accessCodeParam, applicationStatusParam, dataTypeParam)
+                            .ToList();
+
+                        totalRecords = genderData.Count;
+                        data = genderData.Skip(pageIndex * pageSize).Take(pageSize).ToList<dynamic>();
+                        columns = new List<dynamic>
+                {
+                    new { accessorKey = "gender", header = "Gender" },
+                    new { accessorKey = "countOfApplicants", header = "Ben. Count" }
+                };
+                        break;
+
+                    case "TehsilWise":
+                    default:
+                        var tehsilData = dbcontext.Database
+                            .SqlQueryRaw<SummaryReports>(
+                                "EXEC GetApplicationsForReport @AccessCode, @ServiceId, @AccessLevel",
+                                accessCodeParam, serviceIdParam, accessLevelParam)
+                            .ToList();
+
+                        totalRecords = tehsilData.Count;
+                        data = tehsilData.Skip(pageIndex * pageSize).Take(pageSize).ToList<dynamic>();
+                        columns = new List<dynamic>
                 {
                     new { accessorKey = "tehsilName", header = "Tehsil Name" },
                     new { accessorKey = "totalApplicationsSubmitted", header = "Total Applications Received" },
                     new { accessorKey = "totalApplicationsPending", header = "Total Applications Pending" },
-                    new { accessorKey = "totalApplicationsReturnToEdit", header = "Total Applications Pending With Citizens" },
-                    new { accessorKey = "totalApplicationsSanctioned", header = "Total Applications Sanctioned" },
-                    new { accessorKey = "totalApplicationsRejected", header = "Total Applications Rejected" },
-
+                    new { accessorKey = "totalApplicationsReturnToEdit", header = "Pending With Citizens" },
+                    new { accessorKey = "totalApplicationsSanctioned", header = "Total Sanctioned" },
+                    new { accessorKey = "totalApplicationsRejected", header = "Total Rejected" },
                 };
+                        break;
+                }
 
-                // Map the paged response to dynamic data for the frontend
-                List<dynamic> data = pagedResponse.Select(item => new
-                {
-                    tehsilName = item.TehsilName,
-                    totalApplicationsSubmitted = item.TotalApplicationsSubmitted,
-                    totalApplicationsPending = item.TotalApplicationsPending,
-                    totalApplicationsReturnToEdit = item.TotalApplicationsReturnToEdit,
-                    totalApplicationsSanctioned = item.TotalApplicationsSanctioned,
-                    totalApplicationsRejected = item.TotalApplicationsRejected,
-
-                }).Cast<dynamic>().ToList();
-
-                // Return JSON response
                 return Json(new
                 {
                     data,
@@ -792,10 +915,13 @@ namespace SahayataNidhi.Controllers.Officer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error executing GetApplicationsForReport for AccessCode: {AccessCode}, ServiceId: {ServiceId}");
+                _logger.LogError(ex, $"Error executing report for AccessCode: {AccessCode}, ServiceId: {ServiceId}");
                 return StatusCode(500, new { error = "An error occurred while fetching the report" });
             }
         }
+
+
+
 
         [HttpGet]
         public IActionResult GetUserDetails(string applicationId)
@@ -2598,13 +2724,13 @@ namespace SahayataNidhi.Controllers.Officer
             }
 
             var parameters = new List<SqlParameter>
-    {
-        new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
-        new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
-        new("@AccessCode", SqlDbType.Int) { Value = accessCode ?? DBNull.Value },
-        new("@DivisionCode", SqlDbType.Int) { Value = divisionCode ?? DBNull.Value },
-        new("@AadhaarFilter", SqlDbType.VarChar) { Value = DBNull.Value } // null by default
-    };
+            {
+                new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
+                new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
+                new("@AccessCode", SqlDbType.Int) { Value = accessCode ?? DBNull.Value },
+                new("@DivisionCode", SqlDbType.Int) { Value = divisionCode ?? DBNull.Value },
+                new("@AadhaarFilter", SqlDbType.VarChar) { Value = DBNull.Value } // null by default
+            };
 
             // Fetch Aadhaar validation counts
             var counts = dbcontext.Database
@@ -2617,38 +2743,38 @@ namespace SahayataNidhi.Controllers.Officer
 
             // Define application status data
             var dataList = new List<dynamic>
-    {
-        new
-        {
-            title = "Total Sanctioned",
-            value = counts.TotalSanctioned.ToString("N0"),
-            category = "application",
-            color = "primary",
-            bgColor = "#f8faff",
-            gradientStart = "#4f46e5",
-            gradientEnd = "#3b82f6",
-        },
-        new
-        {
-            title = "Aadhaar Validated",
-            value = counts.AadhaarValidated.ToString("N0"),
-            category = "application",
-            color = "success",
-            bgColor = "#f0fdf4",
-            gradientStart = "#059669",
-            gradientEnd = "#10b981",
-        },
-        new
-        {
-            title = "Aadhaar Not Validated",
-            value = counts.AadhaarNotValidated.ToString("N0"),
-            category = "application",
-            color = "warning",
-            bgColor = "#fffbeb",
-            gradientStart = "#f59e0b",
-            gradientEnd = "#fbbf24",
-        },
-    };
+            {
+                new
+                {
+                    title = "Total Sanctioned",
+                    value = counts.TotalSanctioned.ToString("N0"),
+                    category = "application",
+                    color = "#fff",
+                    bgColor = "#4f46e5",
+                    gradientStart = "#4f46e5",
+                    gradientEnd = "#3b82f6",
+                },
+                new
+                {
+                    title = "Aadhaar Validated",
+                    value = counts.AadhaarValidated.ToString("N0"),
+                    category = "application",
+                    color = "#fff",
+                    bgColor = "#059669",
+                    gradientStart = "#059669",
+                    gradientEnd = "#10b981",
+                },
+                new
+                {
+                    title = "Aadhaar Not Validated",
+                    value = counts.AadhaarNotValidated.ToString("N0"),
+                    category = "application",
+                    color = "#fff",
+                    bgColor = "#f59e0b",
+                    gradientStart = "#f59e0b",
+                    gradientEnd = "#fbbf24",
+                },
+            };
 
             // Prepare officer access info for frontend
             var officerAccess = new
@@ -2661,6 +2787,176 @@ namespace SahayataNidhi.Controllers.Officer
             };
 
             return Json(new { dataList, officerAccess });
+        }
+
+        public IActionResult GetAadhaarValidationData(string serviceId, string type, int pageIndex = 0, int pageSize = 10, string state = "0", string? division = null, string? district = null, string? tehsil = null)
+        {
+            // Determine AccessLevel and AccessCode based on filters
+            string accessLevel;
+            object accessCode = DBNull.Value;
+            object divisionCode = DBNull.Value;
+
+            if (!string.IsNullOrWhiteSpace(tehsil))
+            {
+                accessLevel = "Tehsil";
+                accessCode = int.TryParse(tehsil, out var tehsilVal) ? tehsilVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(district))
+            {
+
+                accessLevel = "District";
+                accessCode = int.TryParse(district, out var districtVal) ? districtVal : DBNull.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(division))
+            {
+                accessLevel = "Division";
+                accessCode = int.TryParse(division, out var divisionVal) ? divisionVal : DBNull.Value;
+                divisionCode = accessCode;
+            }
+            else
+            {
+                accessLevel = "State";
+                accessCode = state == "0" ? 0 : DBNull.Value; // Assuming "0" represents Jammu & Kashmir
+            }
+
+            // Validate AccessLevel and AccessCode
+            if ((accessLevel == "Tehsil" || accessLevel == "District") && accessCode == DBNull.Value)
+            {
+                return BadRequest("Invalid AccessCode for the specified AccessLevel.");
+            }
+            if (accessLevel == "Division" && divisionCode == DBNull.Value)
+            {
+                return BadRequest("Invalid DivisionCode for Division AccessLevel.");
+            }
+
+            // Parameters for GetMainApplicationStatusData
+            var parameters = new List<SqlParameter>
+            {
+                new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
+                new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
+                new("@AccessCode", SqlDbType.Int) { Value = accessCode },
+                new("@DivisionCode", SqlDbType.Int) { Value = divisionCode },
+                new("@AadhaarFilter", SqlDbType.VarChar) { Value = (object)(type == "sanctioned" ? null : type)! ?? DBNull.Value },
+                new("@PageIndex", SqlDbType.Int) { Value = pageIndex },
+                new("@PageSize", SqlDbType.Int) { Value = pageSize },
+                new("@IsPaginated", SqlDbType.Bit) { Value = 1 },
+                new("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output }
+            };
+
+            // Fetch application data
+            var response = dbcontext.CitizenApplications
+                .FromSqlRaw(
+                    "EXEC GetAadhaarValidationData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @AadhaarFilter, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
+                    parameters.ToArray()
+                )
+                .ToList();
+
+            int totalRecords = (int)parameters.Find(p => p.ParameterName == "@TotalRecords")!.Value;
+
+            // Fetch service details for serviceName
+            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == int.Parse(serviceId));
+            if (service == null)
+            {
+                return NotFound();
+            }
+
+            // Columns for the table
+            List<dynamic> columns =
+            [
+                new { accessorKey = "sno", header = "S.No" },
+                new { accessorKey = "referenceNumber", header = "Reference Number" },
+                new { accessorKey = "applicantName", header = "Applicant Name" },
+                new { accessorKey = "serviceName", header = "Service Name" },
+                new { accessorKey = "status", header = "Application Status" },
+                new { accessorKey = "submissionDate", header = "Submission Date" }
+            ];
+
+            List<dynamic> data = [];
+
+            // Start numbering based on pagination
+            int snoCounter = (pageIndex * pageSize) + 1;
+
+            foreach (var details in response)
+            {
+                var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails!);
+                string serviceName = service.ServiceName!;
+                string status = details.Status!; // Use WorkflowStatus from stored procedure
+
+                var applicationObject = new
+                {
+                    sno = snoCounter++,
+                    referenceNumber = details.ReferenceNumber,
+                    applicantName = GetFieldValue("ApplicantName", formDetails),
+                    submissionDate = details.CreatedAt,
+                    serviceName,
+                    status,
+                    serviceId = details.ServiceId
+                };
+
+                data.Add(applicationObject);
+            }
+
+            return Json(new
+            {
+                data,
+                columns,
+                totalRecords
+            });
+        }
+
+        public IActionResult SearchApplication(string ServiceId, string ReferenceNumber)
+        {
+            var officer = GetOfficerDetails();
+            int serviceId = Convert.ToInt32(ServiceId);
+
+            var application = dbcontext.CitizenApplications
+                .FirstOrDefault(ca => ca.ServiceId == serviceId && ca.ReferenceNumber == ReferenceNumber);
+
+            if (application == null)
+            {
+                return Json(new { status = false, message = "Application not found" });
+            }
+
+            var formDetails = JObject.Parse(application.FormDetails ?? "{}");
+            var formDetailsToken = JToken.Parse(application.FormDetails!);
+            formDetailsToken = ReorderFormDetails(formDetailsToken, ReferenceNumber, application.Status == "Sanctioned");
+            ReplaceCodeFieldsWithNames(formDetailsToken);
+
+            // Extract Tehsil & District only once
+            int? tehsilId = Convert.ToInt32(GetFieldValue("Tehsil", formDetails));
+            int? districtId = Convert.ToInt32(GetFieldValue("District", formDetails));
+
+            // Preload district & tehsil objects only if needed
+            var district = districtId.HasValue
+                ? dbcontext.Districts.FirstOrDefault(d => d.DistrictId == districtId.Value)
+                : null;
+
+            var tehsil = tehsilId.HasValue
+                ? dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == tehsilId.Value)
+                : null;
+
+            // Compute accessCode in one place
+            int accessCode = officer.AccessLevel switch
+            {
+                "Tehsil" => tehsilId ?? 0,
+                "District" => districtId ?? 0,
+                "Division" => district?.Division ?? 0,
+                _ => 0
+            };
+
+            // Officer has access
+            if (officer.AccessCode == accessCode)
+            {
+                return Json(new { status = true, isAccessible = true, formDetailsToken });
+            }
+
+            // Officer does not have access
+            return Json(new
+            {
+                status = true,
+                isAccessible = false,
+                message = $"You don't have access of this application. This application belongs to District: {district!.DistrictName}, Tehsil: {tehsil!.TehsilName}",
+            });
         }
     }
 }

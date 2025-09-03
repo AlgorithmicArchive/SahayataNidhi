@@ -1,10 +1,7 @@
-import { Box, TextField, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import React, { useEffect, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import CustomCard from "../../components/CustomCard";
-import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
-import AlternateEmailIcon from "@mui/icons-material/AlternateEmail";
-import PlaceIcon from "@mui/icons-material/Place";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -17,61 +14,43 @@ export default function HomeScreen() {
   const card1Ref = useRef();
   const card2Ref = useRef();
   const card3Ref = useRef();
-  const section3Ref = useRef();
 
   useEffect(() => {
     gsap.fromTo(
       section1Ref.current,
-      { opacity: 1 }, // initial state: fully visible, at its original position
+      { opacity: 1 },
       {
-        opacity: 0, // fade out
+        opacity: 0,
         duration: 1,
         scrollTrigger: {
           trigger: section1Ref.current,
-          start: "bottom 90%", // trigger when the section starts entering the viewport
-          scrub: true, // scrub ensures the animation stays in sync with the scroll position
-          toggleActions: "restart none none none", // restart animation when re-triggered
+          start: "bottom 90%",
+          scrub: true,
+          toggleActions: "restart none none none",
         },
-      }
+      },
     );
 
     gsap.fromTo(
-      [card1Ref.current, card2Ref.current, card3Ref.current], // Array of elements to animate
+      [card1Ref.current, card2Ref.current, card3Ref.current],
       {
-        x: -200, // Initial position to the left
-        opacity: 0, // Initial opacity is 0
+        x: -200,
+        opacity: 0,
       },
       {
-        x: 0, // Final position (center)
-        opacity: 1, // Final opacity (fully visible)
+        x: 0,
+        opacity: 1,
         duration: 1,
         delay: 0.2,
-        stagger: 0.2, // Stagger animation for each card
-        ease: "power2.out", // Ease function for smooth animation
+        stagger: 0.2,
+        ease: "power2.out",
         scrollTrigger: {
-          trigger: card1Ref.current, // Trigger animation when the first card is in view
-          start: "top 80%", // Start when the top of the trigger is 80% from the top of the viewport
-          end: "bottom 20%", // End when the bottom of the trigger is 20% from the top of the viewport
-          toggleActions: "play reverse play reverse", // Play on enter, reverse on leave (both directions)
+          trigger: card1Ref.current,
+          start: "top 80%",
+          end: "bottom 20%",
+          toggleActions: "play reverse play reverse",
         },
-      }
-    );
-
-    gsap.fromTo(
-      section3Ref.current,
-      { x: -200, opacity: 0 }, // Initial state: invisible, positioned to the left
-      {
-        x: 0, // Move to its original position
-        opacity: 1, // Fade in
-        duration: 1,
-        stagger: 0.2, // Stagger each element (if needed)
-        ease: "power2.out", // Animation easing
-        scrollTrigger: {
-          trigger: section3Ref.current,
-          start: "top 50%", // Animation starts when the section comes into view
-          toggleActions: "restart none reverse none", // Reset animation on scroll back up
-        },
-      }
+      },
     );
 
     return () => {
@@ -80,40 +59,39 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%", overflowX: "hidden" }}>
       {/* Section 1 */}
       <Box
         ref={section1Ref}
         sx={{
-          height: { xs: "100vh", lg: "70vh" },
+          minHeight: { xs: "100vh", sm: "80vh", md: "70vh" },
           width: "100%",
+          display: "flex",
+          alignItems: "center",
+          py: { xs: 4, sm: 6, md: 8 },
         }}
       >
-        <Container
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100%",
-            width: "100%",
-          }}
-        >
-          <Row style={{ width: "100%" }}>
-            <Col xs={12} lg={6}>
+        <Container>
+          <Row style={{ width: "100%", alignItems: "center" }}>
+            <Col xs={12} md={6}>
               <Box
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-evenly",
-                  gap: 5,
+                  gap: { xs: 3, sm: 4, md: 5 },
+                  px: { xs: 2, sm: 3 },
                 }}
               >
                 <Typography
                   sx={{
-                    fontWeight: "Bold",
-                    wordBreak: "break-word", // ensures words break properly
-                    maxWidth: "500px", // set your desired width
-                    fontSize: { xs: "46px", lg: "60px" },
+                    fontWeight: "bold",
+                    wordBreak: "break-word",
+                    maxWidth: { xs: "100%", md: "500px" },
+                    fontSize: {
+                      xs: "clamp(2rem, 8vw, 2.5rem)",
+                      sm: "clamp(2.5rem, 7vw, 3rem)",
+                      md: "clamp(3rem, 6vw, 3.75rem)",
+                    },
                     lineHeight: 1.2,
                   }}
                 >
@@ -124,8 +102,13 @@ export default function HomeScreen() {
                   variant="subtitle1"
                   sx={{
                     color: "text.secondary",
-                    maxWidth: "500px", // match width if you want consistent layout
+                    maxWidth: { xs: "100%", md: "500px" },
                     wordBreak: "break-word",
+                    fontSize: {
+                      xs: "clamp(0.9rem, 3vw, 1rem)",
+                      sm: "clamp(1rem, 2.5vw, 1.1rem)",
+                      md: "clamp(1.1rem, 2vw, 1.2rem)",
+                    },
                   }}
                 >
                   Submit your application for welfare schemes through a
@@ -139,10 +122,18 @@ export default function HomeScreen() {
                   sx={{
                     border: "none",
                     backgroundColor: "primary.main",
-                    padding: 1,
-                    width: "50%",
+                    padding: { xs: "0.5rem 1rem", sm: "0.75rem 1.5rem" },
+                    width: { xs: "100%", sm: "50%", md: "40%" },
                     color: "#FDF6F0",
                     fontWeight: "bold",
+                    borderRadius: 1,
+                    fontSize: {
+                      xs: "clamp(0.9rem, 3vw, 1rem)",
+                      sm: "clamp(1rem, 2.5vw, 1.1rem)",
+                    },
+                    "&:hover": {
+                      backgroundColor: "primary.dark",
+                    },
                   }}
                   onClick={() => navigate("/login")}
                 >
@@ -150,21 +141,26 @@ export default function HomeScreen() {
                 </Box>
               </Box>
             </Col>
-            <Col xs={12} lg={6}>
+            <Col xs={12} md={6}>
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: { xs: "center", lg: "end" },
-                  marginTop: { xs: 2, lg: 0 },
+                  justifyContent: { xs: "center", md: "end" },
+                  mt: { xs: 4, sm: 0 },
                 }}
               >
                 <Box
                   component="img"
                   src="/assets/images/socialwelfare.png"
                   sx={{
-                    width: { xs: 200, lg: 500 },
-                    backgroundColor: "background.default",
+                    width: {
+                      xs: "min(80vw, 200px)",
+                      sm: "min(60vw, 300px)",
+                      md: "min(50vw, 500px)",
+                    },
+                    maxWidth: "100%",
                     borderRadius: 5,
+                    objectFit: "contain",
                   }}
                 />
               </Box>
@@ -175,39 +171,33 @@ export default function HomeScreen() {
       {/* Section 2 */}
       <Box
         sx={{
-          height: { xs: "100vh", lg: "90vh" },
+          minHeight: { xs: "auto", sm: "80vh", md: "90vh" },
           width: "100%",
           backgroundColor: "background.default",
+          py: { xs: 4, sm: 6, md: 8 },
         }}
       >
-        <Container
-          style={{
-            height: "100%",
-          }}
-        >
+        <Container>
           <Box
             sx={{
               display: "flex",
               flexDirection: "column",
-              gap: 10,
-              padding: 10,
+              gap: { xs: 4, sm: 6, md: 8 },
+              px: { xs: 2, sm: 3 },
             }}
           >
             <Row>
-              <Col
-                xs={12}
-                lg={12}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                }}
-              >
+              <Col xs={12}>
                 <Typography
                   sx={{
                     textAlign: "center",
-                    fontSize: { xs: "24px", lg: "96px" },
-                    lineHeight: 1.6,
+                    fontSize: {
+                      xs: "clamp(1.5rem, 6vw, 2rem)",
+                      sm: "clamp(2rem, 8vw, 3rem)",
+                      md: "clamp(3rem, 10vw, 6rem)",
+                    },
+                    lineHeight: 1.4,
+                    fontWeight: "bold",
                   }}
                 >
                   Services Provided
@@ -217,8 +207,13 @@ export default function HomeScreen() {
                     textAlign: "center",
                     color: "text.secondary",
                     wordBreak: "break-word",
-                    padding: { xs: 0, lg: 5 },
-                    fontSize: { xs: "12px", lg: "16px" },
+                    px: { xs: 0, sm: 3, md: 5 },
+                    fontSize: {
+                      xs: "clamp(0.8rem, 2.5vw, 0.9rem)",
+                      sm: "clamp(0.9rem, 2vw, 1rem)",
+                      md: "clamp(1rem, 1.5vw, 1.1rem)",
+                    },
+                    mt: 2,
                   }}
                 >
                   Our platform offers a wide array of government-backed
@@ -230,8 +225,8 @@ export default function HomeScreen() {
                 </Typography>
               </Col>
             </Row>
-            <Row className="g-5 g-lg-2">
-              <Col xs={12} lg={4}>
+            <Row className="g-4">
+              <Col xs={12} sm={6} md={4}>
                 <div ref={card1Ref}>
                   <CustomCard
                     heading={"Ladli Beti"}
@@ -241,7 +236,7 @@ export default function HomeScreen() {
                   />
                 </div>
               </Col>
-              <Col xs={12} lg={4}>
+              <Col xs={12} sm={6} md={4}>
                 <div ref={card2Ref}>
                   <CustomCard
                     heading={"Marriage Assistance"}
@@ -251,7 +246,7 @@ export default function HomeScreen() {
                   />
                 </div>
               </Col>
-              <Col xs={12} lg={4}>
+              <Col xs={12} sm={6} md={4}>
                 <div ref={card3Ref}>
                   <CustomCard
                     heading={"JKISSS Pension"}
@@ -265,155 +260,6 @@ export default function HomeScreen() {
           </Box>
         </Container>
       </Box>
-      {/* Section 3 */}
-      {/* <Box
-        ref={section3Ref}
-        sx={{
-          height: { xs: "100vh", lg: "90vh" },
-          width: "100%",
-        }}
-      >
-        <Container
-          style={{
-            height: "100%",
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-            }}
-          >
-            <Row>
-              <Col xs={12} lg={6}>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <TextField
-                    name="FullName"
-                    placeholder="Full Name"
-                    label="Full Name"
-                    sx={{ width: "80%", borderColor: "text.primary" }}
-                  />
-                  <TextField
-                    name="Email"
-                    placeholder="Email"
-                    label="Email"
-                    sx={{ width: "80%", borderColor: "text.primary" }}
-                  />
-                  <TextField
-                    name="Subject"
-                    placeholder="Subject"
-                    label="Subject"
-                    sx={{ width: "80%", borderColor: "text.primary" }}
-                  />
-                  <TextField
-                    name="Message"
-                    placeholder="Message"
-                    label="Message"
-                    multiline
-                    rows={5}
-                    sx={{ width: "80%", borderColor: "text.primary" }}
-                  />
-                  <Box
-                    component="button"
-                    sx={{
-                      border: "none",
-                      backgroundColor: "primary.main",
-                      padding: 1,
-                      width: "50%",
-                      color: "#FDF6F0",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Send Message
-                  </Box>
-                </Box>
-              </Col>
-              <Col xs={12} lg={6}>
-                <Typography
-                  sx={{
-                    color: "text.primary",
-                    fontSize: { xs: "24px", lg: "96px" },
-                    marginTop: { xs: 10, lg: 0 },
-                  }}
-                >
-                  Contact Us
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "text.secondary",
-                    fontSize: { xs: "12px", lg: "16px" },
-                  }}
-                >
-                  We are here to assist you with any queries regarding welfare
-                  schemes, application processes, or general information.
-                  Whether you're looking to apply, follow up on an existing
-                  request, or simply learn more about our services, feel free to
-                  reach out. Our team is committed to providing prompt,
-                  transparent, and supportive responses to ensure every citizen
-                  receives the help they need. Your questions matter to us, and
-                  we're just a message or call away.
-                </Typography>
-                <Row>
-                  <Col xs={6} lg={6}>
-                    <Box sx={{ display: "flex", marginTop: 5 }}>
-                      <LocalPhoneIcon sx={{ fontSize: { xs: 10, lg: 50 } }} />
-                      <Box sx={{ display: "flex", flexDirection: "column" }}>
-                        <Typography>Call Us</Typography>
-                        <Typography
-                          sx={{
-                            color: "text.secondary",
-                            fontSize: { xs: "12px", lg: "16px" },
-                          }}
-                        >
-                          91XXXXX9238
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Col>
-                  <Col xs={6} lg={6}>
-                    <Box sx={{ display: "flex", marginTop: 5 }}>
-                      <AlternateEmailIcon
-                        sx={{ fontSize: { xs: 10, lg: 50 } }}
-                      />
-                      <Box sx={{ display: "flex", flexDirection: "column" }}>
-                        <Typography>Email Us</Typography>
-                        <Typography
-                          sx={{
-                            color: "text.secondary",
-                            fontSize: { xs: "12px", lg: "16px" },
-                          }}
-                        >
-                          example@gmail.com
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col xs={6} lg={6}>
-                    <Box sx={{ display: "flex", marginTop: 5 }}>
-                      <PlaceIcon sx={{ fontSize: { xs: 10, lg: 50 } }} />
-                      <Box sx={{ display: "flex", flexDirection: "column" }}>
-                        <Typography>Address</Typography>
-                        <Typography
-                          sx={{
-                            color: "text.secondary",
-                            fontSize: { xs: "12px", lg: "16px" },
-                          }}
-                        >
-                          22,B.Baker Street
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Col>
-                </Row>
-              </Col>
-            </Row>
-          </Box>
-        </Container>
-      </Box> */}
     </Box>
   );
 }

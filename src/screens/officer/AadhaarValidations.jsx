@@ -75,14 +75,14 @@ const GradientCard = styled(Card)(
 );
 
 const IconAvatar = styled(Avatar)(({ theme, gradientstart, gradientend }) => ({
-  background: `linear-gradient(135deg, ${gradientstart} 0%, ${gradientend} 100%)`,
+  background: `linear-gradient(135deg, #fff 0%, #fff 100%)`,
   width: 48,
   height: 48,
   boxShadow: `0 4px 12px ${alpha(gradientstart, 0.25)}`,
   animation: `${float} 6s ease-in-out infinite`,
   "& .MuiSvgIcon-root": {
-    fontSize: "1.3rem",
-    color: "#ffffff",
+    fontSize: "1.5rem",
+    color: gradientend,
   },
 }));
 
@@ -118,48 +118,47 @@ const defaultCardData = [
     value: "0",
     category: "application",
     color: "primary",
-    bgColor: "#f8faff",
-    gradientStart: "#4f46e5",
-    gradientEnd: "#3b82f6",
+    bgColor: "#F5F7FF", // Softer blue-gray for a clean background
+    gradientStart: "#2563EB", // Vibrant blue (Tailwind blue-600)
+    gradientEnd: "#3B82F6", // Lighter blue (Tailwind blue-500)
   },
   {
     title: "Sanctioned",
     value: "0",
     category: "application",
     color: "success",
-    bgColor: "#f0fdf4",
-    gradientStart: "#059669",
-    gradientEnd: "#10b981",
+    bgColor: "#ECFEF5", // Light green background for positive status
+    gradientStart: "#16A34A", // Deep green (Tailwind green-600)
+    gradientEnd: "#22C55E", // Bright green (Tailwind green-500)
   },
   {
     title: "Under Process",
     value: "0",
     category: "application",
     color: "warning",
-    bgColor: "#fffbeb",
-    gradientStart: "#fbbf24",
-    gradientEnd: "#fbbf24",
+    bgColor: "#FEFCE8", // Soft yellow for in-progress status
+    gradientStart: "#D97706", // Warm amber (Tailwind amber-600)
+    gradientEnd: "#F59E0B", // Bright amber (Tailwind amber-500)
   },
   {
     title: "Pending with Citizen",
     value: "0",
     category: "application",
     color: "info",
-    bgColor: "#f0f9ff",
-    gradientStart: "#0ea5e9",
-    gradientEnd: "#38bdf8",
+    bgColor: "#EFF6FF", // Light blue for neutral status
+    gradientStart: "#0284C7", // Deep sky blue (Tailwind sky-600)
+    gradientEnd: "#0EA5E9", // Bright sky blue (Tailwind sky-500)
   },
   {
     title: "Rejected",
     value: "0",
     category: "application",
     color: "error",
-    bgColor: "#fef2f2",
-    gradientStart: "#ef4444",
-    gradientEnd: "#f87171",
+    bgColor: "#FEF2F2", // Light red for negative status
+    gradientStart: "#DC2626", // Deep red (Tailwind red-600)
+    gradientEnd: "#EF4444", // Bright red (Tailwind red-500)
   },
 ];
-
 const defaultCategoryData = [
   { name: "Old Age Pension", value: 0, color: "#4f46e5" },
   { name: "Women In Distress", value: 0, color: "#059669" },
@@ -168,9 +167,9 @@ const defaultCategoryData = [
 ];
 
 const iconMap = {
-  "Applications Received": AssignmentTurnedIn,
-  Sanctioned: CheckCircle,
-  "Under Process": HourglassEmpty,
+  "Total Sanctioned": AssignmentTurnedIn,
+  "Aadhaar Validated": CheckCircle,
+  "Aadhaar Not Validated": HourglassEmpty,
   "Pending with Citizen": Group,
   Rejected: Cancel,
 };
@@ -495,7 +494,7 @@ const ModernStatCard = ({ card, onCardClick }) => {
           >
             <Typography
               variant="body2"
-              color="text.secondary"
+              color={card.color}
               fontWeight="medium"
               sx={{
                 fontSize: "1.3rem",
@@ -505,6 +504,7 @@ const ModernStatCard = ({ card, onCardClick }) => {
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                fontWeight: "bold",
               }}
               title={card.title}
             >
@@ -513,11 +513,8 @@ const ModernStatCard = ({ card, onCardClick }) => {
             <Typography
               variant="h4"
               fontWeight="bold"
+              color={card.color}
               sx={{
-                background: `linear-gradient(135deg, ${card.gradientStart}, ${card.gradientEnd})`,
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
                 fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
                 wordBreak: "break-all",
               }}
@@ -837,43 +834,6 @@ export default function OfficerAadhaarValidations() {
                       chartTitle="Application Status"
                     />
                   </Grid>
-                  {/* <Grid item xs={12} md={appFilters.tehsil ? 6 : 4}>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={2}
-                    mb={2}
-                  >
-                    <PieChart sx={{ color: "#059669" }} />
-                    <Typography variant="subtitle1" fontWeight="medium">
-                      Category-wise Sanctioned Applications ({appFilters.wise}
-                      -{appFilters.wiseName})
-                    </Typography>
-                  </Stack>
-                  <DonutChart
-                    data={categoryData}
-                    chartTitle="Category-wise Sanctioned Applications"
-                  />
-                </Grid>
-                {!appFilters.tehsil && (
-                  <Grid item xs={12} md={4}>
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      spacing={2}
-                      mb={2}
-                    >
-                      <PieChart sx={{ color: "#0ea5e9" }} />
-                      <Typography variant="subtitle1" fontWeight="medium">
-                        {appDynamicTitle}
-                      </Typography>
-                    </Stack>
-                    <DonutChart
-                      data={locationData}
-                      chartTitle={appDynamicTitle}
-                    />
-                  </Grid>
-                )} */}
                 </Grid>
               </Box>
             </GlassCard>
@@ -884,7 +844,7 @@ export default function OfficerAadhaarValidations() {
                   <Divider sx={{ my: 3 }} />
                   <ServerSideTable
                     ref={tableRef}
-                    url={`/Viewer/GetAadhaarValidationData?serviceId=1&type=${encodeURIComponent(
+                    url={`/Officer/GetAadhaarValidationData?serviceId=1&type=${encodeURIComponent(
                       selectedTable.type,
                     )}`}
                     extraParams={{

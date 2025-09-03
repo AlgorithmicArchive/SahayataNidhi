@@ -201,7 +201,10 @@ export default function UserHome() {
         </Box>
         <Divider sx={{ my: 2, borderColor: "#e5e7eb" }} />
         <StatContainer>
-          <StatBox>
+          <StatBox
+            sx={{ cursor: "pointer" }}
+            onClick={() => navigate("/user/initiated")}
+          >
             <Typography
               variant="caption"
               sx={{ fontWeight: 600, color: "#8b5cf6" }}
@@ -212,7 +215,10 @@ export default function UserHome() {
               {userDetails?.initiated ?? "N/A"}
             </Typography>
           </StatBox>
-          <StatBox>
+          <StatBox
+            sx={{ cursor: "pointer" }}
+            onClick={() => navigate("/user/incomplete")}
+          >
             <Typography
               variant="caption"
               sx={{ fontWeight: 600, color: "#ec4899" }}

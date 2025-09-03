@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { Modal, Box, Typography, TextField, Button } from "@mui/material";
 
-export default function OtpModal({ open, onClose, onSubmit }) {
+export default function OtpModal({
+  open,
+  onClose,
+  onSubmit,
+  registeredAt = "email",
+}) {
   const [otp, setOtp] = useState("");
 
   const handleSubmit = (e) => {
@@ -42,16 +47,20 @@ export default function OtpModal({ open, onClose, onSubmit }) {
           Enter OTP
         </Typography>
         <Typography id="otp-modal-description" sx={{ mt: 1 }}>
-          Please enter the OTP sent to your registered email.
+          Please enter the OTP sent to your registered {registeredAt}.
         </Typography>
-        <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ width: "100%" }}
+          autoComplete="off"
+        >
           <TextField
             label="OTP"
             variant="outlined"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             sx={{ mt: 2, width: "100%" }}
-            inputProps={{ maxLength: 6 }}
+            inputProps={{ maxLength: 7 }}
             aria-label="OTP input"
           />
           <Box sx={{ display: "flex", gap: 2, mt: 2 }}>

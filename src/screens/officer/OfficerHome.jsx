@@ -214,23 +214,36 @@ export default function OfficerHome() {
 
   const statusColors = useMemo(
     () => ({
-      "Total Applications": "#009dd6",
-      Pending: "#ffd42f",
-      Forwarded: "#009dd6",
-      Returned: "#fb6330",
-      "Pending With Citizen": "#7849b8",
-      Rejected: "#ec111a",
-      Sanctioned: "#138468",
-      "Shifted To Another Location": "#f2609e",
-      "Total Corrigendum": "#009dd6",
-      "Total Correction": "#009dd6",
-      Issued: "#138468",
-      "Pension's Stopped": "#7849b8",
-      "PCP Applications": "#009dd6",
-      "PCP-UDID Expires 3 Months": "#138468",
-      "Total Withheld Applications": "#009dd6",
-      "Temporary Withheld": "#ffd42f",
-      "Permanent Withheld": "#ec111a",
+      // Summary counts
+      "Total Applications": "#374151", // medium gray
+      "Total Corrigendum": "#374151", // lighter gray
+      "Total Correction": "#374151", // lightest gray
+      "Total Withheld Applications": "#374151", // dark gray
+
+      // Pending / In-progress
+      Pending: "#f59e0b", // amber
+      "Pending With Citizen": "#a855f7", // violet
+
+      // Movements
+      Forwarded: "#0ea5e9", // cyan
+      "Shifted To Another Location": "#ec4899", // pink
+
+      // Negative outcomes
+      Returned: "#f97316", // orange
+      Rejected: "#ef4444", // red
+      "Permanent Withheld": "#b91c1c", // darker red
+
+      // Temporary holds
+      "Temporary Withheld": "#facc15", // yellow
+
+      // Positive outcomes
+      Sanctioned: "#10b981", // emerald green
+      Issued: "#059669", // darker green
+      "PCP-UDID Expires 3 Months": "#14b8a6", // teal
+
+      // PCP specific
+      "PCP Applications": "#3b82f6", // blue
+      "Pension's Stopped": "#9333ea", // deep purple
     }),
     [],
   );
@@ -1145,40 +1158,40 @@ export default function OfficerHome() {
   const barData = useMemo(() => {
     const labels = ["Total", "Pending"];
     const data = [counts.total, counts.pending];
-    const backgroundColor = ["#009dd6", "#ffd42f"]; // Total=Blue, Pending=Yellow
-    const borderColor = ["#009dd6", "#ffd42f"];
+    const backgroundColor = ["#374151", "#f59e0b"]; // Gray for Total, Amber for Pending
+    const borderColor = ["#374151", "#f59e0b"];
 
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
       data.push(counts.forwarded);
-      backgroundColor.push("#009dd6"); // Blue
-      borderColor.push("#009dd6");
+      backgroundColor.push("#0ea5e9"); // Cyan
+      borderColor.push("#0ea5e9");
     }
 
     if (officerAuthorities.canReturnToCitizen) {
       labels.push("Citizen Pending");
       data.push(counts.citizenPending);
-      backgroundColor.push("#7849b8"); // Purple
-      borderColor.push("#7849b8");
+      backgroundColor.push("#a855f7"); // Violet
+      borderColor.push("#a855f7");
     }
 
     if (officerAuthorities.canReturnToPlayer) {
       labels.push("Returned");
       data.push(counts.returnedCount);
-      backgroundColor.push("#fb6330"); // Orange
-      borderColor.push("#fb6330");
+      backgroundColor.push("#f97316"); // Orange
+      borderColor.push("#f97316");
     }
 
     labels.push("Rejected");
     data.push(counts.rejected);
-    backgroundColor.push("#ec111a"); // Red
-    borderColor.push("#ec111a");
+    backgroundColor.push("#ef4444"); // Red
+    borderColor.push("#ef4444");
 
     if (officerAuthorities.canSanction) {
       labels.push("Sanctioned");
       data.push(counts.sanctioned);
-      backgroundColor.push("#138468"); // Teal Green
-      borderColor.push("#138468");
+      backgroundColor.push("#10b981"); // Emerald Green
+      borderColor.push("#10b981");
     }
 
     return {
@@ -1198,34 +1211,34 @@ export default function OfficerHome() {
   const pieData = useMemo(() => {
     const labels = ["Pending"];
     const data = [counts.pending];
-    const backgroundColor = ["#ffd42f"]; // Yellow
+    const backgroundColor = ["#f59e0b"]; // Amber
 
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
       data.push(counts.forwarded);
-      backgroundColor.push("#009dd6"); // Blue
+      backgroundColor.push("#0ea5e9"); // Cyan
     }
 
     if (officerAuthorities.canReturnToPlayer) {
       labels.push("Returned");
       data.push(counts.returnedCount);
-      backgroundColor.push("#fb6330"); // Orange
+      backgroundColor.push("#f97316"); // Orange
     }
 
     if (officerAuthorities.canReturnToCitizen) {
       labels.push("Citizen Pending");
       data.push(counts.citizenPending);
-      backgroundColor.push("#7849b8"); // Purple
+      backgroundColor.push("#a855f7"); // Violet
     }
 
     labels.push("Rejected");
     data.push(counts.rejected);
-    backgroundColor.push("#ec111a"); // Red
+    backgroundColor.push("#ef4444"); // Red
 
     if (officerAuthorities.canSanction) {
       labels.push("Sanctioned");
       data.push(counts.sanctioned);
-      backgroundColor.push("#138468"); // Teal Green
+      backgroundColor.push("#10b981"); // Emerald Green
     }
 
     return {
@@ -1349,7 +1362,7 @@ export default function OfficerHome() {
         flexDirection: "column",
         alignItems: "center",
         p: { xs: 3, md: 5 },
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#f9fafb",
       }}
     >
       <Typography
@@ -2457,7 +2470,11 @@ export default function OfficerHome() {
                     actionFunctions={actionFunctions}
                     canSanction={canSanction}
                     canHavePool={canHavePool}
-                    pendingApplications={type === "pending"}
+                    pendingApplications={
+                      type === "pending" &&
+                      !tableTitle.includes("Corrigendum") &&
+                      !tableTitle.includes("Correction")
+                    }
                     serviceId={serviceId}
                     onPushToPool={handlePushToPool}
                     onExecuteAction={handleExecuteAction}

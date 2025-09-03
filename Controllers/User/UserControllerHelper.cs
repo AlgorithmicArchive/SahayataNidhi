@@ -91,21 +91,21 @@ namespace SahayataNidhi.Controllers.User
             var financialYear = helper.GetCurrentFinancialYear();
 
             // Define the output parameter
-            var newCountParam = new SqlParameter
+            var nextCountParam = new SqlParameter
             {
-                ParameterName = "@NewCount",
+                ParameterName = "@NextCount",
                 SqlDbType = System.Data.SqlDbType.Int,
                 Direction = System.Data.ParameterDirection.Output
             };
 
             // Call the stored procedure
             dbcontext.Database.ExecuteSqlRaw(
-                "EXEC GetAndIncrementCount @DistrictId = {0}, @ServiceId = {1}, @FinancialYear = {2}, @Type = {3}, @NewCount = @NewCount OUTPUT",
-                districtId, serviceId, financialYear, type, newCountParam
+                "EXEC GetNextApplicationCount @DistrictId = {0}, @ServiceId = {1}, @FinancialYear = {2}, @Type = {3}, @NextCount = @NextCount OUTPUT",
+                districtId, serviceId, financialYear, type, nextCountParam
             );
 
             // Retrieve the output value
-            return (int)newCountParam.Value;
+            return (int)nextCountParam.Value;
         }
 
         public string GetOfficerArea(string designation, dynamic formDetails)

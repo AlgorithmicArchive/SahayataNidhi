@@ -217,8 +217,19 @@ namespace SahayataNidhi.Controllers
                 .Where(name => !string.IsNullOrWhiteSpace(name))
                 .ToList();
 
+            var entityType = dbcontext.Model.FindEntityType(typeof(CitizenApplication));
+
+            if (entityType == null)
+                return BadRequest(new { error = "Entity not found in DbContext." });
+
+            // Get all mapped column names
+            var columnNames = entityType.GetProperties()
+                .Select(p => p.GetColumnName())
+                .ToList();
+
+
             // Return as JSON
-            return Json(new { names = allNames });
+            return Json(new { names = allNames, columnNames });
         }
 
         [HttpGet]

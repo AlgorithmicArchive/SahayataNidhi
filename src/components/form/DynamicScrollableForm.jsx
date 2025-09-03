@@ -22,7 +22,7 @@ import {
   FormLabel,
   FormGroup,
   CircularProgress,
-  Grid,
+  Grid2 as Grid,
 } from "@mui/material";
 import { Col, Row } from "react-bootstrap";
 import { fetchFormDetails, GetServiceContent } from "../../assets/fetch";
@@ -247,7 +247,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             field.dependentOptions[parentValue] || field.options || [];
           const currentValue = getValues(field.name);
 
-          // Only reset if current value is invalid AND we're not in initial load
           if (
             options.length > 0 &&
             currentValue &&
@@ -256,36 +255,28 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             const isValueValid = options.some(
               (opt) => opt.value.toString() === currentValue.toString(),
             );
-
-            // Only reset if the current value is not in the available options
             if (!isValueValid) {
-              setValue(field.name, "Please Select", {
-                shouldValidate: true,
-              });
+              setValue(field.name, "Please Select", { shouldValidate: true });
             }
           } else if (
             options.length === 0 &&
             currentValue &&
             currentValue !== "Please Select"
           ) {
-            // If no options available and value is set, clear it
             setValue(field.name, "Please Select", { shouldValidate: true });
           }
         }
 
-        // Handle additionalFields recursively if needed
+        // Handle additionalFields
         if (field.additionalFields) {
           const selectedValue = watch(field.name);
           const additionalFields = field.additionalFields[selectedValue] || [];
-
           additionalFields.forEach((af) => {
             if (af.type === "select" && af.dependentOn && af.dependentOptions) {
               const parentValue = watch(af.dependentOn);
               const options =
                 af.dependentOptions[parentValue] || af.options || [];
               const currentValue = getValues(af.name);
-
-              // Only reset if current value is invalid
               if (
                 options.length > 0 &&
                 currentValue &&
@@ -295,9 +286,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   (opt) => opt.value.toString() === currentValue.toString(),
                 );
                 if (!isValueValid) {
-                  setValue(af.name, "Please Select", {
-                    shouldValidate: true,
-                  });
+                  setValue(af.name, "Please Select", { shouldValidate: true });
                 }
               } else if (
                 options.length === 0 &&
@@ -323,20 +312,32 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           const fileFieldName = `${field.name}_file`;
 
           if (!shouldShow) {
-            setValue(selectFieldName, "", { shouldValidate: true });
-            setValue(fileFieldName, null, { shouldValidate: true });
-            return;
+            setValue(selectFieldName, "", { shouldValidate: false });
+            setValue(fileFieldName, null, { shouldValidate: false });
+            clearErrors([selectFieldName, fileFieldName]);
           } else if (
+            shouldShow &&
             initialData?.[field.name] &&
-            (getValues(selectFieldName) == null ||
+            (getValues(selectFieldName) === "" ||
               getValues(fileFieldName) == null)
           ) {
+            // Restore values from initialData when the field reappears
             setValue(selectFieldName, initialData[field.name].selected || "", {
-              shouldValidate: true,
+              shouldValidate: !isFieldDisabled(field.name),
             });
-            setValue(fileFieldName, initialData[field.name].file || null, {
-              shouldValidate: true,
-            });
+            if (initialData[field.name].file) {
+              setDefaultFile(
+                fileFieldName,
+                initialData[field.name].file,
+                false,
+              );
+            } else {
+              setValue(fileFieldName, null, {
+                shouldValidate: !isFieldDisabled(field.name),
+              });
+            }
+            // Clear any existing errors for this field
+            clearErrors([selectFieldName, fileFieldName]);
           }
         }
       });
@@ -346,6 +347,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     getValues,
     setValue,
     initialData,
+    watch,
+    clearErrors,
     JSON.stringify(watchedDependableValues),
   ]);
 
@@ -467,33 +470,76 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           setReferenceNumber(referenceNumber);
         }
 
-        // ❌ Fetch bank names (commented)
-        // const bankResponse = await axiosInstance.get("/Base/GetBanks");
-        // const bankOptions = [
-        //   { label: "Please Select", value: "Please Select" },
-        //   ...(bankResponse.data?.data || []).map((bank) => ({
-        //     value: bank.id,
-        //     label: bank.name,
-        //   })),
-        // ];
-
         const result = await GetServiceContent(ServiceId);
         if (result && result.status) {
           try {
             config = JSON.parse(result.formElement);
+            let updatedConfig = sanitizeFormSections(config);
 
-            // ❌ Inject bank options into BankName (commented)
-            // const updatedConfig = config.map((section) => {
-            //   return section;
-            // });
-            setFormSections(sanitizeFormSections(config));
+            // Add "Other" documents from data or formDetails in edit/incomplete mode
+            if (mode === "edit" || mode === "incomplete") {
+              const documentsSection = updatedConfig.find(
+                (section) => section.section === "Documents",
+              );
+              let otherDocuments = [];
+
+              if (mode === "edit" && referenceNumber) {
+                const { formDetails } = await fetchFormDetails(referenceNumber);
+                otherDocuments =
+                  formDetails?.Documents?.filter(
+                    (doc) => doc.label === "Other Document",
+                  ) || [];
+              } else if (mode === "incomplete" && data?.Documents) {
+                otherDocuments = data.Documents.filter(
+                  (doc) => doc.label === "Other Document",
+                );
+              }
+
+              if (documentsSection && otherDocuments.length > 0) {
+                const newFields = otherDocuments.map((doc, idx) => {
+                  const newId = doc.name || `field-${Date.now()}-${idx}`; // Use existing name if available
+                  return {
+                    id: newId,
+                    type: "enclosure",
+                    label: doc.label || "Other Document",
+                    name: doc.name || `CustomDocument_${newId}`,
+                    minLength: 5,
+                    maxLength: 50,
+                    options: [], // No options to render TextField
+                    span: 6,
+                    validationFunctions: ["notEmpty", "validateFile"],
+                    transformationFunctions: [],
+                    additionalFields: {},
+                    accept: ".pdf",
+                    editable: true,
+                    dependentOptions: {},
+                    isDependentEnclosure: false,
+                    dependentValues: [],
+                    isConsentCheckbox: false,
+                    checkboxLayout: "vertical",
+                    declaration: "",
+                    defaultValue: {
+                      selected: doc.Enclosure || "",
+                      file: doc.File || null,
+                    },
+                  };
+                });
+                documentsSection.fields = [
+                  ...documentsSection.fields,
+                  ...newFields,
+                ];
+              }
+              setFormSections(updatedConfig);
+            } else {
+              setFormSections(updatedConfig);
+            }
           } catch (err) {
             console.error("Error parsing formElements:", err);
             setFormSections([]);
           }
         }
 
-        // Handle edit/incomplete mode
+        // Rest of the existing useEffect code
         if ((mode === "incomplete" || mode === "edit") && referenceNumber) {
           const { formDetails, additionalDetails } = await fetchFormDetails(
             referenceNumber,
@@ -504,7 +550,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           const flatDetails = flattenFormDetails(formDetails);
           setInitialData(flatDetails);
 
-          // Prepare resetData
           const resetData = {
             ...flatDetails,
             ...Object.keys(flatDetails).reduce((acc, key) => {
@@ -513,13 +558,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                 typeof flatDetails[key] === "object" &&
                 "selected" in flatDetails[key]
               ) {
-                acc[`${key}_select`] = flatDetails[key].selected;
-                acc[`${key}_file`] = flatDetails[key].file;
+                acc[`${key}_select`] = flatDetails[key].selected || "";
+                acc[`${key}_file`] = flatDetails[key].file || null;
                 setDefaultFile(`${key}_file`, flatDetails[key].file, false);
-
-                if (key === "Other") {
-                  acc["OtherDocument"] = flatDetails[key].selected || "";
-                }
               }
               return acc;
             }, {}),
@@ -536,100 +577,19 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           setAreas(formDetails);
           setDependableFields(dependableFields);
 
-          // Reset form with values
           reset(resetData);
 
           if (mode === "edit" || mode === "incomplete") {
             const value = getValues("AadharNumber");
-            console.log("length", value);
             if (value && value.length > 0) {
               setAadhaarValid(true);
             }
           }
-
-          // ❌ Load Branches + IFSC related functionality (commented)
-          // if (
-          //   flatDetails.BankName &&
-          //   flatDetails.BankName !== "Please Select"
-          // ) {
-          //   const branchResponse = await axiosInstance.get(
-          //     `/Base/GetBranches?bankId=${flatDetails.BankName}`,
-          //   );
-          //   const branchOptions = [
-          //     { label: "Please Select", value: "Please Select" },
-          //     ...(branchResponse.data?.data || []).map((branch) => ({
-          //       value: branch.id,
-          //       label: branch.name,
-          //     })),
-          //   ];
-
-          //   setFormSections((prevSections) =>
-          //     prevSections.map((section) =>
-          //       section.section === "Bank Details"
-          //         ? {
-          //             ...section,
-          //             fields: section.fields.map((field) =>
-          //               field.name === "BranchName"
-          //                 ? { ...field, options: branchOptions }
-          //                 : field,
-          //             ),
-          //           }
-          //         : section,
-          //     ),
-          //   );
-
-          //   if (
-          //     flatDetails.BranchName &&
-          //     branchOptions.some(
-          //       (opt) =>
-          //         opt.value.toString() === flatDetails.BranchName.toString(),
-          //     )
-          //   ) {
-          //     setValue("BranchName", flatDetails.BranchName, {
-          //       shouldValidate: true,
-          //     });
-          //   } else {
-          //     setValue("BranchName", "Please Select", { shouldValidate: true });
-          //   }
-
-          //   if (
-          //     flatDetails.BranchName &&
-          //     flatDetails.BranchName !== "Please Select"
-          //   ) {
-          //     const ifscResponse = await axiosInstance.get(
-          //       `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
-          //     );
-          //     const ifscOptions = [
-          //       { label: "Please Select", value: "Please Select" },
-          //       ...(ifscResponse.data?.data || []).map((ifsc) => ({
-          //         value: ifsc.name,
-          //         label: ifsc.name,
-          //       })),
-          //     ];
-
-          //     setFormSections((prevSections) =>
-          //       prevSections.map((section) =>
-          //         section.section === "Bank Details"
-          //           ? {
-          //               ...section,
-          //               fields: section.fields.map((field) =>
-          //                 field.name === "IfscCode"
-          //                   ? { ...field, options: ifscOptions }
-          //                   : field,
-          //               ),
-          //             }
-          //           : section,
-          //       ),
-          //     );
-
-          //     if (flatDetails.IfscCode) {
-          //       setValue("IfscCode", flatDetails.IfscCode, {
-          //         shouldValidate: true,
-          //       });
-          //     }
-          //   }
-          // }
-        } else if (data !== null && data !== undefined) {
+        } else if (
+          mode === "incomplete" &&
+          data !== null &&
+          data !== undefined
+        ) {
           const flatDetails = flattenFormDetails(data);
 
           const resetData = {
@@ -643,10 +603,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                 acc[`${key}_select`] = flatDetails[key].selected;
                 acc[`${key}_file`] = flatDetails[key].file;
                 setDefaultFile(`${key}_file`, flatDetails[key].file, false);
-
-                if (key === "Other") {
-                  acc["OtherDocument"] = flatDetails[key].selected || "";
-                }
               }
               return acc;
             }, {}),
@@ -655,95 +611,13 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           setInitialData(flatDetails);
           reset(resetData);
 
-          // ❌ Load Branches + IFSC related functionality (commented)
-          // if (
-          //   flatDetails.BankName &&
-          //   flatDetails.BankName !== "Please Select"
-          // ) {
-          //   const branchResponse = await axiosInstance.get(
-          //     `/Base/GetBranches?bankId=${flatDetails.BankName}`,
-          //   );
-          //   const branchOptions = [
-          //     { label: "Please Select", value: "Please Select" },
-          //     ...(branchResponse.data?.data || []).map((branch) => ({
-          //       value: branch.id,
-          //       label: branch.name,
-          //     })),
-          //   ];
-
-          //   setFormSections((prevSections) =>
-          //     prevSections.map((section) =>
-          //       section.section === "Bank Details"
-          //         ? {
-          //             ...section,
-          //             fields: section.fields.map((field) =>
-          //               field.name === "BranchName"
-          //                 ? { ...field, options: branchOptions }
-          //                 : field,
-          //             ),
-          //           }
-          //         : section,
-          //     ),
-          //   );
-
-          //   if (
-          //     flatDetails.BranchName &&
-          //     branchOptions.some(
-          //       (opt) =>
-          //         opt.value.toString() === flatDetails.BranchName.toString(),
-          //     )
-          //   ) {
-          //     setValue("BranchName", flatDetails.BranchName, {
-          //       shouldValidate: true,
-          //     });
-          //   } else {
-          //     setValue("BranchName", "Please Select", { shouldValidate: true });
-          //   }
-
-          //   if (
-          //     flatDetails.BranchName &&
-          //     flatDetails.BranchName !== "Please Select"
-          //   ) {
-          //     const ifscResponse = await axiosInstance.get(
-          //       `/Base/GetIfscCodes?branchId=${flatDetails.BranchName}`,
-          //     );
-          //     const ifscOptions = [
-          //       { label: "Please Select", value: "Please Select" },
-          //       ...(ifscResponse.data?.data || []).map((ifsc) => ({
-          //         value: ifsc.name,
-          //         label: ifsc.name,
-          //       })),
-          //     ];
-
-          //     setFormSections((prevSections) =>
-          //       prevSections.map((section) =>
-          //         section.section === "Bank Details"
-          //           ? {
-          //               ...section,
-          //               fields: section.fields.map((field) =>
-          //                 field.name === "IfscCode"
-          //                   ? { ...field, options: ifscOptions }
-          //                   : field,
-          //               ),
-          //             }
-          //           : section,
-          //       ),
-          //     );
-
-          //     if (flatDetails.IfscCode) {
-          //       setValue("IfscCode", flatDetails.IfscCode, {
-          //         shouldValidate: true,
-          //       });
-          //     }
-          //   }
-          // }
-
-          // Set default files for enclosures
           formSections.forEach((section) => {
             section.fields.forEach((field) => {
               if (field.type === "enclosure") {
                 const fileFieldName = `${field.name}_file`;
+                const selectFieldName = `${field.name}_select`;
                 const fileUrl = flatDetails[field.name]?.file;
+                const selectedValue = flatDetails[field.name]?.selected;
                 if (fileUrl && typeof fileUrl === "string") {
                   if (
                     field.isDependentEnclosure &&
@@ -757,26 +631,22 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   }
                   setDefaultFile(fileFieldName, fileUrl);
                 }
+                if (selectedValue) {
+                  setValue(selectFieldName, selectedValue, {
+                    shouldValidate: true,
+                  });
+                }
               }
             });
           });
         }
 
-        // Loop through data and trigger dependent changes
         if (data != null) {
           Object.keys(data).forEach((key, sectionIndex) => {
             data[key].map((item) => {
               if (item.name.toLowerCase().includes("district")) {
                 handleAreaChange(sectionIndex, { name: item.name }, item.value);
               }
-              // ❌ skip bank/branch/ifsc dependent handling
-              // else if (
-              //   item.name.toLowerCase().includes("bank") ||
-              //   item.name.toLowerCase().includes("branch") ||
-              //   item.name.toLowerCase().includes("ifsc")
-              // ) {
-              //   handleBankChange(sectionIndex, item, item.value);
-              // }
               setValue(item.name, item.value);
 
               if (item.additionalFields) {
@@ -1695,7 +1565,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           navigate("/user/initiated");
         } else {
           setReferenceNumber(result.referenceNumber);
-          toast.success("Form Details Saved as Draft.");
+          toast.success(
+            "Form details have been saved as a draft. If you don’t submit the form, you will need to re-verify your Aadhaar number when you edit it later.",
+          );
           if (formRef.current) {
             formRef.current.scrollIntoView({
               behavior: "smooth",
@@ -2308,6 +2180,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         const selectFieldName = `${field.name}_select`;
         const fileFieldName = `${field.name}_file`;
         const isDynamic = !field.options || field.options.length === 0;
+        const isDisabled = isFieldDisabled(field.name);
 
         return (
           <Box sx={{ width: "100%", mb: 2, position: "relative" }}>
@@ -2326,6 +2199,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     "&:hover": { color: "#E11D48" },
                     p: 0.5,
                   }}
+                  disabled={isDisabled}
                   title="Remove Document"
                 >
                   <Delete fontSize="small" />
@@ -2333,7 +2207,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               )}
             </Box>
 
-            {/* Enclosure Name */}
             {isDynamic ? (
               <Controller
                 name={selectFieldName}
@@ -2349,6 +2222,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     error={Boolean(errors[selectFieldName])}
                     helperText={errors[selectFieldName]?.message}
                     sx={commonStyles}
+                    disabled={isDisabled}
                   />
                 )}
               />
@@ -2359,7 +2233,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                 defaultValue={initialData?.[field.name]?.selected || ""}
                 rules={{
                   validate: async (value) =>
-                    field.required && !value ? "Please select an option" : true, // Only validate that a selection is made if required
+                    field.required && !value ? "Please select an option" : true,
                 }}
                 render={({ field: { onChange, value } }) => (
                   <TextField
@@ -2370,7 +2244,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       onChange(e.target.value);
                       setValue(fileFieldName, null, { shouldValidate: true });
                     }}
-                    disabled={isFieldDisabled(field.name)}
+                    disabled={isDisabled}
                     error={Boolean(errors[selectFieldName])}
                     helperText={errors[selectFieldName]?.message || ""}
                     fullWidth
@@ -2391,7 +2265,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               />
             )}
 
-            {/* File Upload */}
             <Controller
               name={fileFieldName}
               control={control}
@@ -2457,6 +2330,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                           "&:hover": { color: "#E11D48" },
                           p: 0.5,
                         }}
+                        disabled={isDisabled}
                       >
                         <CloseIcon fontSize="small" />
                       </IconButton>
@@ -2470,9 +2344,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       borderRadius: "12px",
                       ...buttonStyles,
                     }}
-                    disabled={
-                      isFieldDisabled(field.name) || !getValues(selectFieldName)
-                    }
+                    disabled={isDisabled || !getValues(selectFieldName)}
                   >
                     Upload File
                     <input
@@ -2542,8 +2414,11 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       }}
     >
       <Grid container spacing={3} alignItems="stretch">
-        <Grid item xs={12}>
-          <form onSubmit={handleSubmit((data) => onSubmit(data, "submit"))}>
+        <Grid size={{ xs: 12 }}>
+          <form
+            onSubmit={handleSubmit((data) => onSubmit(data, "submit"))}
+            autoComplete="off"
+          >
             <Grid container spacing={3} alignItems="stretch">
               {formSections.map((section, index) => {
                 // Decide grid size dynamically
@@ -2553,9 +2428,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
                 return (
                   <Grid
-                    item
-                    xs={12}
-                    md={isFullRow ? 12 : 6} // Full width for Applicant Details & Declaration
+                    size={{ xs: 12, md: isFullRow ? 12 : 6 }}
                     key={section.id}
                   >
                     <Box
@@ -2642,21 +2515,22 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       )}
 
                       {/* Fields */}
-                      <Row
-                        style={{ display: "flex", justifyContent: "center" }}
-                      >
+                      <Grid container spacing={2}>
                         {section.fields.map((field) => {
                           const element = renderField(field, index);
                           if (element != null) {
                             return (
-                              <Col xs={12} lg={field.span} key={field.id}>
+                              <Grid
+                                size={{ xs: 12, lg: field.span }}
+                                key={field.id}
+                              >
                                 {element}
-                              </Col>
+                              </Grid>
                             );
                           }
                           return null;
                         })}
-                      </Row>
+                      </Grid>
 
                       {/* Add Document button ONLY for Documents section */}
                       {section.section === "Documents" && mode != "edit" && (
@@ -2681,7 +2555,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               })}
 
               {/* Sticky Footer inside the form */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12, lg: 12 }}>
                 <Box
                   sx={{
                     position: "sticky",

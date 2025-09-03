@@ -700,18 +700,20 @@ namespace SahayataNidhi.Controllers.Officer
         [HttpPost]
         public async Task<IActionResult> SendExpirationEmail([FromForm] IFormCollection form)
         {
-            string referenceNumber = form["referenceNumber"].ToString();
-            string expirationDate = form["expirationDate"].ToString();
-            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
-            var formDetailsJson = JObject.Parse(application!.FormDetails!);
-            string email = GetFieldValue("Email", formDetailsJson);
-            string applicantName = GetFieldValue("ApplicantName", formDetailsJson);
-            DateTime parsedExpirationDate = DateTime.ParseExact(
-                expirationDate,
-                "dd/MM/yyyy",
-                CultureInfo.InvariantCulture
-            );
-            string htmlMessage = $@"
+            try
+            {
+                string referenceNumber = form["referenceNumber"].ToString();
+                string expirationDate = form["expirationDate"].ToString();
+                var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+                var formDetailsJson = JObject.Parse(application!.FormDetails!);
+                string email = GetFieldValue("Email", formDetailsJson);
+                string applicantName = GetFieldValue("ApplicantName", formDetailsJson);
+                DateTime parsedExpirationDate = DateTime.ParseExact(
+                    expirationDate,
+                    "dd/MM/yyyy",
+                    CultureInfo.InvariantCulture
+                );
+                string htmlMessage = $@"
             <div style='font-family: Arial, sans-serif;'>
                 <h2 style='color: #2e6c80;'>UDID Card Validity Expiring</h2>
                 <p><strong>{applicantName}</strong>,</p>
@@ -733,13 +735,19 @@ namespace SahayataNidhi.Controllers.Officer
                 <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
             </div>";
 
-            var expiringApplications = dbcontext.ApplicationsWithExpiringEligibilities.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
-            expiringApplications!.MailSent = expiringApplications.MailSent + 1;
-            dbcontext.SaveChanges();
+                var expiringApplications = dbcontext.ApplicationsWithExpiringEligibilities.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+                expiringApplications!.MailSent = expiringApplications.MailSent + 1;
+                dbcontext.SaveChanges();
 
-            await emailSender.SendEmail(email, "Important: UDID Card Validity Expiring", htmlMessage);
+                await emailSender.SendEmail(email, "Important: UDID Card Validity Expiring", htmlMessage);
 
-            return Json(new { status = true, message = "Email Sent Successfully" });
+                return Json(new { status = true, message = "Email Sent Successfully" });
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
         }
 
         [HttpPost]

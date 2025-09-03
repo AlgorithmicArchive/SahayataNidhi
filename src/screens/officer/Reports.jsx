@@ -10,6 +10,7 @@ import {
   CircularProgress,
   Card,
   CardContent,
+  TextField,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import { Container, Row, Col } from "react-bootstrap";
@@ -56,9 +57,11 @@ export default function Reports() {
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [showTable, setShowTable] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [reportType, setReportType] = useState("TehsilWise");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const tableRef = useRef(null);
-
   const API_BASE_URL = "http://127.0.0.1:5004";
 
   // Fetch districts and services
@@ -108,37 +111,76 @@ export default function Reports() {
         setLoading(false);
       }
     };
-
     fetchDropdowns();
   }, []);
 
+  // Update button disabled state dynamically
+  useEffect(() => {
+    if (reportType === "AgeWise" || reportType === "PensionTypeWise") {
+      setIsButtonDisabled(!(district && service && startDate && endDate));
+    } else {
+      setIsButtonDisabled(!(district && service));
+    }
+  }, [district, service, reportType, startDate, endDate]);
+
   const handleDistrictChange = (event) => {
     setDistrict(event.target.value);
-    if (service) {
-      setIsButtonDisabled(false);
-    }
   };
 
   const handleServiceChange = (event) => {
     setService(event.target.value);
-    if (district) {
-      setIsButtonDisabled(false);
-    }
+  };
+
+  const handleReportTypeChange = (event) => {
+    setReportType(event.target.value);
+    setStartDate("");
+    setEndDate("");
+    setShowTable(false); // Hide table when report type changes
+  };
+
+  const handleStartDateChange = (event) => {
+    setStartDate(event.target.value);
+  };
+
+  const handleEndDateChange = (event) => {
+    setEndDate(event.target.value);
   };
 
   const handleGetReports = () => {
+    if (reportType === "AgeWise" || reportType === "PensionTypeWise") {
+      if (!startDate || !endDate) {
+        toast.error(
+          "Please select both start and end dates for this report type.",
+          {
+            position: "top-right",
+            autoClose: 3000,
+          },
+        );
+        return;
+      }
+      if (new Date(startDate) > new Date(endDate)) {
+        toast.error("Start date cannot be later than end date.", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        return;
+      }
+    }
     setShowTable(true);
-    setSelectedStatus(""); // Default to no status filter
+    setSelectedStatus("");
     setTimeout(() => {
       tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
 
-  // Extra params for ServerSideTable
   const extraParams = {
     AccessCode: district,
     ServiceId: service,
     StatusType: selectedStatus,
+    ReportType: reportType,
+    ...(reportType === "AgeWise" || reportType === "PensionTypeWise"
+      ? { StartDate: startDate, EndDate: endDate }
+      : {}),
   };
 
   if (loading) {
@@ -209,8 +251,8 @@ export default function Reports() {
       </Typography>
 
       <Container>
-        <Row className="mb-5 justify-content-center">
-          <Col xs={12} md={6} lg={4}>
+        <Row className="mb-4 justify-content-center">
+          <Col xs={12} md={4} lg={3}>
             <FormControl fullWidth sx={{ mb: { xs: 2, md: 0 } }}>
               <InputLabel id="district-select-label">
                 {isTehsil ? "Tehsil" : "District"}
@@ -233,8 +275,9 @@ export default function Reports() {
               </Select>
             </FormControl>
           </Col>
-          <Col xs={12} md={6} lg={4}>
-            <FormControl fullWidth>
+
+          <Col xs={12} md={4} lg={3}>
+            <FormControl fullWidth sx={{ mb: { xs: 2, md: 0 } }}>
               <InputLabel id="service-select-label">Service</InputLabel>
               <Select
                 labelId="service-select-label"
@@ -254,7 +297,52 @@ export default function Reports() {
               </Select>
             </FormControl>
           </Col>
+
+          <Col xs={12} md={4} lg={3}>
+            <FormControl fullWidth>
+              <InputLabel id="report-type-label">Report Type</InputLabel>
+              <Select
+                labelId="report-type-label"
+                value={reportType}
+                label="Report Type"
+                onChange={handleReportTypeChange}
+                sx={{ bgcolor: "#fff", borderRadius: "8px" }}
+              >
+                <MenuItem value="AgeWise">Age Wise</MenuItem>
+                <MenuItem value="PensionTypeWise">Pension Type Wise</MenuItem>
+                <MenuItem value="GenderWise">Gender Wise</MenuItem>
+                <MenuItem value="TehsilWise">Tehsil Wise</MenuItem>
+              </Select>
+            </FormControl>
+          </Col>
         </Row>
+
+        {(reportType === "AgeWise" || reportType === "PensionTypeWise") && (
+          <Row className="mb-4 justify-content-center">
+            <Col xs={12} md={4} lg={3}>
+              <TextField
+                fullWidth
+                label="Start Date"
+                type="date"
+                value={startDate}
+                onChange={handleStartDateChange}
+                InputLabelProps={{ shrink: true }}
+                sx={{ bgcolor: "#fff", borderRadius: "8px" }}
+              />
+            </Col>
+            <Col xs={12} md={4} lg={3}>
+              <TextField
+                fullWidth
+                label="End Date"
+                type="date"
+                value={endDate}
+                onChange={handleEndDateChange}
+                InputLabelProps={{ shrink: true }}
+                sx={{ bgcolor: "#fff", borderRadius: "8px" }}
+              />
+            </Col>
+          </Row>
+        )}
 
         <Row className="mb-5 justify-content-center">
           <Col xs="auto">
@@ -280,22 +368,10 @@ export default function Reports() {
                     Application Reports
                   </Typography>
                   <ServerSideTable
-                    key={`${district}-${service}-${selectedStatus}`}
+                    key={`${district}-${service}-${selectedStatus}-${reportType}-${startDate}-${endDate}`}
                     url={`${API_BASE_URL}/Officer/GetApplicationsForReports`}
-                    Title={"Tehsil Wise Report"}
+                    Title={"Reports"}
                     extraParams={extraParams}
-                    sx={{
-                      "& .MuiTable-root": {
-                        background: "#ffffff",
-                      },
-                      "& .MuiTableCell-root": {
-                        color: "#2d3748",
-                        borderColor: "#e0e0e0",
-                      },
-                      "& .MuiButton-root": {
-                        color: "#1976d2",
-                      },
-                    }}
                   />
                 </CardContent>
               </StyledCard>
