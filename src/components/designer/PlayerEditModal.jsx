@@ -27,7 +27,7 @@ import {
 } from "@dnd-kit/sortable";
 import { toast } from "react-toastify";
 
-// Utility function to sanitize actionForm options
+// Utility function to sanitize actionForm options (unchanged)
 const sanitizeActionForm = (actionForm) => {
   return actionForm.map((field) => {
     if (field.options) {
@@ -64,6 +64,15 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
     canWithhold: player.canWithhold || false,
     canValidateAadhaar: player.canValidateAadhaar || false,
     actionForm: sanitizeActionForm(player.actionForm || []),
+  });
+  // New state to track which actions to include in actionForm
+  const [actionFormOptions, setActionFormOptions] = useState({
+    canForwardToPlayer: player.canForwardToPlayer,
+    canSanction: player.canSanction,
+    canReturnToPlayer: player.canReturnToPlayer,
+    canReturnToCitizen: player.canReturnToCitizen,
+    canReject: player.canReject,
+    // Exclude canWithhold by default
   });
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
   const [selectedField, setSelectedField] = useState(null);
@@ -164,7 +173,30 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
       ...prev,
       [field]: value,
     }));
+    // Update actionFormOptions when permissions change
+    if (
+      [
+        "canForwardToPlayer",
+        "canSanction",
+        "canReturnToPlayer",
+        "canReturnToCitizen",
+        "canReject",
+      ].includes(field)
+    ) {
+      setActionFormOptions((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
     console.log(`Updated ${field}:`, value);
+  };
+
+  const handleActionFormOptionChange = (field, value) => {
+    setActionFormOptions((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    console.log(`Updated actionFormOptions.${field}:`, value);
   };
 
   const addActionFormField = () => {
@@ -215,9 +247,86 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
     setSelectedField(null);
   };
 
+  const generateActionFormOptions = () => {
+    const actionOptions = [];
+    if (
+      actionFormOptions.canForwardToPlayer &&
+      editedPlayer.canForwardToPlayer
+    ) {
+      let label = "Forward to Player";
+      if (editedPlayer.nextPlayerId !== null) {
+        const nextPlayer = players.find(
+          (p) => p.playerId === editedPlayer.nextPlayerId,
+        );
+        if (nextPlayer && nextPlayer.designation) {
+          label = `Forward to ${nextPlayer.designation}`;
+        }
+      }
+      actionOptions.push({ value: "Forward", label });
+    }
+    if (actionFormOptions.canSanction && editedPlayer.canSanction) {
+      actionOptions.push({ value: "Sanction", label: "Sanction" });
+    }
+    if (actionFormOptions.canReturnToPlayer && editedPlayer.canReturnToPlayer) {
+      let label = "Return to Player";
+      if (editedPlayer.prevPlayerId !== null) {
+        const previousPlayer = players.find(
+          (p) => p.playerId === editedPlayer.prevPlayerId,
+        );
+        if (previousPlayer && previousPlayer.designation) {
+          label = `Return to ${previousPlayer.designation}`;
+        }
+      }
+      actionOptions.push({ value: "ReturnToPlayer", label });
+    }
+    if (
+      actionFormOptions.canReturnToCitizen &&
+      editedPlayer.canReturnToCitizen
+    ) {
+      actionOptions.push({
+        value: "ReturnToCitizen",
+        label: "Return to Citizen",
+      });
+    }
+    if (actionFormOptions.canReject && editedPlayer.canReject) {
+      actionOptions.push({ value: "Reject", label: "Reject" });
+    }
+    // Withhold is explicitly excluded
+    return actionOptions;
+  };
+
   const handleSave = () => {
-    console.log("Saving editedPlayer:", editedPlayer);
-    onSave(editedPlayer);
+    // Update actionForm with selected options
+    const actionOptions = generateActionFormOptions();
+    const updatedActionForm = editedPlayer.actionForm.map((field) => {
+      if (field.name === "defaultAction") {
+        return { ...field, options: actionOptions, label: "Action" };
+      }
+      return field;
+    });
+    // If no defaultAction field exists, add one
+    if (!updatedActionForm.some((field) => field.name === "defaultAction")) {
+      updatedActionForm.push({
+        id: `default-field-${Date.now()}`,
+        type: "select",
+        label: "Action",
+        name: "defaultAction",
+        minLength: 0,
+        maxLength: 0,
+        options: actionOptions,
+        span: 12,
+        validationFunctions: [],
+        transformationFunctions: [],
+        additionalFields: {},
+        accept: "",
+      });
+    }
+    const finalPlayer = {
+      ...editedPlayer,
+      actionForm: sanitizeActionForm(updatedActionForm),
+    };
+    console.log("Saving editedPlayer:", finalPlayer);
+    onSave(finalPlayer);
     onClose();
   };
 
@@ -375,6 +484,81 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             }
             label="Can Validate Aadhaar"
           />
+        </Box>
+        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+          Action Form Options
+        </Typography>
+        <Box sx={{ pl: 2, mb: 2 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={actionFormOptions.canSanction}
+                onChange={(e) =>
+                  handleActionFormOptionChange("canSanction", e.target.checked)
+                }
+                disabled={!editedPlayer.canSanction}
+              />
+            }
+            label="Include Sanction in Action Form"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={actionFormOptions.canReturnToPlayer}
+                onChange={(e) =>
+                  handleActionFormOptionChange(
+                    "canReturnToPlayer",
+                    e.target.checked,
+                  )
+                }
+                disabled={!editedPlayer.canReturnToPlayer}
+              />
+            }
+            label="Include Return to Player in Action Form"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={actionFormOptions.canReturnToCitizen}
+                onChange={(e) =>
+                  handleActionFormOptionChange(
+                    "canReturnToCitizen",
+                    e.target.checked,
+                  )
+                }
+                disabled={!editedPlayer.canReturnToCitizen}
+              />
+            }
+            label="Include Return to Citizen in Action Form"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={actionFormOptions.canForwardToPlayer}
+                onChange={(e) =>
+                  handleActionFormOptionChange(
+                    "canForwardToPlayer",
+                    e.target.checked,
+                  )
+                }
+                disabled={!editedPlayer.canForwardToPlayer}
+              />
+            }
+            label="Include Forward to Player in Action Form"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={actionFormOptions.canReject}
+                onChange={(e) =>
+                  handleActionFormOptionChange("canReject", e.target.checked)
+                }
+                disabled={!editedPlayer.canReject}
+              />
+            }
+            label="Include Reject in Action Form"
+          />
+          {/* Withhold is not included in actionFormOptions */}
         </Box>
         <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
           Action Form

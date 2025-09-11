@@ -183,19 +183,30 @@ namespace SahayataNidhi.Controllers
         public IActionResult ValidateIfscCode(string bankName, string ifscCode)
         {
             var result = dbcontext.BankDetails
-                .FromSqlRaw("EXEC ValidateIFSC @bankName, @ifscCode",
+                .FromSqlRaw(
+                    "EXEC ValidateIFSC @bankName, @ifscCode",
                     new SqlParameter("@bankName", bankName),
                     new SqlParameter("@ifscCode", ifscCode))
                 .AsEnumerable()
-                .ToList();
+                .FirstOrDefault(); // Expect only one row for an exact IFSC
 
-            if (result.Count == 0)
+            if (result == null)
             {
-                return Json(new { status = true });
+                return Json(new
+                {
+                    status = false,
+                    message = "Invalid IFSC code or bank not found."
+                });
             }
 
-            return Json(new { status = false });
+            return Json(new
+            {
+                status = true,
+                branchName = result.Branch
+            });
         }
+
+
 
 
 

@@ -590,7 +590,7 @@ export default function Withheld() {
                   }))
                 }
               >
-                <MenuItem value="Permanent">Permanent</MenuItem>
+                <MenuItem value="Permanent">Weedout</MenuItem>
                 <MenuItem value="Temporary">Temporary</MenuItem>
               </Select>
             </FormControl>

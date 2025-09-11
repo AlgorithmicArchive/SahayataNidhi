@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using SahayataNidhi.Models.Entities;
 using System.Security.Claims;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace SahayataNidhi.Controllers.User
 {
@@ -125,7 +126,8 @@ namespace SahayataNidhi.Controllers.User
                 var random = new Random();
                 ReferenceNumber = "01" + service.ServiceId.ToString("D2") + districtDetails.DistrictId.ToString("D2") + finYear.Split("-")[1] + random.Next(100, 1000) + count;
 
-                var createdAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
+                var createdAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
+
 
                 // Store the updated JSON (with file paths) in the database.
                 var newFormDetails = new CitizenApplication
@@ -153,7 +155,7 @@ namespace SahayataNidhi.Controllers.User
                 {
                     application.Status = status;
                 }
-                application.CreatedAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
+                application.CreatedAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
             }
 
             dbcontext.SaveChanges();
@@ -168,25 +170,28 @@ namespace SahayataNidhi.Controllers.User
                         var onAction = JsonConvert.DeserializeObject<List<string>>(getServices.OnAction);
                         if (onAction != null && onAction.Contains("Submission"))
                         {
-                            try
+                            // Instead of calling SendApiRequestAsync directly, push to background
+                            _taskQueue.QueueBackgroundWorkItem(async token =>
                             {
-                                var fieldMapObj = JObject.Parse(getServices.FieldMappings);
-                                var fieldMap = MapServiceFieldsFromForm(formDetailsObj, fieldMapObj);
-                                await SendApiRequestAsync(getServices.ApiEndPoint, fieldMap);
-                            }
-                            catch (Exception ex)
-                            {
-                                // Log the error but continue execution
-                                _logger.LogError(ex, $"Failed to send API request to {getServices.ApiEndPoint} for Reference: {ReferenceNumber}");
-                            }
+                                try
+                                {
+                                    var fieldMapObj = JObject.Parse(getServices.FieldMappings);
+                                    var fieldMap = MapServiceFieldsFromForm(formDetailsObj, fieldMapObj);
+
+                                    await SendApiRequestAsync(getServices.ApiEndPoint, fieldMap);
+                                    _logger.LogInformation($"API request sent in background for Reference: {ReferenceNumber}");
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, $"Background API request failed for Reference: {ReferenceNumber}");
+                                }
+                            });
                         }
                     }
-
                 }
                 catch (Exception ex)
                 {
-                    // Log the email sending error but continue execution
-                    _logger.LogError(ex, $"Failed to send email for Reference: {ReferenceNumber}");
+                    _logger.LogError(ex, $"Failed while scheduling API request for Reference: {ReferenceNumber}");
                 }
 
 
@@ -228,42 +233,40 @@ namespace SahayataNidhi.Controllers.User
                 // Get the file data from FileContentResult
                 byte[] fileData = fileContentResult.FileContents;
                 string fileName = ReferenceNumber.Replace("/", "_") + "Acknowledgement.pdf";
-
-                // Create a temporary file in the Temp directory
+                // Write temp file
                 string tempDir = Path.Combine(_webHostEnvironment.WebRootPath, "Temp");
-                Directory.CreateDirectory(tempDir); // Ensure the Temp directory exists
+                Directory.CreateDirectory(tempDir);
                 string tempFilePath = Path.Combine(tempDir, fileName);
-                var attachments = new List<string>();
-
-                try
+                _taskQueue.QueueBackgroundWorkItem(async token =>
                 {
-                    // Write the file data to a temporary PDF file
-                    await System.IO.File.WriteAllBytesAsync(tempFilePath, fileData);
-                    attachments.Add(tempFilePath);
-
-                    // Send the email with the temporary PDF file as an attachment
-                    await emailSender.SendEmailWithAttachments(email!, "Form Submission", htmlMessage, attachments);
-                }
-                catch (Exception ex)
-                {
-                    // Log the email sending error but continue execution
-                    _logger.LogError(ex, $"Failed to send email for Reference: {ReferenceNumber}, Email: {email}");
-                }
-                finally
-                {
-                    // Clean up: Delete the temporary file
-                    if (System.IO.File.Exists(tempFilePath))
+                    try
                     {
+                        await System.IO.File.WriteAllBytesAsync(tempFilePath, fileData, token);
+
+                        await emailSender.SendEmailWithAttachments(email!, "Form Submission", htmlMessage, new List<string> { tempFilePath });
+
+                        _logger.LogInformation($"Email sent in background to {email} for Reference: {ReferenceNumber}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Background email sending failed for Reference: {ReferenceNumber}, Email: {email}");
+                    }
+                    finally
+                    {
+                        // cleanup file
                         try
                         {
-                            System.IO.File.Delete(tempFilePath);
+                            if (System.IO.File.Exists(tempFilePath))
+                                System.IO.File.Delete(tempFilePath);
                         }
-                        catch (Exception ex)
+                        catch (Exception cleanupEx)
                         {
-                            _logger.LogError(ex, $"Failed to delete temporary file: {tempFilePath}");
+                            _logger.LogError(cleanupEx, $"Failed to delete temp file for Reference: {ReferenceNumber}");
                         }
                     }
-                }
+                });
+
+
                 string field = GetFormFieldValue(formDetailsObj, "Tehsil") != null ? "Tehsil" : "District";
                 string? value = GetFormFieldValue(formDetailsObj, field);
 
@@ -668,7 +671,19 @@ namespace SahayataNidhi.Controllers.User
                     string districtShort = districtDetails!.DistrictShort!;
                     int count = GetCountPerDistrict(districtId, serviceId, "Corrigendum");
 
-                    corrigendumNumber = $"JK-{service.NameShort}-{districtShort}-CRG/{finYear}/{count}";
+                    var random = new Random();
+                    var rnd = random.Next(100, 1000); // 100..999
+
+                    corrigendumNumber = string.Format(
+                       "01{0:D2}{1:D2}{2}{3}{4:D3}{5:D2}",
+                       service.ServiceId,
+                       districtDetails.DistrictId,
+                       "02",
+                       finYear.Split('-')[1],
+                       rnd,
+                       count
+                   );
+
 
                     var filteredWorkflow = new JArray();
                     foreach (var player in players)

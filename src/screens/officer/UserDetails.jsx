@@ -18,6 +18,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import { formatKey, runValidations } from "../../assets/formvalidations";
 import { Controller, useForm } from "react-hook-form";
@@ -92,6 +94,7 @@ export default function UserDetails() {
     getValues,
     setValue,
     formState: { errors },
+    unregister,
   } = useForm({ mode: "onChange" });
 
   useEffect(() => {
@@ -514,16 +517,24 @@ export default function UserDetails() {
             key={field.name}
             name={field.name}
             control={control}
-            defaultValue={field.options[0]?.value || ""}
+            defaultValue="Please Select"
             rules={{
-              validate: async (value) =>
-                await runValidations(field, value, getValues()),
+              validate: async (value) => {
+                if (field.required && value === "Please Select") {
+                  return "Please select a valid option.";
+                }
+                return await runValidations(field, value, getValues());
+              },
             }}
             render={({ field: { onChange, value, ref } }) => {
               let options =
                 field.optionsType === "dependent" && field.dependentOn
                   ? field.dependentOptions?.[watch(field.dependentOn)] || []
                   : field.options || [];
+              const selectOptions = [
+                { value: "Please Select", label: "Please Select" },
+                ...options,
+              ];
               return (
                 <>
                   <FormControl
@@ -538,14 +549,32 @@ export default function UserDetails() {
                     <Select
                       labelId={`${field.id}-label`}
                       id={field.id}
-                      value={value || ""}
+                      value={value || "Please Select"}
                       label={field.label}
-                      onChange={onChange}
+                      onChange={(e) => {
+                        onChange(e);
+                        if (field.additionalFields) {
+                          Object.keys(field.additionalFields).forEach((key) => {
+                            if (key !== e.target.value) {
+                              field.additionalFields[key].forEach(
+                                (additionalField) => {
+                                  const nestedFieldName =
+                                    additionalField.name ||
+                                    `${field.name}_${additionalField.id}`;
+                                  unregister(nestedFieldName, {
+                                    keepValue: false,
+                                  });
+                                },
+                              );
+                            }
+                          });
+                        }
+                      }}
                       inputRef={ref}
                       sx={{ color: "#212121" }}
                       aria-describedby={`field-${field.id}-error`}
                     >
-                      {options.map((option) => (
+                      {selectOptions.map((option) => (
                         <MenuItem
                           key={`${field.name}-${option.value}`}
                           value={option.value}
@@ -674,6 +703,29 @@ export default function UserDetails() {
     }
   };
 
+  function getValueByName(data, name) {
+    // loop through each section inside "list"
+    for (const section of Object.values(data)) {
+      for (const field of section) {
+        console.log(field.name, name);
+        // check the current field
+        if (field.name === name) {
+          return field.value || field.File || field.Enclosure || null;
+        }
+
+        // check additionalFields if present
+        if (field.additionalFields) {
+          for (const subField of field.additionalFields) {
+            if (subField.name === name) {
+              return subField.value || null;
+            }
+          }
+        }
+      }
+    }
+    return null; // not found
+  }
+
   if (loading) {
     return (
       <Box
@@ -748,7 +800,6 @@ export default function UserDetails() {
         </Box>
         {canTakeAction ? (
           <>
-            {/* ✅ Show the form only if both are false */}
             {!notaction && !hasPending && (
               <>
                 <Typography
@@ -782,6 +833,60 @@ export default function UserDetails() {
                         return (
                           <Box key={index} sx={{ mb: 2 }}>
                             {renderField(field, index)}
+                            {field.type === "select" &&
+                              field.name === "defaultAction" &&
+                              selectedValue === "Forward" && (
+                                <Controller
+                                  name="forwardDeclaration"
+                                  control={control}
+                                  defaultValue=""
+                                  rules={{
+                                    validate: (value) =>
+                                      value ===
+                                        `I hereby certify that the beneficiary, namely ${getValueByName(
+                                          formDetails,
+                                          "ApplicantName",
+                                        )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.` ||
+                                      "You must confirm the declaration to forward.",
+                                  }}
+                                  render={({ field: { onChange, value } }) => (
+                                    <FormControl
+                                      fullWidth
+                                      margin="normal"
+                                      error={Boolean(errors.forwardDeclaration)}
+                                      sx={commonStyles}
+                                    >
+                                      <FormControlLabel
+                                        control={
+                                          <Checkbox
+                                            checked={value !== ""}
+                                            onChange={(e) =>
+                                              onChange(
+                                                e.target.checked
+                                                  ? `I hereby certify that the beneficiary, namely ${getValueByName(
+                                                      formDetails,
+                                                      "ApplicantName",
+                                                    )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.`
+                                                  : "",
+                                              )
+                                            }
+                                            color="primary"
+                                          />
+                                        }
+                                        label={`I hereby certify that the beneficiary, namely ${getValueByName(
+                                          formDetails,
+                                          "ApplicantName",
+                                        )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.`}
+                                      />
+                                      <FormHelperText
+                                        sx={{ color: "error.main" }}
+                                      >
+                                        {errors.forwardDeclaration?.message}
+                                      </FormHelperText>
+                                    </FormControl>
+                                  )}
+                                />
+                              )}
                             {field.type === "select" &&
                               selectedValue === "ReturnToCitizen" && (
                                 <Controller
@@ -857,8 +962,6 @@ export default function UserDetails() {
                 </Box>
               </>
             )}
-
-            {/* ✅ Show this message when form is NOT rendered */}
             {(notaction || hasPending) && (
               <Typography
                 sx={{ textAlign: "center", color: "#e23535ff", py: 4 }}

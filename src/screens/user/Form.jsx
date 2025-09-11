@@ -122,8 +122,8 @@ export default function Form() {
           value: "Father",
         },
         {
-          label: "Relation Name",
-          name: "RelationName",
+          label: "Parentage",
+          name: "Parentage",
           value: getRandomName(indianMaleNames),
         },
         {
@@ -197,7 +197,7 @@ export default function Form() {
         {
           label: "Branch Name",
           name: "BranchName",
-          value: "RESIDENCY ROAD JAMMU",
+          value: "",
         },
         {
           label: "IFSC Code",
@@ -344,8 +344,8 @@ export default function Form() {
           value: "Father",
         },
         {
-          label: "Relation Name",
-          name: "RelationName",
+          label: "Parentage",
+          name: "Parentage",
           value: getRandomName(indianMaleNames),
         },
         {
@@ -419,7 +419,7 @@ export default function Form() {
         {
           label: "Branch Name",
           name: "BranchName",
-          value: "RESIDENCY ROAD JAMMU",
+          value: "",
         },
         {
           label: "IFSC Code",
@@ -545,8 +545,8 @@ export default function Form() {
           value: "Father",
         },
         {
-          label: "Relation Name",
-          name: "RelationName",
+          label: "Parentage",
+          name: "Parentage",
           value: getRandomName(indianMaleNames),
         },
         {
@@ -620,7 +620,7 @@ export default function Form() {
         {
           label: "Branch Name",
           name: "BranchName",
-          value: "RESIDENCY ROAD JAMMU",
+          value: "",
         },
         {
           label: "IFSC Code",

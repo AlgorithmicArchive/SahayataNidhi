@@ -12,7 +12,17 @@ using Newtonsoft.Json.Linq;
 namespace SahayataNidhi.Controllers.User
 {
     [Authorize(Roles = "Citizen")]
-    public partial class UserController(SocialWelfareDepartmentContext dbcontext, IAuditLogService auditService, ILogger<UserController> logger, UserHelperFunctions helper, EmailSender emailSender, PdfService pdfService, IWebHostEnvironment webHostEnvironment) : Controller
+    public partial class UserController(
+    SocialWelfareDepartmentContext dbcontext,
+    IAuditLogService auditService,
+    ILogger<UserController> logger,
+    UserHelperFunctions helper,
+    EmailSender emailSender,
+    PdfService pdfService,
+    IWebHostEnvironment webHostEnvironment,
+    IBackgroundTaskQueue taskQueue,         // ✅ Added
+    IHttpClientFactory httpClientFactory    // ✅ Added
+) : Controller
     {
         protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
         private readonly IAuditLogService _auditService = auditService;
@@ -21,6 +31,9 @@ namespace SahayataNidhi.Controllers.User
         protected readonly EmailSender emailSender = emailSender;
         protected readonly PdfService _pdfService = pdfService;
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
+
+        private readonly IBackgroundTaskQueue _taskQueue = taskQueue;   // ✅ for background jobs
+        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory; // ✅ for API requests
 
         public override void OnActionExecuted(ActionExecutedContext context)
         {

@@ -165,6 +165,7 @@ namespace SahayataNidhi.Controllers.Officer
             string applicationId = form["applicationId"].ToString();
             string action = form["defaultAction"].ToString();
             string remarks = form["Remarks"].ToString();
+            string decleration = form["forwardDeclaration"].ToString();
 
             try
             {
@@ -184,6 +185,7 @@ namespace SahayataNidhi.Controllers.Officer
                             players[currentPlayer]["status"] = "forwarded";
                             players[currentPlayer]["canPull"] = true;
                             players[currentPlayer + 1]["status"] = "pending";
+                            players[currentPlayer + 1]["detailsConfirmationDeclartion"] = decleration;
                             formdetails.CurrentPlayer = currentPlayer + 1;
                         }
                         else if (action == "ReturnToPlayer")
@@ -219,7 +221,7 @@ namespace SahayataNidhi.Controllers.Officer
                             players[currentPlayer]["status"] = "rejected";
                         }
                         players[currentPlayer]["remarks"] = remarks;
-                        players[currentPlayer]["completedAt"] = DateTime.Now.ToString("dd MMMM yyyy hh:mm:ss tt");
+                        players[currentPlayer]["completedAt"] = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
                     }
                     workFlow = players.ToString(Formatting.None);
                     if (action == "Reject" || action == "Sanction")

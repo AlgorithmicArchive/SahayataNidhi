@@ -105,6 +105,11 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddCors();
 builder.Services.AddDetection();
 
+builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+builder.Services.AddHostedService<QueuedHostedService>();
+
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

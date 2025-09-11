@@ -40,6 +40,9 @@ import LoadingSpinner from "../LoadingSpinner";
 import { toast, ToastContainer } from "react-toastify";
 import OtpModal from "../OtpModal";
 import { CheckCircle, Delete, FileDownload } from "@mui/icons-material";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { format, parse } from "date-fns";
 
 const sectionIconMap = {
   Location: <LocationOnIcon sx={{ fontSize: 36, color: "#14B8A6" }} />, // Teal
@@ -1130,6 +1133,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         return;
       }
 
+      console.log("Address Type", AddressType, "match", match);
+
       // Normalize to arrays
       let childFieldNames =
         typeof match.childname === "object"
@@ -1255,16 +1260,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       }
     } catch (error) {
       console.error("Error in handleAreaChange:", error);
-    }
-  };
-
-  const handleChekcBankIfsc = async (fieldName) => {
-    const value = watch(fieldName);
-    if (value && value.length >= 4) {
-      const firstFour = value.substring(0, 4).toUpperCase();
-      if (firstFour === "JAKA") {
-        console.log("IFSC Doesn't belong to the Bank");
-      }
     }
   };
 
@@ -1751,6 +1746,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     };
 
     switch (field.type) {
+      // inside your component (switch/case)
       case "text":
       case "email":
       case "date":
@@ -1763,7 +1759,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               validate: async (value) => {
                 if (
                   field.name === "AadharNumber" &&
-                  (mode === "edit" || mode == "incomplete" || aadhaarValid)
+                  (mode === "edit" || mode === "incomplete" || aadhaarValid)
                 ) {
                   return true; // Skip validation
                 }
@@ -1772,6 +1768,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   value,
                   getValues(),
                   referenceNumber,
+                  setValue,
                 );
               },
             }}
@@ -1783,78 +1780,112 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   gap: 2,
                 }}
               >
-                <TextField
-                  type={field.type}
-                  id={`field-${field.id}`}
-                  label={getLabelWithAsteriskJSX(field)}
-                  value={value || ""}
-                  onKeyDown={(e) => {
-                    isBackspacePressed.current = e.key === "Backspace";
-                  }}
-                  placeholder={
-                    field.name === "OtherDocument" ? "File1, File2,..." : ""
-                  }
-                  onChange={(e) => {
-                    let val = e.target.value;
-                    const fieldName = field.name;
-                    let transformedVal = val;
+                {field.type === "date" ? (
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <DatePicker
+                      label={getLabelWithAsteriskJSX(field)}
+                      value={
+                        value ? parse(value, "dd/MM/yyyy", new Date()) : null
+                      }
+                      onChange={(newValue) => {
+                        const formatted =
+                          newValue instanceof Date && !isNaN(newValue.getTime())
+                            ? format(newValue, "dd/MM/yyyy")
+                            : "";
+                        onChange(formatted);
+                        trigger(field.name);
+                      }}
+                      format="dd MMM yyyy" // Display format
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          margin: "normal",
+                          error: Boolean(errors[field.name]),
+                          helperText: errors[field.name]?.message || "",
+                          inputRef: ref,
+                          disabled: isFieldDisabled(field.name),
+                          InputLabelProps: {
+                            shrink: true,
+                            style: { fontSize: "1rem", color: "#000000" },
+                          },
+                          placeholder: "dd MMM yyyy",
+                          sx: commonStyles,
+                        },
+                      }}
+                    />
+                  </LocalizationProvider>
+                ) : (
+                  <TextField
+                    type={field.type}
+                    id={`field-${field.id}`}
+                    label={getLabelWithAsteriskJSX(field)}
+                    value={value || ""}
+                    onKeyDown={(e) => {
+                      isBackspacePressed.current = e.key === "Backspace";
+                    }}
+                    placeholder={
+                      field.name === "OtherDocument" ? "File1, File2,..." : ""
+                    }
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      const fieldName = field.name;
+                      let transformedVal = val;
 
-                    // Aadhaar-specific logic
-                    if (fieldName === "AadharNumber") {
-                      setAadhaarValid(false);
-                      const lastChar = val.toString().charAt(val.length - 1);
+                      // Aadhaar-specific logic
+                      if (fieldName === "AadharNumber") {
+                        setAadhaarValid(false);
+                        const lastChar = val.toString().charAt(val.length - 1);
 
-                      let updatedAadhaar;
+                        let updatedAadhaar;
+                        if (isBackspacePressed.current) {
+                          updatedAadhaar = aadhaarNumber.slice(0, -1); // remove last
+                        } else {
+                          updatedAadhaar = aadhaarNumber + lastChar; // add
+                        }
 
-                      if (isBackspacePressed.current) {
-                        updatedAadhaar = aadhaarNumber.slice(0, -1); // remove last
-                      } else {
-                        updatedAadhaar = aadhaarNumber + lastChar; // add
+                        setAadhaarNumber(updatedAadhaar);
+                        transformedVal = updatedAadhaar;
+                        val = updatedAadhaar;
                       }
 
-                      setAadhaarNumber(updatedAadhaar);
-                      transformedVal = updatedAadhaar;
-                      val = updatedAadhaar;
-                    }
+                      // Generic transformation logic
+                      if (field.transformationFunctions?.length > 0) {
+                        field.transformationFunctions.forEach((fnName) => {
+                          const transformFn =
+                            TransformationFunctionsList[fnName];
+                          if (transformFn) {
+                            transformedVal = transformFn(
+                              transformedVal,
+                              val,
+                              getValues(),
+                              setValue,
+                            );
+                          }
+                        });
+                      }
 
-                    // Generic transformation logic (for any field)
-                    if (field.transformationFunctions?.length > 0) {
-                      field.transformationFunctions.forEach((fnName) => {
-                        const transformFn = TransformationFunctionsList[fnName];
-                        if (transformFn) {
-                          transformedVal = transformFn(
-                            transformedVal,
-                            val,
-                            getValues(),
-                            setValue,
-                          );
-                        }
-                      });
-                    }
+                      onChange(transformedVal);
+                    }}
+                    inputRef={ref}
+                    disabled={isFieldDisabled(field.name)}
+                    error={Boolean(errors[field.name])}
+                    helperText={errors[field.name]?.message || ""}
+                    fullWidth
+                    margin="normal"
+                    InputLabelProps={{
+                      shrink: true,
+                      style: { fontSize: "1rem", color: "#000000" },
+                    }}
+                    InputProps={{
+                      maxLength: field.maxLength,
+                      readOnly: field.name === "BranchName",
+                    }}
+                    sx={commonStyles}
+                  />
+                )}
 
-                    onChange(transformedVal);
-                  }}
-                  onBlur={() => {
-                    // if (field.name === "IfscCode") {
-                    //   handleChekcBankIfsc(field.name);
-                    // }
-                  }}
-                  inputRef={ref}
-                  disabled={isFieldDisabled(field.name)}
-                  error={Boolean(errors[field.name])}
-                  helperText={errors[field.name]?.message || ""}
-                  fullWidth
-                  margin="normal"
-                  InputLabelProps={{
-                    shrink: true,
-                    style: { fontSize: "1rem", color: "#000000" },
-                  }}
-                  inputProps={{
-                    maxLength: field.maxLength,
-                  }}
-                  sx={commonStyles}
-                />
-                {field.name == "AadharNumber" && aadhaarValid ? (
+                {/* Aadhaar-specific UI */}
+                {field.name === "AadharNumber" && aadhaarValid ? (
                   <Typography
                     variant="subtitle2"
                     color="success"
@@ -1866,22 +1897,20 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                 ) : (
                   ""
                 )}
-                {field.name == "AadharNumber" &&
-                  value.length != 0 &&
+                {field.name === "AadharNumber" &&
+                  value.length !== 0 &&
                   !aadhaarValid &&
                   !Boolean(errors[field.name]) && (
                     <Button
-                      sx={[
-                        {
-                          background:
-                            "linear-gradient(to right, #10B981, #059669)", // Green-500 to Green-600
-                          color: "#FFFFFF",
-                          fontWeight: "bold",
-                          paddingRight: 2,
-                          paddingLeft: 2,
-                          borderRadius: 5,
-                        },
-                      ]}
+                      sx={{
+                        background:
+                          "linear-gradient(to right, #10B981, #059669)",
+                        color: "#FFFFFF",
+                        fontWeight: "bold",
+                        paddingRight: 2,
+                        paddingLeft: 2,
+                        borderRadius: 5,
+                      }}
                       onClick={handleAaddhaarNumber}
                     >
                       Validate
@@ -2108,14 +2137,14 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     onChange={(e) => {
                       onChange(e);
                       const newValue = e.target.value;
-                      // if (
-                      //   field.name === "BankName" ||
-                      //   field.name === "BranchName"
-                      // ) {
-                      //   handleBankChange(sectionIndex, field, newValue);
-                      // } else {
-                      //   handleAreaChange(sectionIndex, field, newValue);
-                      // }
+                      // Call handleAreaChange only for area parent fields
+                      if (
+                        /district|muncipality|block|halqapanchayat/i.test(
+                          field.name,
+                        )
+                      ) {
+                        handleAreaChange(sectionIndex, field, newValue);
+                      }
                       // Unregister additional fields that do not belong to the current value
                       if (field.additionalFields) {
                         Object.entries(field.additionalFields).forEach(

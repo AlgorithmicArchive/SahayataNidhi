@@ -272,7 +272,7 @@ export default function Settings() {
       style={{
         maxWidth: 800,
         padding: 0,
-        height: userType !== "Citizen" ? "150vh" : "90vh",
+        height: userType !== "Citizen" ? "150vh" : "120vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

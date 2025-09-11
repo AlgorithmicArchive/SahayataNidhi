@@ -2326,7 +2326,19 @@ namespace SahayataNidhi.Controllers.Officer
                 JToken sanctionedOfficer = workflow.FirstOrDefault(p => (string)p["status"]! == "sanctioned")!;
                 _logger.LogInformation($"Sanction Officer: {sanctionedOfficer}");
 
-                string? sanctionDate = (string)sanctionedOfficer["completedAt"]!;
+                string? completedAtStr = (string?)sanctionedOfficer["completedAt"];
+                string? sanctionDate = null;
+
+                if (!string.IsNullOrEmpty(completedAtStr))
+                {
+                    // Parse the string to DateTime
+                    if (DateTime.TryParse(completedAtStr, out DateTime completedAt))
+                    {
+                        // Format to "dd MMM yyyy"
+                        sanctionDate = completedAt.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+                    }
+                }
+
                 _logger.LogInformation($"Sanction Date: {sanctionDate}");
 
                 var service = dbcontext.Services
@@ -2345,7 +2357,7 @@ namespace SahayataNidhi.Controllers.Officer
                     officer,
                     service.ServiceName!,
                     corrigendumId,
-                    sanctionDate
+                    sanctionDate!
                 );
 
                 var filePath = corrigendumId.Replace("/", "_") + "_CorrigendumSanctionLetter.pdf";

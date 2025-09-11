@@ -287,7 +287,7 @@ namespace SahayataNidhi.Controllers.Officer
                     workFlow[currentPlayerIndex]["status"] = "forwarded";
                     workFlow[currentPlayerIndex]["canPull"] = "true";
                     workFlow[currentPlayerIndex]["remarks"] = remarks;
-                    workFlow[currentPlayerIndex]["completedAt"] = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
+                    workFlow[currentPlayerIndex]["completedAt"] = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
 
                     if (currentPlayerIndex + 1 < workFlow.Count)
                     {
@@ -333,7 +333,19 @@ namespace SahayataNidhi.Controllers.Officer
                     string districtShort = districtDetails!.DistrictShort!;
                     int count = GetCountPerDistrict(DistrictId, serviceId);
 
-                    CorrigendumNumber = $"JK-{service.NameShort}-{districtShort}-{(type == "Corrigendum" ? "CRG" : "CRT")}/{finYear}/{count}";
+                    var random = new Random();
+                    var rnd = random.Next(100, 1000); // 100..999
+
+                    string corrigendumNumber = string.Format(
+                        "01{0:D2}{1:D2}{2}{3}{4:D3}{5:D2}",
+                        service.ServiceId,
+                        districtDetails.DistrictId,
+                        type == "Corrigendum" ? "01" : "02",
+                        finYear.Split('-')[1],
+                        rnd,
+                        count
+                    );
+                    CorrigendumNumber = corrigendumNumber;
 
                     var filteredWorkflow = new JArray();
                     foreach (var player in players)

@@ -118,25 +118,39 @@ export async function validateIfscCode(
   value,
   formData,
   referenceNumber,
+  setValue,
 ) {
-  const bankName =
-    formData["BankDetail"] != null
-      ? formData["Bank Details"][0].value
-      : formData.BankName;
-  const ifscCode =
-    formData["BankDetail"] != null
-      ? formData["Bank Details"][2].value
-      : formData.IfscCode;
+  // Access BankName and IfscCode directly from formData
+  const bankName = formData.BankName;
+  const ifscCode = formData.IfscCode;
 
-  const res = await fetch(
-    `/Base/ValidateIfscCode?bankName=${bankName}&ifscCode=${ifscCode}`,
-  );
-
-  const data = await res.json();
-  if (data.status) {
-    return "IFSC Code is incorrect or doesn't belong to the selected Bank.";
+  // Ensure both values exist before making the API call
+  if (!bankName || !ifscCode) {
+    return "Bank Name or IFSC Code is missing.";
   }
-  return true;
+
+  try {
+    const res = await fetch(
+      `/Base/ValidateIfscCode?bankName=${encodeURIComponent(
+        bankName,
+      )}&ifscCode=${ifscCode}`,
+    );
+    const data = await res.json();
+
+    if (!data.status) {
+      return "IFSC Code is incorrect or doesn't belong to the selected Bank.";
+    }
+
+    // Update BranchName if the API returns it
+    if (data.branchName) {
+      setValue("BranchName", data.branchName, { shouldValidate: true });
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error validating IFSC:", error);
+    return "Failed to validate IFSC Code.";
+  }
 }
 
 export async function validateFile(field, value) {
@@ -239,6 +253,7 @@ export const runValidations = async (
   value,
   formData,
   referenceNumber,
+  setValue,
 ) => {
   if (!Array.isArray(field.validationFunctions)) return true;
 
@@ -247,7 +262,13 @@ export const runValidations = async (
     if (typeof fun !== "function") continue;
 
     try {
-      let error = await fun(field, value || "", formData, referenceNumber);
+      let error = await fun(
+        field,
+        value || "",
+        formData,
+        referenceNumber,
+        setValue,
+      );
       if (error !== true) return error;
     } catch (err) {
       return "Validation failed due to an unexpected error.";

@@ -31,6 +31,33 @@ import SaveIcon from "@mui/icons-material/Save";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
 
+const sanitizeActionForm = (actionForm) => {
+  return actionForm.map((field) => {
+    if (field.options) {
+      return {
+        ...field,
+        options: field.options.filter(
+          (opt) =>
+            !opt.label?.toLowerCase().includes("withhold") &&
+            !opt.value?.toLowerCase().includes("withhold"),
+        ),
+        dependentOptions: field.dependentOptions
+          ? Object.fromEntries(
+              Object.entries(field.dependentOptions).map(([key, opts]) => [
+                key,
+                opts.filter(
+                  (opt) =>
+                    !opt.label?.toLowerCase().includes("withhold") &&
+                    !opt.value?.toLowerCase().includes("withhold"),
+                ),
+              ]),
+            )
+          : field.dependentOptions,
+      };
+    }
+    return field;
+  });
+};
 // Button styles
 const buttonStyles = {
   backgroundColor: "primary.main",
@@ -82,7 +109,15 @@ export default function CreateWorkflow() {
     canCorrigendum: false,
     canManageBankFiles: false,
     canWithhold: false,
+    canValidateAadhaar: false, // Added to match PlayerEditModal
     actionForm: [],
+    actionFormOptions: {
+      canSanction: false,
+      canReturnToPlayer: false,
+      canReturnToCitizen: false,
+      canForwardToPlayer: false,
+      canReject: false,
+    },
     prevPlayerId: null,
     nextPlayerId: null,
     status: "",
@@ -97,11 +132,18 @@ export default function CreateWorkflow() {
 
   const getDefaultActionFields = (player) => {
     const actionOptions = [];
-    if (player.canForwardToPlayer) {
+    const optionsConfig = player.actionFormOptions || {
+      canForwardToPlayer: player.canForwardToPlayer,
+      canSanction: player.canSanction,
+      canReturnToPlayer: player.canReturnToPlayer,
+      canReturnToCitizen: player.canReturnToCitizen,
+      canReject: player.canReject,
+    };
+    if (optionsConfig.canForwardToPlayer && player.canForwardToPlayer) {
       let label = "Forward to Player";
       if (player.nextPlayerId !== null) {
         const nextPlayer = players.find(
-          (p) => p.playerId === player.nextPlayerId
+          (p) => p.playerId === player.nextPlayerId,
         );
         if (nextPlayer && nextPlayer.designation) {
           label = `Forward to ${nextPlayer.designation}`;
@@ -109,14 +151,14 @@ export default function CreateWorkflow() {
       }
       actionOptions.push({ value: "Forward", label });
     }
-    if (player.canSanction) {
+    if (optionsConfig.canSanction && player.canSanction) {
       actionOptions.push({ value: "Sanction", label: "Sanction" });
     }
-    if (player.canReturnToPlayer) {
+    if (optionsConfig.canReturnToPlayer && player.canReturnToPlayer) {
       let label = "Return to Player";
       if (player.prevPlayerId !== null) {
         const previousPlayer = players.find(
-          (p) => p.playerId === player.prevPlayerId
+          (p) => p.playerId === player.prevPlayerId,
         );
         if (previousPlayer && previousPlayer.designation) {
           label = `Return to ${previousPlayer.designation}`;
@@ -124,18 +166,16 @@ export default function CreateWorkflow() {
       }
       actionOptions.push({ value: "ReturnToPlayer", label });
     }
-    if (player.canReturnToCitizen) {
+    if (optionsConfig.canReturnToCitizen && player.canReturnToCitizen) {
       actionOptions.push({
         value: "ReturnToCitizen",
         label: "Return to Citizen",
       });
     }
-    if (player.canReject) {
+    if (optionsConfig.canReject && player.canReject) {
       actionOptions.push({ value: "Reject", label: "Reject" });
     }
-    if (player.canWithhold) {
-      actionOptions.push({ value: "Withhold", label: "Withhold" });
-    }
+    // Withhold is not included
     const defaultActionField = {
       id: `default-field-${Date.now()}`,
       type: "select",
@@ -174,7 +214,7 @@ export default function CreateWorkflow() {
         const updatedActionForm = player.actionForm.map((field) => {
           if (field.name === "defaultAction") {
             const newActionField = defaultFields.find(
-              (f) => f.name === "defaultAction"
+              (f) => f.name === "defaultAction",
             );
             if (newActionField) {
               return {
@@ -187,13 +227,13 @@ export default function CreateWorkflow() {
           return field;
         });
         return { ...player, actionForm: updatedActionForm };
-      })
+      }),
     );
   };
 
   const removePlayer = (playerIdToRemove) => {
     const filteredPlayers = players.filter(
-      (player) => player.playerId !== playerIdToRemove
+      (player) => player.playerId !== playerIdToRemove,
     );
     const updatedPlayers = filteredPlayers.map((player, index) => ({
       ...player,
@@ -241,14 +281,14 @@ export default function CreateWorkflow() {
     const updatedPlayers = players.map((player, index) =>
       index === players.length - 1
         ? { ...player, nextPlayerId: newPlayerId }
-        : player
+        : player,
     );
     const newPlayerWithDefaultFields = {
       ...newPlayer,
       playerId: newPlayerId,
       prevPlayerId: newPlayerId > 0 ? newPlayerId - 1 : null,
       nextPlayerId: null,
-      actionForm: getDefaultActionFields(newPlayer),
+      actionForm: sanitizeActionForm(getDefaultActionFields(newPlayer)), // Apply sanitizeActionForm
     };
     setPlayers([...updatedPlayers, newPlayerWithDefaultFields]);
     setNewPlayer({
@@ -263,6 +303,7 @@ export default function CreateWorkflow() {
       canCorrigendum: false,
       canManageBankFiles: false,
       canWithhold: false,
+      canValidateAadhaar: false, // Added to match PlayerEditModal
       actionForm: [],
       status: "",
       completedAt: null,
@@ -297,9 +338,9 @@ export default function CreateWorkflow() {
     try {
       const response = await axiosInstance.post(
         "/Designer/WorkFlowPlayers",
-        formdata
+        formdata,
       );
-      const result = response.data
+      const result = response.data;
       if (result.status) {
         toast.success("Workflow saved successfully!");
       } else {
@@ -336,41 +377,41 @@ export default function CreateWorkflow() {
     // Check for multiple players with exclusive authorities
     if (updatedPlayer.canCorrigendum) {
       const otherCorrigendum = players.find(
-        (p) => p.playerId !== updatedPlayer.playerId && p.canCorrigendum
+        (p) => p.playerId !== updatedPlayer.playerId && p.canCorrigendum,
       );
       if (otherCorrigendum) {
         toast.error(
-          `Another player (${otherCorrigendum.designation}) already has Can Corrigendum authority.`
+          `Another player (${otherCorrigendum.designation}) already has Can Corrigendum authority.`,
         );
         return;
       }
     }
     if (updatedPlayer.canManageBankFiles) {
       const otherBankFiles = players.find(
-        (p) => p.playerId !== updatedPlayer.playerId && p.canManageBankFiles
+        (p) => p.playerId !== updatedPlayer.playerId && p.canManageBankFiles,
       );
       if (otherBankFiles) {
         toast.error(
-          `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`
+          `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`,
         );
         return;
       }
     }
     if (updatedPlayer.canWithhold) {
       const otherWithhold = players.find(
-        (p) => p.playerId !== updatedPlayer.playerId && p.canWithhold
+        (p) => p.playerId !== updatedPlayer.playerId && p.canWithhold,
       );
       if (otherWithhold) {
         toast.error(
-          `Another player (${otherWithhold.designation}) already has Can Withhold authority.`
+          `Another player (${otherWithhold.designation}) already has Can Withhold authority.`,
         );
         return;
       }
     }
     setPlayers((prev) =>
       prev.map((p) =>
-        p.playerId === updatedPlayer.playerId ? updatedPlayer : p
-      )
+        p.playerId === updatedPlayer.playerId ? updatedPlayer : p,
+      ),
     );
     updateAllDefaultActionFields();
     setIsEditModalOpen(false);

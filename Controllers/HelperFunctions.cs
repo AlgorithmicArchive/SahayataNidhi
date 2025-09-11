@@ -1,4 +1,5 @@
 using System.Dynamic;
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -194,7 +195,7 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SocialW
             Remarks = Remarks,
             LocationLevel = LocationLevel,
             LocationValue = LocationValue,
-            ActionTakenDate = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
+            ActionTakenDate = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture)
         };
         dbcontext.ActionHistories.Add(history);
         dbcontext.SaveChanges();
