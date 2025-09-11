@@ -38,6 +38,7 @@ import { CSS } from "@dnd-kit/utilities";
 import axiosInstance from "../../axiosConfig";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import JSON5 from "json5";
 
 // SortableItem component for draggable rows
 const SortableItem = ({ id, children }) => {
@@ -114,6 +115,10 @@ const CreateDynamicReportUI = () => {
     fields: [],
   });
 
+  // New: config modal state
+  const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [configInput, setConfigInput] = useState("");
+
   // Fetch services
   useEffect(() => {
     const fetchServices = async () => {
@@ -150,6 +155,9 @@ const CreateDynamicReportUI = () => {
     fetchFormElements();
   }, [selectedServiceId]);
 
+  // -----------------
+  // Modal Section Management
+  // -----------------
   const openModalForAddSection = () => {
     setModalSectionIndex(-1);
     setModalSectionData({ sectionName: "", fields: [] });
@@ -214,7 +222,9 @@ const CreateDynamicReportUI = () => {
     setSections(sections.filter((_, i) => i !== index));
   };
 
-  // Normal Group Columns
+  // -----------------
+  // Group & Select Columns
+  // -----------------
   const addNormalGroupCol = () => setNormalGroupCols([...normalGroupCols, ""]);
   const updateNormalGroupCol = (index, value) => {
     const updated = [...normalGroupCols];
@@ -224,7 +234,6 @@ const CreateDynamicReportUI = () => {
   const removeNormalGroupCol = (index) =>
     setNormalGroupCols(normalGroupCols.filter((_, i) => i !== index));
 
-  // Select Columns
   const addSelectCol = () => setSelectCols([...selectCols, ""]);
   const updateSelectCol = (index, value) => {
     const updated = [...selectCols];
@@ -234,7 +243,9 @@ const CreateDynamicReportUI = () => {
   const removeSelectCol = (index) =>
     setSelectCols(selectCols.filter((_, i) => i !== index));
 
-  // Column order for drag/drop
+  // -----------------
+  // Column Order (Drag/drop)
+  // -----------------
   const possibleColumns = useMemo(() => {
     const jsonAliases = sections.flatMap((s) =>
       s.fields.map((f) => f.alias).filter((a) => a),
@@ -262,7 +273,9 @@ const CreateDynamicReportUI = () => {
   const removeColumnOrder = (index) =>
     setColumnOrder(columnOrder.filter((_, i) => i !== index));
 
-  // Generate parameters for API
+  // -----------------
+  // Generate Params (to JSON)
+  // -----------------
   const generateParams = () => {
     const sectionsStr = sections.map((s) => s.sectionName).join(",");
     const fieldsStr = sections
@@ -294,9 +307,65 @@ const CreateDynamicReportUI = () => {
     };
   };
 
-  const handleGenerateJson = () =>
-    console.log(JSON.stringify(generateParams(), null, 2));
+  // -----------------
+  // Config Modal (Load/Save JSON)
+  // -----------------
+  const loadConfigFromJson = (jsonString) => {
+    try {
+      const parsed = JSON5.parse(jsonString);
 
+      setTable(parsed.table || "");
+      setJsonColumn(parsed.jsonColumn || "");
+      setSections(
+        parsed.Sections
+          ? parsed.Sections.split(",").map((sec, idx) => ({
+              sectionName: sec,
+              fields:
+                (parsed.Fields || "")
+                  .split(";")
+                  [idx]?.split(",")
+                  .filter((f) => f)
+                  .map((pair) => {
+                    const [alias, source] = pair.split("|");
+                    return { alias, source: source || alias };
+                  }) || [],
+            }))
+          : [],
+      );
+      setNormalGroupCols(
+        parsed.NormalGroupCols?.split(",").filter(Boolean) || [],
+      );
+      setSelectCols(parsed.SelectCols?.split(",").filter(Boolean) || []);
+      setFilters(parsed.filters || "1=1");
+      setNormalFilters(parsed.NormalFilters || "");
+      setReturnMode(parsed.ReturnMode || "COUNT");
+      setPageIndex(parsed.PageIndex || 0);
+      setPageSize(parsed.PageSize || null);
+      setServiceId(parsed.ServiceId || null);
+      setAccessLevel(parsed.AccessLevel || "All");
+      setAccessCode(parsed.AccessCode || null);
+      setColumnOrder(parsed.ColumnOrder?.split(",").filter(Boolean) || []);
+
+      toast.success("Config loaded successfully!");
+    } catch (error) {
+      console.error("Invalid config JSON:", error);
+      toast.error("Invalid config JSON.");
+    }
+  };
+
+  const openConfigModal = () => {
+    setConfigInput(JSON.stringify(generateParams(), null, 2));
+    setConfigModalOpen(true);
+  };
+
+  const saveConfigModal = () => {
+    loadConfigFromJson(configInput);
+    setConfigModalOpen(false);
+  };
+
+  // -----------------
+  // Save Report
+  // -----------------
   const saveReport = async () => {
     if (!selectedServiceId) {
       toast.error("Please select a service first.");
@@ -509,15 +578,10 @@ const CreateDynamicReportUI = () => {
               Normal Group Columns
             </Typography>
             {normalGroupCols.map((col, index) => (
-              <Box
-                key={index}
-                sx={{ display: "flex", alignItems: "center", mb: 2 }}
-              >
-                <FormControl fullWidth sx={{ mr: 2 }}>
-                  <InputLabel>{`Column ${index + 1}`}</InputLabel>
+              <Box key={index} sx={{ display: "flex", mb: 2 }}>
+                <FormControl fullWidth>
                   <Select
                     value={col}
-                    label={`Column ${index + 1}`}
                     onChange={(e) =>
                       updateNormalGroupCol(index, e.target.value)
                     }
@@ -542,7 +606,7 @@ const CreateDynamicReportUI = () => {
               onClick={addNormalGroupCol}
               sx={{ mb: 4 }}
             >
-              Add Normal Group Column
+              Add Group Column
             </Button>
 
             {/* Select Columns */}
@@ -550,15 +614,10 @@ const CreateDynamicReportUI = () => {
               Select Columns
             </Typography>
             {selectCols.map((col, index) => (
-              <Box
-                key={index}
-                sx={{ display: "flex", alignItems: "center", mb: 2 }}
-              >
-                <FormControl fullWidth sx={{ mr: 2 }}>
-                  <InputLabel>{`Column ${index + 1}`}</InputLabel>
+              <Box key={index} sx={{ display: "flex", mb: 2 }}>
+                <FormControl fullWidth>
                   <Select
                     value={col}
-                    label={`Column ${index + 1}`}
                     onChange={(e) => updateSelectCol(index, e.target.value)}
                   >
                     {columnNames.map((colName) => (
@@ -586,8 +645,8 @@ const CreateDynamicReportUI = () => {
             </Typography>
             <Button
               variant="outlined"
-              onClick={loadPossibleColumns}
               sx={{ mb: 2 }}
+              onClick={loadPossibleColumns}
             >
               Load Possible Columns
             </Button>
@@ -607,15 +666,16 @@ const CreateDynamicReportUI = () => {
                         sx={{
                           display: "flex",
                           alignItems: "center",
-                          p: 2,
+                          p: 1,
                           bgcolor: "grey.50",
                           borderRadius: 1,
-                          mb: 2,
+                          mb: 1,
                         }}
                       >
-                        <IconButton {...listeners} sx={{ cursor: "grab" }}>
-                          <DragIndicator />
-                        </IconButton>
+                        <DragIndicator
+                          sx={{ cursor: "grab", mr: 1 }}
+                          {...listeners}
+                        />
                         <Typography sx={{ flex: 1 }}>{col}</Typography>
                         <IconButton
                           onClick={() => removeColumnOrder(index)}
@@ -630,13 +690,21 @@ const CreateDynamicReportUI = () => {
               </SortableContext>
             </DndContext>
 
-            <Box sx={{ display: "flex", gap: 2 }}>
+            {/* Buttons */}
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 2 }}>
               <Button
                 variant="contained"
                 color="primary"
-                onClick={handleGenerateJson}
+                onClick={() => console.log("Generated JSON:", generateParams())}
               >
                 Generate JSON
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={openConfigModal}
+              >
+                Load Config
               </Button>
               <Button variant="contained" color="success" onClick={saveReport}>
                 Save Report
@@ -644,99 +712,119 @@ const CreateDynamicReportUI = () => {
             </Box>
           </Col>
 
-          {/* Preview */}
+          {/* Preview Panel */}
           <Col md={6}>
-            <Typography
-              variant="h5"
-              sx={{ color: "grey.800", mb: 2, fontWeight: "bold" }}
-            >
-              Preview
-            </Typography>
             <Preview generateParams={generateParams} />
           </Col>
         </Row>
+      </Container>
 
-        {/* Modal for Section */}
-        <Modal open={modalOpen} onClose={closeModal}>
-          <Box
-            sx={{
-              bgcolor: "white",
-              p: 4,
-              borderRadius: 2,
-              maxWidth: 500,
-              mx: "auto",
-              mt: "20px",
-              boxShadow: 24,
-              maxHeight: "80vh",
-              overflowY: "auto",
-            }}
-          >
-            <Typography variant="h5" sx={{ mb: 3 }}>
-              Configure Section
-            </Typography>
-            <TextField
-              label="Section Name"
-              value={modalSectionData.sectionName}
-              onChange={(e) => updateSectionName(e.target.value)}
-              fullWidth
-              sx={{ mb: 3 }}
-            />
-            <Typography variant="subtitle1" sx={{ mb: 2 }}>
-              Fields
-            </Typography>
-            {modalSectionData.fields.map((field, index) => (
-              <Box
-                key={index}
-                sx={{ display: "flex", alignItems: "center", mb: 2 }}
-              >
-                <TextField
-                  label="Alias"
-                  value={field.alias}
-                  onChange={(e) => updateFieldAlias(index, e.target.value)}
-                  sx={{ width: "40%", mr: 2 }}
-                />
-                <FormControl sx={{ width: "40%", mr: 2 }}>
-                  <InputLabel>Source</InputLabel>
-                  <Select
-                    value={field.source}
-                    label="Source"
-                    onChange={(e) => updateFieldSource(index, e.target.value)}
-                  >
-                    <MenuItem value="" disabled>
-                      Select Source
+      {/* Section Modal */}
+      <Modal open={modalOpen} onClose={closeModal}>
+        <Box
+          sx={{
+            bgcolor: "white",
+            p: 4,
+            borderRadius: 2,
+            maxWidth: 600,
+            mx: "auto",
+            mt: "20px",
+            boxShadow: 24,
+          }}
+        >
+          <Typography variant="h5" sx={{ mb: 2 }}>
+            {modalSectionIndex === -1 ? "Add Section" : "Edit Section"}
+          </Typography>
+          <TextField
+            label="Section Name"
+            value={modalSectionData.sectionName}
+            onChange={(e) => updateSectionName(e.target.value)}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+          {modalSectionData.fields.map((field, index) => (
+            <Box key={index} sx={{ display: "flex", mb: 2 }}>
+              <TextField
+                label="Alias"
+                value={field.alias}
+                onChange={(e) => updateFieldAlias(index, e.target.value)}
+                sx={{ mr: 2 }}
+              />
+              <FormControl sx={{ flex: 1 }}>
+                <InputLabel>Source</InputLabel>
+                <Select
+                  value={field.source}
+                  label="Source"
+                  onChange={(e) => updateFieldSource(index, e.target.value)}
+                >
+                  {formFields.map((ff) => (
+                    <MenuItem key={ff} value={ff}>
+                      {ff}
                     </MenuItem>
-                    {formFields.map((formField) => (
-                      <MenuItem key={formField} value={formField}>
-                        {formField}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <IconButton onClick={() => removeField(index)} color="error">
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            ))}
+                  ))}
+                </Select>
+              </FormControl>
+              <IconButton onClick={() => removeField(index)} color="error">
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          ))}
+          <Button onClick={addField} sx={{ mb: 2 }}>
+            Add Field
+          </Button>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+            <Button variant="outlined" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button variant="contained" onClick={saveModal}>
+              Save
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Config Modal */}
+      <Modal open={configModalOpen} onClose={() => setConfigModalOpen(false)}>
+        <Box
+          sx={{
+            bgcolor: "white",
+            p: 4,
+            borderRadius: 2,
+            maxWidth: 700,
+            mx: "auto",
+            mt: "20px",
+            boxShadow: 24,
+            maxHeight: "80vh",
+            overflowY: "auto",
+          }}
+        >
+          <Typography variant="h5" sx={{ mb: 2 }}>
+            Load / Edit Config JSON
+          </Typography>
+          <TextField
+            multiline
+            rows={20}
+            fullWidth
+            value={configInput}
+            onChange={(e) => setConfigInput(e.target.value)}
+            sx={{ mb: 3 }}
+            variant="outlined"
+          />
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
             <Button
               variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={addField}
-              sx={{ mb: 3 }}
+              onClick={() => setConfigModalOpen(false)}
             >
-              Add Field
+              Cancel
             </Button>
-            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-              <Button variant="outlined" onClick={closeModal}>
-                Cancel
-              </Button>
-              <Button variant="contained" onClick={saveModal}>
-                Save
-              </Button>
-            </Box>
+            <Button variant="contained" onClick={saveConfigModal}>
+              Load Config
+            </Button>
           </Box>
-        </Modal>
-      </Container>
-      <ToastContainer position="top-right" autoClose={3000} />
+        </Box>
+      </Modal>
+
+      <ToastContainer />
     </Box>
   );
 };

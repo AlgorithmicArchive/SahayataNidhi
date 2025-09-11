@@ -1,0 +1,67 @@
+[
+  {
+    isJson: false,
+    column: "ReferenceNumber",
+    AS: "Reference Number",
+    section: null,
+    property: null,
+    condition: {
+      nameType: "column",
+      valueType: "static",
+      name: "DataType",
+      value: "new",
+    },
+  },
+  {
+    isJson: true,
+    column: "FormDetails",
+    AS: "Applicant Name",
+    section: "Applicant Details",
+    property: "value",
+    condition: {
+      nameType: "json",
+      valueType: "static",
+      name: "name",
+      value: "ApplicantName",
+    },
+  },
+  {
+    isJson: true,
+    column: "FormDetails",
+    AS: "Date Of Birth",
+    section: "Applicant Details",
+    property: "value",
+    condition: {
+      nameType: "json",
+      valueType: "static",
+      name: "name",
+      value: "DateOfBirth",
+    },
+  },
+  {
+    isJson: true,
+    column: "FormDetails",
+    AS: "Gender",
+    section: "Applicant Details",
+    property: "value",
+    condition: {
+      nameType: "json",
+      valueType: "static",
+      name: "name",
+      value: "Gender",
+    },
+  },
+  {
+    isJson: true,
+    column: "WorkFlow",
+    AS: "Currently With",
+    section: null,
+    property: "designation",
+    condition: {
+      nameType: "json",
+      valueType: "column",
+      name: "playerId",
+      value: "CurrentPlayer",
+    },
+  },
+];

@@ -1,4 +1,6 @@
+using System.Data;
 using System.Dynamic;
+using System.Globalization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -71,9 +73,10 @@ namespace SahayataNidhi.Controllers
                     return string.Empty;
             }
         }
-        public string GetApplications(string? scope, string? columnOrder, string? columnVisibility, int ServiceId, string? type, int pageIndex = 0, int pageSize = 10)
+        public string GetApplications(string? scope, string? columnOrder, string? columnVisibility, int ServiceId, string? type, int pageIndex = 0, int pageSize = 10, string dataType = "new")
         {
             var officerDetails = GetOfficerDetails();
+
             var role = new SqlParameter("@Role", officerDetails!.Role);
             var accessLevel = new SqlParameter("@AccessLevel", officerDetails.AccessLevel);
             var accessCode = new SqlParameter("@AccessCode", officerDetails.AccessCode);
@@ -81,7 +84,8 @@ namespace SahayataNidhi.Controllers
             var serviceId = new SqlParameter("@ServiceId", ServiceId);
             var pageIndexParam = new SqlParameter("@PageIndex", pageIndex);
             var pageSizeParam = new SqlParameter("@PageSize", pageSize);
-            var isPaginated = new SqlParameter("@IsPaginated", scope == "InView" ? 1 : 0);
+            var isPaginated = new SqlParameter("@IsPaginated", scope == "InView");
+            var dataTypeParam = new SqlParameter("@DataType", (object?)dataType ?? DBNull.Value);
             var totalRecordsParam = new SqlParameter
             {
                 ParameterName = "@TotalRecords",
@@ -92,21 +96,26 @@ namespace SahayataNidhi.Controllers
             List<CitizenApplication> response;
 
             var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == ServiceId);
-            var workflow = JsonConvert.DeserializeObject<List<dynamic>>(service!.OfficerEditableField!);
+            if (service == null) return JsonConvert.SerializeObject(new { data = new List<dynamic>(), columns = new List<dynamic>(), poolData = new List<dynamic>(), totalRecords = 0 });
+
+            var workflow = JsonConvert.DeserializeObject<List<dynamic>>(service.OfficerEditableField!);
             dynamic authorities = workflow!.FirstOrDefault(p => p.designation == officerDetails.Role)!;
 
             if (type == "shifted")
             {
                 response = dbcontext.CitizenApplications
-                   .FromSqlRaw("EXEC GetShiftedApplications @Role, @AccessLevel, @AccessCode, @ServiceId",
-                       role, accessLevel, accessCode, serviceId)
-                   .ToList();
+                    .FromSqlRaw("EXEC GetShiftedApplications @Role, @AccessLevel, @AccessCode, @ServiceId",
+                                role, accessLevel, accessCode, serviceId)
+                    .ToList();
             }
             else
             {
                 response = dbcontext.CitizenApplications
-                    .FromSqlRaw("EXEC GetApplicationsForOfficer @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
-                        role, accessLevel, accessCode, applicationStatus, serviceId, pageIndexParam, pageSizeParam, isPaginated, totalRecordsParam)
+                    .FromSqlRaw(
+                        "EXEC GetApplicationsForOfficer @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @TotalRecords OUTPUT",
+                        role, accessLevel, accessCode, applicationStatus, serviceId,
+                        pageIndexParam, pageSizeParam, isPaginated, dataTypeParam, totalRecordsParam
+                    )
                     .ToList();
             }
 
@@ -116,26 +125,46 @@ namespace SahayataNidhi.Controllers
             var orderedColumns = JsonConvert.DeserializeObject<List<string>>(columnOrder ?? "[]")!;
             var visibility = JsonConvert.DeserializeObject<Dictionary<string, bool>>(columnVisibility ?? "{}")!;
 
-            // Basic available columns
-            List<dynamic> columns =
-            [
+            // Base columns
+            List<dynamic> baseColumns = new List<dynamic>
+            {
+                new { accessorKey = "sno", header = "S.No" },
                 new { accessorKey = "referenceNumber", header = "Reference Number" },
                 new { accessorKey = "applicantName", header = "Applicant Name" },
-                new { accessorKey = "submissionDate", header = "Submission Date" }
-            ];
+                new { accessorKey = "serviceName", header = "Service Name" },
+                new { accessorKey = "status", header = "Application Status" },
+                new { accessorKey = "submissionDate", header = "Citizen Submission Date" },
+                new { accessorKey = "actionTakenOn", header = "Action Taken On" },
+                new { accessorKey = "customActions", header = "Actions" }
+            };
 
-            var filteredColumns = orderedColumns
-                .Where(key => visibility.TryGetValue(key, out var isVisible) && isVisible)
-                .Select(key =>
-                    columns.FirstOrDefault(col =>
-                        col.GetType().GetProperty("accessorKey")?.GetValue(col)?.ToString() == key
-                    )
-                )
-                .Where(col => col != null)
-                .ToList();
+            // Apply ordering and visibility
+            List<dynamic> filteredColumns = new List<dynamic>();
+            if (orderedColumns.Count > 0)
+            {
+                foreach (var key in orderedColumns)
+                {
+                    if (visibility.TryGetValue(key, out var isVisible) && isVisible)
+                    {
+                        var col = baseColumns.FirstOrDefault(c => c.accessorKey == key);
+                        if (col != null) filteredColumns.Add(col);
+                    }
+                }
+            }
+            else
+            {
+                // Ensure 'visibility' is strongly typed
+                var visibilityDict = visibility as Dictionary<string, bool> ?? new Dictionary<string, bool>();
 
-            List<dynamic> data = [];
-            List<dynamic> poolData = [];
+                // Filter columns based on visibility
+                filteredColumns = baseColumns
+                    .Where(c => !visibilityDict.TryGetValue(c.accessorKey, out bool isVisible) || isVisible)
+                    .ToList();
+
+            }
+
+            List<dynamic> data = new List<dynamic>();
+            List<dynamic> poolData = new List<dynamic>();
 
             var poolList = dbcontext.Pools.FirstOrDefault(p =>
                 p.ServiceId == ServiceId &&
@@ -147,36 +176,56 @@ namespace SahayataNidhi.Controllers
                 ? JsonConvert.DeserializeObject<List<string>>(poolList.List)
                 : new List<string>();
 
+            int snoCounter = (pageIndex * pageSize) + 1;
+
             foreach (var details in response)
             {
                 var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails!);
+                var officers = JsonConvert.DeserializeObject<JArray>(details.WorkFlow!);
+                var currentPlayer = details.CurrentPlayer;
+
+                var latestHistory = dbcontext.ActionHistories
+                    .Where(h => h.ReferenceNumber == details.ReferenceNumber)
+                    .AsEnumerable()
+                    .OrderByDescending(h => DateTime.ParseExact(h.ActionTakenDate, "dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture))
+                    .FirstOrDefault();
+
+                var parsedDate = latestHistory != null
+                    ? DateTime.ParseExact(latestHistory.ActionTakenDate, "dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture)
+                    : DateTime.MinValue;
+
+                // Custom Actions logic (simplified)
+                var customActions = new List<dynamic>();
+                if (type == "forwarded" || type == "returned" || type == "returntoedit")
+                {
+                    dynamic currentOfficer = officers!.FirstOrDefault(o => (string)o["designation"]! == officerDetails.Role)!;
+                    if (currentOfficer?["canPull"] != null && (bool)currentOfficer!["canPull"]!)
+                    {
+                        customActions.Add(new { type = "Pull", tooltip = "Pull", color = "#F0C38E", actionFunction = "pullApplication" });
+                    }
+                }
+
                 var item = new ExpandoObject() as IDictionary<string, object?>;
 
-                var columnKeys = filteredColumns
-                    .Select(col => col!.GetType().GetProperty("accessorKey")?.GetValue(col)?.ToString())
-                    .Where(key => !string.IsNullOrEmpty(key))
-                    .ToHashSet();
-
-                if (columnKeys.Contains("referenceNumber"))
-                    item["referenceNumber"] = details.ReferenceNumber;
-
-                if (columnKeys.Contains("applicantName"))
-                    item["applicantName"] = GetFieldValue("ApplicantName", formDetails);
-
-                if (columnKeys.Contains("submissionDate"))
-                    item["submissionDate"] = details.CreatedAt;
+                foreach (var col in filteredColumns)
+                {
+                    switch ((string)col.accessorKey)
+                    {
+                        case "sno": item["sno"] = snoCounter++; break;
+                        case "referenceNumber": item["referenceNumber"] = details.ReferenceNumber; break;
+                        case "applicantName": item["applicantName"] = GetFieldValue("ApplicantName", formDetails); break;
+                        case "serviceName": item["serviceName"] = dbcontext.Services.FirstOrDefault(s => s.ServiceId == details.ServiceId)?.ServiceName; break;
+                        case "status": item["status"] = details.Status; break;
+                        case "submissionDate": item["submissionDate"] = details.CreatedAt; break;
+                        case "actionTakenOn": item["actionTakenOn"] = parsedDate == DateTime.MinValue ? null : parsedDate.ToString("dd MMM yyyy hh:mm:ss tt"); break;
+                        case "customActions": item["customActions"] = customActions; break;
+                    }
+                }
 
                 if (type == "shifted")
-                {
                     data.Add(item);
-                }
                 else
-                {
-                    if (pool!.Contains(details.ReferenceNumber) && type == "pending")
-                        poolData.Add(item);
-                    else
-                        data.Add(item);
-                }
+                    (pool!.Contains(details.ReferenceNumber) && type == "pending" ? poolData : data).Add(item);
             }
 
             var result = Json(new
@@ -184,11 +233,13 @@ namespace SahayataNidhi.Controllers
                 data,
                 columns = filteredColumns,
                 poolData,
-                totalRecords
+                totalRecords,
+                canSanction = authorities?.canSanction ?? false
             });
 
             return JsonConvert.SerializeObject(result);
         }
+
         public async Task<string> GetApplicationHistory(string? scope, string? columnOrder, string? columnVisibility, string ApplicationId, int page, int size)
         {
             var application = await dbcontext.CitizenApplications.FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
@@ -286,18 +337,24 @@ namespace SahayataNidhi.Controllers
             var UserId = new SqlParameter("@UserId", Convert.ToInt32(userIdClaim));
             var PageIndex = new SqlParameter("@PageIndex", pageIndex);
             var PageSize = new SqlParameter("@PageSize", pageSize);
-            var IsPaginated = new SqlParameter("@IsPaginated", 1);
+            var IsPaginated = new SqlParameter("@IsPaginated", scope == "InView");
 
-            // Ensure that you filter by the correct "Initiated" status
-            var applications = dbcontext.CitizenApplications.FromSqlRaw("EXEC GetInitiatedApplications @UserId, @PageIndex, @PageSize, @IsPaginated", UserId, PageIndex, PageSize, IsPaginated).ToList();
+            var TotalRecords = new SqlParameter("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
-            var totalRecords = applications.Count;
+            // Execute stored procedure
+            var applications = dbcontext.CitizenApplications
+                .FromSqlRaw("EXEC GetInitiatedApplications @UserId, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
+                    UserId, PageIndex, PageSize, IsPaginated, TotalRecords)
+                .ToList();
+
+            // Retrieve the total record count from the output
+            int totalRecords = TotalRecords.Value != DBNull.Value ? Convert.ToInt32(TotalRecords.Value) : 0;
 
             var sortedApplications = applications
                 .ToList();
 
             var pagedApplications = (scope == "InView")
-                ? sortedApplications.Skip(pageIndex * pageSize).Take(pageSize).ToList()
+                ? [.. sortedApplications.Skip(pageIndex * pageSize).Take(pageSize)]
                 : sortedApplications;
 
             var columns = new List<dynamic>
@@ -397,7 +454,7 @@ namespace SahayataNidhi.Controllers
             return JsonConvert.SerializeObject(result);
         }
 
-        
+
         [HttpPost]
         public IActionResult ExportData([FromForm] IFormCollection form)
         {

@@ -73,44 +73,46 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = $"Error toggling web service: {ex.Message}" });
             }
         }
+
         [HttpPost]
         public IActionResult SaveWebService([FromForm] IFormCollection form)
         {
             try
             {
                 var webServiceId = form["webServiceId"].ToString();
-                var serviceId = form["serviceId"];
-                var webServiceName = form["webServiceName"];
+                var serviceId = form["serviceId"].ToString();
+                var webServiceName = form["webServiceName"].ToString();
                 var apiEndPoint = form["apiEndPoint"].ToString();
                 var onAction = form["onAction"].ToString(); // JSON string
                 var fieldMappings = form["fieldMappings"].ToString(); // JSON string
                 var createdAt = form["createdAt"].ToString();
                 var updatedAt = form["updatedAt"].ToString();
 
-                // Validate serviceId
-                int parsedWebServiceId = Convert.ToInt32(webServiceId);
-
                 WebService webService;
 
-                // Check if webServiceId is provided and valid
-                if (!string.IsNullOrEmpty(webServiceId))
+                // Try parse webServiceId
+                if (int.TryParse(webServiceId, out int parsedWebServiceId))
                 {
-                    // Try to find existing web service by WebServiceId
+                    // Update existing web service
                     webService = dbcontext.WebServices
                         .FirstOrDefault(ws => ws.Id == parsedWebServiceId && ws.IsActive)!;
 
                     if (webService != null)
                     {
+                        webService.ServiceId = Convert.ToInt32(serviceId); // ✅ ensure FK is set
                         webService.WebServiceName = webServiceName;
                         webService.ApiEndPoint = apiEndPoint;
                         webService.OnAction = onAction;
                         webService.FieldMappings = fieldMappings;
-                        webService.UpdatedAt = updatedAt; // Update timestamp
-                        // CreatedAt remains unchanged
+                        webService.UpdatedAt = updatedAt;
                     }
                     else
                     {
-                        return Json(new { status = false, message = "Web service not found for the provided WebServiceId" });
+                        return Json(new
+                        {
+                            status = false,
+                            message = "Web service not found for the provided WebServiceId"
+                        });
                     }
                 }
                 else
@@ -118,6 +120,7 @@ namespace SahayataNidhi.Controllers
                     // Create new web service
                     webService = new WebService
                     {
+                        ServiceId = Convert.ToInt32(serviceId), // ✅ set FK
                         WebServiceName = webServiceName,
                         ApiEndPoint = apiEndPoint,
                         OnAction = onAction,
@@ -126,6 +129,7 @@ namespace SahayataNidhi.Controllers
                         UpdatedAt = updatedAt,
                         IsActive = true
                     };
+
                     dbcontext.WebServices.Add(webService);
                 }
 
@@ -134,13 +138,20 @@ namespace SahayataNidhi.Controllers
                 return Json(new
                 {
                     status = true,
-                    message = webServiceId != "" ? "Web service configuration updated successfully" : "Web service configuration saved successfully",
-                    webServiceId = webService.Id,
+                    message = string.IsNullOrEmpty(webServiceId)
+                        ? "Web service configuration saved successfully"
+                        : "Web service configuration updated successfully",
+                    webServiceId = webService.Id
                 });
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, message = "Failed to save configuration", error = ex.Message });
+                return Json(new
+                {
+                    status = false,
+                    message = "Failed to save configuration",
+                    error = ex.Message
+                });
             }
         }
         [HttpPost]
@@ -342,7 +353,7 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpPost]
-        [HttpPost]
+       
         public IActionResult SaveDocumentFields([FromForm] IFormCollection form)
         {
             int serviceId = Convert.ToInt32(form["serviceId"].ToString());

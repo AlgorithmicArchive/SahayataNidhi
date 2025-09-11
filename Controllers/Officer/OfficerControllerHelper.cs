@@ -824,7 +824,7 @@ namespace SahayataNidhi.Controllers.Officer
                     count = counts.SanctionedCount,
                     bgColor = "#81C784",
                     textColor = "#1B5E20",
-                    tableTitle = "Rejected Applications",
+                    tableTitle = "Sanctioned Applications",
                 });
             }
 

@@ -18,9 +18,9 @@ import { Row, Col } from "react-bootstrap";
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { toast, ToastContainer } from "react-toastify";
-import axiosInstance from "../../axiosConfig"; // Assuming axiosInstance is available
-import ReactQuill from "react-quill"; // Import react-quill
-import "react-quill/dist/quill.snow.css"; // Import quill styles
+import axiosInstance from "../../axiosConfig";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 export default function EmailManager() {
   const [tabValue, setTabValue] = useState(0);
@@ -40,10 +40,10 @@ export default function EmailManager() {
     const [template, setTemplate] = useState("");
     const [htmlOutput, setHtmlOutput] = useState("");
 
-    // Dummy data for preview (mimicking backend data, to be replaced with API)
+    // Dummy data for preview (replace with actual API data if available)
     const dummyServiceDetails = {};
 
-    // Fetch services and form fields
+    // Fetch services
     useEffect(() => {
       const fetchServices = async () => {
         try {
@@ -62,34 +62,72 @@ export default function EmailManager() {
       fetchServices();
     }, []);
 
+    // Fetch form fields and email template when service or letter type changes
     useEffect(() => {
-      if (selectedServiceId) {
-        const fetchFormFields = async () => {
-          try {
-            const response = await axiosInstance.get(
-              "/Designer/GetFormElementsForEmail",
-              {
-                params: { serviceId: selectedServiceId },
-              }
-            );
-            setFormFields(response.data.names || []);
-          } catch (error) {
-            console.error("Error fetching form fields:", error);
-            toast.error("Failed to load form fields.");
-          }
-        };
-
-        fetchFormFields();
-        setServiceDetails(dummyServiceDetails); // Simulate service details (replace with API if available)
-      } else {
+      if (!selectedServiceId) {
         setFormFields([]);
         setServiceDetails({});
+        setSelectedLetterType("");
+        setTemplate("");
+        setHtmlOutput("");
+        return;
       }
-    }, [selectedServiceId]);
+
+      const fetchFormFields = async () => {
+        try {
+          const response = await axiosInstance.get(
+            "/Designer/GetFormElementsForEmail",
+            {
+              params: { serviceId: selectedServiceId },
+            },
+          );
+          setFormFields(response.data.names || []);
+        } catch (error) {
+          console.error("Error fetching form fields:", error);
+          toast.error("Failed to load form fields.");
+        }
+      };
+
+      const fetchEmailTemplate = async () => {
+        if (!selectedLetterType) {
+          setTemplate("");
+          setHtmlOutput("");
+          return;
+        }
+        try {
+          const response = await axiosInstance.get(
+            "/Designer/GetEmailTemplate",
+            {
+              params: {
+                serviceId: selectedServiceId,
+                type: selectedLetterType,
+              },
+            },
+          );
+          if (response.data.status) {
+            setTemplate(response.data.template || "");
+            toast.success("Email template loaded successfully.");
+          } else {
+            setTemplate("");
+            toast.info("No existing template found for this service and type.");
+          }
+        } catch (error) {
+          console.error("Error fetching email template:", error);
+          setTemplate("");
+          toast.error("Failed to load email template.");
+        }
+      };
+
+      fetchFormFields();
+      setServiceDetails(dummyServiceDetails); // Replace with actual API if available
+      if (selectedLetterType) {
+        fetchEmailTemplate();
+      }
+    }, [selectedServiceId, selectedLetterType]);
 
     const insertVariable = (variable) => {
-      const cursorPosition =
-        document.querySelector(".ql-editor").selectionStart || template.length;
+      const quillEditor = document.querySelector(".ql-editor");
+      const cursorPosition = quillEditor?.selectionStart || template.length;
       setTemplate((prev) => {
         return (
           prev.slice(0, cursorPosition) +
@@ -109,10 +147,10 @@ export default function EmailManager() {
       allVariables.forEach((variable) => {
         output = output.replace(
           new RegExp(`{${variable}}`, "g"),
-          dummyServiceDetails[variable] || `{${variable}}`
+          dummyServiceDetails[variable] || `{${variable}}`,
         );
       });
-      const currentDate = new Date("2025-07-15T13:41:00+05:30"); // 01:41 PM IST, July 15, 2025
+      const currentDate = new Date("2025-07-15T13:41:00+05:30");
       const formattedDate = currentDate.toLocaleString("en-US", {
         day: "2-digit",
         month: "short",
@@ -124,7 +162,6 @@ export default function EmailManager() {
       });
       output = output.replace(new RegExp("{Date}", "g"), formattedDate);
 
-      // Ensure output is valid HTML
       const html = `
         <div style='font-family: Arial, sans-serif;'>
           ${output}
@@ -137,14 +174,32 @@ export default function EmailManager() {
     };
 
     const handleSaveTemplate = async () => {
-      const formdata = new FormData();
-      formdata.append("type", selectedLetterType);
-      formdata.append("template", template);
-      const response = await axiosInstance.post(
-        "/Designer/SaveEmailTemplate",
-        formdata
-      );
-      console.log(response.data);
+      if (!selectedServiceId || !selectedLetterType || !template) {
+        toast.error(
+          "Please select a service, email type, and enter a template.",
+        );
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("serviceId", selectedServiceId);
+      formData.append("type", selectedLetterType);
+      formData.append("template", template);
+
+      try {
+        const response = await axiosInstance.post(
+          "/Designer/SaveEmailTemplate",
+          formData,
+        );
+        if (response.data.status) {
+          toast.success("Email template saved successfully!");
+        } else {
+          toast.error("Failed to save email template.");
+        }
+      } catch (error) {
+        console.error("Error saving email template:", error);
+        toast.error("An error occurred while saving the email template.");
+      }
     };
 
     return (
@@ -188,7 +243,7 @@ export default function EmailManager() {
                 disabled={!selectedServiceId}
               >
                 <MenuItem value="" disabled>
-                  Select a Email Type
+                  Select an Email Type
                 </MenuItem>
                 <MenuItem value="Submission">Application Submission</MenuItem>
                 <MenuItem value="OfficerAction">Officer Action</MenuItem>
@@ -196,8 +251,8 @@ export default function EmailManager() {
             </FormControl>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Template (Use formatting and insert variables like {"FirstName"}
-                , {"OfficerRole"}, {Date})
+                Template (Use formatting and insert variables like{" "}
+                {"{FirstName}"}, {"{OfficerRole}"}, {"{Date}"})
               </Typography>
               <ReactQuill
                 value={template}
@@ -247,7 +302,7 @@ export default function EmailManager() {
                     <MenuItem key={field} value={field}>
                       {field}
                     </MenuItem>
-                  )
+                  ),
                 )}
               </Select>
             </Box>

@@ -192,7 +192,7 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "THE JAMMU AND KASHMIR BANK LTD.",
+          value: "JAMMU AND KASHMIR BANK LIMITED",
         },
         {
           label: "Branch Name",
@@ -414,7 +414,7 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "THE JAMMU AND KASHMIR BANK LTD.",
+          value: "JAMMU AND KASHMIR BANK LIMITED",
         },
         {
           label: "Branch Name",
@@ -615,7 +615,7 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "THE JAMMU AND KASHMIR BANK LTD.",
+          value: "JAMMU AND KASHMIR BANK LIMITED",
         },
         {
           label: "Branch Name",

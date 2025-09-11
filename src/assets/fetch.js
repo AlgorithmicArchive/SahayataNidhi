@@ -251,15 +251,18 @@ export async function fetchUserDetail(
   setActionForm = null,
   setHaspending,
   setCanTakeAction = null,
+  setPrivateFields = null,
 ) {
   const response = await axiosInstance.get("/Officer/GetUserDetails", {
     params: { applicationId: applicationId },
   });
+  console.log("Response", response.data);
   setFormDetails(response.data.list);
   setHaspending(response.data.hasPending);
   if (setActionForm != null)
     setActionForm(response.data.currentOfficerDetails.actionForm);
   if (setCanTakeAction != null) setCanTakeAction(!response.data.isSanctioned);
+  if (setPrivateFields != null) setPrivateFields(response.data.privatedFields);
 }
 
 export async function fetchFormDetails(applicationId) {

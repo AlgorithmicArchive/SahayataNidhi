@@ -249,7 +249,7 @@ export default function HomeScreen() {
               <Col xs={12} sm={6} md={4}>
                 <div ref={card3Ref}>
                   <CustomCard
-                    heading={"JKISSS Pension"}
+                    heading={"JK-ISSS Pension"}
                     discription={
                       "This comprehensive pension program offers financial security to senior citizens, persons with disabilities, women in distress, and transgender individuals. Monthly pension support ensures dignity, inclusion, and sustenance for those in need, contributing to social justice and welfare."
                     }

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
 
@@ -139,6 +140,7 @@ namespace SahayataNidhi.Controllers
         {
             try
             {
+                _logger.LogInformation($"Fetching web service configuration for ServiceId: {serviceId}");
                 var webService = dbcontext.WebServices
                     .FirstOrDefault(ws => ws.ServiceId == serviceId && ws.IsActive);
 
@@ -189,7 +191,7 @@ namespace SahayataNidhi.Controllers
 
                 return Json(new { requiredObj });
             }
-            catch (JsonException ex)
+            catch (Newtonsoft.Json.JsonException ex)
             {
                 return BadRequest($"Invalid JSON format: {ex.Message}");
             }
@@ -301,13 +303,97 @@ namespace SahayataNidhi.Controllers
 
                 return Ok(new { names = allNames });
             }
-            catch (JsonException ex)
+            catch (Newtonsoft.Json.JsonException ex)
             {
                 return BadRequest(new { error = "Failed to parse JSON.", details = ex.Message });
             }
         }
 
+        [HttpGet]
+        public IActionResult GetDocumentFields([FromQuery] int serviceId)
+        {
+            // Validate serviceId
+            if (serviceId <= 0)
+            {
+                return Json(new { status = false, message = "Invalid service ID." });
+            }
 
+            // Fetch the service from the database
+            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
+            if (service == null)
+            {
+                return Json(new { status = false, message = "Service not found." });
+            }
+
+            // Check if DocumentFields exist
+            if (string.IsNullOrEmpty(service.DocumentFields))
+            {
+                return Json(new { status = true, documentFields = new { Correction = new List<string>(), Corrigendum = new List<string>() } });
+            }
+
+            // Deserialize DocumentFields
+            try
+            {
+                var documentFields = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(service.DocumentFields);
+                if (documentFields == null)
+                {
+                    return Json(new { status = true, documentFields = new { Correction = new List<string>(), Corrigendum = new List<string>() } });
+                }
+
+                // Ensure Correction and Corrigendum keys exist
+                var responseFields = new
+                {
+                    Correction = documentFields.ContainsKey("Correction") ? documentFields["Correction"] : new List<string>(),
+                    Corrigendum = documentFields.ContainsKey("Corrigendum") ? documentFields["Corrigendum"] : new List<string>()
+                };
+
+                return Json(new { status = true, documentFields = responseFields });
+            }
+            catch (Newtonsoft.Json.JsonException)
+            {
+                return Json(new { status = false, message = "Failed to parse document fields." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = $"Error retrieving document fields: {ex.Message}" });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetEmailTemplate([FromQuery] int serviceId, [FromQuery] string type)
+        {
+            if (serviceId <= 0 || string.IsNullOrEmpty(type))
+            {
+                return Json(new { status = false, message = "Invalid service ID or email type." });
+            }
+
+            var service = dbcontext.EmailSettings.FirstOrDefault(s => s.Id == serviceId);
+            if (service == null)
+            {
+                return Json(new { status = false, message = "Service not found." });
+            }
+
+            // Assuming email templates are stored in a column named EmailTemplates as JSON
+            if (string.IsNullOrEmpty(service.Templates))
+            {
+                return Json(new { status = true, template = "" });
+            }
+
+            try
+            {
+                var emailTemplates = JsonConvert.DeserializeObject<Dictionary<string, string>>(service.Templates);
+                var template = emailTemplates?.ContainsKey(type) == true ? emailTemplates[type] : "";
+                return Json(new { status = true, template });
+            }
+            catch (Newtonsoft.Json.JsonException)
+            {
+                return Json(new { status = false, message = "Failed to parse email templates." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = $"Error retrieving email template: {ex.Message}" });
+            }
+        }
 
 
     }

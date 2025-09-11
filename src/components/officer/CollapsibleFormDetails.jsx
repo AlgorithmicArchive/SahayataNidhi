@@ -1,10 +1,19 @@
-import React, { useMemo } from "react";
-import { Box, Button, Collapse, Divider, Typography } from "@mui/material";
+import React, { useMemo, useState } from "react";
+import {
+  Box,
+  Button,
+  Collapse,
+  Divider,
+  Typography,
+  IconButton,
+} from "@mui/material";
 import { Col, Row } from "react-bootstrap";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import {
   AddCircleOutlineSharp,
   RemoveCircleOutlineSharp,
+  Visibility,
+  VisibilityOff,
 } from "@mui/icons-material";
 
 const buttonStyles = {
@@ -39,6 +48,39 @@ const flattenFields = (fields) => {
   }, []);
 };
 
+// Mask private field value based on field name
+const maskValue = (value, fieldName) => {
+  if (!value) return "--"; // Handle null or undefined
+  const strValue = String(value); // Convert to string
+
+  // Rule 1: DateOfBirth - show first 2 characters
+  if (fieldName.toLowerCase() === "dateofbirth") {
+    if (strValue.length <= 2) return "*******";
+    return `${strValue.slice(0, 2)}${"*".repeat(7)}`;
+  }
+
+  // Rule 2: Email - mask everything except last 3 chars of prefix, mask domain too
+  if (fieldName.toLowerCase() === "email") {
+    const atIndex = strValue.indexOf("@");
+    if (atIndex === -1) return "*******"; // Not a valid email
+
+    const prefix = strValue.slice(0, atIndex);
+    const last3 = prefix.slice(-3); // keep last 3 chars visible
+
+    // Build masked prefix (length of prefix - 3 stars + visible 3 chars)
+    const maskedPrefix = "*".repeat(prefix.length - 3) + last3;
+
+    // Mask the entire domain part with stars (same length as original)
+    const maskedDomain = "*".repeat(strValue.length - atIndex);
+
+    return maskedPrefix + maskedDomain;
+  }
+
+  // Rule 3: General private fields - show last 4 characters
+  if (strValue.length <= 4) return "*******";
+  return `${"*".repeat(4)}${strValue.slice(-4)}`;
+};
+
 export const CollapsibleFormDetails = ({
   formDetails,
   formatKey,
@@ -46,12 +88,25 @@ export const CollapsibleFormDetails = ({
   setDetailsOpen,
   onViewPdf,
   applicationId,
+  privateFields = [],
 }) => {
   const sections = useMemo(() => {
     return Array.isArray(formDetails)
       ? formDetails
       : Object.entries(formDetails).map(([key, value]) => ({ [key]: value }));
   }, [formDetails]);
+
+  // State to track visibility of private fields
+  const [fieldVisibility, setFieldVisibility] = useState({});
+  console.log("Private Fields:", privateFields);
+
+  // Toggle visibility for a specific field
+  const toggleFieldVisibility = (fieldName) => {
+    setFieldVisibility((prev) => ({
+      ...prev,
+      [fieldName]: !prev[fieldName],
+    }));
+  };
 
   return (
     <Box sx={{ width: "100%", mx: "auto", mb: 3 }}>
@@ -191,6 +246,48 @@ export const CollapsibleFormDetails = ({
                                     )}
                                   </Box>
                                 )
+                              ) : privateFields.includes(field.name) ? (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="body1"
+                                    sx={{
+                                      border: "1px solid #E0E0E0",
+                                      borderRadius: "8px",
+                                      p: 2,
+                                      color: field.value
+                                        ? "#212121"
+                                        : "#B0BEC5",
+                                      flexGrow: 1,
+                                    }}
+                                  >
+                                    {fieldVisibility[field.name]
+                                      ? field.value ?? "--"
+                                      : maskValue(field.value, field.name)}
+                                  </Typography>
+                                  <IconButton
+                                    onClick={() =>
+                                      toggleFieldVisibility(field.name)
+                                    }
+                                    aria-label={
+                                      fieldVisibility[field.name]
+                                        ? `Hide ${field.label || field.name}`
+                                        : `Show ${field.label || field.name}`
+                                    }
+                                    sx={{ color: "#1976D2" }}
+                                  >
+                                    {fieldVisibility[field.name] ? (
+                                      <VisibilityOff />
+                                    ) : (
+                                      <Visibility />
+                                    )}
+                                  </IconButton>
+                                </Box>
                               ) : (
                                 <Typography
                                   variant="body1"
@@ -201,7 +298,11 @@ export const CollapsibleFormDetails = ({
                                     color: field.value ? "#212121" : "#B0BEC5",
                                   }}
                                 >
-                                  {field.value ?? "--"}
+                                  {field.name === "AadhaarNumber"
+                                    ? field.value && field.value.length > 0
+                                      ? "Verified"
+                                      : "Not Verified"
+                                    : field.value ?? "--"}
                                 </Typography>
                               )}
                             </Box>

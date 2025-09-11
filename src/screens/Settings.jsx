@@ -34,12 +34,12 @@ export default function Settings() {
   const [used, setUsed] = useState([]);
   const [unused, setUnused] = useState([]);
   const [save, setSave] = useState(false);
-  const [profile, setLocalProfile] = useState({ file: "", url: "" });
-  const [ageProof, setAgeProof] = useState({ file: null }); // NEW: For ProofOfAge file
+  const [profile, setLocalProfile] = useState({ file: null, url: "" });
+  const [ageProof, setAgeProof] = useState({ file: null });
   const [loading, setLoading] = useState(true);
   const [buttonLoading, setButtonLoading] = useState(false);
   const profileRef = useRef(null);
-  const ageProofRef = useRef(null); // NEW: Ref for ProofOfAge input
+  const ageProofRef = useRef(null);
 
   // Handle input changes for user details
   const handleInputChange = (e) => {
@@ -52,6 +52,14 @@ export default function Settings() {
   const handleProfileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select an image file.", {
+          position: "top-center",
+          autoClose: 3000,
+          theme: "colored",
+        });
+        return;
+      }
       const imageUrl = URL.createObjectURL(file);
       setLocalProfile({ file, url: imageUrl });
       setSave(true);
@@ -97,35 +105,42 @@ export default function Settings() {
   const handleSaveProfile = async () => {
     setButtonLoading(true);
     try {
-      const formdata = new FormData();
-      formdata.append("name", userDetails.name);
-      formdata.append("username", userDetails.username);
-      formdata.append("email", userDetails.email);
-      formdata.append("mobileNumber", userDetails.mobileNumber);
+      const formData = new FormData();
+      formData.append("name", userDetails.name);
+      formData.append("username", userDetails.username);
+      formData.append("email", userDetails.email);
+      formData.append("mobileNumber", userDetails.mobileNumber);
       if (profile.file) {
-        formdata.append("profile", profile.file);
+        formData.append("profile", profile.file);
       }
       if (ageProof.file) {
-        formdata.append("ageProof", ageProof.file);
+        formData.append("ageProof", ageProof.file);
       }
 
       const response = await axiosInstance.post(
         "/Profile/UpdateUserDetails",
-        formdata,
+        formData,
       );
       if (response.data.isValid) {
         setProfile(response.data.profile);
-        setLocalProfile({ file: "", url: response.data.profile });
-        setAgeProof({ file: null }); // Clear ProofOfAge
+        setLocalProfile({ file: null, url: response.data.profile || "" });
+        setAgeProof({ file: null });
         setUserDetails({
-          name: response.data.name,
-          username: response.data.username,
-          email: response.data.email,
-          mobileNumber: response.data.mobileNumber,
-          profile: response.data.profile,
+          name: response.data.name || "",
+          username: response.data.username || "",
+          email: response.data.email || "",
+          mobileNumber: response.data.mobileNumber || "",
+          profile: response.data.profile || "",
           ageProof: response.data.ageProof || "",
         });
         setSave(false);
+        // Clear file input
+        if (profileRef.current) {
+          profileRef.current.value = "";
+        }
+        if (ageProofRef.current) {
+          ageProofRef.current.value = "";
+        }
         toast.success("User details updated successfully!", {
           position: "top-center",
           autoClose: 2000,
@@ -191,8 +206,8 @@ export default function Settings() {
           profile: response.data.profile || "",
           ageProof: response.data.ageProof || "",
         });
-        setLocalProfile({ file: "", url: response.data.profile || "" });
-        setAgeProof({ file: null }); // Initialize ProofOfAge
+        setLocalProfile({ file: null, url: response.data.profile || "" });
+        setAgeProof({ file: null });
         const backupCodes = JSON.parse(
           response.data.backupCodes || '{"used":[],"unused":[]}',
         );
@@ -257,7 +272,7 @@ export default function Settings() {
       style={{
         maxWidth: 800,
         padding: 0,
-        height: "100vh",
+        height: userType !== "Citizen" ? "150vh" : "90vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -267,6 +282,7 @@ export default function Settings() {
         sx={{
           width: "100%",
           bgcolor: "#FFFFFF",
+          border: "1px solid black",
           borderRadius: 4,
           boxShadow: "0 12px 40px rgba(0, 0, 0, 0.12)",
           p: { xs: 3, md: 5 },
@@ -357,6 +373,7 @@ export default function Settings() {
               fullWidth
               variant="outlined"
               aria-label="Email address"
+              InputProps={{ readOnly: true }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": { borderColor: "#90CAF9" },
@@ -386,9 +403,9 @@ export default function Settings() {
                 variant="contained"
                 component="label"
                 sx={buttonStyles}
-                aria-label="Upload proof of age"
+                aria-label="Upload Identity Proof"
               >
-                <Typography>Upload Proof of Age</Typography>
+                <Typography>Upload Identity Proof</Typography>
                 <input
                   type="file"
                   hidden
@@ -400,13 +417,6 @@ export default function Settings() {
               <Typography sx={{ fontSize: "0.85rem", color: "#6B7280" }}>
                 Accepted File Types: .pdf Size: 100kb-200kb
               </Typography>
-              {userDetails.ageProof && (
-                <Typography
-                  sx={{ fontSize: "0.85rem", color: "#6B7280", mt: 1 }}
-                >
-                  Current file: {userDetails.ageProof}
-                </Typography>
-              )}
             </FormControl>
           </Box>
         </Box>
@@ -423,7 +433,11 @@ export default function Settings() {
         >
           <Tooltip title="Profile Picture" arrow>
             <Avatar
-              src={profile.url}
+              src={
+                profile.file
+                  ? profile.url
+                  : `/Base/DisplayFile?fileName=${profile.url}`
+              }
               alt={`${userDetails?.name || "User"}'s profile picture`}
               sx={{
                 width: { xs: 120, md: 150 },

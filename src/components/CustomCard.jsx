@@ -22,6 +22,8 @@ const CustomCard = ({ heading, discription }) => {
             fontSize: { xs: "16px", lg: "24px" },
             lineHeight: 1.3,
           }}
+          translate="no" // Prevent translation
+          className="notranslate" // Fallback for compatibility
         >
           {heading}
         </Typography>

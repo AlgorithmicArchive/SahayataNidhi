@@ -27,21 +27,50 @@ import {
 } from "@dnd-kit/sortable";
 import { toast } from "react-toastify";
 
+// Utility function to sanitize actionForm options
+const sanitizeActionForm = (actionForm) => {
+  return actionForm.map((field) => {
+    if (field.options) {
+      return {
+        ...field,
+        options: field.options.filter(
+          (opt) =>
+            !opt.label?.toLowerCase().includes("withhold") &&
+            !opt.value?.toLowerCase().includes("withhold"),
+        ),
+        dependentOptions: field.dependentOptions
+          ? Object.fromEntries(
+              Object.entries(field.dependentOptions).map(([key, opts]) => [
+                key,
+                opts.filter(
+                  (opt) =>
+                    !opt.label?.toLowerCase().includes("withhold") &&
+                    !opt.value?.toLowerCase().includes("withhold"),
+                ),
+              ]),
+            )
+          : field.dependentOptions,
+      };
+    }
+    return field;
+  });
+};
+
 const PlayerEditModal = ({ player, onClose, onSave, players }) => {
   const [editedPlayer, setEditedPlayer] = useState({
     ...player,
     canHavePool: player.canHavePool || false,
     canManageBankFiles: player.canManageBankFiles || false,
     canWithhold: player.canWithhold || false,
-    canValidateAadhaar: player.canValidateAadhaar || false, // Added new field
-    actionForm: player.actionForm || [],
+    canValidateAadhaar: player.canValidateAadhaar || false,
+    actionForm: sanitizeActionForm(player.actionForm || []),
   });
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
   const [selectedField, setSelectedField] = useState(null);
   const [designations, setDesignations] = useState(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
   useEffect(() => {
@@ -66,16 +95,16 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
     if (!over || active.id === over.id) return;
 
     const oldIndex = editedPlayer.actionForm.findIndex(
-      (field) => field.id === active.id
+      (field) => field.id === active.id,
     );
     const newIndex = editedPlayer.actionForm.findIndex(
-      (field) => field.id === over.id
+      (field) => field.id === over.id,
     );
 
     const newActionForm = arrayMove(
       editedPlayer.actionForm,
       oldIndex,
-      newIndex
+      newIndex,
     );
     setEditedPlayer((prev) => ({
       ...prev,
@@ -88,45 +117,44 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
     // Check for exclusive authorities
     if (field === "canCorrigendum" && value) {
       const otherCorrigendum = players.find(
-        (p) => p.playerId !== editedPlayer.playerId && p.canCorrigendum
+        (p) => p.playerId !== editedPlayer.playerId && p.canCorrigendum,
       );
       if (otherCorrigendum) {
         toast.error(
-          `Another player (${otherCorrigendum.designation}) already has Can Corrigendum authority.`
+          `Another player (${otherCorrigendum.designation}) already has Can Corrigendum authority.`,
         );
         return;
       }
     }
     if (field === "canManageBankFiles" && value) {
       const otherBankFiles = players.find(
-        (p) => p.playerId !== editedPlayer.playerId && p.canManageBankFiles
+        (p) => p.playerId !== editedPlayer.playerId && p.canManageBankFiles,
       );
       if (otherBankFiles) {
         toast.error(
-          `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`
+          `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`,
         );
         return;
       }
     }
     if (field === "canWithhold" && value) {
       const otherWithhold = players.find(
-        (p) => p.playerId !== editedPlayer.playerId && p.canWithhold
+        (p) => p.playerId !== editedPlayer.playerId && p.canWithhold,
       );
       if (otherWithhold) {
         toast.error(
-          `Another player (${otherWithhold.designation}) already has Can Withhold authority.`
+          `Another player (${otherWithhold.designation}) already has Can Withhold authority.`,
         );
         return;
       }
     }
-    // New exclusive authority check
     if (field === "canValidateAadhaar" && value) {
       const otherValidateAadhaar = players.find(
-        (p) => p.playerId !== editedPlayer.playerId && p.canValidateAadhaar
+        (p) => p.playerId !== editedPlayer.playerId && p.canValidateAadhaar,
       );
       if (otherValidateAadhaar) {
         toast.error(
-          `Another player (${otherValidateAadhaar.designation}) already has Can Validate Aadhaar authority.`
+          `Another player (${otherValidateAadhaar.designation}) already has Can Validate Aadhaar authority.`,
         );
         return;
       }
@@ -179,9 +207,9 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
     console.log("Updated Field:", updatedField);
     setEditedPlayer((prev) => {
       const newActionForm = prev.actionForm.map((field) =>
-        field.id === updatedField.id ? updatedField : field
+        field.id === updatedField.id ? updatedField : field,
       );
-      return { ...prev, actionForm: newActionForm };
+      return { ...prev, actionForm: sanitizeActionForm(newActionForm) };
     });
     setIsFieldModalOpen(false);
     setSelectedField(null);
@@ -249,7 +277,9 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canReturnToPlayer}
-                onChange={(e) => handleChange("canReturnToPlayer", e.target.checked)}
+                onChange={(e) =>
+                  handleChange("canReturnToPlayer", e.target.checked)
+                }
               />
             }
             label="Can Return to Player"
@@ -258,7 +288,9 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canReturnToCitizen}
-                onChange={(e) => handleChange("canReturnToCitizen", e.target.checked)}
+                onChange={(e) =>
+                  handleChange("canReturnToCitizen", e.target.checked)
+                }
               />
             }
             label="Can Return to Citizen"
@@ -267,7 +299,9 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canForwardToPlayer}
-                onChange={(e) => handleChange("canForwardToPlayer", e.target.checked)}
+                onChange={(e) =>
+                  handleChange("canForwardToPlayer", e.target.checked)
+                }
               />
             }
             label="Can Forward to Player"
@@ -303,7 +337,9 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canCorrigendum}
-                onChange={(e) => handleChange("canCorrigendum", e.target.checked)}
+                onChange={(e) =>
+                  handleChange("canCorrigendum", e.target.checked)
+                }
               />
             }
             label="Can Corrigendum"
@@ -312,7 +348,9 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             control={
               <Checkbox
                 checked={editedPlayer.canManageBankFiles}
-                onChange={(e) => handleChange("canManageBankFiles", e.target.checked)}
+                onChange={(e) =>
+                  handleChange("canManageBankFiles", e.target.checked)
+                }
               />
             }
             label="Can Manage Bank Files"
@@ -326,12 +364,13 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             }
             label="Can Withhold"
           />
-          {/* New authority checkbox */}
           <FormControlLabel
             control={
               <Checkbox
                 checked={editedPlayer.canValidateAadhaar}
-                onChange={(e) => handleChange("canValidateAadhaar", e.target.checked)}
+                onChange={(e) =>
+                  handleChange("canValidateAadhaar", e.target.checked)
+                }
               />
             }
             label="Can Validate Aadhaar"
@@ -373,7 +412,9 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
         >
           Add Action Form Field
         </Button>
-        <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+        <Box
+          sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}
+        >
           <Button
             variant="contained"
             onClick={handleSave}

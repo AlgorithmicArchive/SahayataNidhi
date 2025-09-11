@@ -257,7 +257,7 @@ export default function CreateWebService() {
       try {
         // Fetch existing web service configuration
         const configResponse = await axiosInstance.get(
-          `/Designer/GetWebService/${selectedServiceId}`
+          `/Designer/GetWebService?serviceId=${selectedServiceId}`,
         );
         if (configResponse.data.status && configResponse.data.config) {
           const config = configResponse.data.config;
@@ -308,7 +308,7 @@ export default function CreateWebService() {
         console.log(
           "Parsing formElement for service:",
           service.serviceId,
-          service.formElement
+          service.formElement,
         );
         const formConfig = JSON.parse(service.formElement);
         console.log("Parsed formConfig:", formConfig);
@@ -317,7 +317,7 @@ export default function CreateWebService() {
           : formConfig.sections;
         if (!sections || !Array.isArray(sections)) {
           throw new Error(
-            "Invalid form configuration: sections missing or not an array"
+            "Invalid form configuration: sections missing or not an array",
           );
         }
         const fields = extractFields(sections);
@@ -349,7 +349,7 @@ export default function CreateWebService() {
       if (!section?.fields || !Array.isArray(section.fields)) {
         console.warn(
           `Section ${section?.id || sectionIndex} has no valid fields:`,
-          section
+          section,
         );
         return;
       }
@@ -360,7 +360,7 @@ export default function CreateWebService() {
         if (!field?.name || !field?.id) {
           console.warn(
             `Invalid field at ${sectionName}[${fieldIndex}]:`,
-            field
+            field,
           );
           return;
         }
@@ -372,7 +372,7 @@ export default function CreateWebService() {
         // Check for duplicate field names
         if (fieldNames.has(field.name)) {
           console.warn(
-            `Duplicate field name "${field.name}" at path: ${fieldPath}`
+            `Duplicate field name "${field.name}" at path: ${fieldPath}`,
           );
         } else {
           fieldNames.add(field.name);
@@ -394,7 +394,7 @@ export default function CreateWebService() {
               if (!Array.isArray(nestedFieldsArray)) {
                 console.warn(
                   `Nested fields not an array at ${fieldPath}[${arrayIndex}]:`,
-                  nestedFieldsArray
+                  nestedFieldsArray,
                 );
                 return;
               }
@@ -403,7 +403,7 @@ export default function CreateWebService() {
                 if (!nestedField?.name || !nestedField?.id) {
                   console.warn(
                     `Invalid nested field at ${fieldPath}:`,
-                    nestedField
+                    nestedField,
                   );
                   return;
                 }
@@ -413,7 +413,7 @@ export default function CreateWebService() {
                 // Check for duplicate field names
                 if (fieldNames.has(nestedField.name)) {
                   console.warn(
-                    `Duplicate field name "${nestedField.name}" at path: ${nestedPath}`
+                    `Duplicate field name "${nestedField.name}" at path: ${nestedPath}`,
                   );
                 } else {
                   fieldNames.add(nestedField.name);
@@ -437,16 +437,16 @@ export default function CreateWebService() {
                         {
                           section: sectionName, // Preserve section context
                           fields: Object.values(
-                            nestedField.additionalFields
+                            nestedField.additionalFields,
                           ).flat(),
                         },
                       ],
-                      nestedPath
-                    )
+                      nestedPath,
+                    ),
                   );
                 }
               });
-            }
+            },
           );
         }
       });
@@ -619,7 +619,7 @@ export default function CreateWebService() {
       apiEndPoint: webServiceConfig.apiEndPoint,
       onAction: JSON.stringify(webServiceConfig.onAction), // Stringify for consistency
       fieldMappings: JSON.stringify(
-        convertToApiFormat(webServiceConfig.fieldMappings)
+        convertToApiFormat(webServiceConfig.fieldMappings),
       ),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -633,7 +633,7 @@ export default function CreateWebService() {
     try {
       const response = await axiosInstance.post(
         "/Designer/SaveWebService",
-        formdata
+        formdata,
       );
       if (response.data.status) {
         toast.success("Web service configuration saved successfully!");
@@ -818,7 +818,7 @@ export default function CreateWebService() {
                           onRemove={removeMapping}
                           formFields={formFields}
                         />
-                      )
+                      ),
                     )}
                     <Button
                       variant="outlined"

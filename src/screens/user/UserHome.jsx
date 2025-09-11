@@ -11,7 +11,7 @@ import {
   IconButton,
   Input,
 } from "@mui/material";
-import { Edit, Upload } from "@mui/icons-material";
+import { Edit, Upload, Visibility, VisibilityOff } from "@mui/icons-material";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axiosInstance from "../../axiosConfig";
@@ -122,6 +122,8 @@ export default function UserHome() {
     file: "",
     url: "/assets/images/profile.jpg",
   });
+  const [showEmail, setShowEmail] = useState(false);
+  const [showMobileNumber, setShowMobileNumber] = useState(false);
 
   const navigate = useNavigate();
 
@@ -131,7 +133,9 @@ export default function UserHome() {
       setUserDetails(response.data);
       setProfile({
         file: "",
-        url: response.data.profile || "/assets/images/profile.jpg",
+        url: response.data.profile
+          ? `/Base/DisplayFile?fileName=${response.data.profile}`
+          : "/assets/images/profile.jpg",
       });
     } catch (error) {
       toast.error("Failed to load user details. Please try again.", {
@@ -147,6 +151,31 @@ export default function UserHome() {
   useEffect(() => {
     GetUserDetails();
   }, []);
+
+  // Mask email (e.g., johndoe@example.com -> ****@****.com)
+  const maskEmail = (email) => {
+    if (!email) return "N/A";
+    const [localPart, domain] = email.split("@");
+    const maskedLocal = localPart.replace(/.*/g, "****");
+    const maskedDomain = domain.replace(/^[^.]+/, "****");
+    return `${maskedLocal}@${maskedDomain}`;
+  };
+
+  // Mask mobile number (e.g., 1234567890 -> *******890)
+  const maskMobileNumber = (mobileNumber) => {
+    if (!mobileNumber) return "N/A";
+    return `*******${mobileNumber.slice(-3)}`;
+  };
+
+  // Toggle email visibility
+  const toggleEmailVisibility = () => {
+    setShowEmail((prev) => !prev);
+  };
+
+  // Toggle mobile number visibility
+  const toggleMobileNumberVisibility = () => {
+    setShowMobileNumber((prev) => !prev);
+  };
 
   if (loading) {
     return (
@@ -253,16 +282,29 @@ export default function UserHome() {
             >
               Email
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                fontWeight: 500,
-                color: "#1f2937",
-                wordBreak: "break-word",
-              }}
-            >
-              {userDetails?.email || "N/A"}
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 500,
+                  color: "#1f2937",
+                  wordBreak: "break-word",
+                }}
+              >
+                {showEmail
+                  ? userDetails?.email || "N/A"
+                  : maskEmail(userDetails?.email)}
+              </Typography>
+              <Tooltip title={showEmail ? "Hide Email" : "Show Email"} arrow>
+                <IconButton
+                  onClick={toggleEmailVisibility}
+                  aria-label={showEmail ? "Hide email" : "Show email"}
+                  sx={{ color: "#1e88e5" }}
+                >
+                  {showEmail ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </Tooltip>
+            </Box>
           </InfoItem>
           <InfoItem>
             <Typography
@@ -271,12 +313,34 @@ export default function UserHome() {
             >
               Mobile Number
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 500, color: "#1f2937" }}
-            >
-              {userDetails?.mobileNumber || "N/A"}
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 500, color: "#1f2937" }}
+              >
+                {showMobileNumber
+                  ? userDetails?.mobileNumber || "N/A"
+                  : maskMobileNumber(userDetails?.mobileNumber)}
+              </Typography>
+              <Tooltip
+                title={
+                  showMobileNumber ? "Hide Mobile Number" : "Show Mobile Number"
+                }
+                arrow
+              >
+                <IconButton
+                  onClick={toggleMobileNumberVisibility}
+                  aria-label={
+                    showMobileNumber
+                      ? "Hide mobile number"
+                      : "Show mobile number"
+                  }
+                  sx={{ color: "#1e88e5" }}
+                >
+                  {showMobileNumber ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </Tooltip>
+            </Box>
           </InfoItem>
         </Box>
         <ActionButton

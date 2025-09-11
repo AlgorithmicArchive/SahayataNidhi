@@ -22,8 +22,4 @@ public partial class Branch
     public string? StdCode { get; set; }
 
     public string? Phone { get; set; }
-
-    public virtual Bank Bank { get; set; } = null!;
-
-    public virtual ICollection<IfscCode> IfscCodes { get; set; } = new List<IfscCode>();
 }

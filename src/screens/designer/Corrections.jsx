@@ -35,7 +35,7 @@ const Corrections = () => {
   const [correctionFields, setCorrectionFields] = useState([]);
   const [corrigendumFields, setCorrigendumFields] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalFieldNames, setModalFieldNames] = useState([]); // Changed to array for multiple selections
+  const [modalFieldNames, setModalFieldNames] = useState([]);
   const [modalFieldIndex, setModalFieldIndex] = useState(-1);
   const [modalType, setModalType] = useState("");
 
@@ -73,11 +73,12 @@ const Corrections = () => {
     }
   }, [selectedServiceId]);
 
-  // Fetch document fields when service or type changes
+  // Fetch document fields when service changes
   useEffect(() => {
-    if (!selectedServiceId || !selectedType) {
+    if (!selectedServiceId) {
       setCorrectionFields([]);
       setCorrigendumFields([]);
+      setSelectedType("");
       return;
     }
 
@@ -89,10 +90,10 @@ const Corrections = () => {
             params: { serviceId: selectedServiceId },
           },
         );
-        if (response.data.documentFields) {
-          const { Correction, Corrigendum } = response.data.documentFields;
-          setCorrectionFields(Correction || []);
-          setCorrigendumFields(Corrigendum || []);
+        if (response.data.status && response.data.documentFields) {
+          const { correction, corrigendum } = response.data.documentFields;
+          setCorrectionFields(correction || []);
+          setCorrigendumFields(corrigendum || []);
           toast.success("Document fields loaded successfully.");
         } else {
           setCorrectionFields([]);
@@ -108,19 +109,19 @@ const Corrections = () => {
     };
 
     fetchDocumentFields();
-  }, [selectedServiceId, selectedType]);
+  }, [selectedServiceId]);
 
   const openModalForAdd = (type) => {
     setModalType(type);
     setModalFieldIndex(-1);
-    setModalFieldNames([]); // Initialize as empty array for multiple selections
+    setModalFieldNames([]);
     setModalOpen(true);
   };
 
   const openModalForEdit = (type, index, fieldName) => {
     setModalType(type);
     setModalFieldIndex(index);
-    setModalFieldNames([fieldName]); // Pre-select the single field for editing
+    setModalFieldNames([fieldName]);
     setModalOpen(true);
   };
 
@@ -145,7 +146,6 @@ const Corrections = () => {
     if (modalType === "Correction") {
       const newFields = [...correctionFields];
       if (modalFieldIndex === -1) {
-        // Adding new fields
         const duplicates = modalFieldNames.filter((name) =>
           newFields.includes(name),
         );
@@ -159,7 +159,6 @@ const Corrections = () => {
         }
         newFields.push(...modalFieldNames);
       } else {
-        // Editing a single field
         if (modalFieldNames.length > 1) {
           toast.error("Please select only one field for editing.");
           return;
@@ -170,7 +169,6 @@ const Corrections = () => {
     } else if (modalType === "Corrigendum") {
       const newFields = [...corrigendumFields];
       if (modalFieldIndex === -1) {
-        // Adding new fields
         const duplicates = modalFieldNames.filter((name) =>
           newFields.includes(name),
         );
@@ -184,7 +182,6 @@ const Corrections = () => {
         }
         newFields.push(...modalFieldNames);
       } else {
-        // Editing a single field
         if (modalFieldNames.length > 1) {
           toast.error("Please select only one field for editing.");
           return;
@@ -242,7 +239,6 @@ const Corrections = () => {
     }
   };
 
-  // Render table for fields
   const renderFieldsTable = (type, fields) => (
     <Box sx={{ mb: 4 }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
@@ -251,32 +247,40 @@ const Corrections = () => {
       <TableContainer component={Paper} sx={{ mb: 2 }}>
         <Table>
           <TableBody>
-            {fields.map((fieldName, index) => (
-              <TableRow key={`${type}-${index}`}>
-                <TableCell sx={{ border: "1px solid #ccc", fontSize: 12 }}>
-                  {fieldName}
-                </TableCell>
-                <TableCell sx={{ border: "1px solid #ccc", fontSize: 12 }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => openModalForEdit(type, index, fieldName)}
-                    sx={{ mr: 1 }}
-                    disabled={!selectedServiceId || !selectedType}
-                  >
-                    Edit
-                  </Button>
-                  <IconButton
-                    onClick={() => handleRemoveField(type, index)}
-                    color="error"
-                    size="small"
-                    disabled={!selectedServiceId || !selectedType}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+            {fields.length > 0 ? (
+              fields.map((fieldName, index) => (
+                <TableRow key={`${type}-${index}`}>
+                  <TableCell sx={{ border: "1px solid #ccc", fontSize: 12 }}>
+                    {fieldName}
+                  </TableCell>
+                  <TableCell sx={{ border: "1px solid #ccc", fontSize: 12 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => openModalForEdit(type, index, fieldName)}
+                      sx={{ mr: 1 }}
+                      disabled={!selectedServiceId || !selectedType}
+                    >
+                      Edit
+                    </Button>
+                    <IconButton
+                      onClick={() => handleRemoveField(type, index)}
+                      color="error"
+                      size="small"
+                      disabled={!selectedServiceId || !selectedType}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={2} sx={{ textAlign: "center" }}>
+                  No fields configured for {type}.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -295,7 +299,7 @@ const Corrections = () => {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "grey.100", p: 3 }}>
       <Container
-        maxWidth
+        maxWidth="lg"
         sx={{
           bgcolor: "white",
           borderRadius: 2,
@@ -353,10 +357,12 @@ const Corrections = () => {
             </Box>
             {selectedType && (
               <>
-                {selectedType === "Correction" &&
-                  renderFieldsTable("Correction", correctionFields)}
-                {selectedType === "Corrigendum" &&
-                  renderFieldsTable("Corrigendum", corrigendumFields)}
+                {renderFieldsTable(
+                  selectedType,
+                  selectedType === "Correction"
+                    ? correctionFields
+                    : corrigendumFields,
+                )}
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <Button
                     variant="contained"
@@ -407,7 +413,7 @@ const Corrections = () => {
                       disabled={
                         modalFieldIndex !== -1 &&
                         !modalFieldNames.includes(fieldName)
-                      } // Disable other checkboxes during edit
+                      }
                     />
                   }
                   label={fieldName}

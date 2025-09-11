@@ -42,7 +42,6 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
 
-
         [HttpGet]
         public IActionResult GetLegacyCount(int ServiceId)
         {
@@ -804,16 +803,7 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         [HttpGet]
-        public IActionResult GetApplicationsForReports(
-     int AccessCode,
-     int ServiceId,
-     string? StatusType = null,
-     string ReportType = "TehsilWise",
-     string? DataType = null,
-     DateTime? StartDate = null,
-     DateTime? EndDate = null,
-     int pageIndex = 0,
-     int pageSize = 10)
+        public IActionResult GetApplicationsForReports(int AccessCode, int ServiceId, string? StatusType = null, string ReportType = "TehsilWise", string? DataType = null, DateTime? StartDate = null, DateTime? EndDate = null, int pageIndex = 0, int pageSize = 10)
         {
             try
             {
@@ -920,9 +910,6 @@ namespace SahayataNidhi.Controllers.Officer
             }
         }
 
-
-
-
         [HttpGet]
         public IActionResult GetUserDetails(string applicationId)
         {
@@ -945,11 +932,7 @@ namespace SahayataNidhi.Controllers.Officer
                .ToList();
 
             var formDetailsToken = JToken.Parse(details.FormDetails!);
-            // var extraFiles = new List<dynamic>
-            // {
-            //     sanctionedFile = new {}
-            // };
-
+            var privatedFields = JsonConvert.DeserializeObject<List<string>>(dbcontext.Services.FirstOrDefault(s => s.ServiceId == details.ServiceId)!.PrivateFields!);
             bool hasPending = false;
             if (IsCorrigendumPending.Count != 0)
             {
@@ -1008,6 +991,7 @@ namespace SahayataNidhi.Controllers.Officer
                 list = formDetailsToken,
                 currentOfficerDetails = currentOfficerClone,
                 hasPending,
+                privatedFields,
                 isSanctioned
             });
         }

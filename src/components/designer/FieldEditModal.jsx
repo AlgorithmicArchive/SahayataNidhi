@@ -19,6 +19,7 @@ import {
   transformationFunctionsList,
 } from "../../assets/formvalidations";
 import axiosnInstance from "../../axiosConfig";
+import { toast } from "react-toastify";
 
 // Async function to fetch districts (unchanged)
 const fetchDistricts = async () => {
@@ -35,11 +36,18 @@ const fetchDistricts = async () => {
   }
 };
 
-// Utility function to collect selectable fields (unchanged)
+// Utility function to collect selectable fields
 const getSelectableFields = (sections = [], actionForm = []) => {
   const selectableFields = [];
   const processFields = (fields, parentLabel = "", parentFieldName = "") => {
     fields.forEach((field) => {
+      // Exclude fields related to "Can Withhold"
+      if (
+        field.name?.toLowerCase().includes("withhold") ||
+        field.label?.toLowerCase().includes("withhold")
+      ) {
+        return;
+      }
       selectableFields.push({
         id: field.name,
         label: parentLabel ? `${parentLabel} > ${field.label}` : field.label,
@@ -112,6 +120,9 @@ const FieldEditModal = ({
     isConsentCheckbox: selectedField?.isConsentCheckbox ?? false,
     declaration: selectedField?.declaration || "",
     required: selectedField?.required ?? false,
+    isCheckboxDependent: selectedField?.isCheckboxDependent ?? false,
+    checkboxDependentOn: selectedField?.checkboxDependentOn || "",
+    checkboxDependentValue: selectedField?.checkboxDependentValue || "",
   });
 
   const [optionInputText, setOptionInputText] = useState(
@@ -124,26 +135,17 @@ const FieldEditModal = ({
     initialIsDependentMaxLength,
   );
 
+  const [dependentOptionInputs, setDependentOptionInputs] = useState({});
+
   const isWorkflowContext = sections.length === 0 && actionForm.length > 0;
   const selectableFields = getSelectableFields(sections, actionForm);
   const filteredSelectableFields = selectableFields.filter(
     (field) => field.id !== selectedField?.name,
   );
 
-  // Update useEffect to handle declaration when isConsentCheckbox changes
+  // Simplified useEffect to handle declaration only
   useEffect(() => {
-    if (formData.isConsentCheckbox && formData.type === "checkbox") {
-      setFormData((prev) => ({
-        ...prev,
-        options: [],
-        optionsType: "",
-        dependentOn: "",
-        dependentOptions: {},
-        declaration: prev.declaration || "",
-      }));
-      setOptionInputText("");
-      setDependentOn("");
-    } else if (!formData.isConsentCheckbox && formData.type === "checkbox") {
+    if (!formData.isConsentCheckbox && formData.type === "checkbox") {
       setFormData((prev) => ({
         ...prev,
         declaration: "",
@@ -174,12 +176,30 @@ const FieldEditModal = ({
     }
   };
 
+  const validateField = (fieldData) => {
+    if (
+      fieldData.label?.toLowerCase().includes("withhold") ||
+      fieldData.name?.toLowerCase().includes("withhold")
+    ) {
+      toast.error("Field label or name cannot include 'withhold'.");
+      return false;
+    }
+    return true;
+  };
+
   const saveChanges = () => {
+    if (!validateField(formData)) {
+      return;
+    }
+
     console.log("Saving FormData:", {
       ...formData,
       isConsentCheckbox: formData.isConsentCheckbox,
       options: formData.options,
       declaration: formData.declaration,
+      isCheckboxDependent: formData.isCheckboxDependent,
+      checkboxDependentOn: formData.checkboxDependentOn,
+      checkboxDependentValue: formData.checkboxDependentValue,
     });
 
     const finalFormData = {
@@ -191,6 +211,16 @@ const FieldEditModal = ({
         ? {}
         : formData.dependentOptions,
       declaration: formData.isConsentCheckbox ? formData.declaration : "",
+      isCheckboxDependent:
+        formData.type === "checkbox" ? formData.isCheckboxDependent : false,
+      checkboxDependentOn:
+        formData.type === "checkbox" && formData.isCheckboxDependent
+          ? formData.checkboxDependentOn
+          : "",
+      checkboxDependentValue:
+        formData.type === "checkbox" && formData.isCheckboxDependent
+          ? formData.checkboxDependentValue
+          : "",
     };
 
     updateField(finalFormData);
@@ -406,6 +436,16 @@ const FieldEditModal = ({
                   (e.target.value === "select" && prev.isDependentEnclosure)
                     ? prev.accept
                     : "",
+                isCheckboxDependent:
+                  e.target.value === "checkbox"
+                    ? prev.isCheckboxDependent
+                    : false,
+                checkboxDependentOn:
+                  e.target.value === "checkbox" ? prev.checkboxDependentOn : "",
+                checkboxDependentValue:
+                  e.target.value === "checkbox"
+                    ? prev.checkboxDependentValue
+                    : "",
               }))
             }
           >
@@ -420,7 +460,7 @@ const FieldEditModal = ({
         </FormControl>
 
         {/* Checkbox-specific configuration */}
-        {(formData.type === "checkbox" || formData.type === "select") && (
+        {formData.type === "checkbox" && (
           <>
             <FormControlLabel
               control={
@@ -446,6 +486,103 @@ const FieldEditModal = ({
               }
               label="Single Consent Checkbox (True/False)"
             />
+
+            {/* Checkbox Dependency Configuration */}
+            {!isWorkflowContext && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.isCheckboxDependent}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setFormData((prev) => ({
+                        ...prev,
+                        isCheckboxDependent: checked,
+                        checkboxDependentOn: checked
+                          ? prev.checkboxDependentOn
+                          : "",
+                        checkboxDependentValue: checked
+                          ? prev.checkboxDependentValue
+                          : "",
+                      }));
+                    }}
+                  />
+                }
+                label="Make Checkbox Dependent on Another Field"
+              />
+            )}
+
+            {/* Checkbox Dependency Fields */}
+            {formData.isCheckboxDependent && !isWorkflowContext && (
+              <>
+                <FormControl fullWidth margin="dense">
+                  <InputLabel id="checkbox-dependent-on-label">
+                    Dependent On Field
+                  </InputLabel>
+                  <Select
+                    labelId="checkbox-dependent-on-label"
+                    value={formData.checkboxDependentOn}
+                    label="Dependent On Field"
+                    onChange={(e) => {
+                      const newDependentOn = e.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        checkboxDependentOn: newDependentOn,
+                        checkboxDependentValue: "", // Reset dependent value when field changes
+                      }));
+                    }}
+                  >
+                    <MenuItem value="">
+                      <em>Select a field</em>
+                    </MenuItem>
+                    {filteredSelectableFields
+                      .filter((field) => field.type === "select") // Only show select fields
+                      .map((field) => (
+                        <MenuItem key={field.id} value={field.id}>
+                          {field.label} ({field.type})
+                          {field.isAdditional && " [Additional]"}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+
+                {formData.checkboxDependentOn && (
+                  <FormControl fullWidth margin="dense">
+                    <InputLabel id="checkbox-dependent-value-label">
+                      Show When Selected Value Is
+                    </InputLabel>
+                    <Select
+                      labelId="checkbox-dependent-value-label"
+                      value={formData.checkboxDependentValue}
+                      label="Show When Selected Value Is"
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          checkboxDependentValue: e.target.value,
+                        }))
+                      }
+                    >
+                      <MenuItem value="">
+                        <em>Select a value</em>
+                      </MenuItem>
+                      {(() => {
+                        const selectedField = selectableFields.find(
+                          (field) => field.id === formData.checkboxDependentOn,
+                        );
+                        return (
+                          selectedField?.options?.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          )) || []
+                        );
+                      })()}
+                    </Select>
+                  </FormControl>
+                )}
+              </>
+            )}
+
             {formData.isConsentCheckbox && (
               <TextField
                 fullWidth
@@ -464,180 +601,231 @@ const FieldEditModal = ({
                 helperText="Optional: Enter a declaration statement to display with the consent checkbox."
               />
             )}
-            {!formData.isConsentCheckbox && (
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.required}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      required: e.target.checked,
+                    }))
+                  }
+                />
+              }
+              label="Required Field"
+            />
+
+            <FormControlLabel
+              control={<Checkbox onChange={handleDistrictCheckboxChange} />}
+              label="Is District"
+            />
+          </>
+        )}
+
+        {/* Select-specific configuration */}
+        {formData.type === "select" && (
+          <>
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="options-type-label">Options Type</InputLabel>
+              <Select
+                labelId="options-type-label"
+                value={formData.optionsType || ""}
+                label="Options Type"
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    optionsType: e.target.value,
+                    dependentOn:
+                      e.target.value === "dependent" ? dependentOn : "",
+                    dependentOptions:
+                      e.target.value === "dependent" ? {} : undefined,
+                    options:
+                      e.target.value === "independent" ? [] : prev.options,
+                  }))
+                }
+              >
+                <MenuItem value="">Please Select</MenuItem>
+                <MenuItem value="independent">Independent</MenuItem>
+                {sections && <MenuItem value="dependent">Dependent</MenuItem>}
+              </Select>
+            </FormControl>
+            {formData.optionsType === "independent" && (
+              <TextField
+                fullWidth
+                label="Options (semicolon-separated)"
+                value={optionInputText}
+                onChange={(e) => setOptionInputText(e.target.value)}
+                onBlur={() => {
+                  const newOptions = optionInputText
+                    .split(";")
+                    .map((optStr) => {
+                      const cleaned = optStr.trim();
+                      if (cleaned.toLowerCase().includes("withhold")) {
+                        toast.error("Options cannot include 'withhold'.");
+                        return null;
+                      }
+                      return cleaned
+                        ? { value: cleaned, label: cleaned }
+                        : null;
+                    })
+                    .filter((opt) => opt !== null);
+                  setFormData((prev) => ({ ...prev, options: newOptions }));
+                }}
+                margin="dense"
+                placeholder="Type options separated by semicolons, e.g., Option 1;Option 2 with space;Option 3"
+                helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."
+              />
+            )}
+            {formData.optionsType === "dependent" && !isWorkflowContext && (
               <>
                 <FormControl fullWidth margin="dense">
-                  <InputLabel id="options-type-label">Options Type</InputLabel>
+                  <InputLabel id="dependent-on-label">Dependent On</InputLabel>
                   <Select
-                    labelId="options-type-label"
-                    value={formData.optionsType || ""}
-                    label="Options Type"
-                    onChange={(e) =>
+                    labelId="dependent-on-label"
+                    value={dependentOn || ""}
+                    label="Dependent On"
+                    onChange={(e) => {
+                      const newDependentOn = e.target.value;
+                      setDependentOn(newDependentOn);
                       setFormData((prev) => ({
                         ...prev,
-                        optionsType: e.target.value,
-                        dependentOn:
-                          e.target.value === "dependent" ? dependentOn : "",
-                        dependentOptions:
-                          e.target.value === "dependent" ? {} : undefined,
-                        options:
-                          e.target.value === "independent" ? [] : prev.options,
-                      }))
-                    }
+                        dependentOn: newDependentOn,
+                        dependentOptions: newDependentOn
+                          ? {}
+                          : prev.dependentOptions,
+                      }));
+                    }}
                   >
-                    <MenuItem value="">Please Select</MenuItem>
-                    <MenuItem value="independent">Independent</MenuItem>
-                    {sections && (
-                      <MenuItem value="dependent">Dependent</MenuItem>
-                    )}
+                    <MenuItem value="">
+                      <em>Select a field</em>
+                    </MenuItem>
+                    {filteredSelectableFields
+                      .filter(
+                        (field, index, self) =>
+                          index === self.findIndex((f) => f.id === field.id),
+                      )
+                      .map((field) => (
+                        <MenuItem key={field.id} value={field.id}>
+                          {field.label} ({field.type})
+                          {field.isAdditional && " [Additional]"}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
-                {formData.optionsType === "independent" && (
-                  <TextField
-                    fullWidth
-                    label="Options (semicolon-separated)"
-                    value={optionInputText}
-                    onChange={(e) => setOptionInputText(e.target.value)}
-                    onBlur={() => {
-                      const newOptions = optionInputText
-                        .split(";")
-                        .map((optStr) => {
-                          const cleaned = optStr.trim();
-                          return cleaned
-                            ? { value: cleaned, label: cleaned }
-                            : null;
-                        })
-                        .filter((opt) => opt !== null);
-                      setFormData((prev) => ({ ...prev, options: newOptions }));
-                    }}
-                    margin="dense"
-                    placeholder="Type options separated by semicolons, e.g., Option 1;Option 2 with space;Option 3"
-                    helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."
-                  />
-                )}
-                {formData.optionsType === "dependent" && !isWorkflowContext && (
+                {dependentOn && (
                   <>
-                    <FormControl fullWidth margin="dense">
-                      <InputLabel id="dependent-on-label">
-                        Dependent On
-                      </InputLabel>
-                      <Select
-                        labelId="dependent-on-label"
-                        value={dependentOn || ""}
-                        label="Dependent On"
-                        onChange={(e) => {
-                          const newDependentOn = e.target.value;
-                          setDependentOn(newDependentOn);
-                          setFormData((prev) => ({
-                            ...prev,
-                            dependentOn: newDependentOn,
-                            dependentOptions: newDependentOn
-                              ? {}
-                              : prev.dependentOptions,
-                          }));
-                        }}
-                      >
-                        <MenuItem value="">
-                          <em>Select a field</em>
-                        </MenuItem>
-                        {filteredSelectableFields.map((field) => (
-                          <MenuItem key={field.id} value={field.id}>
-                            {field.label} ({field.type})
-                            {field.isAdditional && " [Additional]"}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    {dependentOn && (
-                      <>
-                        {(() => {
-                          const selectedField = selectableFields.find(
-                            (field) => field.id === dependentOn,
-                          );
-                          if (selectedField?.options?.length > 0) {
-                            return selectedField.options.map((option) => (
-                              <TextField
-                                key={option.value}
-                                fullWidth
-                                label={`Options for ${option.label} (semicolon-separated)`}
-                                value={
-                                  formData.dependentOptions?.[option.value]
-                                    ? formData.dependentOptions[option.value]
-                                        .map((opt) => opt.label)
-                                        .join(";")
-                                    : ""
-                                }
-                                onChange={(e) => {
-                                  const newOptions = e.target.value
-                                    .split(";")
-                                    .map((optStr) => {
-                                      const cleaned = optStr.trim();
-                                      return cleaned
-                                        ? { value: cleaned, label: cleaned }
-                                        : null;
-                                    })
-                                    .filter((opt) => opt !== null);
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    dependentOptions: {
-                                      ...prev.dependentOptions,
-                                      [option.value]: newOptions,
-                                    },
-                                  }));
-                                }}
-                                margin="dense"
-                                placeholder="Type options separated by semicolons, e.g., Sub-option 1;Sub-option 2 with space;Sub-option 3"
-                                helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."
-                              />
-                            ));
+                    {(() => {
+                      const selectedField = selectableFields.find(
+                        (field) => field.id === dependentOn,
+                      );
+                      if (selectedField?.options?.length > 0) {
+                        return selectedField.options.map((option) => (
+                          <TextField
+                            key={option.value}
+                            fullWidth
+                            label={`Options for ${option.label} (semicolon-separated)`}
+                            value={
+                              dependentOptionInputs[option.value] ??
+                              (formData.dependentOptions?.[option.value]
+                                ? formData.dependentOptions[option.value]
+                                    .map((opt) => opt.label)
+                                    .join(";")
+                                : "")
+                            }
+                            onChange={(e) => {
+                              const input = e.target.value;
+                              setDependentOptionInputs((prev) => ({
+                                ...prev,
+                                [option.value]: input,
+                              }));
+
+                              const newOptions = input
+                                .split(";")
+                                .map((optStr) => {
+                                  const cleaned = optStr.trim();
+                                  if (
+                                    cleaned.toLowerCase().includes("withhold")
+                                  ) {
+                                    toast.error(
+                                      "Options cannot include 'withhold'.",
+                                    );
+                                    return null;
+                                  }
+                                  return cleaned
+                                    ? { value: cleaned, label: cleaned }
+                                    : null;
+                                })
+                                .filter(Boolean);
+
+                              setFormData((prev) => ({
+                                ...prev,
+                                dependentOptions: {
+                                  ...prev.dependentOptions,
+                                  [option.value]: newOptions,
+                                },
+                              }));
+                            }}
+                            margin="dense"
+                            placeholder="Type options separated by semicolons..."
+                            helperText="Use semicolons (;) to separate options. Spaces are preserved..."
+                          />
+                        ));
+                      }
+                      return (
+                        <TextField
+                          fullWidth
+                          label={`Dependent Options for ${
+                            selectedField?.label || "Selected Field"
+                          } (semicolon-separated)`}
+                          value={
+                            formData.dependentOptions?.["default"]
+                              ? formData.dependentOptions["default"]
+                                  .map((opt) => opt.label)
+                                  .join(";")
+                              : ""
                           }
-                          return (
-                            <TextField
-                              fullWidth
-                              label={`Dependent Options for ${
-                                selectedField?.label || "Selected Field"
-                              } (semicolon-separated)`}
-                              value={
-                                formData.dependentOptions?.["default"]
-                                  ? formData.dependentOptions["default"]
-                                      .map((opt) => opt.label)
-                                      .join(";")
-                                  : ""
-                              }
-                              onChange={(e) => {
-                                const newOptions = e.target.value
-                                  .split(";")
-                                  .map((optStr) => {
-                                    const cleaned = optStr.trim();
-                                    return cleaned
-                                      ? { value: cleaned, label: cleaned }
-                                      : null;
-                                  })
-                                  .filter((opt) => opt !== null);
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  dependentOptions: {
-                                    ...prev.dependentOptions,
-                                    default: newOptions,
-                                  },
-                                }));
-                              }}
-                              margin="dense"
-                              placeholder="Type options separated by semicolons, e.g., Sub-option 1;Sub-option 2 with space;Sub-option 3"
-                              helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."
-                            />
-                          );
-                        })()}
-                      </>
-                    )}
+                          onChange={(e) => {
+                            const newOptions = e.target.value
+                              .split(";")
+                              .map((optStr) => {
+                                const cleaned = optStr.trim();
+                                if (
+                                  cleaned.toLowerCase().includes("withhold")
+                                ) {
+                                  toast.error(
+                                    "Options cannot include 'withhold'.",
+                                  );
+                                  return null;
+                                }
+                                return cleaned
+                                  ? { value: cleaned, label: cleaned }
+                                  : null;
+                              })
+                              .filter((opt) => opt !== null);
+                            setFormData((prev) => ({
+                              ...prev,
+                              dependentOptions: {
+                                ...prev.dependentOptions,
+                                default: newOptions,
+                              },
+                            }));
+                          }}
+                          margin="dense"
+                          placeholder="Type options separated by semicolons, e.g., Sub-option 1;Sub-option 2 with space;Sub-option 3"
+                          helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."
+                        />
+                      );
+                    })()}
                   </>
                 )}
-                <FormControlLabel
-                  control={<Checkbox onChange={handleDistrictCheckboxChange} />}
-                  label="Is District"
-                />
               </>
             )}
+            <FormControlLabel
+              control={<Checkbox onChange={handleDistrictCheckboxChange} />}
+              label="Is District"
+            />
             <FormControlLabel
               control={
                 <Checkbox
@@ -667,6 +855,7 @@ const FieldEditModal = ({
             )}
           </>
         )}
+
         {formData.type === "enclosure" && (
           <>
             {!isWorkflowContext && (
@@ -781,20 +970,20 @@ const FieldEditModal = ({
               label="Default Options (semicolon-separated)"
               value={optionInputText}
               onChange={(e) => setOptionInputText(e.target.value)}
-              onBlur={() =>
-                setFormData((prev) => ({
-                  ...prev,
-                  options: optionInputText
-                    .split(";")
-                    .map((optStr) => {
-                      const cleaned = optStr.trim();
-                      return cleaned
-                        ? { value: cleaned, label: cleaned }
-                        : null;
-                    })
-                    .filter((opt) => opt !== null),
-                }))
-              }
+              onBlur={() => {
+                const newOptions = optionInputText
+                  .split(";")
+                  .map((optStr) => {
+                    const cleaned = optStr.trim();
+                    if (cleaned.toLowerCase().includes("withhold")) {
+                      toast.error("Options cannot include 'withhold'.");
+                      return null;
+                    }
+                    return cleaned ? { value: cleaned, label: cleaned } : null;
+                  })
+                  .filter((opt) => opt !== null);
+                setFormData((prev) => ({ ...prev, options: newOptions }));
+              }}
               margin="dense"
               placeholder="Type options separated by semicolons, e.g., Option 1;Option 2 with space;Option 3"
               helperText="Use semicolons (;) to separate options. Spaces are preserved in option labels and values."

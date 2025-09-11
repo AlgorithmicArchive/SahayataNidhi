@@ -21,6 +21,8 @@ public partial class Service
 
     public string? DocumentFields { get; set; }
 
+    public string? PrivateFields { get; set; }
+
     public string? Letters { get; set; }
 
     public bool? ApprovalListEnabled { get; set; }

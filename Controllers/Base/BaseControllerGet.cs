@@ -564,9 +564,11 @@ namespace SahayataNidhi.Controllers
         {
             try
             {
-                var banks = await dbcontext.Banks
-                    .OrderBy(b => b.BankName)
-                    .Select(b => new { id = b.BankId, name = b.BankName })
+                var banks = await dbcontext.BankDetails
+                    .Where(b => EF.Functions.Like(b.State, "%JAMMU%"))
+                    .OrderBy(b => b.Bank)
+                    .Select(b => new { id = b.Bank, name = b.Bank })
+                    .Distinct()
                     .ToListAsync();
                 return Ok(new { status = true, data = banks });
             }

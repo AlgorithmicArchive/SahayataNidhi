@@ -284,8 +284,8 @@ namespace SahayataNidhi.Controllers.User
                 return Json(new { status = true, ReferenceNumber, type = "Save" });
             }
         }
-      
-      
+
+
         public int GetShiftedFromTo(string location)
         {
             try

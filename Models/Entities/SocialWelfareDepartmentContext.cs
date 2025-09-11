@@ -167,6 +167,10 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("BANK_NAME");
+            entity.Property(e => e.State)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("STATE");
         });
 
         modelBuilder.Entity<BankDetail>(entity =>
@@ -257,11 +261,6 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("STD_CODE");
-
-            entity.HasOne(d => d.Bank).WithMany(p => p.Branches)
-                .HasForeignKey(d => d.BankId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BRANCH__BANK_ID__57A801BA");
         });
 
         modelBuilder.Entity<Certificate>(entity =>
@@ -388,11 +387,6 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("IFSC_CODE");
-
-            entity.HasOne(d => d.Branch).WithMany(p => p.IfscCodes)
-                .HasForeignKey(d => d.BranchId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__IFSC_CODE__BRANC__5F492382");
         });
 
         modelBuilder.Entity<Muncipality>(entity =>

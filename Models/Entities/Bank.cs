@@ -9,5 +9,5 @@ public partial class Bank
 
     public string BankName { get; set; } = null!;
 
-    public virtual ICollection<Branch> Branches { get; set; } = new List<Branch>();
+    public string? State { get; set; }
 }

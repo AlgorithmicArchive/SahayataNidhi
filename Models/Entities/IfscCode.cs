@@ -10,6 +10,4 @@ public partial class IfscCode
     public int BranchId { get; set; }
 
     public string IfscCode1 { get; set; } = null!;
-
-    public virtual Branch Branch { get; set; } = null!;
 }
