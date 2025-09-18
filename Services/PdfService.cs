@@ -265,41 +265,41 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
     }
 
     public async Task CreateCorrigendumSanctionPdf(
-      string corrigendumFieldsJson,
-      string applicationId,
-      OfficerDetailsModal officer,
-      string serviceName,
-      string corrigendumId,
-      string sanctionedDate)
+    string corrigendumFieldsJson,
+    string applicationId,
+    OfficerDetailsModal officer,
+    string serviceName,
+    string corrigendumId,
+    string sanctionedDate,
+    string type)
     {
-        // Validate inputs
         if (string.IsNullOrEmpty(corrigendumFieldsJson))
-            throw new ArgumentException("Corrigendum fields JSON cannot be null or empty.");
+            throw new ArgumentException($"{type} fields JSON cannot be null or empty.");
         if (string.IsNullOrEmpty(applicationId))
             throw new ArgumentException("Application ID cannot be null or empty.");
         if (officer == null)
             throw new ArgumentException("Officer details cannot be null.");
 
-        // Deserialize corrigendum fields
         var corrigendumFields = JsonConvert.DeserializeObject<JObject>(corrigendumFieldsJson);
         if (corrigendumFields == null)
             throw new Exception("Failed to deserialize corrigendum fields.");
 
-        // Generate PDF into MemoryStream
         using var memoryStream = new MemoryStream();
         using PdfWriter writer = new PdfWriter(memoryStream);
         using PdfDocument pdf = new PdfDocument(writer);
         pdf.SetDefaultPageSize(PageSize.A4);
-        using Document document = new Document(pdf);
+        using Document document = new Document(pdf, PageSize.A4, false);
 
-        // Add emblem
+        float pageHeight = pdf.GetDefaultPageSize().GetHeight() - document.GetTopMargin() - document.GetBottomMargin();
+
+        // --- Add emblem ---
         string emblemPath = System.IO.Path.Combine(_webHostEnvironment.WebRootPath, "assets", "images", "emblem.png");
         Image emblem = new Image(ImageDataFactory.Create(emblemPath))
             .ScaleToFit(50, 50)
             .SetHorizontalAlignment(HorizontalAlignment.CENTER);
         document.Add(emblem);
 
-        // Add header
+        // --- Header ---
         document.Add(new Paragraph("Union Territory of Jammu and Kashmir")
             .SetBold()
             .SetTextAlignment(TextAlignment.CENTER)
@@ -312,55 +312,49 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
         document.Add(new Paragraph(sanctionedFromWhere)
             .SetTextAlignment(TextAlignment.CENTER)
             .SetFontSize(16));
-        document.Add(new Paragraph("Corrigendum")
+        document.Add(new Paragraph($"{type}")
             .SetTextAlignment(TextAlignment.CENTER)
             .SetFontSize(16));
 
-        // Add Corrigendum ID and Date line above "TO"
-        Table corrLineTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 }))
-            .UseAllAvailableWidth();
+        Table corrLineTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 })).UseAllAvailableWidth();
         corrLineTable.AddCell(new Cell()
-            .Add(new Paragraph($"Number: {corrigendumId}")
-                .SetFontSize(10)
-                .SetBold())
+            .Add(new Paragraph($"Number: {corrigendumId}").SetFontSize(10).SetBold())
             .SetBorder(Border.NO_BORDER)
             .SetTextAlignment(TextAlignment.LEFT));
         corrLineTable.AddCell(new Cell()
-            .Add(new Paragraph($"Date: {DateTime.Today:dd/MM/yyyy}")
-                .SetFontSize(10)
-                .SetBold())
+            .Add(new Paragraph($"Date: {DateTime.Today:dd/MM/yyyy}").SetFontSize(10).SetBold())
             .SetBorder(Border.NO_BORDER)
             .SetTextAlignment(TextAlignment.RIGHT));
         document.Add(corrLineTable);
 
-        // Add recipient (bank manager)
         string branchOffice = GetBranchOffice(applicationId);
         document.Add(new Paragraph($"To\n\nTHE MANAGER\nTHE JAMMU AND KASHMIR BANK LIMITED\nB/O {branchOffice}")
             .SetFontSize(14));
-        document.Add(new Paragraph($"\nSubject: Corrigendum to Sanction Letter No. {applicationId} {(sanctionedDate != null ? "dated " + sanctionedDate : "")}"))
-             .SetFontSize(14);
-        document.Add(new Paragraph($"\nIn partial modification of above mentioned Sanctione Letter No., the following corrections may be read as:")
+        document.Add(new Paragraph($"\nSubject: {type} to Sanction Letter No. {applicationId} {(sanctionedDate != null ? "dated " + sanctionedDate : "")}")
+             .SetFontSize(14));
+        document.Add(new Paragraph($"\nIn partial modification of above mentioned Sanction Letter No., the following corrections may be read as:")
             .SetFontSize(12));
 
-        // Create table for corrigendum fields with Serial Number
-        Table table = new Table(UnitValue.CreatePercentArray(new float[] { 10, 30, 30, 30 })).UseAllAvailableWidth();
+        // --- Table for corrigendum fields ---
+        Table table = new Table(UnitValue.CreatePercentArray(new float[] { 10, 30, 30, 30 }))
+            .UseAllAvailableWidth()
+            .SetKeepTogether(true);
+
         table.AddHeaderCell(new Cell().Add(new Paragraph("S.No").SetBold()));
         table.AddHeaderCell(new Cell().Add(new Paragraph("Description").SetBold()));
         table.AddHeaderCell(new Cell().Add(new Paragraph("As Existing").SetBold()));
-        table.AddHeaderCell(new Cell().Add(new Paragraph("As Corrected").SetBold()));
+        table.AddHeaderCell(new Cell()
+         .Add(new Paragraph(type == "Corrigendum" ? "As Corrected" : "As Updated").SetBold()));
+
 
         var stack = new Stack<(string path, JToken field)>();
-        string remarks = corrigendumFields["remarks"]?.ToString() ?? "";
         var qrDetails = new List<string>();
         int serialNumber = 1;
 
-        // Seed with top-level entries, excluding remarks
         foreach (var item in corrigendumFields)
         {
             if (item.Key != "remarks" && item.Value is JObject)
-            {
                 stack.Push((item.Key, item.Value));
-            }
         }
 
         while (stack.Count > 0)
@@ -370,21 +364,16 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
             string oldValue = field["old_value"]?.ToString() ?? "";
             string newValue = field["new_value"]?.ToString() ?? "";
 
-            // Add to table
             table.AddCell(new Cell().Add(new Paragraph(serialNumber.ToString())));
             table.AddCell(new Cell().Add(new Paragraph(header)));
             table.AddCell(new Cell().Add(new Paragraph(oldValue)));
             table.AddCell(new Cell().Add(new Paragraph(newValue)));
 
-            // Add to QR details
             if (!string.IsNullOrEmpty(oldValue) || !string.IsNullOrEmpty(newValue))
-            {
                 qrDetails.Add($"{header} = {newValue}");
-            }
 
             serialNumber++;
 
-            // Process nested additional_values
             var additionalValues = field["additional_values"];
             if (additionalValues != null && additionalValues is JObject nested)
             {
@@ -396,75 +385,68 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
             }
         }
 
-        document.Add(table);
+        // --- Scale table font if needed ---
+        table.SetFontSize(12);
+        float approxTableHeight = serialNumber * 20 + 40; // rough estimate
+        if (approxTableHeight > pageHeight * 0.5)
+        {
+            float scale = (pageHeight * 0.5f) / approxTableHeight;
+            table.SetFontSize(12 * scale);
+        }
 
-        // Add remarks and remaining text
-        document.Add(new Paragraph($"\nThe rest of the contents of the afore said Sanction Letter No. remains unchanged.")
-            .SetFontSize(12));
-
-        // Add vertical gap
-        document.Add(new Paragraph("\n").SetHeight(10));
-
-        // Create table for NO and ISSUING AUTHORITY
-        Table idTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 }))
+        // --- Issuing Authority table ---
+        Table issuingAuthorityTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 }))
             .UseAllAvailableWidth();
-        idTable.AddCell(new Cell()
+        issuingAuthorityTable.AddCell(new Cell()
             .Add(new Paragraph($"NO: {corrigendumId}")
                 .SetFontSize(8)
                 .SetFontColor(ColorConstants.BLUE)
                 .SetBold())
             .SetBorder(Border.NO_BORDER)
             .SetTextAlignment(TextAlignment.LEFT));
-        idTable.AddCell(new Cell()
+        issuingAuthorityTable.AddCell(new Cell()
             .Add(new Paragraph("ISSUING AUTHORITY")
                 .SetFontSize(10)
                 .SetBold())
             .SetBorder(Border.NO_BORDER)
             .SetTextAlignment(TextAlignment.RIGHT));
-        document.Add(idTable);
 
-        // Collect QR content
-        qrDetails.Add($"Application Number: {applicationId}");
-        string qrContent = string.Join("\n", qrDetails);
-        if (string.IsNullOrEmpty(qrContent))
-        {
-            qrContent = $"Application Number: {applicationId}";
-        }
-        BarcodeQRCode qrCode = new(qrContent);
-        PdfFormXObject qrXObject = qrCode.CreateFormXObject(ColorConstants.BLACK, pdf);
-
-        // Create footer table for Date and Officer
-        Table footerTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 }))
-            .UseAllAvailableWidth();
+        // --- Footer table ---
+        Table footerTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 })).UseAllAvailableWidth();
         footerTable.AddCell(new Cell()
-            .Add(new Paragraph($"Date: {DateTime.Today:dd/MM/yyyy}")
-                .SetFontSize(8)
-                .SetFontColor(ColorConstants.BLUE)
-                .SetBold())
+            .Add(new Paragraph($"Date: {DateTime.Today:dd/MM/yyyy}").SetFontSize(8).SetFontColor(ColorConstants.BLUE).SetBold())
             .SetBorder(Border.NO_BORDER)
             .SetTextAlignment(TextAlignment.LEFT));
         footerTable.AddCell(new Cell()
-            .Add(new Paragraph($"{officer.Role}, {GetArreaName(officer.AccessLevel, officer.AccessCode)}")
-                .SetFontSize(10)
-                .SetBold())
+            .Add(new Paragraph($"{officer.Role}, {GetArreaName(officer.AccessLevel, officer.AccessCode)}").SetFontSize(10).SetBold())
             .SetBorder(Border.NO_BORDER)
             .SetTextAlignment(TextAlignment.RIGHT));
-        document.Add(footerTable);
 
-        // --- Add QR code BELOW footer ---
-        Image qrImage = new Image(qrXObject)
-            .ScaleToFit(110, 110)
-            .SetHorizontalAlignment(HorizontalAlignment.LEFT)
-            .SetMarginTop(10); // spacing from footer
-        document.Add(qrImage);
+        // --- QR Code ---
+        qrDetails.Add($"Application Number: {applicationId}");
+        string qrContent = string.Join("\n", qrDetails);
+        if (string.IsNullOrEmpty(qrContent))
+            qrContent = $"Application Number: {applicationId}";
+        BarcodeQRCode qrCode = new(qrContent);
+        PdfFormXObject qrXObject = qrCode.CreateFormXObject(ColorConstants.BLACK, pdf);
+        Image qrImage = new Image(qrXObject).ScaleToFit(110, 110).SetHorizontalAlignment(HorizontalAlignment.LEFT).SetMarginTop(10);
 
+        // --- Wrap everything in Div ---
+        Div div = new Div().SetKeepTogether(true);
+        div.Add(table);
+        div.Add(new Paragraph($"\nThe rest of the contents of the afore said Sanction Letter No. remains unchanged.").SetFontSize(12));
+        div.Add(issuingAuthorityTable); // Added issuing authority
+        div.Add(footerTable);
+        div.Add(qrImage);
+
+        document.Add(div);
         document.Close();
+
         await helper.GetFilePath(
             null,
             memoryStream.ToArray(),
-            corrigendumId.Replace("/", "_") + "_CorrigendumSanctionLetter.pdf"
+            corrigendumId.Replace("/", "_") + $"_{type}SanctionLetter.pdf"
         );
     }
-
 
 }

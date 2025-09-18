@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Box,
   Button,
@@ -12,10 +12,11 @@ import {
   FormControl,
   InputLabel,
   FormHelperText,
-  Modal,
+  Grid,
+  FormLabel,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import { Delete as DeleteIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon, Label } from "@mui/icons-material";
 import ServiceSelectionForm from "../../components/ServiceSelectionForm";
 import { fetchServiceList } from "../../assets/fetch";
 import axiosInstance from "../../axiosConfig";
@@ -26,6 +27,7 @@ import {
 import { useLocation } from "react-router-dom";
 import { MaterialReactTable } from "material-react-table";
 import BasicModal from "../../components/BasicModal";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 const StyledContainer = styled(Container)({
   background: "linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%)",
@@ -64,23 +66,6 @@ const FileNameTypography = styled(Typography)({
   "&:hover": {
     textDecoration: "underline",
   },
-});
-
-const ModalContent = styled(Box)({
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  maxWidth: "800px",
-  height: "80vh",
-  backgroundColor: "#fff",
-  borderRadius: "8px",
-  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
-  padding: "16px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "16px",
 });
 
 const MaterialTable = ({ columns, data, viewType }) => {
@@ -162,7 +147,7 @@ const MaterialTable = ({ columns, data, viewType }) => {
   );
 };
 
-export default function IssueCorrigendum() {
+export default function IssueDocumentChange() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [serviceId, setServiceId] = useState("");
@@ -170,6 +155,7 @@ export default function IssueCorrigendum() {
   const [type, setType] = useState("");
   const [canIssue, setCanIssue] = useState(false);
   const [formDetailsFields, setFormDetailsFields] = useState([]);
+  const [formDetails, setFormDetails] = useState({});
   const [formElements, setFormElements] = useState([]);
   const [corrigendumFields, setCorrigendumFields] = useState([]);
   const [selectedField, setSelectedField] = useState("");
@@ -194,12 +180,10 @@ export default function IssueCorrigendum() {
     type: "",
   });
   const [openModal, setOpenModal] = useState(false);
-  const [selectedFileUrl, setSelectedFileUrl] = useState("");
   const [selectedFileName, setSelectedFileName] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [allowedFormFields, setAllowedFormFields] = useState([]);
-
-  // New state for success message handling
+  const [renderKey, setRenderKey] = useState(0);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successDetails, setSuccessDetails] = useState({
     message: "",
@@ -208,13 +192,67 @@ export default function IssueCorrigendum() {
   });
 
   const fileInputRef = useRef(null);
-
   const location = useLocation();
   const { ReferenceNumber, ServiceId, applicationId, corrigendumType } =
     location.state || {};
 
-  // Reset function to clear all form-related state
-  const resetFormState = () => {
+  const fieldNames = [
+    { name: "District", childname: "Tehsil", respectiveTable: "Tehsil" },
+    {
+      name: "PresentDistrict",
+      childname: {
+        Urban: ["PresentTehsil", "PresentMuncipality"],
+        Rural: ["PresentTehsil", "PresentBlock"],
+      },
+      respectiveTable: {
+        Urban: ["TehsilAll", "Muncipality"],
+        Rural: ["TehsilAll", "Block"],
+      },
+    },
+    {
+      name: "PermanentDistrict",
+      childname: {
+        Urban: ["PermanentTehsil", "PermanentMuncipality"],
+        Rural: ["PermanentTehsil", "PermanentBlock"],
+      },
+      respectiveTable: {
+        Urban: ["TehsilAll", "Muncipality"],
+        Rural: ["TehsilAll", "Block"],
+      },
+    },
+    {
+      name: "PresentMuncipality",
+      childname: "PresentWardNo",
+      respectiveTable: "Ward",
+    },
+    {
+      name: "PermanentMuncipality",
+      childname: "PermanentWardNo",
+      respectiveTable: "Ward",
+    },
+    {
+      name: "PresentBlock",
+      childname: "PresentHalqaPanchayat",
+      respectiveTable: "HalqaPanchayat",
+    },
+    {
+      name: "PermanentBlock",
+      childname: "PermanentHalqaPanchayat",
+      respectiveTable: "HalqaPanchayat",
+    },
+    {
+      name: "PresentHalqaPanchayat",
+      childname: "PresentVillage",
+      respectiveTable: "Village",
+    },
+    {
+      name: "PermanentHalqaPanchayat",
+      childname: "PermanentVillage",
+      respectiveTable: "Village",
+    },
+  ];
+
+  const resetFormState = useCallback(() => {
     setCanIssue(false);
     setFormDetailsFields([]);
     setFormElements([]);
@@ -231,13 +269,315 @@ export default function IssueCorrigendum() {
     setColumns([]);
     setData([]);
     setResponseMessage({ message: "", type: "" });
-  };
+  }, []);
 
-  // Function to handle starting a new submission
-  const handleStartNew = () => {
+  const handleStartNew = useCallback(() => {
     setShowSuccessMessage(false);
     setSuccessDetails({ message: "", referenceNumber: "", type: "" });
-  };
+    resetFormState();
+  }, [resetFormState]);
+
+  const handleAreaChange = useCallback(
+    async (corrigendumIndex, changedFieldName, value) => {
+      try {
+        const match = fieldNames.find((f) => f.name === changedFieldName);
+        if (!match) {
+          console.warn(`Field "${changedFieldName}" not found in fieldNames.`);
+          return;
+        }
+
+        const pleaseSelectOption = [
+          { label: "Please Select", value: "Please Select" },
+        ];
+
+        if (value === "Please Select") {
+          let childFieldNames =
+            typeof match.childname === "object"
+              ? match.childname.Urban || match.childname.Rural || []
+              : [match.childname];
+          if (!Array.isArray(childFieldNames))
+            childFieldNames = [childFieldNames];
+
+          childFieldNames.forEach((childFieldName) => {
+            setFormElements((prevSections) => {
+              const newSections = JSON.parse(JSON.stringify(prevSections));
+              const sectionName = changedFieldName.includes("Present")
+                ? "Present Address Details"
+                : changedFieldName.includes("Permanent")
+                ? "Permanent Address Details"
+                : "Location";
+              const sectionIndex = newSections.findIndex(
+                (s) => s.section === sectionName,
+              );
+              if (sectionIndex === -1) return prevSections;
+
+              newSections[sectionIndex].fields = newSections[
+                sectionIndex
+              ].fields.map((f) => {
+                if (f.name === childFieldName)
+                  return { ...f, options: pleaseSelectOption };
+                if (f.additionalFields) {
+                  const updatedAdditionalFields = {};
+                  if (f.additionalFields.Urban) {
+                    updatedAdditionalFields.Urban =
+                      f.additionalFields.Urban.map((af) =>
+                        af.name === childFieldName
+                          ? { ...af, options: pleaseSelectOption }
+                          : af,
+                      );
+                  }
+                  if (f.additionalFields.Rural) {
+                    updatedAdditionalFields.Rural =
+                      f.additionalFields.Rural.map((af) =>
+                        af.name === childFieldName
+                          ? { ...af, options: pleaseSelectOption }
+                          : af,
+                      );
+                  }
+                  return {
+                    ...f,
+                    additionalFields: {
+                      ...f.additionalFields,
+                      ...updatedAdditionalFields,
+                    },
+                  };
+                }
+                return f;
+              });
+              return newSections;
+            });
+
+            setCorrigendumFields((prevFields) => {
+              const updatedFields = JSON.parse(JSON.stringify(prevFields));
+              const childIndex = updatedFields.findIndex(
+                (f) => f.name === childFieldName,
+              );
+              if (childIndex !== -1) {
+                updatedFields[childIndex] = {
+                  ...updatedFields[childIndex],
+                  options: pleaseSelectOption,
+                  newValue: "Please Select",
+                };
+                handleNewValueChange(childIndex, "Please Select", null, true);
+              }
+              return updatedFields;
+            });
+
+            setCorrigendumFields((prevFields) => {
+              const updatedFields = JSON.parse(JSON.stringify(prevFields));
+              const currentFieldIndex = updatedFields.findIndex(
+                (f, i) => i === corrigendumIndex,
+              );
+              if (
+                currentFieldIndex !== -1 &&
+                updatedFields[currentFieldIndex].additionalValues
+              ) {
+                updatedFields[currentFieldIndex].additionalValues = {
+                  ...updatedFields[currentFieldIndex].additionalValues,
+                  [childFieldName]: "Please Select",
+                };
+                handleNewValueChange(
+                  currentFieldIndex,
+                  "Please Select",
+                  childFieldName,
+                  true,
+                );
+              }
+              return updatedFields;
+            });
+          });
+          setRenderKey((prev) => prev + 1);
+          return;
+        }
+
+        const sectionName = changedFieldName.includes("Present")
+          ? "Present Address Details"
+          : changedFieldName.includes("Permanent")
+          ? "Permanent Address Details"
+          : "Location";
+        const sectionIndex = formElements.findIndex(
+          (s) => s.section === sectionName,
+        );
+        if (sectionIndex === -1) {
+          console.warn(`Section "${sectionName}" not found in formElements.`);
+          return;
+        }
+
+        const addressTypeKey = changedFieldName.includes("Present")
+          ? "PresentAddressType"
+          : changedFieldName.includes("Permanent")
+          ? "PermanentAddressType"
+          : null;
+        const addressType = addressTypeKey
+          ? formData[addressTypeKey] || "Urban"
+          : "Urban";
+
+        let childFieldNames =
+          typeof match.childname === "object"
+            ? match.childname[addressType] || []
+            : [match.childname];
+        if (!Array.isArray(childFieldNames))
+          childFieldNames = [childFieldNames];
+        let tableNames =
+          typeof match.respectiveTable === "object"
+            ? match.respectiveTable[addressType] || []
+            : [match.respectiveTable];
+        if (!Array.isArray(tableNames)) tableNames = [tableNames];
+
+        if (!childFieldNames.length || !tableNames.length) {
+          console.warn(
+            `Invalid mapping for ${changedFieldName} (${addressType})`,
+          );
+          return;
+        }
+
+        for (let i = 0; i < childFieldNames.length; i++) {
+          const childFieldName = childFieldNames[i];
+          const tableName = tableNames[i];
+
+          const response = await axiosInstance.get(
+            `/Base/GetAreaList?table=${tableName}&parentId=${value}`,
+          );
+          const areaList = response.data?.data || [];
+
+          const uniqueOptions = [];
+          const seenValues = new Set();
+          areaList.forEach((item) => {
+            const optionValue = item.id ?? item.value;
+            if (!seenValues.has(optionValue)) {
+              seenValues.add(optionValue);
+              uniqueOptions.push({
+                value: optionValue,
+                label: item.name ?? item.label,
+              });
+            }
+          });
+
+          const newOptions = [
+            { label: "Please Select", value: "Please Select" },
+            ...uniqueOptions,
+          ];
+
+          setFormElements((prevSections) => {
+            const newSections = JSON.parse(JSON.stringify(prevSections));
+            newSections[sectionIndex].fields = newSections[
+              sectionIndex
+            ].fields.map((f) => {
+              if (f.name === childFieldName)
+                return { ...f, options: newOptions };
+              if (f.additionalFields) {
+                const updatedAdditionalFields = {};
+                if (f.additionalFields.Urban) {
+                  updatedAdditionalFields.Urban = f.additionalFields.Urban.map(
+                    (af) =>
+                      af.name === childFieldName
+                        ? { ...af, options: newOptions }
+                        : af,
+                  );
+                }
+                if (f.additionalFields.Rural) {
+                  updatedAdditionalFields.Rural = f.additionalFields.Rural.map(
+                    (af) =>
+                      af.name === childFieldName
+                        ? { ...af, options: newOptions }
+                        : af,
+                  );
+                }
+                return {
+                  ...f,
+                  additionalFields: {
+                    ...f.additionalFields,
+                    ...updatedAdditionalFields,
+                  },
+                };
+              }
+              return f;
+            });
+            return newSections;
+          });
+
+          setCorrigendumFields((prevFields) => {
+            const updatedFields = JSON.parse(JSON.stringify(prevFields));
+            const childIndex = updatedFields.findIndex(
+              (f) => f.name === childFieldName,
+            );
+            if (childIndex !== -1) {
+              const currentChildValue =
+                updatedFields[childIndex].newValue || "";
+              const isValueValid = newOptions.some(
+                (option) =>
+                  option.value.toString() === currentChildValue.toString(),
+              );
+              updatedFields[childIndex] = {
+                ...updatedFields[childIndex],
+                options: newOptions,
+                newValue: isValueValid ? currentChildValue : "Please Select",
+              };
+              if (!isValueValid)
+                handleNewValueChange(childIndex, "Please Select", null, true);
+            }
+            return updatedFields;
+          });
+
+          setCorrigendumFields((prevFields) => {
+            const updatedFields = JSON.parse(JSON.stringify(prevFields));
+            const currentFieldIndex = updatedFields.findIndex(
+              (f, idx) => idx === corrigendumIndex,
+            );
+            if (
+              currentFieldIndex !== -1 &&
+              updatedFields[currentFieldIndex].additionalFields?.[
+                updatedFields[currentFieldIndex].newValue
+              ]
+            ) {
+              const addChildIndex = updatedFields[
+                currentFieldIndex
+              ].additionalFields[
+                updatedFields[currentFieldIndex].newValue
+              ].findIndex((af) => af.name === childFieldName);
+              if (addChildIndex !== -1) {
+                updatedFields[currentFieldIndex].additionalFields[
+                  updatedFields[currentFieldIndex].newValue
+                ][addChildIndex].options = newOptions;
+                const currentChildValue =
+                  updatedFields[currentFieldIndex].additionalValues[
+                    childFieldName
+                  ] || "";
+                const isValueValid = newOptions.some(
+                  (option) =>
+                    option.value.toString() === currentChildValue.toString(),
+                );
+                if (
+                  currentChildValue &&
+                  currentChildValue !== "Please Select" &&
+                  !isValueValid
+                ) {
+                  updatedFields[currentFieldIndex].additionalValues[
+                    childFieldName
+                  ] = "Please Select";
+                  handleNewValueChange(
+                    currentFieldIndex,
+                    "Please Select",
+                    childFieldName,
+                    true,
+                  );
+                }
+              }
+            }
+            return updatedFields;
+          });
+        }
+        setRenderKey((prev) => prev + 1);
+      } catch (error) {
+        console.error("Error in handleAreaChange:", error);
+        setResponseMessage({
+          message: "Failed to fetch area list. Please try again.",
+          type: "error",
+        });
+      }
+    },
+    [formElements, formData, corrigendumFields],
+  );
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -262,84 +602,216 @@ export default function IssueCorrigendum() {
       setReferenceNumber(ReferenceNumber);
       setServiceId(ServiceId);
       setType(corrigendumType);
-      setIsInitialLoad(false); // Mark initial load as complete
-      handleCheckIfCorrigendum();
+      setIsInitialLoad(false);
+      handleCheckIfDocumentChange();
     } else {
-      setIsInitialLoad(false); // Allow changes after initial load
+      setIsInitialLoad(false);
     }
   }, [applicationId, ReferenceNumber, ServiceId, corrigendumType, services]);
 
-  const normalizeDetails = (formDetails) => {
-    if (!formDetails || typeof formDetails !== "object") {
-      console.warn("formDetails is not an object or is null:", formDetails);
-      return [];
-    }
-
-    const allFields = [];
-    Object.values(formDetails).forEach((section) => {
-      if (!section || !Array.isArray(section)) {
-        console.warn("Section is not an array:", section);
-        return;
-      }
-      section.forEach((item) => {
-        const fieldConfig = findFieldConfig(item.name);
-        if (
-          ["file", "enclosure"].includes(fieldConfig.type) ||
-          fieldConfig.editable === false
-        ) {
-          return;
-        }
-        allFields.push({
-          label: item.label || item.name,
-          name: item.name,
-          value: item.value?.toString() || "",
-        });
+  useEffect(() => {
+    if (corrigendumFields.length > 0) {
+      revalidateAllFields(
+        corrigendumFields,
+        formData,
+        referenceNumber,
+        true,
+      ).then((newErrors) => {
+        setErrors(newErrors);
       });
-    });
-
-    return allFields;
-  };
-
-  const findFieldConfig = (fieldName, parsedFormElements = null) => {
-    if (parsedFormElements == null) {
-      parsedFormElements = formElements;
     }
-    for (const section of parsedFormElements) {
-      for (const field of section.fields) {
+  }, [corrigendumFields, formData, referenceNumber, revalidateAllFields]);
+
+  function getFieldTypeByName(jsonData, fieldName) {
+    function searchFields(fields) {
+      for (const field of fields) {
         if (field.name === fieldName) {
-          return {
-            ...field,
-            validationFunctions: field.validationFunctions || [],
-            transformationFunctions: field.transformationFunctions || [],
-            additionalFields: field.additionalFields || {},
-          };
+          return field.type;
         }
-        for (const key in field.additionalFields) {
-          const additional = field.additionalFields[key];
-          const found = additional.find((f) => f.name === fieldName);
-          if (found) {
-            return {
-              ...found,
-              validationFunctions: found.validationFunctions || [],
-              transformationFunctions: found.transformationFunctions || [],
-              additionalFields: found.additionalFields || {},
-            };
+        if (
+          field.additionalFields &&
+          Object.keys(field.additionalFields).length > 0
+        ) {
+          for (const key in field.additionalFields) {
+            const nestedFields = field.additionalFields[key];
+            const result = searchFields(nestedFields);
+            if (result) return result;
           }
         }
       }
+      return null;
     }
-    return {
-      label: fieldName,
-      name: fieldName,
-      type: "text",
-      editable: true,
-      validationFunctions: [],
-      transformationFunctions: [],
-      additionalFields: {},
-    };
-  };
 
-  const applyTransformations = (value, transformationFunctions) => {
+    for (const section of jsonData) {
+      const result = searchFields(section.fields);
+      if (result) return result;
+    }
+
+    return null;
+  }
+
+  const normalizeDetails = useCallback(
+    (formDetails, parsedFormElements = null) => {
+      if (!formDetails || typeof formDetails !== "object") return [];
+
+      const sourceElements = parsedFormElements || formElements;
+      const allFields = [];
+
+      const shouldIncludeField = (config) =>
+        config && config.editable !== false;
+
+      const pushField = (item, sectionName, config) => {
+        const field = {
+          label: item.label || item.name,
+          name: item.name,
+          section: sectionName,
+        };
+
+        if (config.type === "enclosure") {
+          field.oldValue = item.File?.file || item.File || ""; // Use filename directly
+          field.value = item.File?.file || item.File || null;
+        } else {
+          field.oldValue = item.value?.toString() || "";
+          field.value = item.value?.toString() || "";
+        }
+
+        allFields.push(field);
+      };
+
+      Object.entries(formDetails).forEach(([sectionName, section]) => {
+        if (!Array.isArray(section)) return;
+
+        section.forEach((item) => {
+          const fieldType = getFieldTypeByName(sourceElements, item.name);
+          const fieldConfig = findFieldConfig(
+            item.name,
+            fieldType || "text",
+            formElements,
+          );
+
+          if (!shouldIncludeField(fieldConfig)) return;
+
+          pushField(item, sectionName, fieldConfig);
+
+          if (Array.isArray(item.additionalFields)) {
+            item.additionalFields.forEach((addField) => {
+              const addFieldConfig = findFieldConfig(
+                addField.name,
+                addField.type || "text",
+                formElements,
+              );
+
+              if (!shouldIncludeField(addFieldConfig)) return;
+
+              const additionalField = {
+                label: addField.label || addField.name,
+                name: addField.name,
+                section: sectionName,
+              };
+
+              if (addFieldConfig.type === "enclosure") {
+                additionalField.oldValue =
+                  addField.File?.file || addField.File || "";
+                additionalField.value =
+                  addField.File?.file || addField.File || null;
+              } else {
+                additionalField.oldValue = addField.value?.toString() || "";
+                additionalField.value = addField.value?.toString() || "";
+              }
+
+              allFields.push(additionalField);
+            });
+          }
+        });
+      });
+
+      return allFields;
+    },
+    [findFieldConfig, formElements],
+  );
+
+  const findFieldConfig = useCallback(
+    (fieldName, fieldType = "text", parsedFormElements = null) => {
+      parsedFormElements = parsedFormElements || formElements;
+      for (const section of parsedFormElements) {
+        for (const field of section.fields) {
+          if (field.name === fieldName) {
+            return {
+              ...field,
+              type: field.type || fieldType,
+              validationFunctions: field.validationFunctions || [],
+              transformationFunctions: field.transformationFunctions || [],
+              additionalFields: field.additionalFields || {},
+              conditionalAdditionalFields:
+                field.conditionalAdditionalFields || {},
+              options: field.options || [
+                { label: "Please Select", value: "Please Select" },
+              ],
+              accept: field.accept || ".pdf",
+              allowSameAsOldValue: field.allowSameAsOldValue || false,
+            };
+          }
+          for (const key in field.additionalFields) {
+            const additional = field.additionalFields[key];
+            const found = additional.find((f) => f.name === fieldName);
+            if (found) {
+              return {
+                ...found,
+                type: found.type || fieldType,
+                validationFunctions: found.validationFunctions || [],
+                transformationFunctions: found.transformationFunctions || [],
+                additionalFields: found.additionalFields || {},
+                conditionalAdditionalFields:
+                  found.conditionalAdditionalFields || {},
+                options: found.options || [
+                  { label: "Please Select", value: "Please Select" },
+                ],
+                accept: found.accept || ".pdf",
+                allowSameAsOldValue: found.allowSameAsOldValue || false,
+              };
+            }
+          }
+          // Search conditionalAdditionalFields
+          for (const key in field.conditionalAdditionalFields) {
+            const conditional = field.conditionalAdditionalFields[key];
+            const found = conditional.find((f) => f.name === fieldName);
+            if (found) {
+              return {
+                ...found,
+                type: found.type || fieldType,
+                validationFunctions: found.validationFunctions || [],
+                transformationFunctions: found.transformationFunctions || [],
+                additionalFields: found.additionalFields || {},
+                conditionalAdditionalFields:
+                  found.conditionalAdditionalFields || {},
+                options: found.options || [
+                  { label: "Please Select", value: "Please Select" },
+                ],
+                accept: found.accept || ".pdf",
+                allowSameAsOldValue: found.allowSameAsOldValue || false,
+              };
+            }
+          }
+        }
+      }
+      return {
+        label: fieldName,
+        name: fieldName,
+        type: fieldType,
+        editable: true,
+        validationFunctions: [],
+        transformationFunctions: [],
+        additionalFields: {},
+        conditionalAdditionalFields: {},
+        options: [{ label: "Please Select", value: "Please Select" }],
+        accept: fieldType === "enclosure" ? ".pdf" : undefined,
+        allowSameAsOldValue: fieldName === "percentageOfDisability",
+      };
+    },
+    [formElements],
+  );
+
+  const applyTransformations = useCallback((value, transformationFunctions) => {
     let transformedValue = value || "";
     for (const transformFn of transformationFunctions || []) {
       if (TransformationFunctionsList[transformFn]) {
@@ -348,112 +820,231 @@ export default function IssueCorrigendum() {
       }
     }
     return transformedValue;
-  };
+  }, []);
 
-  const validateField = async (field, value, formData, referenceNumber) => {
-    const fieldConfig = findFieldConfig(field.name);
+  const validateUdidNumber = useCallback(
+    async (udidNumber, referenceNumber) => {
+      try {
+        const response = await axiosInstance.get(
+          "/Officer/GetIfSameUdidNumber",
+          {
+            params: { referenceNumber, udidNumber },
+          },
+        );
+        const data = response.data;
+        if (data.status) {
+          return null; // UDID matches, no error
+        } else {
+          return (
+            data.message ||
+            "UDID Number doesn't match the existing one in the record."
+          ); // UDID doesn't match, return error message
+        }
+      } catch (error) {
+        console.error("Error validating UDID number:", error);
+        return (
+          error.response?.data?.message ||
+          "Error validating UDID number. Please try again."
+        ); // Error case, return error message
+      }
+    },
+    [],
+  );
 
-    if (value === field.oldValue) {
+  const validateField = useCallback(
+    async (field, value, formData, referenceNumber) => {
+      const fieldConfig = findFieldConfig(field.name);
+
+      // List of fields to skip "same as old value" validation
+      const skipSameValueCheckFields = [
+        "UdidCardNumber",
+        "KindOfDisability", // Add or remove fields here as needed
+        "PercentageOfDisability",
+      ];
+
+      if (fieldConfig.type === "enclosure") {
+        // Check if new value is the same as old file (avoid redundant uploads)
+        if (
+          value &&
+          field.oldValue?.file &&
+          value.name === field.oldValue.file
+        ) {
+          return {
+            transformedValue: value,
+            error: "New file cannot be the same as the old file",
+          };
+        }
+        // Validate file type and size
+        if (value) {
+          if (!(value instanceof File)) {
+            return {
+              transformedValue: value,
+              error: "Invalid file format",
+            };
+          }
+          const validTypes = fieldConfig.accept
+            ? fieldConfig.accept.split(",").map((t) => t.trim())
+            : [".pdf"];
+          const fileExtension = value.name
+            ? `.${value.name.split(".").pop().toLowerCase()}`
+            : "";
+          if (!validTypes.includes(fileExtension)) {
+            return {
+              transformedValue: value,
+              error: `File must be one of: ${validTypes.join(", ")}`,
+            };
+          }
+          // Validate file size (e.g., max 5MB)
+          if (value.size > 5 * 1024 * 1024) {
+            return {
+              transformedValue: value,
+              error: "File size exceeds 5MB",
+            };
+          }
+        }
+        return {
+          transformedValue: value,
+          error: null,
+        };
+      }
+
+      // Skip "same as old value" check for specified fields or if allowSameAsOldValue is true
+      if (
+        !skipSameValueCheckFields.includes(field.name) &&
+        !fieldConfig.allowSameAsOldValue &&
+        value === field.oldValue
+      ) {
+        return {
+          transformedValue: value,
+          error: "New value cannot be the same as old value",
+        };
+      }
+
+      // Run standard validations
+      const validationResult = await runValidations(
+        {
+          ...fieldConfig,
+          validationFunctions: fieldConfig.validationFunctions || [],
+        },
+        value,
+        formData,
+        referenceNumber,
+      );
+      if (validationResult !== true) {
+        return {
+          transformedValue: value,
+          error: validationResult,
+        };
+      }
+
+      // Apply UDID Number validation for UdidCardNumber
+      if (field.name === "UdidCardNumber" && value) {
+        const udidValidationResult = await validateUdidNumber(
+          value,
+          referenceNumber,
+        );
+        if (udidValidationResult !== null) {
+          return {
+            transformedValue: value,
+            error: udidValidationResult, // Return error message if UDID doesn't match
+          };
+        }
+      }
+
       return {
         transformedValue: value,
-        error: "New value cannot be the same as old value",
+        error: null,
       };
-    }
+    },
+    [findFieldConfig, validateUdidNumber],
+  );
 
-    const validationResult = await runValidations(
-      {
-        ...fieldConfig,
-        validationFunctions: fieldConfig.validationFunctions || [],
-      },
-      value,
-      formData,
-      referenceNumber,
-    );
-
-    return {
-      transformedValue: value,
-      error: validationResult === true ? null : validationResult,
-    };
-  };
-
-  const validateRemarks = (value) => {
-    if (!value.trim()) {
-      return "Remarks are required";
-    }
+  const validateRemarks = useCallback((value) => {
+    if (!value.trim()) return "Remarks are required";
     const words = value
       .trim()
       .split(/\s+/)
       .filter((word) => word.length > 0);
-    if (words.length > MAX_WORDS) {
+    if (words.length > MAX_WORDS)
       return `Remarks exceed the maximum of ${MAX_WORDS} words`;
-    }
     return null;
-  };
+  }, []);
 
-  const validateFiles = (files, serverFiles) => {
+  const validateFiles = useCallback((files, serverFiles) => {
     return files.length > 0 || serverFiles.length > 0
       ? null
       : "At least one verification document is required";
-  };
+  }, []);
 
-  const validateType = (value) => {
-    return value === "Corrigendum" || value === "Correction"
+  const validateType = useCallback((value) => {
+    return ["Corrigendum", "Correction", "Amendment"].includes(value)
       ? null
-      : "Please select a valid type (Corrigendum or Correction)";
-  };
+      : "Please select a valid type (Corrigendum, Correction, or Amendment)";
+  }, []);
 
-  const revalidateAllFields = async (
-    updatedFields,
-    formData,
-    referenceNumber,
-    validateRemarksAndFiles = false,
-  ) => {
-    const newErrors = {};
-    for (let i = 0; i < updatedFields.length; i++) {
-      const field = updatedFields[i];
-      if (field.newValue) {
-        const { error } = await validateField(
-          field,
-          field.newValue,
-          formData,
-          referenceNumber,
-        );
-        newErrors[i] = error;
+  const revalidateAllFields = useCallback(
+    async (
+      updatedFields,
+      formData,
+      referenceNumber,
+      validateRemarksAndFiles = false,
+    ) => {
+      const newErrors = {};
+      for (const field of updatedFields) {
+        if (field.newValue) {
+          const { error } = await validateField(
+            field,
+            field.newValue,
+            formData,
+            referenceNumber,
+          );
+          newErrors[field.name] = error; // Use field.name instead of index
 
-        for (const additionalFieldName in field.additionalValues) {
-          const additionalFieldConfig = (
-            field.additionalFields[field.newValue] || []
-          ).find((f) => f.name === additionalFieldName);
-          if (additionalFieldConfig) {
-            const validationResult = await runValidations(
-              {
-                ...additionalFieldConfig,
-                validationFunctions:
-                  additionalFieldConfig.validationFunctions || [],
-              },
-              field.additionalValues[additionalFieldName],
-              formData,
-              referenceNumber,
-            );
-            newErrors[`${i}-${additionalFieldName}`] =
-              validationResult === true ? null : validationResult;
+          for (const additionalFieldName in field.additionalValues) {
+            const additionalFieldConfig = (
+              field.additionalFields[field.newValue] || []
+            ).find((f) => f.name === additionalFieldName);
+            if (additionalFieldConfig) {
+              const validationResult = await runValidations(
+                {
+                  ...additionalFieldConfig,
+                  validationFunctions:
+                    additionalFieldConfig.validationFunctions || [],
+                },
+                field.additionalValues[additionalFieldName],
+                formData,
+                referenceNumber,
+              );
+              newErrors[`${field.name}-${additionalFieldName}`] =
+                validationResult === true ? null : validationResult;
+            }
           }
         }
       }
-    }
-    if (validateRemarksAndFiles) {
-      newErrors.remarks = validateRemarks(remarks);
-      newErrors.files = validateFiles(files, serverFiles);
-      newErrors.type = validateType(type);
-    }
-    return newErrors;
-  };
+      if (validateRemarksAndFiles) {
+        newErrors.remarks = validateRemarks(remarks);
+        newErrors.files = validateFiles(files, serverFiles);
+        newErrors.type = validateType(type);
+      }
+      return newErrors;
+    },
+    [
+      validateField,
+      validateRemarks,
+      validateFiles,
+      validateType,
+      remarks,
+      files,
+      serverFiles,
+      type,
+    ],
+  );
 
-  const handleCheckIfCorrigendum = async () => {
+  const handleCheckIfDocumentChange = useCallback(async () => {
     if (!type) {
       setErrors((prev) => ({
         ...prev,
-        type: "Please select a type (Corrigendum or Correction)",
+        type: "Please select a type (Corrigendum, Correction, or Amendment)",
       }));
       return;
     }
@@ -468,6 +1059,7 @@ export default function IssueCorrigendum() {
 
     setLoading(true);
     setResponseMessage({ message: "", type: "" });
+
     try {
       const params = applicationId
         ? {
@@ -484,8 +1076,6 @@ export default function IssueCorrigendum() {
       );
       const result = response.data;
 
-      console.log("API Response for", type, ":", result); // Debug log
-
       if (result.status) {
         if (!result.formDetails || !result.formElements) {
           setResponseMessage({
@@ -497,18 +1087,63 @@ export default function IssueCorrigendum() {
           return;
         }
 
-        const normalizedFields = normalizeDetails(result.formDetails);
-        const parsedFormElements =
-          typeof result.formElements === "string"
-            ? JSON.parse(result.formElements)
-            : result.formElements || [];
-
-        setFormDetailsFields(normalizedFields);
+        // Parse formElements
+        let parsedFormElements = [];
+        if (typeof result.formElements === "string") {
+          try {
+            parsedFormElements = JSON.parse(result.formElements);
+          } catch (error) {
+            console.error("Error parsing formElements:", error);
+            setResponseMessage({
+              message: "Invalid form elements data from server.",
+              type: "error",
+            });
+            setCanIssue(false);
+            setLoading(false);
+            return;
+          }
+        } else if (Array.isArray(result.formElements)) {
+          parsedFormElements = result.formElements;
+        } else {
+          setResponseMessage({
+            message: "Unexpected form elements format from server.",
+            type: "error",
+          });
+          setCanIssue(false);
+          setLoading(false);
+          return;
+        }
         setFormElements(parsedFormElements);
+        setFormDetailsFields(
+          normalizeDetails(result.formDetails, parsedFormElements),
+        );
+        setFormDetails(result.formDetails || {});
         setCanIssue(result.isCurrentOfficer || result.corrigendumType === type);
         setNextOfficer(result.nextOfficer);
-        setAllowedFormFields(result.allowedForDetails);
 
+        // Allowed fields mapping
+        const mappedAllowedFields = result.allowedForDetails.map((item) => {
+          if (item.isGroup) {
+            return {
+              label: item.label,
+              name: item.name || item.label,
+              isGroup: true,
+              fields: item.fields,
+              value: `group|${item.label}`,
+            };
+          } else {
+            return {
+              label: item.label,
+              name: item.name,
+              type: item.type || "text", // Ensure type is included
+              isGroup: false,
+              value: `${item.label}|${item.name}`,
+            };
+          }
+        });
+        setAllowedFormFields(mappedAllowedFields);
+
+        // Editing scenario
         if (isEdit) {
           setColumns(result.columns || []);
           setData(result.data || []);
@@ -524,114 +1159,248 @@ export default function IssueCorrigendum() {
           setRemarks(result.remarks || "");
         }
 
-        // Only update if values differ to prevent triggering reset
-        if (result.application.ReferenceNumber !== referenceNumber) {
-          setReferenceNumber(
-            result.application.ReferenceNumber || referenceNumber,
-          );
-        }
-        if (result.application.ServiceId !== serviceId) {
-          setServiceId(result.application.ServiceId || serviceId);
-        }
-
-        const newFormData = {};
-        normalizedFields.forEach((item) => {
-          newFormData[item.name] = item.value;
-        });
-
+        // In handleCheckIfDocumentChange, update corrigendumFields initialization
         let newCorrigendumFields = [];
         let newErrors = {};
         if (applicationId && result.corrigendumFields) {
-          try {
-            const corrigendumFieldsData = JSON.parse(result.corrigendumFields);
-            let index = 0;
-            for (const [name, fieldData] of Object.entries(
-              corrigendumFieldsData,
-            )) {
-              if (name === "Files") continue;
-              const fieldConfig = findFieldConfig(name, parsedFormElements);
-              const formDetail = normalizedFields.find(
+          let corrigendumFieldsData =
+            typeof result.corrigendumFields === "string"
+              ? JSON.parse(result.corrigendumFields)
+              : result.corrigendumFields;
+
+          let index = 0;
+          for (const [name, fieldData] of Object.entries(
+            corrigendumFieldsData,
+          )) {
+            if (name === "Files") continue;
+
+            const isGroup =
+              typeof fieldData === "object" && !fieldData.new_value;
+            if (isGroup) {
+              for (const [subName, subFieldData] of Object.entries(fieldData)) {
+                const fieldConfig = findFieldConfig(
+                  subName,
+                  subFieldData.type || "text",
+                  parsedFormElements,
+                );
+                const formDetail = normalizeDetails(result.formDetails).find(
+                  (item) => item.name === subName,
+                );
+                if (!formDetail) continue;
+
+                let oldValue = formDetail.oldValue || "";
+                if (fieldConfig.type === "enclosure") {
+                  oldValue = formDetail.oldValue || ""; // Use filename string
+                }
+
+                const newField = {
+                  label: formDetail.label,
+                  name: subName,
+                  oldValue,
+                  newValue:
+                    subFieldData.new_value ||
+                    (fieldConfig.type === "enclosure" ? null : ""),
+                  additionalValues: subFieldData.additional_values || {},
+                  type: fieldConfig.type,
+                  options: fieldConfig.options || [
+                    { label: "Please Select", value: "Please Select" },
+                  ],
+                  validationFunctions: fieldConfig.validationFunctions || [],
+                  transformationFunctions:
+                    fieldConfig.transformationFunctions || [],
+                  additionalFields: fieldConfig.additionalFields || {},
+                  conditionalAdditionalFields:
+                    fieldConfig.conditionalAdditionalFields || {},
+                  accept: fieldConfig.accept || ".pdf",
+                };
+
+                // Add conditional fields if newValue triggers them
+                if (
+                  subFieldData.new_value &&
+                  fieldConfig.conditionalAdditionalFields?.[
+                    subFieldData.new_value
+                  ]
+                ) {
+                  const conditionalFields =
+                    fieldConfig.conditionalAdditionalFields[
+                      subFieldData.new_value
+                    ];
+                  for (const condField of conditionalFields) {
+                    const condFormDetail = normalizeDetails(
+                      result.formDetails,
+                    ).find((item) => item.name === condField.name);
+                    const condOldValue = condFormDetail
+                      ? condFormDetail.oldValue || ""
+                      : "";
+                    newCorrigendumFields.push({
+                      label: condField.label || condField.name,
+                      name: condField.name,
+                      oldValue: condOldValue,
+                      newValue:
+                        subFieldData.additional_values[condField.name] ||
+                        (condField.type === "enclosure" ? null : ""),
+                      additionalValues: {},
+                      type: condField.type || "text",
+                      options: condField.options || [
+                        { label: "Please Select", value: "Please Select" },
+                      ],
+                      validationFunctions: condField.validationFunctions || [],
+                      transformationFunctions:
+                        condField.transformationFunctions || [],
+                      additionalFields: condField.additionalFields || {},
+                      conditionalAdditionalFields:
+                        condField.conditionalAdditionalFields || {},
+                      accept: condField.accept || ".pdf",
+                    });
+                  }
+                }
+
+                newCorrigendumFields.push(newField);
+
+                const { error } = await validateField(
+                  newField,
+                  newField.newValue,
+                  formData,
+                  result.application.ReferenceNumber,
+                );
+                newErrors[index] = error;
+                index++;
+              }
+            } else {
+              const fieldConfig = findFieldConfig(
+                name,
+                fieldData.type || "text",
+                parsedFormElements,
+              );
+              const formDetail = normalizeDetails(result.formDetails).find(
                 (item) => item.name === name,
               );
-              const selected = normalizedFields.find(
-                (item) =>
-                  item.name === formDetail.name &&
-                  item.label === formDetail.label,
-              );
+              if (!formDetail) continue;
 
-              if (!formDetail) {
-                console.warn(`Field ${name} not found in formDetailsFields`);
-                continue;
+              let oldValue = formDetail.oldValue || "";
+              if (fieldConfig.type === "enclosure") {
+                oldValue = formDetail.oldValue || "";
               }
+
               const newField = {
-                label: selected.label,
-                name: selected.name,
-                oldValue: selected.value,
-                newValue: fieldData.new_value,
+                label: formDetail.label,
+                name,
+                oldValue,
+                newValue:
+                  fieldData.new_value ||
+                  (fieldConfig.type === "enclosure" ? null : ""),
                 additionalValues: fieldData.additional_values || {},
                 type: fieldConfig.type,
-                options: fieldConfig.options || [],
+                options: fieldConfig.options || [
+                  { label: "Please Select", value: "Please Select" },
+                ],
                 validationFunctions: fieldConfig.validationFunctions || [],
                 transformationFunctions:
                   fieldConfig.transformationFunctions || [],
                 additionalFields: fieldConfig.additionalFields || {},
+                conditionalAdditionalFields:
+                  fieldConfig.conditionalAdditionalFields || {},
+                accept: fieldConfig.accept || ".pdf",
               };
+
+              // Add conditional fields if newValue triggers them
+              if (
+                fieldData.new_value &&
+                fieldConfig.conditionalAdditionalFields?.[fieldData.new_value]
+              ) {
+                const conditionalFields =
+                  fieldConfig.conditionalAdditionalFields[fieldData.new_value];
+                for (const condField of conditionalFields) {
+                  const condFormDetail = normalizeDetails(
+                    result.formDetails,
+                  ).find((item) => item.name === condField.name);
+                  const condOldValue = condFormDetail
+                    ? condFormDetail.oldValue || ""
+                    : "";
+                  newCorrigendumFields.push({
+                    label: condField.label || condField.name,
+                    name: condField.name,
+                    oldValue: condOldValue,
+                    newValue:
+                      fieldData.additional_values[condField.name] ||
+                      (condField.type === "enclosure" ? null : ""),
+                    additionalValues: {},
+                    type: condField.type || "text",
+                    options: condField.options || [
+                      { label: "Please Select", value: "Please Select" },
+                    ],
+                    validationFunctions: condField.validationFunctions || [],
+                    transformationFunctions:
+                      condField.transformationFunctions || [],
+                    additionalFields: condField.additionalFields || {},
+                    conditionalAdditionalFields:
+                      condField.conditionalAdditionalFields || {},
+                    accept: condField.accept || ".pdf",
+                  });
+                }
+              }
+
               newCorrigendumFields.push(newField);
 
               const { error } = await validateField(
                 newField,
                 newField.newValue,
-                newFormData,
+                formData,
                 result.application.ReferenceNumber,
               );
               newErrors[index] = error;
-
               index++;
             }
-          } catch (error) {
-            console.error("Error parsing corrigendumFields:", error);
-            setResponseMessage({
-              message: `Invalid ${type.toLowerCase()} fields data from server.`,
-              type: "error",
-            });
           }
         }
 
         setCorrigendumFields(newCorrigendumFields);
         setErrors(newErrors);
-        setFormData(newFormData);
 
-        // Automatically select the first editable field for non-edit mode
-        if (!applicationId && normalizedFields.length > 0) {
-          setSelectedField(
-            `${normalizedFields[0].label}|${normalizedFields[0].name}`,
-          );
-          handleAddCorrigendumField();
-        }
+        // Initialize formData
+        const newFormData = {};
+        normalizeDetails(result.formDetails).forEach((item) => {
+          newFormData[item.name] = item.value || (item.File ? item.File : "");
+        });
+        setFormData(newFormData);
 
         setResponseMessage({
           message: `Application found. You can issue a ${type.toLowerCase()}.`,
           type: "success",
         });
       } else {
-        setCanIssue(false);
         setResponseMessage({
-          message: result.message,
+          message:
+            result.message || `No application found for the provided details.`,
           type: "error",
         });
       }
     } catch (error) {
       console.error(`Error in handleCheckIf${type}:`, error);
       setResponseMessage({
-        message: `Error checking application for ${type.toLowerCase()}. Please try again.`,
+        message:
+          error.response?.data?.message ||
+          `Error checking application for ${type.toLowerCase()}. Please try again.`,
         type: "error",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    type,
+    applicationId,
+    referenceNumber,
+    serviceId,
+    ReferenceNumber,
+    ServiceId,
+    normalizeDetails,
+    findFieldConfig,
+    isEdit,
+    formData,
+    validateField,
+  ]);
 
-  const handleAddCorrigendumField = () => {
+  const handleAddCorrigendumField = useCallback(() => {
     if (!selectedField) {
       setErrors((prev) => ({
         ...prev,
@@ -639,197 +1408,468 @@ export default function IssueCorrigendum() {
       }));
       return;
     }
-
-    const [label, name] = selectedField.split("|");
-    const existing = corrigendumFields.find((f) => f.name === name);
-    if (existing) {
-      setErrors((prev) => ({
-        ...prev,
-        selectedField: "This field is already added.",
-      }));
-      return;
-    }
-
-    const selected = formDetailsFields.find(
-      (item) => item.name === name && item.label === label,
+    const selectedOption = allowedFormFields.find(
+      (f) => f.value === selectedField,
     );
-    if (!selected) {
+    if (!selectedOption) {
       setErrors((prev) => ({
         ...prev,
-        selectedField: "Selected field not found.",
+        selectedField: "Invalid field selected.",
       }));
       return;
     }
 
-    const fieldConfig = findFieldConfig(name);
-    if (!fieldConfig) {
-      setErrors((prev) => ({
-        ...prev,
-        selectedField: "Field configuration not found.",
-      }));
-      return;
-    }
+    const newFields = [];
 
-    const newField = {
-      label: selected.label,
-      name: selected.name,
-      oldValue: selected.value,
-      newValue: "",
-      additionalValues: {},
-      type: fieldConfig.type,
-      options: fieldConfig.options || [],
-      validationFunctions: fieldConfig.validationFunctions || [],
-      transformationFunctions: fieldConfig.transformationFunctions || [],
-      additionalFields: fieldConfig.additionalFields || {},
+    const addFieldToCorrigendum = (field) => {
+      if (corrigendumFields.some((f) => f.name === field.name)) return;
+      const formDetail = formDetailsFields.find((d) => d.name === field.name);
+      if (!formDetail) return;
+      const fieldConfig = findFieldConfig(field.name, field.type || "text");
+      if (!fieldConfig) return;
+
+      let oldValue = formDetail.oldValue || "";
+      if (fieldConfig.type === "enclosure") {
+        oldValue = formDetail.oldValue || { file: null, label: field.name };
+      }
+
+      newFields.push({
+        label: formDetail.label,
+        name: field.name,
+        oldValue,
+        newValue: fieldConfig.type === "enclosure" ? null : "",
+        additionalValues: {},
+        type: fieldConfig.type,
+        options: fieldConfig.options || [
+          { label: "Please Select", value: "Please Select" },
+        ],
+        maxLength: fieldConfig.maxLength || null,
+        validationFunctions: fieldConfig.validationFunctions || [],
+        transformationFunctions: fieldConfig.transformationFunctions || [],
+        additionalFields: fieldConfig.additionalFields || {},
+        accept: fieldConfig.accept || ".pdf",
+      });
     };
 
-    setCorrigendumFields((prev) => [...prev, newField]);
+    if (selectedOption.isGroup) {
+      selectedOption.fields.forEach(addFieldToCorrigendum);
+    } else {
+      addFieldToCorrigendum(selectedOption);
+    }
+
+    if (newFields.length > 0) {
+      setCorrigendumFields((prev) => [...prev, ...newFields]);
+      revalidateAllFields(
+        [...corrigendumFields, ...newFields],
+        formData,
+        referenceNumber,
+      ).then((newErrors) => setErrors(newErrors));
+    }
+
     setSelectedField("");
     setErrors((prev) => ({ ...prev, selectedField: null }));
+  }, [
+    selectedField,
+    allowedFormFields,
+    corrigendumFields,
+    formDetailsFields,
+    findFieldConfig,
+    formData,
+    referenceNumber,
+    revalidateAllFields,
+  ]);
 
-    const updatedFields = [...corrigendumFields, newField];
-    revalidateAllFields(updatedFields, formData, referenceNumber).then(
-      (newErrors) => {
-        setErrors(newErrors);
-      },
-    );
-  };
+  const findNestedFieldValue = (formDetails, fieldName) => {
+    if (formDetails && typeof formDetails === "object") {
+      for (const [sectionName, section] of Object.entries(formDetails)) {
+        if (!Array.isArray(section)) {
+          continue;
+        }
 
-  const handleNewValueChange = (index, value, additionalFieldName = null) => {
-    const updated = [...corrigendumFields];
-    const field = updated[index];
-    let transformedValue;
+        for (const field of section) {
+          if (field.name === fieldName) {
+            const val = field.value ?? field.File ?? "";
+            return val;
+          }
 
-    if (additionalFieldName) {
-      const additionalFieldConfig = (
-        field.additionalFields[field.newValue] || []
-      ).find((f) => f.name === additionalFieldName);
-      if (!additionalFieldConfig) {
-        console.warn(
-          `Additional field config not found for ${additionalFieldName}`,
-        );
-        return;
+          if (field.additionalFields) {
+            const searchAdditional = (fields, depth = 1) => {
+              for (const sub of fields) {
+                if (sub.name === fieldName) {
+                  const val = sub.value ?? sub.File ?? "";
+                  return val;
+                }
+
+                if (sub.additionalFields) {
+                  const nested = searchAdditional(
+                    sub.additionalFields,
+                    depth + 1,
+                  );
+                  if (nested) return nested;
+                }
+              }
+              return null;
+            };
+
+            const nestedValue = searchAdditional(field.additionalFields);
+            if (nestedValue) return nestedValue;
+          }
+        }
       }
-      transformedValue = applyTransformations(
-        value,
-        additionalFieldConfig.transformationFunctions,
-      );
-      updated[index].additionalValues = {
-        ...field.additionalValues,
-        [additionalFieldName]: transformedValue,
-      };
-      setFormData((prev) => ({
-        ...prev,
-        [additionalFieldName]: transformedValue,
-      }));
-    } else {
-      transformedValue = applyTransformations(
-        value,
-        field.transformationFunctions,
-      );
-      updated[index].newValue = transformedValue;
-      setFormData((prev) => ({
-        ...prev,
-        [field.name]: transformedValue,
-      }));
     }
 
-    setCorrigendumFields(updated);
+    return "";
   };
 
-  const handleNewValueBlur = async (
-    index,
-    value,
-    additionalFieldName = null,
-  ) => {
-    const updated = [...corrigendumFields];
-    const field = updated[index];
-
-    let error;
-
-    if (additionalFieldName) {
-      const additionalFieldConfig = (
-        field.additionalFields[field.newValue] || []
-      ).find((f) => f.name === additionalFieldName);
-      if (!additionalFieldConfig) {
-        console.warn(
-          `Additional field config not found for ${additionalFieldName}`,
-        );
+  const handleNewValueChange = useCallback(
+    (index, value, additionalFieldName = null, skipStateUpdate = false) => {
+      const field = corrigendumFields[index];
+      if (!field) {
+        console.error(`Field at index ${index} not found in corrigendumFields`);
         return;
       }
 
-      const validationResult = await runValidations(
-        {
-          ...additionalFieldConfig,
-          validationFunctions: additionalFieldConfig.validationFunctions || [],
-        },
-        field.additionalValues[additionalFieldName],
-        formData,
-        referenceNumber,
-      );
+      let transformedValue;
+      const changedFieldName = additionalFieldName || field.name;
+      const changedField = additionalFieldName
+        ? (field.additionalFields[field.newValue] || []).find(
+            (f) => f.name === additionalFieldName,
+          )
+        : field;
 
-      error = validationResult === true ? null : validationResult;
-      setErrors((prev) => ({
-        ...prev,
-        [`${index}-${additionalFieldName}`]: error,
-      }));
-    } else {
-      const result = await validateField(
-        field,
-        field.newValue,
-        formData,
-        referenceNumber,
-      );
-      error = result.error;
-      setErrors((prev) => ({
-        ...prev,
-        [index]: error,
-      }));
-    }
+      if (!changedField) {
+        console.warn(
+          `Field ${
+            additionalFieldName || field.name
+          } not found in corrigendumFields`,
+        );
+        return;
+      }
 
-    const newErrors = await revalidateAllFields(
-      updated,
+      if (additionalFieldName) {
+        const additionalFieldConfig = (
+          field.additionalFields[field.newValue] || []
+        ).find((f) => f.name === additionalFieldName);
+        if (!additionalFieldConfig) {
+          console.warn(
+            `Additional field config not found for ${additionalFieldName}`,
+          );
+          return;
+        }
+        transformedValue = applyTransformations(
+          value,
+          additionalFieldConfig.transformationFunctions,
+        );
+        if (additionalFieldConfig.type === "select") {
+          const validOptions = additionalFieldConfig.options || [];
+          if (
+            value !== "" &&
+            value !== "Please Select" &&
+            !validOptions.some(
+              (opt) => opt.value.toString() === value.toString(),
+            )
+          ) {
+            console.warn(`Invalid value ${value} for ${additionalFieldName}`);
+            return;
+          }
+        }
+        if (!skipStateUpdate) {
+          const tempUpdated = [...corrigendumFields];
+          tempUpdated[index].additionalValues = {
+            ...tempUpdated[index].additionalValues,
+            [additionalFieldName]: transformedValue,
+          };
+          setCorrigendumFields(tempUpdated);
+
+          // Validate the additional field immediately
+          runValidations(
+            {
+              ...additionalFieldConfig,
+              validationFunctions:
+                additionalFieldConfig.validationFunctions || [],
+            },
+            transformedValue,
+            formData,
+            referenceNumber,
+          ).then((validationResult) => {
+            setErrors((prev) => ({
+              ...prev,
+              [`${field.name}-${additionalFieldName}`]:
+                validationResult === true ? null : validationResult,
+            }));
+          });
+        }
+      } else {
+        transformedValue = applyTransformations(
+          value,
+          field.transformationFunctions,
+        );
+        if (field.type === "select") {
+          const validOptions = field.options || [];
+          if (
+            value !== "" &&
+            value !== "Please Select" &&
+            !validOptions.some(
+              (opt) => opt.value.toString() === value.toString(),
+            )
+          ) {
+            console.warn(`Invalid value ${value} for ${field.name}`);
+            return;
+          }
+        }
+        if (!skipStateUpdate) {
+          const tempUpdated = [...corrigendumFields];
+          tempUpdated[index].newValue = transformedValue;
+
+          // Handle conditional additional fields
+          const conditionalFields =
+            field.additionalFields?.[transformedValue] ||
+            field.conditionalAdditionalFields?.[transformedValue] ||
+            [];
+
+          const existingConditionalFieldNames = corrigendumFields.map(
+            (f) => f.name,
+          );
+          const fieldsToAdd = [];
+          const fieldsToRemove = [];
+
+          // Identify fields to remove
+          corrigendumFields.forEach((f, i) => {
+            if (
+              i !== index &&
+              (field.additionalFields || field.conditionalAdditionalFields) &&
+              (Object.values(field.additionalFields || {})
+                .flat()
+                .some((cf) => cf.name === f.name) ||
+                Object.values(field.conditionalAdditionalFields || {})
+                  .flat()
+                  .some((cf) => cf.name === f.name)) &&
+              !conditionalFields.some((cf) => cf.name === f.name)
+            ) {
+              fieldsToRemove.push(i);
+            }
+          });
+
+          // Add new conditional fields
+          conditionalFields.forEach((condField) => {
+            if (!existingConditionalFieldNames.includes(condField.name)) {
+              const oldValue = findNestedFieldValue(
+                formDetails,
+                condField.name,
+              );
+              const newField = {
+                label: condField.label || condField.name,
+                name: condField.name,
+                oldValue,
+                newValue: condField.type === "enclosure" ? null : "",
+                additionalValues: {},
+                type: condField.type || "text",
+                options: condField.options || [
+                  { label: "Please Select", value: "Please Select" },
+                ],
+                validationFunctions: condField.validationFunctions || [],
+                transformationFunctions:
+                  condField.transformationFunctions || [],
+                additionalFields: condField.additionalFields || {},
+                conditionalAdditionalFields:
+                  condField.conditionalAdditionalFields || {},
+                accept: condField.accept || ".pdf",
+              };
+              fieldsToAdd.push(newField);
+
+              // Validate the new field immediately
+              validateField(
+                newField,
+                newField.newValue,
+                formData,
+                referenceNumber,
+              ).then(({ error }) => {
+                setErrors((prev) => ({
+                  ...prev,
+                  [newField.name]: error,
+                }));
+              });
+            }
+          });
+
+          // Update corrigendumFields
+          let newCorrigendumFields = tempUpdated.filter(
+            (_, i) => !fieldsToRemove.includes(i),
+          );
+          newCorrigendumFields = [...newCorrigendumFields, ...fieldsToAdd];
+          setCorrigendumFields(newCorrigendumFields);
+
+          // Validate the changed field
+          validateField(
+            field,
+            transformedValue,
+            formData,
+            referenceNumber,
+          ).then(({ error }) => {
+            setErrors((prev) => ({
+              ...prev,
+              [field.name]: error,
+            }));
+          });
+
+          // Revalidate all fields
+          revalidateAllFields(
+            newCorrigendumFields,
+            { ...formData, [changedFieldName]: transformedValue },
+            referenceNumber,
+            true,
+          ).then((newErrors) => {
+            setErrors(newErrors);
+          });
+        }
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        [changedFieldName]: transformedValue,
+      }));
+
+      if (
+        changedField &&
+        changedField.type === "select" &&
+        /district|tehsil|muncipality|ward|block|halqapanchayat|village/i.test(
+          changedFieldName,
+        )
+      ) {
+        handleAreaChange(index, changedFieldName, transformedValue);
+      }
+    },
+    [
+      corrigendumFields,
+      applyTransformations,
+      handleAreaChange,
+      formDetails,
+      revalidateAllFields,
       formData,
       referenceNumber,
-      true,
-    );
-    setErrors(newErrors);
-  };
+    ],
+  );
 
-  const handleFileChange = (event) => {
-    const selectedFiles = Array.from(event.target.files);
-    setFiles((prev) => [...prev, ...selectedFiles]);
-    setTouched((prev) => ({ ...prev, files: true }));
-    const error = validateFiles([...files, ...selectedFiles], serverFiles);
-    setErrors((prev) => ({ ...prev, files: error }));
-    event.target.value = "";
-  };
+  const handleNewValueBlur = useCallback(
+    async (index, value, additionalFieldName = null) => {
+      const updated = [...corrigendumFields];
+      const field = updated[index];
+      if (!field) {
+        console.error(`Field at index ${index} not found in corrigendumFields`);
+        return;
+      }
 
-  const handleRemoveFile = (index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-    setTouched((prev) => ({ ...prev, files: true }));
-    const error = validateFiles(
-      files.filter((_, i) => i !== index),
-      serverFiles,
-    );
-    setErrors((prev) => ({ ...prev, files: error }));
-  };
+      let error;
+      if (additionalFieldName) {
+        const additionalFieldConfig = (
+          field.additionalFields[field.newValue] || []
+        ).find((f) => f.name === additionalFieldName);
+        if (!additionalFieldConfig) {
+          console.warn(
+            `Additional field config not found for ${additionalFieldName}`,
+          );
+          return;
+        }
+        const validationResult = await runValidations(
+          {
+            ...additionalFieldConfig,
+            validationFunctions:
+              additionalFieldConfig.validationFunctions || [],
+          },
+          field.additionalValues[additionalFieldName],
+          formData,
+          referenceNumber,
+        );
+        error = validationResult === true ? null : validationResult;
+        setErrors((prev) => ({
+          ...prev,
+          [`${field.name}-${additionalFieldName}`]: error,
+        }));
+      } else {
+        const result = await validateField(
+          field,
+          field.newValue,
+          formData,
+          referenceNumber,
+        );
+        error = result.error;
+        setErrors((prev) => ({ ...prev, [field.name]: error }));
+      }
 
-  const handleRemoveServerFile = (index) => {
-    setServerFiles((prev) => prev.filter((_, i) => i !== index));
-    setTouched((prev) => ({ ...prev, files: true }));
-    const error = validateFiles(
-      files,
-      serverFiles.filter((_, i) => i !== index),
-    );
-    setErrors((prev) => ({ ...prev, files: error }));
-  };
+      const newErrors = await revalidateAllFields(
+        updated,
+        formData,
+        referenceNumber,
+        true,
+      );
+      setErrors(newErrors);
+    },
+    [
+      corrigendumFields,
+      formData,
+      referenceNumber,
+      validateField,
+      revalidateAllFields,
+    ],
+  );
 
-  const handleAddFileClick = () => {
+  const handleDeleteField = useCallback(
+    (index) => {
+      const updatedFields = corrigendumFields.filter((_, i) => i !== index);
+      setCorrigendumFields(updatedFields);
+      setRenderKey((prev) => prev + 1);
+      revalidateAllFields(updatedFields, formData, referenceNumber, true).then(
+        (newErrors) => {
+          setErrors(newErrors);
+        },
+      );
+    },
+    [corrigendumFields, formData, referenceNumber, revalidateAllFields],
+  );
+
+  const handleFileChange = useCallback(
+    (event) => {
+      const selectedFiles = Array.from(event.target.files);
+      setFiles((prev) => [...prev, ...selectedFiles]);
+      setTouched((prev) => ({ ...prev, files: true }));
+      const error = validateFiles([...files, ...selectedFiles], serverFiles);
+      setErrors((prev) => ({ ...prev, files: error }));
+      event.target.value = "";
+    },
+    [files, serverFiles, validateFiles],
+  );
+
+  const handleRemoveFile = useCallback(
+    (index) => {
+      setFiles((prev) => prev.filter((_, i) => i !== index));
+      setTouched((prev) => ({ ...prev, files: true }));
+      const error = validateFiles(
+        files.filter((_, i) => i !== index),
+        serverFiles,
+      );
+      setErrors((prev) => ({ ...prev, files: error }));
+    },
+    [files, serverFiles, validateFiles],
+  );
+
+  const handleRemoveServerFile = useCallback(
+    (index) => {
+      setServerFiles((prev) => prev.filter((_, i) => i !== index));
+      setTouched((prev) => ({ ...prev, files: true }));
+      const error = validateFiles(
+        files,
+        serverFiles.filter((_, i) => i !== index),
+      );
+      setErrors((prev) => ({ ...prev, files: error }));
+    },
+    [files, serverFiles, validateFiles],
+  );
+
+  const handleAddFileClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleRemarksChange = (e) => {
+  const handleRemarksChange = useCallback((e) => {
     const value = e.target.value;
     const words = value
       .trim()
@@ -839,85 +1879,100 @@ export default function IssueCorrigendum() {
       setRemarks(value);
       setWordCount(words.length);
     }
-  };
+  }, []);
 
-  const handleRemarksBlur = () => {
+  const handleRemarksBlur = useCallback(() => {
     setTouched((prev) => ({ ...prev, remarks: true }));
     const error = validateRemarks(remarks);
     setErrors((prev) => ({ ...prev, remarks: error }));
-  };
+  }, [remarks, validateRemarks]);
 
-  const handleTypeChange = (e) => {
-    const newType = e.target.value;
-    if (!isEdit && !isInitialLoad && type !== newType) {
-      resetFormState();
-      setType(newType);
-    } else {
-      setType(newType);
-    }
-  };
+  const handleTypeChange = useCallback(
+    (e) => {
+      const newType = e.target.value;
+      if (!isEdit && !isInitialLoad && type !== newType) {
+        resetFormState();
+        setType(newType);
+      } else {
+        setType(newType);
+      }
+    },
+    [isEdit, isInitialLoad, type, resetFormState],
+  );
 
-  const handleTypeBlur = () => {
+  const handleTypeBlur = useCallback(() => {
     setTouched((prev) => ({ ...prev, type: true }));
     const error = validateType(type);
     setErrors((prev) => ({ ...prev, type: error }));
-  };
+  }, [type, validateType]);
 
-  const handleServiceChange = (newServiceId) => {
-    if (!isEdit && !isInitialLoad && serviceId !== newServiceId) {
-      resetFormState();
-      setServiceId(newServiceId);
-    } else {
-      setServiceId(newServiceId);
-    }
-  };
+  const handleServiceChange = useCallback(
+    (newServiceId) => {
+      if (!isEdit && !isInitialLoad && serviceId !== newServiceId) {
+        resetFormState();
+        setServiceId(newServiceId);
+      } else {
+        setServiceId(newServiceId);
+      }
+    },
+    [isEdit, isInitialLoad, serviceId, resetFormState],
+  );
 
-  const handleReferenceNumberChange = (e) => {
-    const newReferenceNumber = e.target.value;
-    if (!isEdit && !isInitialLoad && referenceNumber !== newReferenceNumber) {
-      resetFormState();
-      setReferenceNumber(newReferenceNumber);
-    } else {
-      setReferenceNumber(newReferenceNumber);
-    }
-  };
+  const handleReferenceNumberChange = useCallback(
+    (e) => {
+      const newReferenceNumber = e.target.value;
+      if (!isEdit && !isInitialLoad && referenceNumber !== newReferenceNumber) {
+        resetFormState();
+        setReferenceNumber(newReferenceNumber);
+      } else {
+        setReferenceNumber(newReferenceNumber);
+      }
+    },
+    [isEdit, isInitialLoad, referenceNumber, resetFormState],
+  );
 
-  const handleViewFile = (file, isServerFile = false) => {
+  const handleViewFile = useCallback((file, isServerFile = false) => {
+    let url;
     if (isServerFile) {
-      setSelectedFileUrl(`/Uploads/${file}`);
+      url = `/Uploads/${file}`;
       setSelectedFileName(file);
     } else {
-      const url = URL.createObjectURL(file);
-      setSelectedFileUrl(url);
+      url = URL.createObjectURL(file);
       setSelectedFileName(file.name);
-      return () => URL.revokeObjectURL(url);
     }
     setOpenModal(true);
-  };
+    return () => {
+      if (!isServerFile && url) URL.revokeObjectURL(url);
+    };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setOpenModal(false);
-    setSelectedFileUrl("");
     setSelectedFileName("");
-  };
+  }, []);
 
-  const generateCorrigendumObject = () => {
-    const corrigendumObject = corrigendumFields.reduce((acc, field) => {
+  const generateCorrigendumObject = useCallback(() => {
+    return corrigendumFields.reduce((acc, field) => {
       acc[field.name] = {
-        old_value: field.oldValue,
-        new_value: field.newValue,
+        old_value:
+          field.type === "enclosure" ? field.oldValue || "" : field.oldValue,
+        new_value:
+          field.type === "enclosure"
+            ? field.newValue
+              ? field.newValue.name
+              : null
+            : field.newValue,
         additional_values: field.additionalValues || {},
       };
       return acc;
     }, {});
-    return corrigendumObject;
-  };
+  }, [corrigendumFields]);
 
-  const handleSubmitCorrigendum = async () => {
+  const handleSubmitDocumentChange = useCallback(async () => {
     if (!type) {
       setErrors((prev) => ({
         ...prev,
-        type: "Please select a type (Corrigendum or Correction)",
+        type: "Please select a type (Corrigendum, Correction, or Amendment)",
       }));
       return;
     }
@@ -941,8 +1996,9 @@ export default function IssueCorrigendum() {
     setErrors(newErrors);
 
     const hasEmptyNewValue = corrigendumFields.some((field) => !field.newValue);
+
     const hasValidationErrors = Object.values(newErrors).some(
-      (error) => error !== null,
+      (error) => error !== null && error !== undefined,
     );
 
     if (hasEmptyNewValue) {
@@ -952,7 +2008,6 @@ export default function IssueCorrigendum() {
       }));
       return;
     }
-
     if (hasValidationErrors) {
       setErrors((prev) => ({
         ...prev,
@@ -968,6 +2023,12 @@ export default function IssueCorrigendum() {
       try {
         JSON.parse(JSON.stringify(corrigendumObject));
       } catch (error) {
+        console.error(
+          "Error validating corrigendumObject:",
+          error,
+          "Object:",
+          corrigendumObject,
+        );
         setResponseMessage({
           message: `Invalid ${type.toLowerCase()} fields format.`,
           type: "error",
@@ -976,34 +2037,33 @@ export default function IssueCorrigendum() {
         return;
       }
 
-      const formData = new FormData();
-      formData.append("referenceNumber", referenceNumber);
-      formData.append("remarks", remarks);
-      formData.append("serviceId", serviceId);
-      formData.append("type", type);
-      formData.append("corrigendumFields", JSON.stringify(corrigendumObject));
-      if (applicationId) {
-        formData.append("applicationId", applicationId);
-      }
-      files.forEach((file, index) => {
-        formData.append(`verificationDocuments[${index}]`, file);
-      });
-      if (isEdit) {
-        serverFiles.forEach((fileName, index) => {
-          formData.append(`serverFiles[${index}]`, fileName);
-        });
-      }
+      const formDataToSend = new FormData();
+      formDataToSend.append("referenceNumber", referenceNumber);
+      formDataToSend.append("remarks", remarks);
+      formDataToSend.append("serviceId", serviceId);
+      formDataToSend.append("type", type);
+      formDataToSend.append(
+        "corrigendumFields",
+        JSON.stringify(corrigendumObject),
+      );
+      if (applicationId) formDataToSend.append("applicationId", applicationId);
+      files.forEach((file, index) =>
+        formDataToSend.append(`verificationDocuments[${index}]`, file),
+      );
+      if (isEdit)
+        serverFiles.forEach((fileName, index) =>
+          formDataToSend.append(`serverFiles[${index}]`, fileName),
+        );
 
       const response = await axiosInstance.post(
-        "/Officer/SubmitCorrigendum",
-        formData,
+        "/Officer/SubmitDocumentChange",
+        formDataToSend,
         {
           headers: { "Content-Type": "multipart/form-data" },
         },
       );
 
       if (response.data.status) {
-        // Store success details before clearing form
         setSuccessDetails({
           message: response.data.message || `${type} submitted successfully!`,
           referenceNumber: referenceNumber,
@@ -1011,22 +2071,11 @@ export default function IssueCorrigendum() {
         });
         setShowSuccessMessage(true);
 
-        // Clear form state after setting success message
         setTimeout(() => {
-          setCorrigendumFields([]);
-          setSelectedField("");
-          setRemarks("");
-          setWordCount(0);
-          setFiles([]);
-          setServerFiles([]);
-          setCanIssue(false);
+          resetFormState();
           setReferenceNumber("");
           setServiceId("");
           setType("");
-          setErrors({});
-          setFormData({});
-          setTouched({ remarks: false, files: false, type: false });
-          setNextOfficer("");
           setIsEdit(false);
           setFormDetailsFields([]);
           setFormElements([]);
@@ -1040,6 +2089,12 @@ export default function IssueCorrigendum() {
         });
       }
     } catch (error) {
+      console.error(
+        "Error submitting document change:",
+        error,
+        "Response:",
+        error.response?.data,
+      );
       setResponseMessage({
         message:
           error.response?.data?.message ||
@@ -1049,183 +2104,20 @@ export default function IssueCorrigendum() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const renderInputField = (field, index) => {
-    const renderPrimaryInput = () => {
-      switch (field.type) {
-        case "select":
-          return (
-            <StyledFormControl sx={{ minWidth: 200 }}>
-              <InputLabel>New Value</InputLabel>
-              <Select
-                value={field.newValue}
-                onChange={(e) => handleNewValueChange(index, e.target.value)}
-                onBlur={(e) => handleNewValueBlur(index, e.target.value)}
-                label="New Value"
-                error={!!errors[index]}
-              >
-                {field.options
-                  .filter((option) => option.value !== "Please Select")
-                  .map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-              </Select>
-              {errors[index] && (
-                <FormHelperText error>{errors[index]}</FormHelperText>
-              )}
-            </StyledFormControl>
-          );
-        case "date":
-          return (
-            <TextField
-              type="date"
-              label="New Value"
-              value={field.newValue}
-              onChange={(e) => handleNewValueChange(index, e.target.value)}
-              onBlur={(e) => handleNewValueBlur(index, e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              error={!!errors[index]}
-              helperText={errors[index] || ""}
-              sx={{ minWidth: 200 }}
-            />
-          );
-        case "email":
-          return (
-            <TextField
-              type="email"
-              label="New Value"
-              value={field.newValue}
-              onChange={(e) => handleNewValueChange(index, e.target.value)}
-              onBlur={(e) => handleNewValueBlur(index, e.target.value)}
-              error={!!errors[index]}
-              helperText={errors[index] || ""}
-              sx={{ minWidth: 200 }}
-            />
-          );
-        case "text":
-        default:
-          return (
-            <TextField
-              label="New Value"
-              value={field.newValue}
-              onChange={(e) => handleNewValueChange(index, e.target.value)}
-              onBlur={(e) => handleNewValueBlur(index, e.target.value)}
-              error={!!errors[index]}
-              helperText={errors[index] || ""}
-              sx={{ minWidth: 200 }}
-            />
-          );
-      }
-    };
-
-    const renderAdditionalFields = () => {
-      if (!field.newValue || !field.additionalFields[field.newValue]) {
-        return null;
-      }
-
-      const additionalFields = field.additionalFields[field.newValue] || [];
-      return additionalFields.map((addField) => {
-        const errorKey = `${index}-${addField.name}`;
-        switch (addField.type) {
-          case "select":
-            return (
-              <StyledFormControl sx={{ minWidth: 200 }} key={addField.name}>
-                <InputLabel>{addField.label}</InputLabel>
-                <Select
-                  value={field.additionalValues[addField.name] || ""}
-                  onChange={(e) =>
-                    handleNewValueChange(index, e.target.value, addField.name)
-                  }
-                  onBlur={(e) =>
-                    handleNewValueBlur(index, e.target.value, addField.name)
-                  }
-                  label={addField.label}
-                  error={!!errors[errorKey]}
-                >
-                  {addField.options
-                    .filter((option) => option.value !== "Please Select")
-                    .map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                </Select>
-                {errors[errorKey] && (
-                  <FormHelperText error>{errors[errorKey]}</FormHelperText>
-                )}
-              </StyledFormControl>
-            );
-          case "date":
-            return (
-              <TextField
-                key={addField.name}
-                type="date"
-                label={addField.label}
-                value={field.additionalValues[addField.name] || ""}
-                onChange={(e) =>
-                  handleNewValueChange(index, e.target.value, addField.name)
-                }
-                onBlur={(e) =>
-                  handleNewValueBlur(index, e.target.value, addField.name)
-                }
-                InputLabelProps={{ shrink: true }}
-                error={!!errors[errorKey]}
-                helperText={errors[errorKey] || ""}
-                sx={{ minWidth: 200 }}
-              />
-            );
-          case "email":
-            return (
-              <TextField
-                key={addField.name}
-                type="email"
-                label={addField.label}
-                value={field.additionalValues[addField.name] || ""}
-                onChange={(e) =>
-                  handleNewValueChange(index, e.target.value, addField.name)
-                }
-                onBlur={(e) =>
-                  handleNewValueBlur(index, e.target.value, addField.name)
-                }
-                error={!!errors[errorKey]}
-                helperText={errors[errorKey] || ""}
-                sx={{ minWidth: 200 }}
-              />
-            );
-          case "text":
-          default:
-            return (
-              <TextField
-                key={addField.name}
-                label={addField.label}
-                value={field.additionalValues[addField.name] || ""}
-                onChange={(e) =>
-                  handleNewValueChange(index, e.target.value, addField.name)
-                }
-                onBlur={(e) =>
-                  handleNewValueBlur(index, e.target.value, addField.name)
-                }
-                error={!!errors[errorKey]}
-                helperText={errors[errorKey] || ""}
-                sx={{ minWidth: 200 }}
-              />
-            );
-        }
-      });
-    };
-
-    return (
-      <Box
-        sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}
-      >
-        {renderPrimaryInput()}
-        {renderAdditionalFields()}
-      </Box>
-    );
-  };
+  }, [
+    type,
+    corrigendumFields,
+    formData,
+    referenceNumber,
+    remarks,
+    serviceId,
+    applicationId,
+    files,
+    serverFiles,
+    isEdit,
+    generateCorrigendumObject,
+    resetFormState,
+  ]);
 
   if (loading) {
     return (
@@ -1244,7 +2136,6 @@ export default function IssueCorrigendum() {
     );
   }
 
-  // Show success message screen
   if (showSuccessMessage) {
     return (
       <Box
@@ -1280,51 +2171,31 @@ export default function IssueCorrigendum() {
             >
               <Typography
                 variant="h5"
-                sx={{
-                  color: "#155724",
-                  fontWeight: "600",
-                  mb: 2,
-                }}
+                sx={{ color: "#155724", fontWeight: "600", mb: 2 }}
               >
                 ✅ Success!
               </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "#155724",
-                  mb: 2,
-                }}
-              >
+              <Typography variant="body1" sx={{ color: "#155724", mb: 2 }}>
                 {successDetails.message}
               </Typography>
               <Typography
                 variant="body2"
-                sx={{
-                  color: "#155724",
-                  fontStyle: "italic",
-                }}
+                sx={{ color: "#155724", fontStyle: "italic" }}
               >
                 Reference Number: {successDetails.referenceNumber}
               </Typography>
               <Typography
                 variant="body2"
-                sx={{
-                  color: "#155724",
-                  fontStyle: "italic",
-                }}
+                sx={{ color: "#155724", fontStyle: "italic" }}
               >
                 Type: {successDetails.type}
               </Typography>
             </Box>
-
             <StyledButton
               onClick={handleStartNew}
-              sx={{
-                mt: 2,
-                minWidth: "200px",
-              }}
+              sx={{ mt: 2, minWidth: "200px" }}
             >
-              Submit Another {successDetails.type || "Corrigendum/Correction"}
+              Submit Another {successDetails.type || "Document Change"}
             </StyledButton>
           </Box>
         </StyledContainer>
@@ -1356,7 +2227,7 @@ export default function IssueCorrigendum() {
         >
           {isEdit
             ? `Edit ${type}`
-            : `Issue ${type || "Corrigendum/Correction"}`}
+            : `Issue ${type || "Corrigendum/Correction/Amendment"}`}
         </Typography>
 
         <Box
@@ -1389,6 +2260,7 @@ export default function IssueCorrigendum() {
               </MenuItem>
               <MenuItem value="Corrigendum">Corrigendum</MenuItem>
               <MenuItem value="Correction">Correction</MenuItem>
+              <MenuItem value="Amendment">Amendment</MenuItem>
             </Select>
             {errors.type && (
               <FormHelperText error>{errors.type}</FormHelperText>
@@ -1413,7 +2285,7 @@ export default function IssueCorrigendum() {
           />
 
           <StyledButton
-            onClick={handleCheckIfCorrigendum}
+            onClick={handleCheckIfDocumentChange}
             disabled={loading || isEdit || !type}
           >
             Check Application
@@ -1442,7 +2314,7 @@ export default function IssueCorrigendum() {
         )}
 
         {canIssue && (
-          <Box sx={{ mt: 6 }}>
+          <Box key={renderKey} sx={{ mt: 6 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <Typography
                 variant="h6"
@@ -1469,17 +2341,13 @@ export default function IssueCorrigendum() {
                   <MenuItem value="" disabled>
                     Select a field
                   </MenuItem>
-                  {formDetailsFields
+                  {allowedFormFields
                     .filter(
                       (item) =>
-                        !corrigendumFields.some((f) => f.name === item.name) &&
-                        allowedFormFields.includes(item.name),
+                        !corrigendumFields.some((f) => f.name === item.name),
                     )
                     .map((item) => (
-                      <MenuItem
-                        key={`${item.label}|${item.name}`}
-                        value={`${item.label}|${item.name}`}
-                      >
+                      <MenuItem key={item.value} value={item.value}>
                         {item.label}
                       </MenuItem>
                     ))}
@@ -1508,55 +2376,290 @@ export default function IssueCorrigendum() {
 
             {corrigendumFields.map((field, index) => (
               <Box
-                key={`${field.name}-${index}`}
+                key={field.name} // Use field.name as key to ensure uniqueness
                 sx={{
                   display: "flex",
-                  gap: 2,
-                  alignItems: "center",
+                  flexDirection: "column", // Stack children vertically
                   mb: 2,
-                  backgroundColor: "#f9f9f9",
+                  backgroundColor: "#f9f9f9", // Uniform background color
                   padding: "12px",
                   borderRadius: "8px",
                   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
                 }}
               >
-                <TextField
-                  label="Field"
-                  value={field.label}
-                  InputProps={{ readOnly: true }}
-                  sx={{ minWidth: 200 }}
-                />
-                <TextField
-                  label="Old Value"
-                  value={field.oldValue}
-                  InputProps={{ readOnly: true }}
-                  sx={{ minWidth: 200 }}
-                />
-                {renderInputField(field, index)}
-                <IconButton
-                  color="error"
-                  onClick={() => {
-                    const updatedFields = corrigendumFields.filter(
-                      (_, i) => i !== index,
-                    );
-                    setCorrigendumFields(updatedFields);
-                    revalidateAllFields(
-                      updatedFields,
-                      formData,
-                      referenceNumber,
-                      true,
-                    ).then((newErrors) => {
-                      setErrors(newErrors);
-                    });
-                  }}
+                {/* Parent field row */}
+                <Box
                   sx={{
-                    "&:hover": {
-                      backgroundColor: "rgba(211, 47, 47, 0.1)",
-                    },
+                    display: "flex",
+                    gap: 2,
+                    alignItems: "center",
+                    width: "100%",
                   }}
                 >
-                  <DeleteIcon />
-                </IconButton>
+                  <TextField
+                    label="Field"
+                    value={field.label}
+                    InputProps={{ readOnly: true }}
+                    sx={{ minWidth: 200, flex: 1 }}
+                  />
+                  {field.type === "enclosure" ? (
+                    <FormControl
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.5,
+                        minWidth: 200,
+                        flex: 1,
+                      }}
+                    >
+                      <FormLabel>Old Value</FormLabel>
+                      <Button
+                        variant="outlined"
+                        onClick={() => handleViewFile(field.oldValue, true)}
+                        startIcon={<PictureAsPdfIcon />}
+                        fullWidth
+                        sx={{
+                          textTransform: "none",
+                          borderColor: "#1976D2",
+                          color: "#1976D2",
+                          "&:hover": {
+                            backgroundColor: "#E3F2FD",
+                            borderColor: "#1565C0",
+                          },
+                        }}
+                        aria-label={`View ${field.label} document`}
+                      >
+                        View Document
+                      </Button>
+                    </FormControl>
+                  ) : (
+                    <TextField
+                      label="Old Value"
+                      value={field.oldValue || "N/A"}
+                      InputProps={{ readOnly: true }}
+                      sx={{ minWidth: 200, flex: 1 }}
+                    />
+                  )}
+
+                  {field.type === "select" ? (
+                    <FormControl
+                      fullWidth
+                      sx={{ minWidth: 200, flex: 1 }}
+                      error={!!errors[field.name]}
+                    >
+                      <InputLabel>{field.label}</InputLabel>
+                      <Select
+                        value={field.newValue || ""}
+                        onChange={(e) =>
+                          handleNewValueChange(index, e.target.value)
+                        }
+                        onBlur={() => handleNewValueBlur(index, field.newValue)}
+                      >
+                        {field.options.map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors[field.name] && (
+                        <FormHelperText>{errors[field.name]}</FormHelperText>
+                      )}
+                    </FormControl>
+                  ) : field.type === "date" ? (
+                    <TextField
+                      fullWidth
+                      type="date"
+                      value={field.newValue || ""}
+                      onChange={(e) =>
+                        handleNewValueChange(index, e.target.value)
+                      }
+                      onBlur={() => handleNewValueBlur(index, field.newValue)}
+                      error={!!errors[field.name]}
+                      helperText={errors[field.name]}
+                      InputLabelProps={{ shrink: true }}
+                      sx={{ minWidth: 200, flex: 1 }}
+                    />
+                  ) : field.type === "enclosure" ? (
+                    <TextField
+                      fullWidth
+                      type="file"
+                      inputProps={{ accept: field.accept }}
+                      onChange={(e) =>
+                        handleNewValueChange(index, e.target.files[0])
+                      }
+                      onBlur={() => handleNewValueBlur(index, field.newValue)}
+                      error={!!errors[field.name]}
+                      helperText={errors[field.name]}
+                      sx={{ minWidth: 200, flex: 1 }}
+                    />
+                  ) : (
+                    <TextField
+                      fullWidth
+                      value={field.newValue || ""}
+                      onChange={(e) =>
+                        handleNewValueChange(index, e.target.value)
+                      }
+                      onBlur={() => handleNewValueBlur(index, field.newValue)}
+                      inputProps={{ maxLength: field.maxLength }}
+                      error={!!errors[field.name]}
+                      helperText={errors[field.name]}
+                      sx={{ minWidth: 200, flex: 1 }}
+                    />
+                  )}
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDeleteField(index)}
+                    sx={{
+                      minWidth: 60,
+                      flexShrink: 0,
+                      "&:hover": {
+                        backgroundColor: "rgba(211, 47, 47, 0.1)",
+                      },
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+
+                {/* Additional fields rendered below */}
+                {field.additionalFields[field.newValue]?.map((addField) => (
+                  <Box
+                    key={`${field.name}-${addField.name}`}
+                    sx={{
+                      display: "flex",
+                      gap: 2,
+                      alignItems: "center",
+                      mt: 1, // Margin-top to separate from parent
+                      backgroundColor: "#f9f9f9", // Uniform background color
+                      padding: "8px",
+                      borderRadius: "8px",
+                      width: "100%", // Ensure full width
+                    }}
+                  >
+                    <TextField
+                      label={addField.label}
+                      value={addField.label}
+                      InputProps={{ readOnly: true }}
+                      sx={{ minWidth: 200, flex: 1 }}
+                    />
+                    <TextField
+                      label="Old Value"
+                      value={
+                        findNestedFieldValue(formDetails, addField.name) ||
+                        "N/A"
+                      }
+                      InputProps={{ readOnly: true }}
+                      sx={{ minWidth: 200, flex: 1 }}
+                    />
+                    {addField.type === "select" ? (
+                      <FormControl
+                        fullWidth
+                        sx={{ minWidth: 200, flex: 1 }}
+                        error={!!errors[`${field.name}-${addField.name}`]}
+                      >
+                        <InputLabel>{addField.label}</InputLabel>
+                        <Select
+                          value={field.additionalValues[addField.name] || ""}
+                          onChange={(e) =>
+                            handleNewValueChange(
+                              index,
+                              e.target.value,
+                              addField.name,
+                            )
+                          }
+                          onBlur={() =>
+                            handleNewValueBlur(
+                              index,
+                              field.additionalValues[addField.name],
+                              addField.name,
+                            )
+                          }
+                        >
+                          {addField.options.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {errors[`${field.name}-${addField.name}`] && (
+                          <FormHelperText>
+                            {errors[`${field.name}-${addField.name}`]}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                    ) : addField.type === "date" ? (
+                      <TextField
+                        fullWidth
+                        type="date"
+                        value={field.additionalValues[addField.name] || ""}
+                        onChange={(e) =>
+                          handleNewValueChange(
+                            index,
+                            e.target.value,
+                            addField.name,
+                          )
+                        }
+                        onBlur={() =>
+                          handleNewValueBlur(
+                            index,
+                            field.additionalValues[addField.name],
+                            addField.name,
+                          )
+                        }
+                        error={!!errors[`${field.name}-${addField.name}`]}
+                        helperText={errors[`${field.name}-${addField.name}`]}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ minWidth: 200, flex: 1 }}
+                      />
+                    ) : addField.type === "enclosure" ? (
+                      <TextField
+                        fullWidth
+                        type="file"
+                        inputProps={{ accept: addField.accept }}
+                        onChange={(e) =>
+                          handleNewValueChange(
+                            index,
+                            e.target.files[0],
+                            addField.name,
+                          )
+                        }
+                        onBlur={() =>
+                          handleNewValueBlur(
+                            index,
+                            field.additionalValues[addField.name],
+                            addField.name,
+                          )
+                        }
+                        error={!!errors[`${field.name}-${addField.name}`]}
+                        helperText={errors[`${field.name}-${addField.name}`]}
+                        sx={{ minWidth: 200, flex: 1 }}
+                      />
+                    ) : (
+                      <TextField
+                        fullWidth
+                        value={field.additionalValues[addField.name] || ""}
+                        onChange={(e) =>
+                          handleNewValueChange(
+                            index,
+                            e.target.value,
+                            addField.name,
+                          )
+                        }
+                        onBlur={() =>
+                          handleNewValueBlur(
+                            index,
+                            field.additionalValues[addField.name],
+                            addField.name,
+                          )
+                        }
+                        inputProps={{ maxLength: addField.maxLength }}
+                        error={!!errors[`${field.name}-${addField.name}`]}
+                        helperText={errors[`${field.name}-${addField.name}`]}
+                        sx={{ minWidth: 200, flex: 1 }}
+                      />
+                    )}
+                  </Box>
+                ))}
               </Box>
             ))}
 
@@ -1701,17 +2804,21 @@ export default function IssueCorrigendum() {
 
             <BasicModal
               open={openModal}
-              Title={"Document Preview"}
+              Title="Document Preview"
               handleClose={handleCloseModal}
               pdf={selectedFileName}
             />
             {corrigendumFields.length > 0 && (
               <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
                 <StyledButton
-                  onClick={handleSubmitCorrigendum}
+                  onClick={handleSubmitDocumentChange}
                   disabled={loading}
                 >
-                  {`Forward ${type} to ${nextOfficer}`}
+                  {loading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    `Forward ${type} to ${nextOfficer}`
+                  )}
                 </StyledButton>
               </Box>
             )}

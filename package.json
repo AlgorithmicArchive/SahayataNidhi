@@ -60,6 +60,7 @@
     "react-quill": "^2.0.0",
     "react-router-dom": "^6.27.0",
     "react-toastify": "^11.0.5",
+    "recharts": "^3.2.0",
     "stream-http": "^3.2.0",
     "survey-core": "^1.12.23",
     "survey-creator-core": "^1.12.23",

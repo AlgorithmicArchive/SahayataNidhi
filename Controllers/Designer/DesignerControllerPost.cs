@@ -353,7 +353,7 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpPost]
-       
+
         public IActionResult SaveDocumentFields([FromForm] IFormCollection form)
         {
             int serviceId = Convert.ToInt32(form["serviceId"].ToString());
@@ -367,13 +367,43 @@ namespace SahayataNidhi.Controllers
             }
 
             // Deserialize the fields input
-            List<string> fieldsList;
+            List<object> fieldsList;
             try
             {
-                fieldsList = JsonConvert.DeserializeObject<List<string>>(fields)!;
+                fieldsList = JsonConvert.DeserializeObject<List<object>>(fields)!;
                 if (fieldsList == null)
                 {
                     return Json(new { status = false, message = "Invalid fields data." });
+                }
+
+                // Validate fieldsList
+                foreach (var field in fieldsList)
+                {
+                    if (field is string)
+                    {
+                        // Single field, no additional validation needed
+                    }
+                    else if (field is Newtonsoft.Json.Linq.JObject jObject)
+                    {
+                        // Group field
+                        if (!jObject.ContainsKey("label") || !jObject.ContainsKey("fields"))
+                        {
+                            return Json(new { status = false, message = "Invalid group format: missing label or fields." });
+                        }
+                        if (string.IsNullOrEmpty(jObject["label"]?.ToString()))
+                        {
+                            return Json(new { status = false, message = "Group label cannot be empty." });
+                        }
+                        var groupFields = jObject["fields"]?.ToObject<List<string>>();
+                        if (groupFields == null || groupFields.Count == 0)
+                        {
+                            return Json(new { status = false, message = "Group fields cannot be empty." });
+                        }
+                    }
+                    else
+                    {
+                        return Json(new { status = false, message = "Invalid field format." });
+                    }
                 }
             }
             catch (JsonException)
@@ -382,19 +412,19 @@ namespace SahayataNidhi.Controllers
             }
 
             // Initialize or deserialize existing DocumentFields
-            Dictionary<string, List<string>> documentFields;
+            Dictionary<string, List<object>> documentFields;
             if (string.IsNullOrEmpty(service.DocumentFields))
             {
-                documentFields = new Dictionary<string, List<string>>();
+                documentFields = new Dictionary<string, List<object>>();
             }
             else
             {
                 try
                 {
-                    documentFields = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(service.DocumentFields)!;
+                    documentFields = JsonConvert.DeserializeObject<Dictionary<string, List<object>>>(service.DocumentFields)!;
                     if (documentFields == null)
                     {
-                        documentFields = new Dictionary<string, List<string>>();
+                        documentFields = new Dictionary<string, List<object>>();
                     }
                 }
                 catch (JsonException)

@@ -31,12 +31,16 @@ import {
   ErrorOutline,
 } from "@mui/icons-material";
 import { styled, keyframes } from "@mui/material/styles";
-import { Chart } from "chart.js/auto";
-import ChartDataLabels from "chartjs-plugin-datalabels";
-import axiosIntance from "../../axiosConfig";
+import {
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import axiosInstance from "../../axiosConfig";
 import ServerSideTable from "../../components/ServerSideTable";
-
-Chart.register(ChartDataLabels);
 
 // Animations
 const float = keyframes`
@@ -217,7 +221,7 @@ const useFilters = (category) => {
       if (division) {
         setFilterLoading(true);
         try {
-          const response = await axiosIntance.get("/Base/GetDistricts", {
+          const response = await axiosInstance.get("/Base/GetDistricts", {
             params: { division },
           });
           setDistricts(
@@ -250,7 +254,7 @@ const useFilters = (category) => {
       if (district) {
         setFilterLoading(true);
         try {
-          const response = await axiosIntance.get(
+          const response = await axiosInstance.get(
             "/Base/GetTeshilForDistrict",
             {
               params: { districtId: district },
@@ -338,7 +342,7 @@ const useDashboardData = (category, filters) => {
         district: filters.district || null,
         tehsil: filters.tehsil || null,
       };
-      const response = await axiosIntance.get("/Viewer/GetApplicationStatus", {
+      const response = await axiosInstance.get("/Viewer/GetApplicationStatus", {
         params,
       });
       setData(response.data.dataList.filter((c) => c.category === category));
@@ -364,84 +368,89 @@ const useDashboardData = (category, filters) => {
 // Donut Chart Component
 const DonutChart = ({ data, chartTitle }) => {
   const theme = useTheme();
-  const chartRef = useRef(null);
-  const chartInstance = useRef(null);
-
-  useEffect(() => {
-    if (chartRef.current && data.length > 0) {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-
-      const total = data.reduce((sum, item) => sum + item.value, 0);
-      chartInstance.current = new Chart(chartRef.current, {
-        type: "doughnut",
-        data: {
-          labels: data.map((item) => item.name),
-          datasets: [
-            {
-              data: data.map((item) => item.value),
-              backgroundColor: data.map((item) => item.color),
-              borderColor: data.map((item) => alpha(item.color, 0.3)),
-              borderWidth: 2,
-              hoverBorderWidth: 3,
-              hoverBackgroundColor: data.map((item) => alpha(item.color, 0.8)),
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: "65%",
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: {
-                boxWidth: 16,
-                padding: 15,
-                font: { size: 11, family: theme.typography.fontFamily },
-                color: theme.palette.text.primary,
-                usePointStyle: true,
-              },
-            },
-            tooltip: {
-              backgroundColor: "rgba(255, 255, 255, 0.95)",
-              titleColor: "#374151",
-              bodyColor: "#374151",
-              titleFont: { size: 14, weight: "bold" },
-              bodyFont: { size: 12 },
-              borderColor: "#e5e7eb",
-              borderWidth: 1,
-              cornerRadius: 8,
-              callbacks: {
-                label: (context) =>
-                  `${context.label}: ${context.parsed.toLocaleString("en-IN")}`,
-              },
-            },
-            datalabels: {
-              color: "#ffffff",
-              formatter: (value) => `${((value / total) * 100).toFixed(1)}%`,
-              font: { weight: "bold", size: 12 },
-              textAlign: "center",
-              anchor: "center",
-              align: "center",
-            },
-          },
-        },
-      });
-
-      return () => {
-        if (chartInstance.current) {
-          chartInstance.current.destroy();
-        }
-      };
-    }
-  }, [data, theme]);
 
   return (
     <Box sx={{ width: "100%", height: 350, position: "relative" }}>
-      <canvas ref={chartRef} style={{ maxWidth: "100%" }} />
-      {data.length === 0 && (
+      {data && data.length > 0 ? (
+        <ResponsiveContainer width="100%" height="100%">
+          {(() => {
+            try {
+              const total = data.reduce((sum, item) => sum + item.value, 0);
+              return (
+                <RechartsPieChart>
+                  <Pie
+                    data={data}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    innerRadius={65}
+                    paddingAngle={0.5}
+                    cornerRadius={3}
+                    label={({ value }) =>
+                      `${((value / total) * 100).toFixed(1)}%`
+                    }
+                    labelLine={false}
+                  >
+                    {data.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                        stroke={alpha(entry.color, 0.3)}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.95)",
+                      color: "#374151",
+                      border: `1px solid #e5e7eb`,
+                      borderRadius: 8,
+                    }}
+                    formatter={(value, name) =>
+                      `${name}: ${value.toLocaleString("en-IN")}`
+                    }
+                  />
+                  <Legend
+                    layout="horizontal"
+                    align="center"
+                    verticalAlign="bottom"
+                    iconSize={10}
+                    iconType="circle"
+                    wrapperStyle={{
+                      fontSize: 11,
+                      fontFamily: theme.typography.fontFamily,
+                      color: theme.palette.text.primary,
+                      paddingTop: 15,
+                    }}
+                  />
+                </RechartsPieChart>
+              );
+            } catch (error) {
+              console.error(
+                `Recharts Rendering Error for ${chartTitle}:`,
+                error,
+              );
+              return (
+                <Typography
+                  variant="body1"
+                  color="error"
+                  align="center"
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  Failed to render chart
+                </Typography>
+              );
+            }
+          })()}
+        </ResponsiveContainer>
+      ) : (
         <Typography
           variant="body1"
           color="text.secondary"
@@ -848,6 +857,7 @@ export default function ModernMUIDashboard() {
               {selectedTable && (
                 <>
                   <Divider sx={{ my: 3 }} />
+                  {/* Temporarily commented out to test if ServerSideTable is the issue */}
                   <ServerSideTable
                     ref={tableRef}
                     url={`/Viewer/GetMainApplicationStatusData?serviceId=1&type=${encodeURIComponent(

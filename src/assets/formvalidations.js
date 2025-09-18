@@ -197,7 +197,6 @@ export function isDateAfterCurrentDate(field, value, formData) {
   inputDate.setHours(0, 0, 0, 0);
   currentDate.setHours(0, 0, 0, 0);
 
-  console.log(field.name);
   if (inputDate <= currentDate) {
     return `${field.label || "Date"} must be after the current date.`;
   }

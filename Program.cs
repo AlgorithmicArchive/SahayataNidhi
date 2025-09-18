@@ -107,6 +107,8 @@ builder.Services.AddDetection();
 
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<QueuedHostedService>();
+builder.Services.AddSingleton<ICronScheduler, CronScheduler>();
+builder.Services.AddHostedService<CronScheduler>();
 
 builder.Services.AddHttpClient();
 

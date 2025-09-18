@@ -230,6 +230,7 @@ export default function ViewApplicationDetails() {
   const navigate = useNavigate();
   const { referenceNumber, applicationId, type } = location.state || {};
   const isCorrection = type === "Correction";
+  const isAmendment = type === "Amendment";
   const [loading, setLoading] = useState(true);
   const [fieldColumns, setFieldColumns] = useState([]);
   const [fieldData, setFieldData] = useState([]);
@@ -307,7 +308,11 @@ export default function ViewApplicationDetails() {
       } catch (error) {
         console.error(
           `Error fetching ${
-            isCorrection ? "correction" : "corrigendum"
+            isCorrection
+              ? "correction"
+              : isAmendment
+              ? "amendment"
+              : "corrigendum"
           } details:`,
           error,
         );
@@ -329,7 +334,7 @@ export default function ViewApplicationDetails() {
       loadDetails();
       fetchApplication();
     }
-  }, [applicationId, referenceNumber, type, isCorrection]);
+  }, [applicationId, referenceNumber, type, isCorrection, isAmendment]);
 
   useEffect(() => {
     return () => {
@@ -382,6 +387,8 @@ export default function ViewApplicationDetails() {
       applicationId.replace(/\//g, "_") +
         (isCorrection
           ? "_CorrectionSanctionLetter.pdf"
+          : isAmendment
+          ? "_AmendmentSanctionLetter.pdf"
           : "_CorrigendumSanctionLetter.pdf"),
     );
     try {
@@ -438,7 +445,7 @@ export default function ViewApplicationDetails() {
       );
       updateFormData.append(
         "type",
-        isCorrection ? "Correction" : "Corrigendum",
+        isCorrection ? "Correction" : isAmendment ? "Amendment" : "Corrigendum",
       );
       const updateResponse = await axiosInstance.post(
         isCorrection
@@ -496,6 +503,7 @@ export default function ViewApplicationDetails() {
         params: {
           referenceNumber: referenceNumber,
           [isCorrection ? "correctionId" : "corrigendumId"]: applicationTypeId,
+          type: type,
         },
       });
       const result = response.data;
@@ -519,13 +527,21 @@ export default function ViewApplicationDetails() {
     } catch (error) {
       console.error(
         `Error fetching ${
-          isCorrection ? "correction" : "corrigendum"
+          isCorrection
+            ? "correction"
+            : isAmendment
+            ? "amendment"
+            : "corrigendum"
         } sanction letter:`,
         error,
       );
       toast.error(
         `Failed to fetch ${
-          isCorrection ? "correction" : "corrigendum"
+          isCorrection
+            ? "correction"
+            : isAmendment
+            ? "amendment"
+            : "corrigendum"
         } sanction letter: ` + error.message,
         {
           position: "top-center",
@@ -675,7 +691,12 @@ export default function ViewApplicationDetails() {
           gutterBottom
           sx={{ color: "#1f2937", fontWeight: 700 }}
         >
-          {isCorrection ? "Correction" : "Corrigendum"} Application Details
+          {isCorrection
+            ? "Correction"
+            : isAmendment
+            ? "Amendment"
+            : "Corrigendum"}{" "}
+          Application Details
         </Typography>
         <Typography
           variant="h6"
@@ -702,10 +723,22 @@ export default function ViewApplicationDetails() {
         />
 
         <CollapsibleTable
-          title={`${isCorrection ? "Correction" : "Corrigendum"} Fields`}
+          title={`${
+            isCorrection
+              ? "Correction"
+              : isAmendment
+              ? "Amendment"
+              : "Corrigendum"
+          } Fields`}
           columns={fieldColumns}
           data={fieldData}
-          viewType={`${isCorrection ? "correction" : "corrigendum"} field`}
+          viewType={`${
+            isCorrection
+              ? "correction"
+              : isAmendment
+              ? "amendment"
+              : "corrigendum"
+          } field`}
           open={fieldsOpen}
           setOpen={setFieldsOpen}
           onViewPdf={handleViewPdf}
@@ -722,7 +755,12 @@ export default function ViewApplicationDetails() {
             }}
           >
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-              {isCorrection ? "Correction" : "Corrigendum"} Attachments
+              {isCorrection
+                ? "Correction"
+                : isAmendment
+                ? "Amendment"
+                : "Corrigendum"}{" "}
+              Attachments
             </Typography>
 
             <Box
@@ -754,11 +792,21 @@ export default function ViewApplicationDetails() {
 
         <CollapsibleTable
           title={`${
-            isCorrection ? "Correction" : "Corrigendum"
+            isCorrection
+              ? "Correction"
+              : isAmendment
+              ? "Amendment"
+              : "Corrigendum"
           } Movement History`}
           columns={columns}
           data={data}
-          viewType={`${isCorrection ? "correction" : "corrigendum"} history`}
+          viewType={`${
+            isCorrection
+              ? "correction"
+              : isAmendment
+              ? "amendment"
+              : "corrigendum"
+          } history`}
           open={appHistoryOpen}
           setOpen={setAppHistoryOpen}
           onViewPdf={handleViewPdf}

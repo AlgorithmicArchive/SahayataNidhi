@@ -27,17 +27,18 @@ import {
 import { useForm } from "react-hook-form";
 import axiosInstance from "../../axiosConfig";
 import { Container, Row, Col } from "react-bootstrap";
-import { Bar, Pie } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
-} from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels";
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import ServerSideTable from "../../components/ServerSideTable";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -70,37 +71,26 @@ import {
   SwapHoriz,
 } from "@mui/icons-material";
 
-// Register Chart.js components and datalabels plugin
-ChartJS.register(
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  ChartDataLabels,
-);
-
-// Styled components with minor improvements
+// Styled components
 const StatCard = styled(Card)(({ theme }) => ({
-  width: "380px",
-  height: "180px",
-  borderRadius: "14px", // slightly more rounded
-  boxShadow: "0 4px 15px rgba(0,0,0,0.12)", // softer shadow
-  transition:
-    "transform 0.26s ease, box-shadow 0.26s ease, border-color 0.2s ease",
+  borderRadius: "16px",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   border: "1px solid rgba(0,0,0,0.08)",
-  margin: "8px 0", // added vertical space between cards
+  cursor: "pointer",
+  overflow: "hidden",
   "&:hover": {
-    transform: "translateY(-6px) scale(1.03)", // subtle scale and shadow
-    boxShadow: "0 14px 32px rgba(0,0,0,0.17)",
-    borderColor: "rgba(0,0,0,0.15)",
+    transform: "translateY(-8px) scale(1.02)",
+    boxShadow: "0 16px 40px rgba(0,0,0,0.15)",
+    borderColor: "rgba(0,0,0,0.12)",
+  },
+  "&:active": {
+    transform: "translateY(-4px) scale(1.01)",
   },
   [theme.breakpoints.down("sm")]: {
-    width: "100%",
-    maxWidth: "340px",
-    height: "220px", // improved mobile card ratio
-    marginBottom: "24px", // more space below on mobile
+    "&:hover": {
+      transform: "translateY(-4px) scale(1.01)",
+    },
   },
 }));
 
@@ -108,10 +98,11 @@ const StyledButton = styled(Button)`
   background: linear-gradient(45deg, #1976d2, #2196f3);
   padding: 12px 24px;
   font-weight: 600;
-  border-radius: 8px; /* fixed radius */
+  border-radius: 8px;
   text-transform: none;
   color: #ffffff;
   margin-left: 4px;
+  transition: all 0.3s ease;
   &:hover {
     background: linear-gradient(45deg, #1565c0, #1976d2);
     transform: scale(1.05);
@@ -124,24 +115,45 @@ const StyledButton = styled(Button)`
 
 const StyledDialog = styled(Dialog)`
   & .MuiDialog-paper {
-    border-radius: 14px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.13);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     background: #ffffff;
-    padding: 28px; /* more padding */
+    padding: 32px;
     max-width: 94vw;
   }
 `;
 
 const StyledCard = styled(Card)(({ theme }) => ({
   background: "linear-gradient(135deg, #ffffff, #f8f9fa)",
-  border: "1px solid #e0e0e0", // changed black to gentle border
+  border: "1px solid #e0e0e0",
   borderRadius: "16px",
-  boxShadow: "0 6px 24px rgba(0,0,0,0.11)",
-  transition: "transform 0.30s ease, box-shadow 0.30s ease",
+  boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
+  transition: "transform 0.3s ease, box-shadow 0.3s ease",
   marginBottom: "24px",
   "&:hover": {
-    transform: "translateY(-3px) scale(1.01)",
-    boxShadow: "0 12px 36px rgba(0,0,0,0.13)",
+    transform: "translateY(-3px) scale(1.005)",
+    boxShadow: "0 12px 36px rgba(0,0,0,0.12)",
+  },
+}));
+
+const SectionContainer = styled(Box)(({ theme }) => ({
+  maxWidth: "1400px",
+  margin: "0 auto",
+  padding: theme.spacing(0, 2),
+  [theme.breakpoints.up("md")]: {
+    padding: theme.spacing(0, 4),
+  },
+}));
+
+const CardGrid = styled(Box)(({ theme }) => ({
+  display: "grid",
+  gap: theme.spacing(3),
+  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 320px))",
+  justifyContent: "center",
+  marginBottom: theme.spacing(4),
+  [theme.breakpoints.down("sm")]: {
+    gridTemplateColumns: "1fr",
+    gap: theme.spacing(2),
   },
 }));
 
@@ -150,8 +162,9 @@ export default function OfficerHome() {
   const [serviceId, setServiceId] = useState("");
   const [countList, setCountList] = useState([]);
   const [corrigendumList, setCorrigendumList] = useState([]);
+  const [amendmentList, setAmendmentList] = useState([]);
   const [correctionList, setCorrectionList] = useState([]);
-  const [legacyCountList, setLegacyCountList] = useState([]); // New state for legacy counts
+  const [legacyCountList, setLegacyCountList] = useState([]);
   const [temporaryCountList, setTemporaryCountList] = useState([]);
   const [withheldCountList, setWithheldCountList] = useState([]);
   const [citizenPendingList, setCitizenPendingList] = useState([]);
@@ -173,7 +186,7 @@ export default function OfficerHome() {
   const [canSanction, setCanSanction] = useState(false);
   const [canHavePool, setCanHavePool] = useState(false);
   const [type, setType] = useState("");
-  const [dataType, setDataType] = useState("new"); // New state for data type (new/legacy)
+  const [dataType, setDataType] = useState("new");
   const [showTable, setShowTable] = useState(false);
   const [selectedAction, setSelectedAction] = useState("Sanction");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -214,36 +227,23 @@ export default function OfficerHome() {
 
   const statusColors = useMemo(
     () => ({
-      // Summary counts
-      "Total Applications": "#374151", // medium gray
-      "Total Corrigendum": "#374151", // lighter gray
-      "Total Correction": "#374151", // lightest gray
-      "Total Withheld Applications": "#374151", // dark gray
-
-      // Pending / In-progress
-      Pending: "#f59e0b", // amber
-      "Pending With Citizen": "#a855f7", // violet
-
-      // Movements
-      Forwarded: "#0ea5e9", // cyan
-      "Shifted To Another Location": "#ec4899", // pink
-
-      // Negative outcomes
-      Returned: "#f97316", // orange
-      Rejected: "#ef4444", // red
-      "Permanent Withheld": "#b91c1c", // darker red
-
-      // Temporary holds
-      "Temporary Withheld": "#facc15", // yellow
-
-      // Positive outcomes
-      Sanctioned: "#10b981", // emerald green
-      Issued: "#059669", // darker green
-      "PCP-UDID Expires 3 Months": "#14b8a6", // teal
-
-      // PCP specific
-      "PCP Applications": "#3b82f6", // blue
-      "Pension's Stopped": "#9333ea", // deep purple
+      "Total Applications": "#374151",
+      "Total Corrigendum": "#374151",
+      "Total Correction": "#374151",
+      "Total Withheld Applications": "#374151",
+      Pending: "#f59e0b",
+      "Pending With Citizen": "#a855f7",
+      Forwarded: "#0ea5e9",
+      "Shifted To Another Location": "#ec4899",
+      Returned: "#f97316",
+      Rejected: "#ef4444",
+      "Permanent Withheld": "#b91c1c",
+      "Temporary Withheld": "#facc15",
+      Sanctioned: "#10b981",
+      Issued: "#059669",
+      "PCP-UDID Expires 3 Months": "#14b8a6",
+      "PCP Applications": "#3b82f6",
+      "Pension's Stopped": "#9333ea",
     }),
     [],
   );
@@ -275,16 +275,17 @@ export default function OfficerHome() {
     const makeIcon = (Icon, key) => (
       <Box
         sx={{
-          width: 40,
-          height: 40,
+          width: 48,
+          height: 48,
           borderRadius: "50%",
-          backgroundColor: "#FFFFFF",
+          backgroundColor: "rgba(255, 255, 255, 0.2)",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          backdropFilter: "blur(10px)",
         }}
       >
-        <Icon sx={{ fontSize: 28, color: statusColors[key] }} />
+        <Icon sx={{ fontSize: 24, color: "#FFFFFF" }} />
       </Box>
     );
 
@@ -316,7 +317,7 @@ export default function OfficerHome() {
       "Temporary Withheld": makeIcon(PauseCircle, "Temporary Withheld"),
       "Permanent Withheld": makeIcon(DoNotDisturbAlt, "Permanent Withheld"),
     };
-  }, [statusColors, textColors]);
+  }, []);
 
   const debouncedHandleRecords = useCallback(
     debounce(async (newServiceId) => {
@@ -327,7 +328,6 @@ export default function OfficerHome() {
         setServiceId(newServiceId);
         setLastServiceId(newServiceId);
 
-        // Fetch new application counts
         const response = await axiosInstance.get(
           "/Officer/GetApplicationsCount",
           {
@@ -336,6 +336,7 @@ export default function OfficerHome() {
         );
         setCountList(response.data.countList);
         setCorrigendumList(response.data.corrigendumList || []);
+        setAmendmentList(response.data.amendmentList || []);
         setCorrectionList(response.data.correctionList || []);
         setTemporaryCountList(response.data.temporaryCountList || []);
         setWithheldCountList(response.data.withheldCountList || []);
@@ -344,7 +345,6 @@ export default function OfficerHome() {
         setCanHavePool(response.data.canHavePool);
         setOfficerAuthorities(response.data.officerAuthorities);
 
-        // Fetch legacy counts
         const legacyResponse = await axiosInstance.get(
           "/Officer/GetLegacyCount",
           {
@@ -353,7 +353,6 @@ export default function OfficerHome() {
         );
         setLegacyCountList(legacyResponse.data.countList || []);
 
-        // Update counts with both new and legacy data
         const newCounts = {
           total:
             response.data.countList.find(
@@ -465,6 +464,7 @@ export default function OfficerHome() {
       "Total Applications": "total",
       "Total Corrigendum": "total",
       "Total Correction": "total",
+      "Total Amendment": "total",
       Pending: isCorrigendum || isCorrection ? "pending" : "pending",
       Forwarded: isCorrigendum || isCorrection ? "forwarded" : "forwarded",
       Returned: isCorrigendum || isCorrection ? "returned" : "returned",
@@ -490,10 +490,10 @@ export default function OfficerHome() {
     }
 
     setType(mappedType);
-    setDataType(isLegacy ? "legacy" : "new"); // Set dataType based on card type
+    setDataType(isLegacy ? "legacy" : "new");
 
     const url =
-      type === "Corrigendum" || type === "Correction"
+      type === "Corrigendum" || type === "Correction" || type === "Amendment"
         ? "/Officer/GetCorrigendumApplications"
         : statusName === "PCP-UDID Expires 3 Months" ||
           statusName === "PCP Applications"
@@ -552,7 +552,7 @@ export default function OfficerHome() {
         });
       },
       handleViewPdf: async (row, action) => {
-        const { referenceNumber } = row.original;
+        const { referenceNumber, applicationType } = row.original;
         const { type, corrigendumId } = action;
 
         try {
@@ -570,7 +570,7 @@ export default function OfficerHome() {
             filename = `${corrigendumId.replace(
               /\//g,
               "_",
-            )}_CorrigendumSanctionLetter.pdf`;
+            )}_${applicationType}SanctionLetter.pdf`;
           } else if (type === "DownloadCorrection") {
             if (!corrigendumId) {
               throw new Error("Correction ID is missing in action");
@@ -1149,7 +1149,6 @@ export default function OfficerHome() {
       { value: "toInbox", label: "Return to Inbox" },
     ];
     if (canSanction && dataType === "new") {
-      // Only allow sanction for new data
       options.push({ value: "Sanction", label: "Sanction" });
     }
     return options;
@@ -1157,40 +1156,40 @@ export default function OfficerHome() {
 
   const barData = useMemo(() => {
     const labels = ["Total", "Pending"];
-    const data = [counts.total, counts.pending];
-    const backgroundColor = ["#374151", "#f59e0b"]; // Gray for Total, Amber for Pending
+    const data = [Math.max(counts.total, 0), Math.max(counts.pending, 0)];
+    const backgroundColor = ["#374151", "#f59e0b"];
     const borderColor = ["#374151", "#f59e0b"];
 
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
-      data.push(counts.forwarded);
-      backgroundColor.push("#0ea5e9"); // Cyan
+      data.push(Math.max(counts.forwarded, 0));
+      backgroundColor.push("#0ea5e9");
       borderColor.push("#0ea5e9");
     }
 
     if (officerAuthorities.canReturnToCitizen) {
       labels.push("Citizen Pending");
-      data.push(counts.citizenPending);
-      backgroundColor.push("#a855f7"); // Violet
+      data.push(Math.max(counts.citizenPending, 0));
+      backgroundColor.push("#a855f7");
       borderColor.push("#a855f7");
     }
 
     if (officerAuthorities.canReturnToPlayer) {
       labels.push("Returned");
-      data.push(counts.returnedCount);
-      backgroundColor.push("#f97316"); // Orange
+      data.push(Math.max(counts.returnedCount, 0));
+      backgroundColor.push("#f97316");
       borderColor.push("#f97316");
     }
 
     labels.push("Rejected");
-    data.push(counts.rejected);
-    backgroundColor.push("#ef4444"); // Red
+    data.push(Math.max(counts.rejected, 0));
+    backgroundColor.push("#ef4444");
     borderColor.push("#ef4444");
 
     if (officerAuthorities.canSanction) {
       labels.push("Sanctioned");
-      data.push(counts.sanctioned);
-      backgroundColor.push("#10b981"); // Emerald Green
+      data.push(Math.max(counts.sanctioned, 0));
+      backgroundColor.push("#10b981");
       borderColor.push("#10b981");
     }
 
@@ -1210,35 +1209,35 @@ export default function OfficerHome() {
 
   const pieData = useMemo(() => {
     const labels = ["Pending"];
-    const data = [counts.pending];
-    const backgroundColor = ["#f59e0b"]; // Amber
+    const data = [Math.max(counts.pending, 0)];
+    const backgroundColor = ["#f59e0b"];
 
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
-      data.push(counts.forwarded);
-      backgroundColor.push("#0ea5e9"); // Cyan
+      data.push(Math.max(counts.forwarded, 0));
+      backgroundColor.push("#0ea5e9");
     }
 
     if (officerAuthorities.canReturnToPlayer) {
       labels.push("Returned");
-      data.push(counts.returnedCount);
-      backgroundColor.push("#f97316"); // Orange
+      data.push(Math.max(counts.returnedCount, 0));
+      backgroundColor.push("#f97316");
     }
 
     if (officerAuthorities.canReturnToCitizen) {
       labels.push("Citizen Pending");
-      data.push(counts.citizenPending);
-      backgroundColor.push("#a855f7"); // Violet
+      data.push(Math.max(counts.citizenPending, 0));
+      backgroundColor.push("#a855f7");
     }
 
     labels.push("Rejected");
-    data.push(counts.rejected);
-    backgroundColor.push("#ef4444"); // Red
+    data.push(Math.max(counts.rejected, 0));
+    backgroundColor.push("#ef4444");
 
     if (officerAuthorities.canSanction) {
       labels.push("Sanctioned");
-      data.push(counts.sanctioned);
-      backgroundColor.push("#10b981"); // Emerald Green
+      data.push(Math.max(counts.sanctioned, 0));
+      backgroundColor.push("#10b981");
     }
 
     return {
@@ -1254,24 +1253,45 @@ export default function OfficerHome() {
     };
   }, [counts, officerAuthorities]);
 
-  const chartOptions = useMemo(
+  const barChartOptions = useMemo(
     () => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        tooltip: {
-          enable: false,
-        },
-        legend: {
-          position: "top",
-          labels: {
-            font: { size: 14, family: "'Inter', sans-serif" },
-          },
-        },
-        datalabels: {
-          display: false,
+      margin: { top: 20, right: 30, left: 20, bottom: 5 },
+      legend: {
+        position: "top",
+        textStyle: {
+          fontSize: 14,
+          fontFamily: "'Inter', sans-serif",
+          color: "#333333",
         },
       },
+      xAxis: {
+        style: { stroke: "#666666" },
+      },
+      yAxis: {
+        style: { stroke: "#666666" },
+        min: 0,
+      },
+    }),
+    [],
+  );
+
+  const pieChartOptions = useMemo(
+    () => ({
+      margin: { top: 40, right: 80, bottom: 80, left: 80 },
+      legend: {
+        position: "top",
+        textStyle: {
+          fontSize: 14,
+          fontFamily: "'Inter', sans-serif",
+          color: "#333333",
+        },
+      },
+      innerRadius: 0.5,
+      padAngle: 0.7,
+      cornerRadius: 3,
+      arcLinkLabelsTextColor: "#333333",
+      arcLinkLabelsThickness: 2,
+      arcLabelsTextColor: { from: "color", modifiers: [["darker", 2]] },
     }),
     [],
   );
@@ -1280,15 +1300,27 @@ export default function OfficerHome() {
     const params = {
       ServiceId: serviceId,
       type: type,
-      dataType: dataType, // Use dataType for new or legacy
+      dataType: dataType,
     };
 
-    if (applicationType === "Corrigendum" || applicationType === "Correction") {
+    if (
+      applicationType === "Corrigendum" ||
+      applicationType === "Correction" ||
+      applicationType === "Amendment"
+    ) {
       params.applicationType = applicationType;
     }
 
     return params;
   }, [serviceId, type, applicationType, dataType]);
+
+  // Force chart re-render when data changes
+  useEffect(() => {
+    console.log("Counts:", counts);
+    console.log("Officer Authorities:", officerAuthorities);
+    console.log("Bar Data:", barData);
+    console.log("Pie Data:", pieData);
+  }, [counts, officerAuthorities, barData, pieData]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -1310,6 +1342,167 @@ export default function OfficerHome() {
     fetchServices();
   }, []);
 
+  // Render function for individual cards
+  const renderStatCard = (item, index, onClick) => (
+    <StatCard
+      key={index}
+      sx={{
+        backgroundColor: statusColors[item.label] || "#1976d2",
+        padding: "24px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        height: "200px",
+        minHeight: "200px",
+        position: "relative",
+        overflow: "visible",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: `linear-gradient(135deg, ${
+            statusColors[item.label] || "#1976d2"
+          }, ${
+            statusColors[item.label]
+              ?.replace(")", ", 0.8)")
+              ?.replace("rgb", "rgba") || "rgba(25, 118, 210, 0.8)"
+          })`,
+          borderRadius: "inherit",
+        },
+        "& > *": {
+          position: "relative",
+          zIndex: 1,
+        },
+      }}
+      onClick={onClick}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 2,
+        }}
+      >
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: "700",
+            color: textColors[item.label] || "#FFFFFF",
+            fontSize: "0.95rem",
+            lineHeight: 1.3,
+            flex: 1,
+            pr: 1,
+            fontFamily: "'Inter', sans-serif",
+          }}
+        >
+          {item.label}
+        </Typography>
+        {React.cloneElement(iconMap[item.label] || <AssignmentTurnedIn />)}
+      </Box>
+
+      <MuiTooltip
+        title={item.tooltipText || `View ${item.label} applications`}
+        enterTouchDelay={0}
+        leaveTouchDelay={2000}
+        arrow
+      >
+        <Typography
+          variant="h2"
+          sx={{
+            fontWeight: "800",
+            color: textColors[item.label] || "#FFFFFF",
+            textAlign: "center",
+            fontSize: "3.5rem",
+            lineHeight: 1,
+            fontFamily: "'Inter', sans-serif",
+            textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          }}
+        >
+          {item.count}
+        </Typography>
+      </MuiTooltip>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
+          mt: "auto",
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+          {item.forwardedSanctionedCount != null && (
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "600",
+                fontSize: "0.75rem",
+                color: "rgba(255, 255, 255, 0.9)",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                "&:hover": { color: "#FFFFFF", transform: "scale(1.05)" },
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCardClick("Forwarded", "application", item.tableTitle);
+              }}
+            >
+              Sanctioned: {item.forwardedSanctionedCount}
+            </Typography>
+          )}
+
+          {item.label === "Total Applications" &&
+            legacyCountList.length > 0 && (
+              <Box sx={{ display: "flex", gap: 1.5 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: "600",
+                    fontSize: "0.75rem",
+                    color: "rgba(255, 255, 255, 0.9)",
+                  }}
+                >
+                  New: {item.count}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: "600",
+                    fontSize: "0.75rem",
+                    color: "rgba(255, 255, 255, 0.9)",
+                  }}
+                >
+                  Legacy: {legacyCountList[0]?.count || 0}
+                </Typography>
+              </Box>
+            )}
+        </Box>
+
+        <Typography
+          variant="body2"
+          sx={{
+            color: textColors[item.label] || "#FFFFFF",
+            fontSize: "0.8rem",
+            display: "inline-flex",
+            alignItems: "center",
+            fontWeight: "600",
+            fontFamily: "'Inter', sans-serif",
+            transition: "all 0.2s ease",
+            "&:hover": { transform: "translateX(4px)" },
+          }}
+        >
+          View All <ArrowRightAlt sx={{ fontSize: 18, ml: 0.5 }} />
+        </Typography>
+      </Box>
+    </StatCard>
+  );
+
   if (loading) {
     return (
       <Box
@@ -1319,10 +1512,10 @@ export default function OfficerHome() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          bgcolor: "#ffffffff",
+          bgcolor: "#f9fafb",
         }}
       >
-        <CircularProgress size={60} />
+        <CircularProgress size={60} sx={{ color: "#1976d2" }} />
       </Box>
     );
   }
@@ -1337,7 +1530,7 @@ export default function OfficerHome() {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          bgcolor: "#ffffffff",
+          bgcolor: "#f9fafb",
         }}
       >
         <Typography color="error" variant="h6" sx={{ mb: 2 }}>
@@ -1358,1146 +1551,522 @@ export default function OfficerHome() {
       sx={{
         width: "100%",
         minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        p: { xs: 3, md: 5 },
         backgroundColor: "#f9fafb",
+        pb: 6,
       }}
     >
-      <Typography
-        variant="h4"
+      {/* Header */}
+      <Box
         sx={{
-          mb: 5,
-          fontWeight: 700,
-          color: "#2d3748",
-          fontFamily: "'Inter', sans-serif",
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          py: 6,
+          mb: 6,
         }}
       >
-        {officerRole} {officerArea}
-      </Typography>
+        <Container>
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 700,
+              color: "#FFFFFF",
+              textAlign: "center",
+              fontFamily: "'Inter', sans-serif",
+              textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            }}
+          >
+            {officerRole} Dashboard
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 400,
+              color: "rgba(255, 255, 255, 0.9)",
+              textAlign: "center",
+              fontFamily: "'Inter', sans-serif",
+              mt: 1,
+            }}
+          >
+            {officerArea}
+          </Typography>
+        </Container>
+      </Box>
 
-      <Container fluid>
-        <Row className="mb-1 justify-content-center">
-          <Col xs={12} md={8} lg={6}>
-            <ServiceSelectionForm
-              services={services}
-              errors={errors}
-              onServiceSelect={debouncedHandleRecords}
-              sx={{
-                "& .MuiFormControl-root": {
-                  bgcolor: "#ffffff",
-                  borderRadius: "8px",
-                },
-              }}
-            />
-          </Col>
-        </Row>
+      <SectionContainer>
+        {/* Service Selection */}
+        <Box sx={{ mb: 6 }}>
+          <ServiceSelectionForm
+            services={services}
+            errors={errors}
+            onServiceSelect={debouncedHandleRecords}
+            sx={{
+              maxWidth: 600,
+              margin: "0 auto",
+              "& .MuiFormControl-root": {
+                bgcolor: "#ffffff",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              },
+            }}
+          />
+        </Box>
 
+        {/* Main Applications Section */}
         {counts && countList?.length > 0 && (
           <>
             <Typography
-              variant="h5"
+              variant="h4"
               sx={{
-                mb: 3,
+                mb: 4,
                 fontWeight: 600,
                 color: "#2d3748",
                 textAlign: "center",
                 fontFamily: "'Inter', sans-serif",
               }}
             >
-              Applications
+              Applications Overview
             </Typography>
-            <Row
-              className="mb-1 justify-content-center"
-              style={{ width: "100%" }}
-            >
-              {countList.map((item, index) => (
-                <Col
-                  key={index}
-                  xs={12}
-                  sm={6}
-                  md={4}
-                  lg={2}
-                  className="mb-4"
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  <StatCard
-                    sx={{
-                      backgroundColor: statusColors[item.label] || "#1976d2",
-                      padding: "16px",
-                      borderRadius: "12px",
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                    }}
-                    onClick={() =>
-                      handleCardClick(
-                        item.label,
-                        "application",
-                        item.tableTitle,
-                      )
-                    }
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          fontWeight: "bold",
-                          color: textColors[item.label] || "#FFFFFF",
-                          fontSize: "1rem",
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
 
-                      {React.cloneElement(
-                        iconMap[item.label] || (
-                          <AssignmentTurnedIn sx={{ fontSize: 16 }} />
-                        ),
-                      )}
-                    </Box>
-
-                    <MuiTooltip
-                      title={
-                        item.tooltipText || `View ${item.label} applications`
-                      }
-                      enterTouchDelay={0}
-                      leaveTouchDelay={2000}
-                      arrow
-                    >
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontWeight: "bold",
-                          color: textColors[item.label] || "#FFFFFF",
-                          textAlign: "left",
-                          fontSize: "3rem",
-                        }}
-                      >
-                        {item.count}
-                      </Typography>
-                    </MuiTooltip>
-
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mt: 1,
-                        width: "100%",
-                      }}
-                    >
-                      {item.forwardedSanctionedCount != null ? (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: "bold",
-                            fontSize: "0.8rem",
-                            color: "#ffffffff",
-                            cursor: "pointer",
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log("Sanctioned Applications");
-                            handleCardClick(
-                              "Forwarded",
-                              "application",
-                              item.tableTitle,
-                            );
-                          }}
-                        >
-                          Sanctioned: {item.forwardedSanctionedCount}
-                        </Typography>
-                      ) : (
-                        <span />
-                      )}
-
-                      {item.label == "Total Applications" ? (
-                        <>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: "bolder",
-                              fontSize: "0.8rem",
-                              color: "#ffffffff",
-                            }}
-                          >
-                            New: {item.count}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: "bolder",
-                              fontSize: "0.8rem",
-                              color: "#ffffffff",
-                            }}
-                          >
-                            Legacy: {legacyCountList[0].count}
-                          </Typography>
-                        </>
-                      ) : (
-                        <span />
-                      )}
-
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: textColors[item.label] || "#FFFFFF",
-                          fontSize: "0.85rem",
-                          display: "inline-flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        View All{" "}
-                        <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
-                      </Typography>
-                    </Box>
-                  </StatCard>
-                </Col>
-              ))}
-            </Row>
-            <Divider
-              sx={{
-                borderColor: "#000", // sets the divider color
-                borderBottomWidth: 2, // thickness of the line
-              }}
-            />
-
-            {!officerAuthorities.CanReturnToCitizen &&
-              citizenPendingList.length > 0 && (
-                <>
-                  <MuiTooltip title=" Pending With Citizens" arrow>
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        mb: 3,
-                        fontWeight: 600,
-                        color: "#2d3748",
-                        textAlign: "center",
-                        fontFamily: "'Inter', sans-serif",
-                        mt: 2,
-                      }}
-                    >
-                      Pending With Citizens
-                    </Typography>
-                  </MuiTooltip>
-                  <Row
-                    className="mb-1 justify-content-center"
-                    style={{ width: "100%" }}
-                  >
-                    {citizenPendingList.map((item, index) => (
-                      <Col
-                        key={index}
-                        xs={12}
-                        sm={6}
-                        md={4}
-                        lg={2}
-                        className="mb-4"
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <StatCard
-                          sx={{
-                            backgroundColor:
-                              statusColors[item.label] || "#1976d2",
-                            padding: "16px",
-                            borderRadius: "12px",
-                            cursor: "pointer",
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "space-between",
-                            height: "160px",
-                          }}
-                          onClick={() =>
-                            handleCardClick(
-                              item.label,
-                              "application",
-                              item.tableTitle,
-                            )
-                          }
-                        >
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Typography
-                              variant="subtitle2"
-                              sx={{
-                                fontWeight: "bold",
-                                color: textColors[item.label] || "#FFFFFF",
-                                fontSize: "0.85rem",
-                              }}
-                            >
-                              {item.label}
-                            </Typography>
-
-                            {React.cloneElement(
-                              iconMap[item.label] || (
-                                <AssignmentTurnedIn sx={{ fontSize: 16 }} />
-                              ),
-                            )}
-                          </Box>
-
-                          <MuiTooltip
-                            title={
-                              item.tooltipText ||
-                              `View ${item.label} applications`
-                            }
-                            enterTouchDelay={0}
-                            leaveTouchDelay={2000}
-                            arrow
-                          >
-                            <Typography
-                              variant="h3"
-                              sx={{
-                                fontWeight: "bold",
-                                color: textColors[item.label] || "#FFFFFF",
-                                textAlign: "left",
-                                fontSize: "2.5rem",
-                              }}
-                            >
-                              {item.count}
-                            </Typography>
-                          </MuiTooltip>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              mt: 1,
-                              width: "100%",
-                            }}
-                          >
-                            {item.forwardedSanctionedCount != null ? (
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  fontWeight: "bold",
-                                  fontSize: "0.8rem",
-                                  color: "#ffffffff",
-                                }}
-                              >
-                                Sanctioned: {item.forwardedSanctionedCount}
-                              </Typography>
-                            ) : (
-                              <span />
-                            )}
-
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                color: textColors[item.label] || "#FFFFFF",
-                                fontSize: "0.85rem",
-                                display: "inline-flex",
-                                alignItems: "center",
-                              }}
-                            >
-                              View All{" "}
-                              <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
-                            </Typography>
-                          </Box>
-                        </StatCard>
-                      </Col>
-                    ))}
-                  </Row>
-                  <Divider
-                    sx={{
-                      borderColor: "#000", // sets the divider color
-                      borderBottomWidth: 2, // thickness of the line
-                    }}
-                  />
-                </>
+            <CardGrid>
+              {countList.map((item, index) =>
+                renderStatCard(item, index, () =>
+                  handleCardClick(item.label, "application", item.tableTitle),
+                ),
               )}
-            <MuiTooltip title="Withheld Payments After Sanction" arrow>
+            </CardGrid>
+
+            <Divider
+              sx={{ borderColor: "#e2e8f0", borderBottomWidth: 2, my: 6 }}
+            />
+          </>
+        )}
+
+        {/* Citizen Pending Section */}
+        {!officerAuthorities.CanReturnToCitizen &&
+          citizenPendingList.length > 0 && (
+            <>
               <Typography
                 variant="h5"
                 sx={{
-                  mb: 3,
+                  mb: 4,
                   fontWeight: 600,
                   color: "#2d3748",
                   textAlign: "center",
                   fontFamily: "'Inter', sans-serif",
-                  mt: 2,
                 }}
               >
-                Withheld Payments (After Sanction)
+                <MuiTooltip title="Applications pending with citizens" arrow>
+                  <span>Pending With Citizens</span>
+                </MuiTooltip>
               </Typography>
-            </MuiTooltip>
-            <Row
-              className="mb-1 justify-content-center"
-              style={{ width: "100%" }}
-            >
-              {withheldCountList.map((item, index) => (
-                <Col
-                  key={index}
-                  xs={12}
-                  sm={6}
-                  md={4}
-                  lg={2}
-                  className="mb-4"
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  <StatCard
-                    sx={{
-                      backgroundColor: statusColors[item.label] || "#1976d2",
-                      padding: "16px",
-                      borderRadius: "12px",
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      height: "160px",
-                    }}
-                    onClick={() =>
-                      handleCardClick(item.label, "withheld", item.tableTitle)
-                    }
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          fontWeight: "bold",
-                          color: textColors[item.label] || "#FFFFFF",
-                          fontSize: "0.85rem",
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
 
-                      {React.cloneElement(
-                        iconMap[item.label] || (
-                          <AssignmentTurnedIn sx={{ fontSize: 16 }} />
-                        ),
-                      )}
-                    </Box>
+              <CardGrid>
+                {citizenPendingList.map((item, index) =>
+                  renderStatCard(item, index, () =>
+                    handleCardClick(item.label, "application", item.tableTitle),
+                  ),
+                )}
+              </CardGrid>
 
-                    <MuiTooltip
-                      title={
-                        item.tooltipText || `View ${item.label} applications`
-                      }
-                      enterTouchDelay={0}
-                      leaveTouchDelay={2000}
-                      arrow
-                    >
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontWeight: "bold",
-                          color: textColors[item.label] || "#FFFFFF",
-                          textAlign: "left",
-                          fontSize: "2.5rem",
-                        }}
-                      >
-                        {item.count}
-                      </Typography>
-                    </MuiTooltip>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mt: 1,
-                        width: "100%",
-                      }}
-                    >
-                      {item.forwardedSanctionedCount != null ? (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: "bold",
-                            fontSize: "0.8rem",
-                            color: "#000000",
-                          }}
-                        >
-                          Sanctioned: {item.forwardedSanctionedCount}
-                        </Typography>
-                      ) : (
-                        <span />
-                      )}
+              <Divider
+                sx={{ borderColor: "#e2e8f0", borderBottomWidth: 2, my: 6 }}
+              />
+            </>
+          )}
 
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: textColors[item.label] || "#FFFFFF",
-                          fontSize: "0.85rem",
-                          display: "inline-flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        View All{" "}
-                        <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
-                      </Typography>
-                    </Box>
-                  </StatCard>
-                </Col>
-              ))}
-            </Row>
-            <Divider
-              sx={{
-                borderColor: "#000", // sets the divider color
-                borderBottomWidth: 2, // thickness of the line
-              }}
-            />
+        {/* Withheld Applications Section */}
+        {withheldCountList.length > 0 && (
+          <>
             <Typography
               variant="h5"
               sx={{
-                mb: 3,
+                mb: 4,
                 fontWeight: 600,
                 color: "#2d3748",
                 textAlign: "center",
                 fontFamily: "'Inter', sans-serif",
-                mt: 2,
+              }}
+            >
+              <MuiTooltip title="Applications withheld after sanction" arrow>
+                <span>Withheld Payments (After Sanction)</span>
+              </MuiTooltip>
+            </Typography>
+
+            <CardGrid>
+              {withheldCountList.map((item, index) =>
+                renderStatCard(item, index, () =>
+                  handleCardClick(item.label, "withheld", item.tableTitle),
+                ),
+              )}
+            </CardGrid>
+
+            <Divider
+              sx={{ borderColor: "#e2e8f0", borderBottomWidth: 2, my: 6 }}
+            />
+          </>
+        )}
+
+        {/* Physically Challenged Applications Section */}
+        {temporaryCountList.length > 0 && (
+          <>
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 4,
+                fontWeight: 600,
+                color: "#2d3748",
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
               }}
             >
               Physically Challenged Applications
             </Typography>
-            <Row
-              className="mb-1 justify-content-center"
-              style={{ width: "100%" }}
-            >
-              {temporaryCountList.map((item, index) => (
-                <Col
-                  key={index}
-                  xs={12}
-                  sm={6}
-                  md={4}
-                  lg={2}
-                  className="mb-4"
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  <StatCard
-                    sx={{
-                      backgroundColor: statusColors[item.label] || "#1976d2",
-                      padding: "16px",
-                      borderRadius: "12px",
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      height: "160px",
-                    }}
-                    onClick={() =>
-                      handleCardClick(
-                        item.label,
-                        "application",
-                        item.tableTitle,
-                      )
-                    }
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          fontWeight: "bold",
-                          color: textColors[item.label] || "#FFFFFF",
-                          fontSize: "0.85rem",
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
 
-                      {React.cloneElement(
-                        iconMap[item.label] || (
-                          <AssignmentTurnedIn sx={{ fontSize: 16 }} />
-                        ),
-                      )}
-                    </Box>
+            <CardGrid>
+              {temporaryCountList.map((item, index) =>
+                renderStatCard(item, index, () =>
+                  handleCardClick(item.label, "application", item.tableTitle),
+                ),
+              )}
+            </CardGrid>
 
-                    <MuiTooltip
-                      title={
-                        item.tooltipText || `View ${item.label} applications`
-                      }
-                      enterTouchDelay={0}
-                      leaveTouchDelay={2000}
-                      arrow
-                    >
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontWeight: "bold",
-                          color: textColors[item.label] || "#FFFFFF",
-                          textAlign: "left",
-                          fontSize: "2.5rem",
-                        }}
-                      >
-                        {item.count}
-                      </Typography>
-                    </MuiTooltip>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mt: 1,
-                        width: "100%",
-                      }}
-                    >
-                      {item.forwardedSanctionedCount != null ? (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: "bold",
-                            fontSize: "0.8rem",
-                            color: "#000000",
-                            cursor: "grab",
-                          }}
-                        >
-                          Sanctioned: {item.forwardedSanctionedCount}
-                        </Typography>
-                      ) : (
-                        <span />
-                      )}
-
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: textColors[item.label] || "#FFFFFF",
-                          fontSize: "0.85rem",
-                          display: "inline-flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        View All{" "}
-                        <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
-                      </Typography>
-                    </Box>
-                  </StatCard>
-                </Col>
-              ))}
-            </Row>
             <Divider
-              sx={{
-                borderColor: "#000", // sets the divider color
-                borderBottomWidth: 2, // thickness of the line
-              }}
+              sx={{ borderColor: "#e2e8f0", borderBottomWidth: 2, my: 6 }}
             />
-            {corrigendumList?.length > 0 && (
-              <>
-                <MuiTooltip
-                  title="Corrgendum are issued after cases are sanctioned"
-                  arrow
-                >
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      mb: 3,
-                      fontWeight: 600,
-                      color: "#2d3748",
-                      textAlign: "center",
-                      fontFamily: "'Inter', sans-serif",
-                      mt: 2,
-                    }}
-                  >
-                    Corrigendums
-                  </Typography>
-                </MuiTooltip>
-                <Row
-                  className="mb-1 justify-content-center align-items-center"
-                  style={{ width: "100%" }}
-                >
-                  {corrigendumList.map((item, index) => (
-                    <Col
-                      key={index}
-                      xs={12}
-                      sm={6}
-                      md={4}
-                      lg={2}
-                      className="mb-4"
-                      style={{ display: "flex", justifyContent: "center" }}
-                    >
-                      <StatCard
-                        sx={{
-                          backgroundColor:
-                            statusColors[item.label] || "#1976d2",
-                          padding: "16px",
-                          borderRadius: "12px",
-                          cursor: "pointer",
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "space-between",
-                          height: "160px",
-                        }}
-                        onClick={() =>
-                          handleCardClick(
-                            item.label,
-                            "Corrigendum",
-                            item.tableTitle,
-                          )
-                        }
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                          }}
-                        >
-                          <Typography
-                            variant="subtitle2"
-                            sx={{
-                              fontWeight: "bold",
-                              color: textColors[item.label] || "#FFFFFF",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            {item.label}
-                          </Typography>
-
-                          {React.cloneElement(
-                            iconMap[item.label] || (
-                              <AssignmentTurnedIn sx={{ fontSize: 16 }} />
-                            ),
-                          )}
-                        </Box>
-
-                        <MuiTooltip
-                          title={
-                            item.tooltipText ||
-                            `View ${item.label} corrigendums`
-                          }
-                          enterTouchDelay={0}
-                          leaveTouchDelay={2000}
-                          arrow
-                        >
-                          <Typography
-                            variant="h3"
-                            sx={{
-                              fontWeight: "bold",
-                              color: textColors[item.label] || "#FFFFFF",
-                              textAlign: "left",
-                              fontSize: "2.5rem",
-                            }}
-                          >
-                            {item.count}
-                          </Typography>
-                        </MuiTooltip>
-
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mt: 1,
-                            width: "100%",
-                          }}
-                        >
-                          {item.forwardedSanctionedCount != null ? (
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontWeight: "bold",
-                                fontSize: "0.8rem",
-                                color: "#ffffffff",
-                              }}
-                            >
-                              Issued: {item.forwardedSanctionedCount}
-                            </Typography>
-                          ) : (
-                            <span />
-                          )}
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: textColors[item.label] || "#FFFFFF",
-                              fontSize: "0.85rem",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            View All{" "}
-                            <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
-                          </Typography>
-                        </Box>
-                      </StatCard>
-                    </Col>
-                  ))}
-                </Row>
-              </>
-            )}
-            <Divider
-              sx={{
-                borderColor: "#000", // sets the divider color
-                borderBottomWidth: 2, // thickness of the line
-              }}
-            />
-            {correctionList?.length > 0 && (
-              <>
-                <MuiTooltip
-                  title="Corrections are made before cases are sanctioned"
-                  arrow
-                >
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      mb: 3,
-                      fontWeight: 600,
-                      color: "#2d3748",
-                      textAlign: "center",
-                      fontFamily: "'Inter', sans-serif",
-                      mt: 2,
-                    }}
-                  >
-                    Corrections
-                  </Typography>
-                </MuiTooltip>
-                <Row
-                  className="mb-1 justify-content-center align-items-center"
-                  style={{ width: "100%" }}
-                >
-                  {correctionList.map((item, index) => (
-                    <Col
-                      key={index}
-                      xs={12}
-                      sm={6}
-                      md={4}
-                      lg={2}
-                      className="mb-4"
-                      style={{ display: "flex", justifyContent: "center" }}
-                    >
-                      <StatCard
-                        sx={{
-                          backgroundColor:
-                            statusColors[item.label] || "#1976d2",
-                          padding: "16px",
-                          borderRadius: "12px",
-                          cursor: "pointer",
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "space-between",
-                          height: "160px",
-                        }}
-                        onClick={() =>
-                          handleCardClick(
-                            item.label,
-                            "Correction",
-                            item.tableTitle,
-                          )
-                        }
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                          }}
-                        >
-                          <Typography
-                            variant="subtitle2"
-                            sx={{
-                              fontWeight: "bold",
-                              color: textColors[item.label] || "#FFFFFF",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            {item.label}
-                          </Typography>
-
-                          {React.cloneElement(
-                            iconMap[item.label] || (
-                              <AssignmentTurnedIn sx={{ fontSize: 16 }} />
-                            ),
-                          )}
-                        </Box>
-
-                        <MuiTooltip
-                          title={
-                            item.tooltipText || `View ${item.label} corrections`
-                          }
-                          enterTouchDelay={0}
-                          leaveTouchDelay={2000}
-                          arrow
-                        >
-                          <Typography
-                            variant="h3"
-                            sx={{
-                              fontWeight: "bold",
-                              color: textColors[item.label] || "#FFFFFF",
-                              textAlign: "left",
-                              fontSize: "2.5rem",
-                            }}
-                          >
-                            {item.count}
-                          </Typography>
-                        </MuiTooltip>
-
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mt: 1,
-                            width: "100%",
-                          }}
-                        >
-                          {item.forwardedSanctionedCount != null ? (
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontWeight: "bold",
-                                fontSize: "0.8rem",
-                                color: "#000000",
-                              }}
-                            >
-                              Verified: {item.forwardedSanctionedCount}
-                            </Typography>
-                          ) : (
-                            <span />
-                          )}
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: textColors[item.label] || "#FFFFFF",
-                              fontSize: "0.85rem",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            View All{" "}
-                            <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
-                          </Typography>
-                        </Box>
-                      </StatCard>
-                    </Col>
-                  ))}
-                </Row>
-              </>
-            )}
-            <Divider
-              sx={{
-                borderColor: "#000", // sets the divider color
-                borderBottomWidth: 2, // thickness of the line
-              }}
-            />
-            {legacyCountList?.length > 0 && (
-              <>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    mb: 3,
-                    fontWeight: 600,
-                    color: "#2d3748",
-                    textAlign: "center",
-                    fontFamily: "'Inter', sans-serif",
-                    mt: 2,
-                  }}
-                >
-                  Legacy Applications
-                </Typography>
-                <Row
-                  className="mb-1 justify-content-center align-items-center"
-                  style={{ width: "100%" }}
-                >
-                  {legacyCountList.map((item, index) => (
-                    <Col
-                      key={index}
-                      xs={12}
-                      sm={6}
-                      md={4}
-                      lg={2}
-                      className="mb-4"
-                      style={{ display: "flex", justifyContent: "center" }}
-                    >
-                      <StatCard
-                        sx={{
-                          backgroundColor:
-                            statusColors[item.label] || "#1976d2",
-                          padding: "16px",
-                          borderRadius: "12px",
-                          cursor: "pointer",
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "space-between",
-                          height: "160px",
-                        }}
-                        onClick={() =>
-                          handleCardClick(item.label, "Legacy", item.tableTitle)
-                        }
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                          }}
-                        >
-                          <Typography
-                            variant="subtitle2"
-                            sx={{
-                              fontWeight: "bold",
-                              color: textColors[item.label] || "#FFFFFF",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            {item.label}
-                          </Typography>
-
-                          {React.cloneElement(
-                            iconMap[item.label] || (
-                              <AssignmentTurnedIn sx={{ fontSize: 16 }} />
-                            ),
-                          )}
-                        </Box>
-
-                        <MuiTooltip
-                          title={
-                            item.tooltipText ||
-                            `View ${item.label} legacy applications`
-                          }
-                          enterTouchDelay={0}
-                          leaveTouchDelay={2000}
-                          arrow
-                        >
-                          <Typography
-                            variant="h3"
-                            sx={{
-                              fontWeight: "bold",
-                              color: textColors[item.label] || "#FFFFFF",
-                              textAlign: "left",
-                              fontSize: "2.5rem",
-                            }}
-                          >
-                            {item.count}
-                          </Typography>
-                        </MuiTooltip>
-
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            mt: 1,
-                            width: "100%",
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: textColors[item.label] || "#FFFFFF",
-                              fontSize: "0.85rem",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            View All{" "}
-                            <ArrowRightAlt sx={{ fontSize: 16, ml: 0.5 }} />
-                          </Typography>
-                        </Box>
-                      </StatCard>
-                    </Col>
-                  ))}
-                </Row>
-              </>
-            )}
-
-            <Row>
-              <Col xs={12} lg={6} className="mb-4 ">
-                <StyledCard>
-                  <CardContent>
-                    <Typography
-                      variant="h6"
-                      sx={{ mb: 3, fontWeight: 600, color: "#2d3748" }}
-                    >
-                      Status of New Applications
-                    </Typography>
-                    <Box sx={{ height: "350px" }}>
-                      <Pie data={pieData} options={chartOptions} />
-                    </Box>
-                  </CardContent>
-                </StyledCard>
-              </Col>
-              <Col xs={12} lg={6} className="mb-4 ">
-                <StyledCard>
-                  <CardContent>
-                    <Typography
-                      variant="h6"
-                      sx={{ mb: 3, fontWeight: 600, color: "#2d3748" }}
-                    >
-                      New Applications Count
-                    </Typography>
-                    <Box sx={{ height: "350px" }}>
-                      <Bar data={barData} options={chartOptions} />
-                    </Box>
-                  </CardContent>
-                </StyledCard>
-              </Col>
-            </Row>
           </>
         )}
 
-        {showTable && (
-          <Row ref={tableRef} className="mt-5">
-            <Col xs={12}>
+        {/* Corrigendums Section */}
+        {corrigendumList?.length > 0 && (
+          <>
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 4,
+                fontWeight: 600,
+                color: "#2d3748",
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              <MuiTooltip
+                title="Corrigendums are issued after cases are sanctioned"
+                arrow
+              >
+                <span>Corrigendums</span>
+              </MuiTooltip>
+            </Typography>
+
+            <CardGrid>
+              {corrigendumList.map((item, index) =>
+                renderStatCard(item, index, () =>
+                  handleCardClick(item.label, "Corrigendum", item.tableTitle),
+                ),
+              )}
+            </CardGrid>
+
+            <Divider
+              sx={{ borderColor: "#e2e8f0", borderBottomWidth: 2, my: 6 }}
+            />
+          </>
+        )}
+
+        {amendmentList?.length > 0 && (
+          <>
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 4,
+                fontWeight: 600,
+                color: "#2d3748",
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              <MuiTooltip
+                title="Amandments are issued after cases are sanctioned"
+                arrow
+              >
+                <span>Amandments</span>
+              </MuiTooltip>
+            </Typography>
+
+            <CardGrid>
+              {amendmentList.map((item, index) =>
+                renderStatCard(item, index, () =>
+                  handleCardClick(item.label, "Amendment", item.tableTitle),
+                ),
+              )}
+            </CardGrid>
+
+            <Divider
+              sx={{ borderColor: "#e2e8f0", borderBottomWidth: 2, my: 6 }}
+            />
+          </>
+        )}
+
+        {/* Corrections Section */}
+        {correctionList?.length > 0 && (
+          <>
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 4,
+                fontWeight: 600,
+                color: "#2d3748",
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              <MuiTooltip
+                title="Corrections are made before cases are sanctioned"
+                arrow
+              >
+                <span>Corrections</span>
+              </MuiTooltip>
+            </Typography>
+
+            <CardGrid>
+              {correctionList.map((item, index) =>
+                renderStatCard(item, index, () =>
+                  handleCardClick(item.label, "Correction", item.tableTitle),
+                ),
+              )}
+            </CardGrid>
+
+            <Divider
+              sx={{ borderColor: "#e2e8f0", borderBottomWidth: 2, my: 6 }}
+            />
+          </>
+        )}
+
+        {/* Legacy Applications Section */}
+        {legacyCountList?.length > 0 && (
+          <>
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 4,
+                fontWeight: 600,
+                color: "#2d3748",
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              Legacy Applications
+            </Typography>
+
+            <CardGrid>
+              {legacyCountList.map((item, index) =>
+                renderStatCard(item, index, () =>
+                  handleCardClick(item.label, "Legacy", item.tableTitle),
+                ),
+              )}
+            </CardGrid>
+
+            <Divider
+              sx={{ borderColor: "#e2e8f0", borderBottomWidth: 2, my: 6 }}
+            />
+          </>
+        )}
+
+        {/* Charts Section */}
+        {counts && countList?.length > 0 && (
+          <Row className="mt-6">
+            <Col xs={12} lg={6} className="mb-4">
               <StyledCard>
-                <CardContent>
-                  <ServerSideTable
-                    ref={tableInstanceRef}
-                    key={`table-${tableKey}-${serviceId}-${type}`}
-                    url={url}
-                    extraParams={extraParams}
-                    actionFunctions={actionFunctions}
-                    canSanction={canSanction}
-                    canHavePool={canHavePool}
-                    pendingApplications={
-                      type === "pending" &&
-                      !tableTitle.includes("Corrigendum") &&
-                      !tableTitle.includes("Correction")
-                    }
-                    serviceId={serviceId}
-                    onPushToPool={handlePushToPool}
-                    onExecuteAction={handleExecuteAction}
-                    actionOptions={getActionOptions}
-                    selectedAction={selectedAction}
-                    setSelectedAction={setSelectedAction}
-                    Title={tableTitle}
+                <CardContent sx={{ p: 4 }}>
+                  <Typography
+                    variant="h6"
                     sx={{
-                      "& .MuiTable-root": { background: "#ffffff" },
-                      "& .MuiTableCell-root": {
-                        color: "#2d3748",
-                        borderColor: "#e0e0e0",
-                      },
-                      "& .MuiButton-root": { color: "#1976d2" },
+                      mb: 3,
+                      fontWeight: 600,
+                      color: "#2d3748",
+                      fontFamily: "'Inter', sans-serif",
                     }}
-                  />
+                  >
+                    Application Status Distribution
+                  </Typography>
+                  <Box
+                    sx={{
+                      height: "400px",
+                      width: "100%",
+                      position: "relative",
+                    }}
+                  >
+                    {console.log("Rendering Pie Chart with Data:", pieData)}
+                    {pieData.datasets[0].data.some((value) => value > 0) ? (
+                      <div>
+                        {(() => {
+                          try {
+                            const rechartsPieData = pieData.labels.map(
+                              (label, index) => ({
+                                name: label,
+                                value: pieData.datasets[0].data[index],
+                              }),
+                            );
+                            const COLORS = pieData.datasets[0].backgroundColor;
+                            return (
+                              <PieChart width={600} height={400}>
+                                <Pie
+                                  data={rechartsPieData}
+                                  dataKey="value"
+                                  nameKey="name"
+                                  cx="50%"
+                                  cy="50%"
+                                  outerRadius={150}
+                                  fill="#8884d8"
+                                  label
+                                  {...pieChartOptions}
+                                >
+                                  {rechartsPieData.map((entry, index) => (
+                                    <Cell
+                                      key={`cell-${index}`}
+                                      fill={COLORS[index % COLORS.length]}
+                                    />
+                                  ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend />
+                              </PieChart>
+                            );
+                          } catch (error) {
+                            console.error(
+                              "Recharts Pie Rendering Error:",
+                              error,
+                            );
+                            return (
+                              <Typography color="error">
+                                Failed to render pie chart
+                              </Typography>
+                            );
+                          }
+                        })()}
+                      </div>
+                    ) : (
+                      <Typography>No data available for pie chart</Typography>
+                    )}
+                  </Box>
+                </CardContent>
+              </StyledCard>
+            </Col>
+            <Col xs={12} lg={6} className="mb-4">
+              <StyledCard>
+                <CardContent sx={{ p: 4 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      mb: 3,
+                      fontWeight: 600,
+                      color: "#2d3748",
+                      fontFamily: "'Inter', sans-serif",
+                    }}
+                  >
+                    Applications Count Overview
+                  </Typography>
+                  <Box
+                    sx={{
+                      height: "400px",
+                      width: "100%",
+                      position: "relative",
+                    }}
+                  >
+                    {barData.datasets[0].data.some((value) => value > 0) ? (
+                      <div>
+                        {(() => {
+                          try {
+                            const rechartsBarData = barData.labels.map(
+                              (label, index) => ({
+                                name: label,
+                                value: barData.datasets[0].data[index],
+                              }),
+                            );
+                            const COLORS = barData.datasets[0].backgroundColor;
+                            return (
+                              <BarChart
+                                width={600}
+                                height={400}
+                                data={rechartsBarData}
+                                {...barChartOptions}
+                              >
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Bar dataKey="value" fill="#8884d8">
+                                  {rechartsBarData.map((entry, index) => (
+                                    <Cell
+                                      key={`cell-${index}`}
+                                      fill={COLORS[index % COLORS.length]}
+                                    />
+                                  ))}
+                                </Bar>
+                              </BarChart>
+                            );
+                          } catch (error) {
+                            console.error(
+                              "Recharts Bar Rendering Error:",
+                              error,
+                            );
+                            return (
+                              <Typography color="error">
+                                Failed to render bar chart
+                              </Typography>
+                            );
+                          }
+                        })()}
+                      </div>
+                    ) : (
+                      <Typography>No data available for bar chart</Typography>
+                    )}
+                  </Box>
                 </CardContent>
               </StyledCard>
             </Col>
           </Row>
         )}
-      </Container>
 
+        {/* Table Section */}
+        {showTable && (
+          <Box ref={tableRef} sx={{ mt: 6 }}>
+            <StyledCard>
+              <CardContent sx={{ p: 4 }}>
+                <ServerSideTable
+                  ref={tableInstanceRef}
+                  key={`table-${tableKey}-${serviceId}-${type}`}
+                  url={url}
+                  extraParams={extraParams}
+                  actionFunctions={actionFunctions}
+                  canSanction={canSanction}
+                  canHavePool={canHavePool}
+                  pendingApplications={
+                    type === "pending" &&
+                    !tableTitle?.includes("Corrigendum") &&
+                    !tableTitle?.includes("Correction")
+                  }
+                  serviceId={serviceId}
+                  onPushToPool={handlePushToPool}
+                  onExecuteAction={handleExecuteAction}
+                  actionOptions={getActionOptions}
+                  selectedAction={selectedAction}
+                  setSelectedAction={setSelectedAction}
+                  Title={tableTitle}
+                  sx={{
+                    "& .MuiTable-root": { background: "#ffffff" },
+                    "& .MuiTableCell-root": {
+                      color: "#2d3748",
+                      borderColor: "#e0e0e0",
+                    },
+                    "& .MuiButton-root": { color: "#1976d2" },
+                  }}
+                />
+              </CardContent>
+            </StyledCard>
+          </Box>
+        )}
+      </SectionContainer>
+
+      {/* Dialogs */}
       <StyledDialog
         open={rejectConfirmOpen}
         onClose={() => {
@@ -2518,7 +2087,7 @@ export default function OfficerHome() {
           <Typography
             sx={{ mb: 2, color: "#2d3748", fontFamily: "'Inter', sans-serif" }}
           >
-            Are you sure you want to reject {pendingRejectRows.length} selected
+            Are you sure you want to reject {pendingRejectRows.length} selected{" "}
             {type === "corrigendum"
               ? "corrigendum"
               : type === "correction"

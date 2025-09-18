@@ -910,6 +910,84 @@ namespace SahayataNidhi.Controllers.Officer
             return corrigendumList;
         }
 
+        private static List<object> BuildAmendmentCounts(StatusCounts counts, dynamic authorities)
+        {
+            var amendmentList = new List<object>
+            {
+                new
+                {
+                    label = "Total Amendment",
+                    name = "corrigendum",
+                    count = counts.AmendmentCount,
+                    bgColor = "#6A1B9A",
+                    textColor = "#FFFFFF",
+                    tableTitle = "Total Amendment Applications",
+                },
+                new
+                {
+                    label = "Pending",
+                    name = "corrigendum",
+                    count = counts.AmendmentPendingCount,
+                    bgColor = "#FFC107",
+                    textColor = "#212121",
+                    tableTitle = "Pending Amendment Applications",
+                }
+            };
+
+            if ((bool)authorities.CanForwardToPlayer)
+            {
+                amendmentList.Add(new
+                {
+                    label = "Forwarded",
+                    name = "corrigendum",
+                    count = counts.AmendmentForwardedCount,
+                    bgColor = "#64B5F6",
+                    textColor = "#0D47A1",
+                    tableTitle = "Forwarded Amendment Applications",
+                    forwardedSanctionedCount = counts.CorrigendumForwardedCount > 0 ? counts.ForwardedSanctionedCorrigendumCount : (int?)null
+
+                });
+            }
+
+            if ((bool)authorities.CanReturnToPlayer)
+            {
+                amendmentList.Add(new
+                {
+                    label = "Returned",
+                    name = "corrigendum",
+                    count = counts.AmendmentReturnedCount,
+                    bgColor = "#E0E0E0",
+                    textColor = "#212121",
+                    tableTitle = "Returned Amendment Applications",
+                });
+            }
+
+            amendmentList.Add(new
+            {
+                label = "Rejected",
+                name = "corrigendum",
+                count = counts.AmendmentRejectedCount,
+                bgColor = "#FF7043",
+                textColor = "#B71C1C",
+                tableTitle = "Rejected Corrigendum Applications",
+            });
+
+            if ((bool)authorities.CanSanction)
+            {
+                amendmentList.Add(new
+                {
+                    label = "Issued",
+                    name = "corrigendum",
+                    count = counts.AmendmentSanctionedCount,
+                    bgColor = "#81C784",
+                    textColor = "#1B5E20",
+                    tableTitle = "Issued Corrigendum Applications",
+                });
+            }
+
+            return amendmentList;
+        }
+
         // Helper method to build correction counts
         private static List<object> BuildCorrectionCounts(StatusCounts counts, dynamic authorities)
         {

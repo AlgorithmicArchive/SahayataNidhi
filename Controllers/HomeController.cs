@@ -356,9 +356,9 @@ namespace SahayataNidhi.Controllers
                 var claims = new List<Claim>
                 {
                     new(ClaimTypes.NameIdentifier, user.UserId.ToString()), // UserId as NameIdentifier
-                    new(ClaimTypes.Name, form["username"].ToString()),                // Username
-                    new(ClaimTypes.Role, user.UserType!),                   // UserType as Role
-                    new("Profile", user.Profile!),                          // Custom claim for Profile
+                    new(ClaimTypes.Name, form["username"].ToString()),      // Username
+                    new(ClaimTypes.Role, user.UserType!),                  // UserType as Role
+                    new("Profile", user.Profile!),                         // Custom claim for Profile
                 };
 
                 // Include designation if applicable
@@ -407,7 +407,6 @@ namespace SahayataNidhi.Controllers
                                 }
                             }
                         }
-
                     }
                     catch
                     {
@@ -419,8 +418,7 @@ namespace SahayataNidhi.Controllers
                     }
                 }
 
-
-                // Generate JWT token
+                // Generate JWT token (no expiry)
                 var jwtSecretKey = _configuration["JWT:Secret"];
                 var key = Encoding.ASCII.GetBytes(jwtSecretKey!);
 
@@ -428,7 +426,6 @@ namespace SahayataNidhi.Controllers
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(claims),
-                    Expires = DateTime.UtcNow.AddMinutes(30), // Token expiry
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                     Issuer = _configuration["JWT:Issuer"],
                     Audience = _configuration["JWT:Audience"]
@@ -443,7 +440,7 @@ namespace SahayataNidhi.Controllers
             }
             else
             {
-                _auditService.InsertLog(HttpContext, "Login", "Invalid Username Or Passowrd.", user!.UserId, "Failure");
+                _auditService.InsertLog(HttpContext, "Login", "Invalid Username Or Password.", user!.UserId, "Failure");
                 return Json(new { status = false, response = "Invalid Username or Password." });
             }
         }
@@ -465,7 +462,6 @@ namespace SahayataNidhi.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(30),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _configuration["JWT:Issuer"],
                 Audience = _configuration["JWT:Audience"]
@@ -484,6 +480,7 @@ namespace SahayataNidhi.Controllers
                 designation = User.FindFirst("Designation")?.Value ?? ""
             });
         }
+
 
         [HttpGet]
         [Authorize] // Requires a valid JWT token

@@ -1,12 +1,11 @@
 using System.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SahayataNidhi.Models.Entities;
 using System.Security.Claims;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Security.Cryptography;
 
 namespace SahayataNidhi.Controllers.User
 {
@@ -57,11 +56,36 @@ namespace SahayataNidhi.Controllers.User
                 .SelectMany(prop => (JArray)prop.Value)
                 .OfType<JObject>();
 
+            // Dictionary to store file hashes and their corresponding file paths
+            var fileHashMap = new Dictionary<string, string>();
+
             // Process each file.
             foreach (var file in form.Files)
             {
                 _logger.LogInformation($"--------- Filename: {file.FileName} ------------------");
-                string filePath = await helper.GetFilePath(file)!;
+
+                // Calculate SHA256 hash of the file content
+                string fileHash;
+                using (var stream = file.OpenReadStream())
+                using (var sha256 = SHA256.Create())
+                {
+                    byte[] hashBytes = await sha256.ComputeHashAsync(stream);
+                    fileHash = Convert.ToBase64String(hashBytes);
+                }
+
+                // Check if the file hash already exists in the map
+                if (!fileHashMap.TryGetValue(fileHash, out string? filePath))
+                {
+                    // File is new, generate and store the file path
+                    filePath = await helper.GetFilePath(file);
+                    fileHashMap[fileHash] = filePath;
+                }
+                else
+                {
+                    _logger.LogInformation($"Reusing existing file path for hash: {fileHash}");
+                }
+
+                // Assign the file path to all matching fields
                 foreach (var field in allFields.Where(f => f["name"]?.ToString() == file.Name))
                 {
                     field["File"] = filePath;
@@ -128,7 +152,6 @@ namespace SahayataNidhi.Controllers.User
 
                 var createdAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
 
-
                 // Store the updated JSON (with file paths) in the database.
                 var newFormDetails = new CitizenApplication
                 {
@@ -173,6 +196,9 @@ namespace SahayataNidhi.Controllers.User
                             // Instead of calling SendApiRequestAsync directly, push to background
                             _taskQueue.QueueBackgroundWorkItem(async token =>
                             {
+                                using var scope = _serviceScopeFactory.CreateScope();
+                                var dbcontext = scope.ServiceProvider.GetRequiredService<SocialWelfareDepartmentContext>();
+
                                 try
                                 {
                                     var fieldMapObj = JObject.Parse(getServices.FieldMappings);
@@ -194,7 +220,6 @@ namespace SahayataNidhi.Controllers.User
                     _logger.LogError(ex, $"Failed while scheduling API request for Reference: {ReferenceNumber}");
                 }
 
-
                 string fullPath = await FetchAcknowledgementDetails(ReferenceNumber);
                 string? fullName = GetFormFieldValue(formDetailsObj, "ApplicantName");
                 string? ServiceName = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId)!.ServiceName;
@@ -204,13 +229,13 @@ namespace SahayataNidhi.Controllers.User
                 string template = emailtemplate["Submission"]!.ToString();
 
                 var placeholders = new Dictionary<string, string>
-                {
-                    { "ApplicantName", GetFormFieldValue(formDetailsObj, "ApplicantName") ?? "" },
-                    { "ServiceName", ServiceName!},
-                    { "ReferenceNumber", ReferenceNumber },
-                    { "OfficerRole", OfficerRole },
-                    { "OfficerArea", OfficerArea }
-                };
+        {
+            { "ApplicantName", GetFormFieldValue(formDetailsObj, "ApplicantName") ?? "" },
+            { "ServiceName", ServiceName!},
+            { "ReferenceNumber", ReferenceNumber },
+            { "OfficerRole", OfficerRole },
+            { "OfficerArea", OfficerArea }
+        };
 
                 foreach (var pair in placeholders)
                 {
@@ -266,7 +291,6 @@ namespace SahayataNidhi.Controllers.User
                     }
                 });
 
-
                 string field = GetFormFieldValue(formDetailsObj, "Tehsil") != null ? "Tehsil" : "District";
                 string? value = GetFormFieldValue(formDetailsObj, field);
 
@@ -275,10 +299,7 @@ namespace SahayataNidhi.Controllers.User
 
                 ServiceSpecific(serviceId, formdetailsToken, ReferenceNumber);
 
-
-
                 helper.InsertHistory(ReferenceNumber, "Application Submission", "Citizen", "Submitted", locationLevel, locationValue);
-
 
                 return Json(new { status = true, ReferenceNumber, type = "Submit" });
             }
@@ -287,8 +308,6 @@ namespace SahayataNidhi.Controllers.User
                 return Json(new { status = true, ReferenceNumber, type = "Save" });
             }
         }
-
-
         public int GetShiftedFromTo(string location)
         {
             try

@@ -4,23 +4,35 @@ import { UserContext } from "../UserContext";
 import axiosInstance from "../axiosConfig";
 
 const TokenTimer = () => {
-  const { tokenExpiry, setTokenExpiry } = useContext(UserContext);
+  const { setTokenExpiry } = useContext(UserContext);
   const [timeLeft, setTimeLeft] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const [isRefreshing, setIsRefreshing] = useState(false); // NEW: Prevent multiple refresh calls
+  const [sessionStart, setSessionStart] = useState(null);
 
   const inactivityThreshold = 5 * 60 * 1000; // 5 minutes
-  const sessionDuration = 30 * 60 * 1000; // 30 minutes (matches backend)
+  const sessionDuration = 30 * 60 * 1000; // 30 minutes
   const popupThreshold = 2 * 60 * 1000; // 2 minutes
-  const autoRefreshThreshold = 5 * 60 * 1000; // NEW: 5 minutes - auto-refresh if active and remaining <= this (higher than popup to give buffer)
+
+  // Initialize session start time when component mounts
+  useEffect(() => {
+    const now = Date.now();
+    setSessionStart(now);
+    setTokenExpiry(now + sessionDuration);
+  }, [setTokenExpiry]);
 
   // Handle user activity to reset inactivity timer
   const handleActivity = useCallback(() => {
     if (!isPopupOpen) {
       setLastActivity(Date.now());
+      // Reset session timer on activity
+      const now = Date.now();
+      setSessionStart(now);
+      setTokenExpiry(now + sessionDuration);
+      setTimeLeft(null);
+      setIsPopupOpen(false);
     }
-  }, [isPopupOpen]);
+  }, [isPopupOpen, setTokenExpiry]);
 
   // Attach activity listeners
   useEffect(() => {
@@ -35,17 +47,12 @@ const TokenTimer = () => {
 
   // Timer logic
   useEffect(() => {
-    if (!tokenExpiry) {
-      setTimeLeft(null);
-      setIsPopupOpen(false);
-      return;
-    }
+    if (!sessionStart) return;
 
     const updateTimer = () => {
       const now = Date.now();
-      const timeRemaining = tokenExpiry - now;
+      const timeRemaining = sessionStart + sessionDuration - now;
 
-      // CHANGED: Always check for expiration first, regardless of activity
       if (timeRemaining <= 0) {
         setTimeLeft("Expired");
         setIsPopupOpen(false);
@@ -69,22 +76,16 @@ const TokenTimer = () => {
           setIsPopupOpen(true);
         }
       } else {
-        // User is active: hide timer/popup, but auto-refresh if close to expiry
+        // User is active: hide timer/popup
         setTimeLeft(null);
         setIsPopupOpen(false);
-
-        // NEW: Auto-refresh logic for active users
-        if (timeRemaining <= autoRefreshThreshold && !isRefreshing) {
-          setIsRefreshing(true);
-          handleContinue().finally(() => setIsRefreshing(false));
-        }
       }
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [tokenExpiry, lastActivity, isPopupOpen, isRefreshing]); // ADDED isRefreshing to dependency array
+  }, [sessionStart, lastActivity, isPopupOpen]);
 
   // Continue session by refreshing the token
   const handleContinue = async () => {
@@ -93,19 +94,20 @@ const TokenTimer = () => {
 
       if (response.data.status) {
         const { token, userType, profile, username, designation } =
-          response.data; // UPDATED: Pull all fields from response (matches backend)
+          response.data;
         const now = Date.now();
         const newExpiry = now + sessionDuration;
 
         // Update token and other data in localStorage
         localStorage.setItem("authToken", token);
-        localStorage.setItem("userType", userType); // NEW: Store these to persist across refreshes
+        localStorage.setItem("userType", userType);
         localStorage.setItem("profile", profile);
         localStorage.setItem("username", username);
         localStorage.setItem("designation", designation);
 
         // Update context and reset timer
         setLastActivity(now);
+        setSessionStart(now);
         setTokenExpiry(newExpiry);
         setIsPopupOpen(false);
       } else {
@@ -113,7 +115,7 @@ const TokenTimer = () => {
       }
     } catch (error) {
       console.error("Token refresh failed:", error);
-      handleLogout(); // Log out if refresh fails (e.g., token expired)
+      handleLogout();
     }
   };
 
@@ -121,8 +123,8 @@ const TokenTimer = () => {
   const handleLogout = () => {
     setTimeLeft("Expired");
     setIsPopupOpen(false);
-    localStorage.clear(); // UPDATED: Clear all stored data for cleanliness
-    window.location.href = "/login"; // Redirect to login
+    localStorage.clear();
+    window.location.href = "/login";
   };
 
   if (!timeLeft) return null;

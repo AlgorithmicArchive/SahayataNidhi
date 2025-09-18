@@ -213,6 +213,7 @@ namespace SahayataNidhi.Controllers.Officer
             // Build count lists using a helper function
             var countList = BuildMainApplicationCounts(counts, officerAuthorities);
             var corrigendumList = BuildCorrigendumCounts(counts, officerAuthorities);
+            var amendmentList = BuildAmendmentCounts(counts, officerAuthorities);
             var correctionList = BuildCorrectionCounts(counts, officerAuthorities);
             var temporaryCountList = new List<dynamic>();
             var withheldCountList = new List<dynamic>();
@@ -303,6 +304,7 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 countList,
                 corrigendumList,
+                amendmentList,
                 correctionList,
                 temporaryCountList,
                 withheldCountList,
@@ -1672,199 +1674,358 @@ namespace SahayataNidhi.Controllers.Officer
         [HttpGet]
         public IActionResult GetApplicationForCorrigendum(string referenceNumber, string serviceId, string type, string? applicationId = null)
         {
-            var officer = GetOfficerDetails();
-            if (officer == null)
-            {
-                return Json(new { status = false, message = "Officer details not found." });
-            }
-
-            var ReferenceNumber = new SqlParameter("@ReferenceNumber", referenceNumber);
-            var Role = new SqlParameter("@Role", officer.Role);
-            var OfficerAccessLevel = new SqlParameter("@OfficerAccessLevel", officer.AccessLevel);
-            var OfficerAccessCode = new SqlParameter("@OfficerAccessCode", officer.AccessCode);
-            var ServiceId = new SqlParameter("@ServiceId", Convert.ToInt32(serviceId));
-            var Type = new SqlParameter("@Type", type);
-            var OfficerRole = new SqlParameter("@OfficerRole", officer.Role);
-
-            var Message = new SqlParameter
-            {
-                ParameterName = "@Message",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 255,
-                Direction = ParameterDirection.Output
-            };
-
-            // Check for pending Corrigendum/Correction
-            var Status = new SqlParameter("@Status", DBNull.Value);
-
-            var IsCorrigendumPending = dbcontext.Corrigenda
-                .FromSqlRaw("EXEC GetCorrigendumByLocationAccess @OfficerAccessLevel, @OfficerAccessCode, @ReferenceNumber, @Status, @CorrigendumId, @Type, @OfficerRole",
-                    OfficerAccessLevel, OfficerAccessCode, ReferenceNumber, Status, new SqlParameter("@CorrigendumId", DBNull.Value), Type, OfficerRole)
-                .ToList();
-
-            if (IsCorrigendumPending.Count != 0)
-            {
-                bool hasPending = false;
-                foreach (var application in IsCorrigendumPending)
-                {
-                    var workflowArray = JArray.Parse(application.WorkFlow);
-                    hasPending = workflowArray.Any(item => string.Equals((string)item["status"]!, "pending", StringComparison.OrdinalIgnoreCase));
-                }
-                if (hasPending)
-                    return Json(new { status = false, message = $"A {type} is already in progress for this Application Id." });
-            }
-
-            var result = dbcontext.CitizenApplications
-                .FromSqlRaw("EXEC GetApplicationForCorrigendum @ReferenceNumber, @Role, @OfficerAccessLevel, @OfficerAccessCode, @ServiceId, @Type, @Message OUTPUT",
-                    ReferenceNumber, Role, OfficerAccessLevel, OfficerAccessCode, ServiceId, Type, Message)
-                .ToList();
-
-            string messageText = Message.Value?.ToString() ?? "Unknown";
-
-            if (!result.Any())
-            {
-                return Json(new { status = false, message = messageText });
-            }
-
-            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == Convert.ToInt32(serviceId));
-            if (service == null)
-            {
-                return Json(new { status = false, message = "Service not found." });
-            }
-
-            var formElements = service.FormElement;
-            JObject documentFields;
             try
             {
-                documentFields = string.IsNullOrEmpty(service.DocumentFields)
-                    ? new JObject()
-                    : JObject.Parse(service.DocumentFields);
-            }
-            catch (JsonException ex)
-            {
-                return Json(new { status = false, message = $"Failed to parse document fields: {ex.Message}" });
-            }
-
-            var corrigendumFieldNames = documentFields[type] is JArray fields
-                ? fields.Select(f => f.ToString()).ToHashSet()
-                : new HashSet<string>();
-
-            var formDetailsJson = result[0].FormDetails;
-            if (string.IsNullOrEmpty(formDetailsJson))
-            {
-                return Json(new { status = false, message = "Form details are missing." });
-            }
-
-            JObject formDetails;
-            try
-            {
-                formDetails = JObject.Parse(formDetailsJson);
-            }
-            catch (JsonException ex)
-            {
-                return Json(new { status = false, message = $"Failed to parse form details: {ex.Message}" });
-            }
-
-
-            var workFlow = JArray.Parse(result[0].WorkFlow ?? "[]");
-            bool isCurrentOfficer = type == "Correction" && workFlow.Count > result[0].CurrentPlayer &&
-                                   workFlow[result[0].CurrentPlayer]["role"]?.ToString() == officer.Role;
-            bool isSanctioned = result[0].Status == "Sanctioned";
-
-            var nextOfficerDetails = workFlow.Count > 1 ? workFlow[1] : new JObject();
-            string? nextOfficerDesignation = (string)nextOfficerDetails["designation"]!;
-            string officerArea = GetOfficerArea(nextOfficerDesignation, formDetails);
-
-            if (applicationId != null)
-            {
-                var corrigendum = dbcontext.Corrigenda
-                    .FirstOrDefault(c => c.CorrigendumId == applicationId && c.Type == type);
-                if (corrigendum == null)
+                var officer = GetOfficerDetails();
+                if (officer == null)
                 {
-                    return Json(new { status = false, message = $"{type} not found." });
+                    return Json(new { status = false, message = "Officer details not found." });
                 }
 
-                var corrigendumFields = corrigendum.CorrigendumFields;
-                var history = JsonConvert.DeserializeObject<List<dynamic>>(corrigendum.History ?? "[]");
-                var columns = new List<dynamic>
-            {
-                new { accessorKey = "sno", header = "S.No." },
-                new { accessorKey = "officer", header = "Officer" },
-                new { accessorKey = "actionTaken", header = "Action Taken" },
-                new { accessorKey = "remarks", header = "Remarks" },
-                new { accessorKey = "actionTakenOn", header = "Action Taken On" },
-            };
-
-                var data = new List<dynamic>();
-                int index = 1;
-                foreach (var item in history!)
+                if (string.IsNullOrWhiteSpace(type) || !new[] { "Corrigendum", "Correction", "Amendment" }.Contains(type))
                 {
-                    string officerName = item["officer"]?.ToString() ?? "Unknown";
-                    string status = item["status"]?.ToString() ?? "Unknown";
-                    string historyRemarks = item["remarks"]?.ToString() ?? "";
-                    string actionTakenOn = item["actionTakenOn"]?.ToString() ?? "";
+                    return Json(new { status = false, message = "Invalid or missing type. Must be 'Corrigendum', 'Correction', or 'Amendment'." });
+                }
 
-                    data.Add(new
+                if (!int.TryParse(serviceId, out int serviceIdInt))
+                {
+                    return Json(new { status = false, message = "Invalid serviceId. It must be a numeric value." });
+                }
+
+                var ReferenceNumber = new SqlParameter("@ReferenceNumber", referenceNumber);
+                var Role = new SqlParameter("@Role", officer.Role);
+                var OfficerAccessLevel = new SqlParameter("@OfficerAccessLevel", officer.AccessLevel);
+                var OfficerAccessCode = new SqlParameter("@OfficerAccessCode", officer.AccessCode);
+                var ServiceId = new SqlParameter("@ServiceId", serviceIdInt);
+                var Type = new SqlParameter("@Type", type);
+                var OfficerRole = new SqlParameter("@OfficerRole", officer.Role);
+
+                var Message = new SqlParameter
+                {
+                    ParameterName = "@Message",
+                    SqlDbType = SqlDbType.NVarChar,
+                    Size = 255,
+                    Direction = ParameterDirection.Output
+                };
+
+                var Status = new SqlParameter("@Status", DBNull.Value);
+
+                var IsDocumentChangePending = dbcontext.Corrigenda
+                    .FromSqlRaw("EXEC GetCorrigendumByLocationAccess @OfficerAccessLevel, @OfficerAccessCode, @ReferenceNumber, @Status, @CorrigendumId, @Type, @OfficerRole",
+                        OfficerAccessLevel, OfficerAccessCode, ReferenceNumber, Status, new SqlParameter("@CorrigendumId", DBNull.Value), Type, OfficerRole)
+                    .ToList();
+
+                if (IsDocumentChangePending.Count != 0)
+                {
+                    bool hasPending = false;
+                    foreach (var application in IsDocumentChangePending)
                     {
-                        sno = index,
-                        officer = officerName,
-                        actionTaken = status,
-                        remarks = historyRemarks,
-                        actionTakenOn
-                    });
-                    index++;
+                        var workflowArray = JArray.Parse(application.WorkFlow ?? "[]");
+                        hasPending = workflowArray.Any(item => string.Equals((string)item["status"]!, "pending", StringComparison.OrdinalIgnoreCase));
+                    }
+                    if (hasPending)
+                        return Json(new { status = false, message = $"A {type} is already in progress for this Application Id." });
                 }
 
-                workFlow = JArray.Parse(corrigendum.WorkFlow ?? "[]");
-                nextOfficerDetails = workFlow.Count > corrigendum.CurrentPlayer + 1 ? workFlow[corrigendum.CurrentPlayer + 1] : new JObject();
-                nextOfficerDesignation = (string)nextOfficerDetails["designation"]!;
-                officerArea = GetOfficerArea(nextOfficerDesignation, formDetails);
+                var result = dbcontext.CitizenApplications
+                    .FromSqlRaw("EXEC GetApplicationForCorrigendum @ReferenceNumber, @Role, @OfficerAccessLevel, @OfficerAccessCode, @ServiceId, @Type, @Message OUTPUT",
+                        ReferenceNumber, Role, OfficerAccessLevel, OfficerAccessCode, ServiceId, Type, Message)
+                    .ToList();
 
-                JObject corrigendumFieldsJson = corrigendumFields is string
-                    ? JObject.Parse(corrigendumFields)
-                    : (JObject)corrigendumFields;
+                string messageText = Message.Value?.ToString() ?? "Unknown";
 
-                JArray officerFiles = new();
-                if (corrigendumFieldsJson["Files"] is JObject filesObject &&
-                    filesObject[officer.RoleShort!] is JArray roleFiles)
+                if (!result.Any())
                 {
-                    officerFiles = roleFiles;
+                    return Json(new { status = false, message = messageText });
                 }
 
+                var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceIdInt);
+                if (service == null)
+                {
+                    return Json(new { status = false, message = "Service not found." });
+                }
+
+                var formElements = JArray.Parse(service.FormElement ?? "[]");
+                List<object> allowedForDetails = new List<object>();
+                try
+                {
+                    JObject documentFields = string.IsNullOrEmpty(service.DocumentFields)
+                        ? new JObject()
+                        : JObject.Parse(service.DocumentFields);
+
+                    // Extract the array for the specific type (Corrigendum, Correction, or Amendment)
+                    JArray typeFields = documentFields[type] as JArray ?? new JArray();
+
+                    foreach (var field in typeFields)
+                    {
+                        if (field.Type == JTokenType.String)
+                        {
+                            // ✅ Direct field
+                            var fieldName = field.ToString();
+                            var fieldConfig = formElements
+                                .SelectMany(s => s["fields"]?.Values<JObject>() ?? Enumerable.Empty<JObject>())
+                                .FirstOrDefault(f => f?["name"]?.ToString() == fieldName);
+
+                            var fieldDetails = new
+                            {
+                                label = fieldConfig?["label"]?.ToString() ?? fieldName,
+                                name = fieldName,
+                                type = fieldConfig?["type"]?.ToString() ?? "text",
+                                isGroup = false,
+                                options = fieldConfig?["options"]?.ToObject<List<object>>() ?? new List<object>(),
+                                oldValue = fieldConfig?["value"]?.ToString() ?? ""
+                            };
+                            allowedForDetails.Add(fieldDetails);
+                        }
+                        else if (field is JObject group)
+                        {
+                            // ✅ Handle grouped fields (Amendment case)
+                            var groupLabel = group["label"]?.ToString() ?? "Group";
+                            var groupFieldsToken = group["fields"];
+
+                            var groupFields = new List<object>();
+
+                            if (groupFieldsToken is JArray fieldsArray)
+                            {
+                                foreach (var f in fieldsArray)
+                                {
+                                    if (f.Type == JTokenType.String)
+                                    {
+                                        var fieldName = f.ToString();
+                                        var fieldConfig = formElements
+                                            .SelectMany(s => s["fields"]?.Values<JObject>() ?? Enumerable.Empty<JObject>())
+                                            .FirstOrDefault(fc => fc?["name"]?.ToString() == fieldName);
+
+                                        groupFields.Add(new
+                                        {
+                                            label = fieldConfig?["label"]?.ToString() ?? fieldName,
+                                            name = fieldName,
+                                            type = fieldConfig?["type"]?.ToString() ?? "text",
+                                            oldValue = fieldConfig?["value"]?.ToString() ?? "",
+                                            options = fieldConfig?["options"]?.ToObject<List<object>>() ?? new List<object>()
+                                        });
+                                    }
+                                    else if (f is JObject fieldObj)
+                                    {
+                                        var fieldName = fieldObj?["name"]?.ToString();
+                                        var fieldConfig = formElements
+                                            .SelectMany(s => s["fields"]?.Values<JObject>() ?? Enumerable.Empty<JObject>())
+                                            .FirstOrDefault(fc => fc?["name"]?.ToString() == fieldName);
+
+                                        groupFields.Add(new
+                                        {
+                                            label = fieldObj?["label"]?.ToString() ?? fieldName,
+                                            name = fieldName,
+                                            type = fieldConfig?["type"]?.ToString() ?? "text",
+                                            oldValue = fieldConfig?["value"]?.ToString() ?? "",
+                                            options = fieldConfig?["options"]?.ToObject<List<object>>() ?? new List<object>()
+                                        });
+                                    }
+                                }
+                            }
+
+                            allowedForDetails.Add(new
+                            {
+                                label = groupLabel,
+                                fields = groupFields,
+                                isGroup = true
+                            });
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    return Json(new { status = false, message = $"Failed to parse document fields: {ex.Message}" });
+                }
+
+                var formDetailsJson = result[0].FormDetails;
+                if (string.IsNullOrEmpty(formDetailsJson))
+                {
+                    return Json(new { status = false, message = "Form details are missing." });
+                }
+
+                JToken formDetailsToken;
+                try
+                {
+                    formDetailsToken = JToken.Parse(formDetailsJson);
+                }
+                catch (JsonException ex)
+                {
+                    return Json(new { status = false, message = $"Failed to parse form details: {ex.Message}" });
+                }
+
+                bool isSanctioned = result[0].Status == "Sanctioned";
+                formDetailsToken = ReorderFormDetails(formDetailsToken, referenceNumber, isSanctioned);
+                var formDetailsWithCodes = formDetailsToken.DeepClone();
+                ReplaceCodeFieldsWithNames(formDetailsToken);
+                FormatDateFields(formDetailsToken);
+
+                var workFlow = JArray.Parse(result[0].WorkFlow ?? "[]");
+                bool isCurrentOfficer = type == "Correction" && workFlow.Count > result[0].CurrentPlayer &&
+                                       workFlow[result[0].CurrentPlayer]["role"]?.ToString() == officer.Role;
+
+                var nextOfficerDetails = workFlow.Count > 1 ? workFlow[1] : new JObject();
+                string? nextOfficerDesignation = (string)nextOfficerDetails["designation"]!;
+                string officerArea = GetOfficerArea(nextOfficerDesignation, formDetailsWithCodes);
+
+                if (applicationId != null)
+                {
+                    var documentChange = dbcontext.Corrigenda
+                        .FirstOrDefault(c => c.CorrigendumId == applicationId && c.Type == type);
+                    if (documentChange == null)
+                    {
+                        return Json(new { status = false, message = $"{type} not found." });
+                    }
+
+                    var corrigendumFields = documentChange.CorrigendumFields;
+                    JObject corrigendumFieldsJson;
+                    try
+                    {
+                        if (corrigendumFields == null || string.IsNullOrEmpty(corrigendumFields))
+                        {
+                            corrigendumFieldsJson = new JObject();
+                        }
+                        else
+                        {
+                            try
+                            {
+                                corrigendumFieldsJson = JObject.Parse(corrigendumFields);
+                            }
+                            catch (JsonException ex)
+                            {
+                                Console.WriteLine($"Failed to parse corrigendumFields: {corrigendumFields}, Error: {ex.Message}");
+                                return Json(new { status = false, message = $"Failed to parse {type.ToLower()} fields: {ex.Message}" });
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Unexpected error processing corrigendumFields: {corrigendumFields}, Type: {corrigendumFields?.GetType().Name}, Error: {ex.Message}");
+                        return Json(new { status = false, message = $"Invalid {type.ToLower()} fields format: Unexpected error." });
+                    }
+
+                    var history = JsonConvert.DeserializeObject<List<dynamic>>(documentChange.History ?? "[]") ?? new List<dynamic>();
+                    var columns = new List<dynamic>
+                    {
+                        new { accessorKey = "sno", header = "S.No." },
+                        new { accessorKey = "officer", header = "Officer" },
+                        new { accessorKey = "actionTaken", header = "Action Taken" },
+                        new { accessorKey = "remarks", header = "Remarks" },
+                        new { accessorKey = "actionTakenOn", header = "Action Taken On" },
+                    };
+
+                    var data = new List<dynamic>();
+                    int index = 1;
+                    foreach (var item in history)
+                    {
+                        string officerName = item["officer"]?.ToString() ?? "Unknown";
+                        string status = item["status"]?.ToString() ?? "Unknown";
+                        string historyRemarks = item["remarks"]?.ToString() ?? "";
+                        string actionTakenOn = item["actionTakenOn"]?.ToString() ?? "";
+
+                        data.Add(new
+                        {
+                            sno = index,
+                            officer = officerName,
+                            actionTaken = status,
+                            remarks = historyRemarks,
+                            actionTakenOn
+                        });
+                        index++;
+                    }
+
+                    workFlow = JArray.Parse(documentChange.WorkFlow ?? "[]");
+                    nextOfficerDetails = workFlow.Count > documentChange.CurrentPlayer + 1 ? workFlow[documentChange.CurrentPlayer + 1] : new JObject();
+                    nextOfficerDesignation = (string)nextOfficerDetails["designation"]!;
+                    officerArea = GetOfficerArea(nextOfficerDesignation, formDetailsWithCodes);
+
+                    JArray officerFiles = new JArray();
+                    try
+                    {
+                        var filesToken = corrigendumFieldsJson["Files"];
+                        if (filesToken != null)
+                        {
+                            if (filesToken is JObject filesObject)
+                            {
+                                var roleFiles = filesObject[officer.RoleShort!] as JArray;
+                                if (roleFiles != null)
+                                {
+                                    officerFiles = roleFiles;
+                                }
+                            }
+                            else if (filesToken is JArray filesArray)
+                            {
+                                officerFiles = filesArray;
+                            }
+                            else if (filesToken is JValue jValue && jValue.Type == JTokenType.String)
+                            {
+                                officerFiles = JArray.Parse(jValue.ToString());
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Unexpected Files format in corrigendumFields: {filesToken?.ToString()}");
+                            }
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        Console.WriteLine($"Failed to parse Files in corrigendumFields: {ex.Message}");
+                    }
+
+                    return Json(new
+                    {
+                        status = true,
+                        corrigendumFields = corrigendumFieldsJson.ToString(),
+                        application = result[0],
+                        formDetails = formDetailsToken,
+                        allowedForDetails,
+                        formElements,
+                        nextOfficer = nextOfficerDesignation + " " + officerArea,
+                        columns,
+                        data,
+                        files = officerFiles,
+                        isCurrentOfficer,
+                        isSanctioned,
+                        corrigendumType = documentChange.Type,
+                        userRole = officer.Role
+                    });
+                }
                 return Json(new
                 {
                     status = true,
-                    corrigendumFields,
                     application = result[0],
-                    formDetails,
-                    allowedForDetails = corrigendumFieldNames,
+                    formDetails = formDetailsToken,
+                    allowedForDetails,
                     formElements,
                     nextOfficer = nextOfficerDesignation + " " + officerArea,
-                    columns,
-                    data,
-                    files = officerFiles,
                     isCurrentOfficer,
                     isSanctioned,
-                    corrigendumType = corrigendum.Type,
+                    corrigendumType = type,
                     userRole = officer.Role
                 });
             }
-
-            return Json(new
+            catch (Exception ex)
             {
-                status = true,
-                application = result[0],
-                formDetails,
-                allowedForDetails = corrigendumFieldNames,
-                formElements,
-                nextOfficer = nextOfficerDesignation + " " + officerArea,
-                isCurrentOfficer,
-                isSanctioned,
-                corrigendumType = type,
-                userRole = officer.Role
-            });
+                Console.WriteLine($"Error in GetApplicationForCorrigendum: {ex.Message}, StackTrace: {ex.StackTrace}");
+                return StatusCode(500, new
+                {
+                    status = false,
+                    message = $"An error occurred: {ex.Message}"
+                });
+            }
         }
 
+        public IActionResult GetIfSameUdidNumber(string referenceNumber, string udidNumber)
+        {
+            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            var formDetails = JToken.Parse(application!.FormDetails!);
+            var UdidNumber = FindFieldRecursively(formDetails, "UdidCardNumber");
+            if (udidNumber == (string)UdidNumber!["value"]!)
+            {
+                return Json(new { status = true });
+            }
+            return Json(new { status = false, message = "Udid Number doesn't match the existing one in the record." });
+        }
         [HttpGet]
         public IActionResult GetCorrigendumApplications(string type, string applicationType, string ServiceId, int pageIndex = 0, int pageSize = 10)
         {
@@ -1971,7 +2132,7 @@ namespace SahayataNidhi.Controllers.Officer
                             new
                             {
                                 type = application.Status == "sanctioned" ? "View" : "DownloadCorrigendum",
-                                tooltip = "View Corrigendum",
+                                tooltip = $"View",
                                 corrigendumId = application.CorrigendumId,
                                 color = "#F0C38E",
                                 actionFunction,
@@ -2134,7 +2295,7 @@ namespace SahayataNidhi.Controllers.Officer
 
             if (sanctionOfficer != null && sanctionOfficer!["designation"]?.ToString() == currentOfficer["designation"]?.ToString())
             {
-                actions.Add(new { label = "Issue Corrigendum", value = "sanction" });
+                actions.Add(new { label = $"Issue {type}", value = "sanction" });
             }
             else if (Officer.Count > corrigendumApplication.CurrentPlayer + 1)
             {
@@ -2297,7 +2458,7 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCorrigendumSanctionLetter(string referenceNumber, string corrigendumId)
+        public async Task<IActionResult> GetCorrigendumSanctionLetter(string referenceNumber, string corrigendumId, string type)
         {
             try
             {
@@ -2357,10 +2518,11 @@ namespace SahayataNidhi.Controllers.Officer
                     officer,
                     service.ServiceName!,
                     corrigendumId,
-                    sanctionDate!
+                    sanctionDate!,
+                    type
                 );
 
-                var filePath = corrigendumId.Replace("/", "_") + "_CorrigendumSanctionLetter.pdf";
+                var filePath = corrigendumId.Replace("/", "_") + $"_{type}SanctionLetter.pdf";
                 return Json(new { status = true, path = filePath });
             }
             catch (Exception ex)

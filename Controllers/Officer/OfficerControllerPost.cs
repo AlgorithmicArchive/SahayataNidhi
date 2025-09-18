@@ -106,8 +106,7 @@ namespace SahayataNidhi.Controllers.Officer
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> SubmitCorrigendum([FromForm] IFormCollection form)
+        public async Task<IActionResult> SubmitDocumentChange(IFormCollection form)
         {
             try
             {
@@ -118,13 +117,16 @@ namespace SahayataNidhi.Controllers.Officer
                 }
 
                 string type = form["type"].ToString();
-                if (string.IsNullOrWhiteSpace(type) || (type != "Corrigendum" && type != "Correction"))
+                if (string.IsNullOrWhiteSpace(type) || !new[] { "Corrigendum", "Correction", "Amendment" }.Contains(type))
                 {
-                    return BadRequest("Invalid or missing type. Must be 'Corrigendum' or 'Correction'.");
+                    return BadRequest("Invalid or missing type. Must be 'Corrigendum', 'Correction', or 'Amendment'.");
                 }
 
+                // Initialize lists for files
+                List<string> Files = new List<string>();
+                List<string> enclosureFiles = new List<string>(); // New list for enclosure field files
 
-                List<string> Files = [];
+                // Process verification documents from form.Files
                 if (form.Files != null && form.Files.Count > 0)
                 {
                     foreach (var formFile in form.Files)
@@ -137,7 +139,8 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                 }
 
-                List<string> serverFiles = [];
+                // Process server files
+                List<string> serverFiles = new List<string>();
                 foreach (var key in form.Keys)
                 {
                     if (key.StartsWith("serverFiles[") && key.EndsWith("]"))
@@ -165,7 +168,7 @@ namespace SahayataNidhi.Controllers.Officer
                 string corrigendumFieldsJson = form["corrigendumFields"].ToString();
                 if (string.IsNullOrWhiteSpace(corrigendumFieldsJson))
                 {
-                    return BadRequest("Corrigendum fields are required.");
+                    return BadRequest($"{type} fields are required.");
                 }
 
                 string? applicationId = form.ContainsKey("applicationId") && !string.IsNullOrWhiteSpace(form["applicationId"]) ? form["applicationId"].ToString() : null;
@@ -177,7 +180,7 @@ namespace SahayataNidhi.Controllers.Officer
                 }
                 catch (JsonException)
                 {
-                    return BadRequest("Invalid corrigendum fields JSON format.");
+                    return BadRequest($"Invalid {type.ToLower()} fields JSON format.");
                 }
 
                 var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
@@ -233,6 +236,34 @@ namespace SahayataNidhi.Controllers.Officer
                     return Json(new { status = false, message = "No workflow players defined for this service." });
                 }
 
+                // Process enclosure fields in corrigendumFields
+                foreach (var prop in newCorrigendumFields.Properties())
+                {
+                    if (prop.Name != "Files")
+                    {
+                        var field = prop.Value as JObject;
+                        if (field != null && field["type"]?.ToString() == "enclosure")
+                        {
+                            string fileName = field["new_value"]?.ToString()!;
+                            if (!string.IsNullOrWhiteSpace(fileName))
+                            {
+                                // Find the corresponding file in form.Files
+                                var matchingFile = form.Files!.FirstOrDefault(f => Path.GetFileName(f.FileName) == fileName);
+                                if (matchingFile != null && matchingFile.Length > 0)
+                                {
+                                    string filePath = await helper.GetFilePath(matchingFile);
+                                    enclosureFiles.Add(filePath);
+                                    field["new_value"] = Path.GetFileName(filePath); // Ensure new_value is just the filename
+                                }
+                                else if (!serverFiles.Contains(fileName))
+                                {
+                                    return BadRequest($"File '{fileName}' for field '{prop.Name}' not found in uploaded files or server files.");
+                                }
+                            }
+                        }
+                    }
+                }
+
                 string? CorrigendumNumber = "";
 
                 if (applicationId != null)
@@ -258,7 +289,7 @@ namespace SahayataNidhi.Controllers.Officer
                         corrigendumFields["Files"] = corrigendumFiles;
                     }
 
-                    var combinedFiles = Files.Select(Path.GetFileName).Concat(serverFiles).Distinct().ToList();
+                    var combinedFiles = Files.Select(Path.GetFileName).Concat(enclosureFiles.Select(Path.GetFileName)).Concat(serverFiles).Distinct().ToList();
                     corrigendumFiles[officer.RoleShort!] = new JArray(combinedFiles);
 
                     corrigendum.CorrigendumFields = corrigendumFields.ToString(Formatting.None);
@@ -336,11 +367,19 @@ namespace SahayataNidhi.Controllers.Officer
                     var random = new Random();
                     var rnd = random.Next(100, 1000); // 100..999
 
+                    string typeCode = type switch
+                    {
+                        "Corrigendum" => "01",
+                        "Correction" => "02",
+                        "Amendment" => "03",
+                        _ => throw new ArgumentException("Invalid type")
+                    };
+
                     string corrigendumNumber = string.Format(
                         "01{0:D2}{1:D2}{2}{3}{4:D3}{5:D2}",
                         service.ServiceId,
                         districtDetails.DistrictId,
-                        type == "Corrigendum" ? "01" : "02",
+                        typeCode,
                         finYear.Split('-')[1],
                         rnd,
                         count
@@ -384,11 +423,11 @@ namespace SahayataNidhi.Controllers.Officer
                         actionTakenOn = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
                     };
 
-                    List<dynamic> History = [history];
+                    List<dynamic> History = new List<dynamic> { history };
                     var corrigendumFields = JObject.Parse(corrigendumFieldsJson);
                     corrigendumFields["Files"] = new JObject
                     {
-                        [officer.RoleShort!] = new JArray(Files.Select(Path.GetFileName).Concat(serverFiles).Distinct())
+                        [officer.RoleShort!] = new JArray(Files.Select(Path.GetFileName).Concat(enclosureFiles.Select(Path.GetFileName)).Concat(serverFiles).Distinct())
                     };
 
                     var corrigendum = new Corrigendum
@@ -437,9 +476,9 @@ namespace SahayataNidhi.Controllers.Officer
                 }
 
                 string type = form["type"].ToString();
-                if (string.IsNullOrWhiteSpace(type) || (type != "Corrigendum" && type != "Correction"))
+                if (string.IsNullOrWhiteSpace(type) || !new[] { "Corrigendum", "Correction", "Amendment" }.Contains(type))
                 {
-                    return BadRequest("Invalid or missing type. Must be 'Corrigendum' or 'Correction'.");
+                    return BadRequest("Invalid or missing type. Must be 'Corrigendum', 'Correction', or 'Amendment'.");
                 }
 
                 var referenceNumber = form["referenceNumber"].ToString();
@@ -447,7 +486,7 @@ namespace SahayataNidhi.Controllers.Officer
                 var remarks = form["remarks"].ToString();
                 var corrigendumId = form["corrigendumId"].ToString();
 
-                List<string> Files = [];
+                List<string> Files = new List<string>();
                 if (form.Files != null && form.Files.Count > 0)
                 {
                     foreach (var formFile in form.Files)
@@ -574,7 +613,6 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                 }
 
-
                 var roleKey = officer.RoleShort!;
                 var newFiles = new JArray(Files.Select(Path.GetFileName));
                 if (filesObj[roleKey] is JArray existingFiles)
@@ -602,7 +640,6 @@ namespace SahayataNidhi.Controllers.Officer
                 return StatusCode(500, new { status = false, response = ex.Message });
             }
         }
-
         [HttpPost]
         public async Task<IActionResult> UpdateCorrigendumPdf([FromForm] IFormCollection form)
         {
@@ -616,9 +653,9 @@ namespace SahayataNidhi.Controllers.Officer
                 }
 
                 string type = form["type"].ToString();
-                if (type != "Corrigendum" && type != "Correction")
+                if (type != "Corrigendum" && type != "Correction" && type != "Amendment")
                 {
-                    return BadRequest("Invalid type. Must be 'Corrigendum' or 'Correction'.");
+                    return BadRequest("Invalid type. Must be 'Corrigendum' or 'Correction' or 'Amendment'.");
                 }
 
                 var officer = GetOfficerDetails();

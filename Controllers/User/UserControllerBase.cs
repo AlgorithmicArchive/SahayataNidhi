@@ -21,7 +21,8 @@ namespace SahayataNidhi.Controllers.User
     PdfService pdfService,
     IWebHostEnvironment webHostEnvironment,
     IBackgroundTaskQueue taskQueue,         // ✅ Added
-    IHttpClientFactory httpClientFactory    // ✅ Added
+    IHttpClientFactory httpClientFactory,    // ✅ Added,
+    IServiceScopeFactory serviceScopeFactory
 ) : Controller
     {
         protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
@@ -34,6 +35,7 @@ namespace SahayataNidhi.Controllers.User
 
         private readonly IBackgroundTaskQueue _taskQueue = taskQueue;   // ✅ for background jobs
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory; // ✅ for API requests
+        private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
 
         public override void OnActionExecuted(ActionExecutedContext context)
         {

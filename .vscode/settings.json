@@ -1,4 +1,4 @@
 {
-    "CodeGPT.apiKey": "Anthropic",
+    "CodeGPT.apiKey": "Huggingface",
     "prettier.trailingComma": "all"
 }

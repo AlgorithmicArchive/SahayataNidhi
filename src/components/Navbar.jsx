@@ -292,7 +292,7 @@ const MyNavbar = () => {
                       )}
                       onClick={() => setExpanded(false)}
                     >
-                      Corrections/Corrigendum
+                      Alteration
                     </NavDropdown.Item>
                   )}
                   {officerAuthorities.canWithhold && (
@@ -533,7 +533,10 @@ const MyNavbar = () => {
                 <NavDropdown
                   title={
                     <img
-                      src={`/Base/DisplayFile?fileName=${profile}` || "/assets/images/profile.jpg"}
+                      src={
+                        `/Base/DisplayFile?fileName=${profile}` ||
+                        "/assets/images/profile.jpg"
+                      }
                       alt="Profile"
                       className="rounded-circle"
                       style={{ width: "30px" }}

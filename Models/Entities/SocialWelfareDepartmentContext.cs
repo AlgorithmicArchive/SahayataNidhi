@@ -55,6 +55,8 @@ public partial class SocialWelfareDepartmentContext : DbContext
 
     public virtual DbSet<Pool> Pools { get; set; }
 
+    public virtual DbSet<ScheduledJob> ScheduledJobs { get; set; }
+
     public virtual DbSet<Service> Services { get; set; }
 
     public virtual DbSet<Tehsil> Tehsils { get; set; }
@@ -546,6 +548,16 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Pool_Services");
+        });
+
+        modelBuilder.Entity<ScheduledJob>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Schedule__3214EC07F114B2BF");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.ActionType).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.CronExpression).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Service>(entity =>

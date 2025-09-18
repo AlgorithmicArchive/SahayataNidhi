@@ -198,42 +198,113 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetFormElements(string serviceId)
+        public IActionResult GetFormElements([FromQuery] string serviceId)
         {
-            // Fetch the service JSON string
-            var service = dbcontext.Services
-                .FirstOrDefault(s => s.ServiceId == Convert.ToInt32(serviceId));
+            // Validate serviceId
+            if (string.IsNullOrWhiteSpace(serviceId) || !int.TryParse(serviceId, out int parsedServiceId))
+            {
+                return BadRequest(new { status = false, message = "Invalid service ID." });
+            }
 
+            // Fetch the service
+            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == parsedServiceId);
             if (service == null || string.IsNullOrWhiteSpace(service.FormElement))
             {
-                return BadRequest(new { error = "Invalid serviceId or no form elements found." });
+                return BadRequest(new { status = false, message = "Service not found or no form elements found." });
             }
 
             // Parse the JSON into a JToken
             JToken root = JToken.Parse(service.FormElement);
 
-            // Extract all "name" values anywhere in the structure
-            List<string> allNames = root
-                .SelectTokens("$..name")   // recursive descent for every 'name' property
-                .Select(token => (string)token!)
-                .Where(name => !string.IsNullOrWhiteSpace(name))
-                .ToList();
+            // Extract sections and fields
+            var sections = new List<object>();
+            foreach (var sectionToken in root)
+            {
+                var sectionName = (string)sectionToken["section"]!;
+                var sectionFields = new List<object>();
 
+                // Add top-level fields
+                var fields = sectionToken["fields"];
+                if (fields != null)
+                {
+                    foreach (var field in fields)
+                    {
+                        var fieldName = (string)field["name"]!;
+                        var fieldLabel = (string)field["label"]!;
+                        if (!string.IsNullOrWhiteSpace(fieldName) && !string.IsNullOrWhiteSpace(fieldLabel))
+                        {
+                            sectionFields.Add(new { name = fieldName, label = fieldLabel });
+                        }
+
+                        // Handle nested additionalFields recursively
+                        var additionalFields = field["additionalFields"];
+                        if (additionalFields != null && additionalFields.HasValues)
+                        {
+                            foreach (var additionalFieldGroup in additionalFields)
+                            {
+                                foreach (var additionalFieldArray in additionalFieldGroup)
+                                {
+                                    foreach (var additionalField in additionalFieldArray)
+                                    {
+                                        var nestedName = (string)additionalField["name"]!;
+                                        var nestedLabel = (string)additionalField["label"]!;
+                                        if (!string.IsNullOrWhiteSpace(nestedName) && !string.IsNullOrWhiteSpace(nestedLabel))
+                                        {
+                                            sectionFields.Add(new { name = nestedName, label = nestedLabel });
+                                        }
+
+                                        // Handle further nested additionalFields
+                                        var nestedAdditionalFields = additionalField["additionalFields"];
+                                        if (nestedAdditionalFields != null && nestedAdditionalFields.HasValues)
+                                        {
+                                            foreach (var nestedGroup in nestedAdditionalFields)
+                                            {
+                                                foreach (var nestedArray in nestedGroup)
+                                                {
+                                                    foreach (var nestedField in nestedArray)
+                                                    {
+                                                        var deepNestedName = (string)nestedField["name"]!;
+                                                        var deepNestedLabel = (string)nestedField["label"]!;
+                                                        if (!string.IsNullOrWhiteSpace(deepNestedName) && !string.IsNullOrWhiteSpace(deepNestedLabel))
+                                                        {
+                                                            sectionFields.Add(new { name = deepNestedName, label = deepNestedLabel });
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                sections.Add(new
+                {
+                    sectionName,
+                    fields = sectionFields
+                });
+            }
+
+            // Get column names from DbContext
             var entityType = dbcontext.Model.FindEntityType(typeof(CitizenApplication));
-
             if (entityType == null)
-                return BadRequest(new { error = "Entity not found in DbContext." });
+            {
+                return BadRequest(new { status = false, message = "Entity not found in DbContext." });
+            }
 
-            // Get all mapped column names
             var columnNames = entityType.GetProperties()
                 .Select(p => p.GetColumnName())
                 .ToList();
 
-
-            // Return as JSON
-            return Json(new { names = allNames, columnNames });
+            return Json(new
+            {
+                status = true,
+                sections,
+                columnNames
+            });
         }
-
         [HttpGet]
         public IActionResult GetFormElementsForEmail(string serviceId)
         {
@@ -328,23 +399,42 @@ namespace SahayataNidhi.Controllers
             // Check if DocumentFields exist
             if (string.IsNullOrEmpty(service.DocumentFields))
             {
-                return Json(new { status = true, documentFields = new { Correction = new List<string>(), Corrigendum = new List<string>() } });
+                return Json(new
+                {
+                    status = true,
+                    documentFields = new
+                    {
+                        Correction = new List<object>(),
+                        Corrigendum = new List<object>(),
+                        Amendment = new List<object>()
+                    }
+                });
             }
 
             // Deserialize DocumentFields
             try
             {
-                var documentFields = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(service.DocumentFields);
+                var documentFields = JsonConvert.DeserializeObject<Dictionary<string, List<object>>>(service.DocumentFields);
                 if (documentFields == null)
                 {
-                    return Json(new { status = true, documentFields = new { Correction = new List<string>(), Corrigendum = new List<string>() } });
+                    return Json(new
+                    {
+                        status = true,
+                        documentFields = new
+                        {
+                            Correction = new List<object>(),
+                            Corrigendum = new List<object>(),
+                            Amendment = new List<object>()
+                        }
+                    });
                 }
 
-                // Ensure Correction and Corrigendum keys exist
+                // Ensure Correction, Corrigendum, and Amendment keys exist
                 var responseFields = new
                 {
-                    Correction = documentFields.ContainsKey("Correction") ? documentFields["Correction"] : new List<string>(),
-                    Corrigendum = documentFields.ContainsKey("Corrigendum") ? documentFields["Corrigendum"] : new List<string>()
+                    Correction = documentFields.ContainsKey("Correction") ? documentFields["Correction"] : new List<object>(),
+                    Corrigendum = documentFields.ContainsKey("Corrigendum") ? documentFields["Corrigendum"] : new List<object>(),
+                    Amendment = documentFields.ContainsKey("Amendment") ? documentFields["Amendment"] : new List<object>()
                 };
 
                 return Json(new { status = true, documentFields = responseFields });
@@ -358,6 +448,7 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = $"Error retrieving document fields: {ex.Message}" });
             }
         }
+
 
         [HttpGet]
         public IActionResult GetEmailTemplate([FromQuery] int serviceId, [FromQuery] string type)
