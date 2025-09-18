@@ -2,37 +2,37 @@ import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Typography, Box, Modal, Button, Alert } from "@mui/material";
 import { UserContext } from "../UserContext";
 import axiosInstance from "../axiosConfig";
+import { debounce } from "lodash";
 
 const TokenTimer = () => {
   const { setTokenExpiry } = useContext(UserContext);
   const [timeLeft, setTimeLeft] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const [sessionStart, setSessionStart] = useState(null);
+  const [sessionStart, setSessionStart] = useState(Date.now());
 
   const inactivityThreshold = 5 * 60 * 1000; // 5 minutes
   const sessionDuration = 30 * 60 * 1000; // 30 minutes
   const popupThreshold = 2 * 60 * 1000; // 2 minutes
+  const tokenRefreshThreshold = 5 * 60 * 1000; // Refresh token if within 5 minutes of expiration
 
-  // Initialize session start time when component mounts
-  useEffect(() => {
-    const now = Date.now();
-    setSessionStart(now);
-    setTokenExpiry(now + sessionDuration);
-  }, [setTokenExpiry]);
-
-  // Handle user activity to reset inactivity timer
-  const handleActivity = useCallback(() => {
-    if (!isPopupOpen) {
-      setLastActivity(Date.now());
-      // Reset session timer on activity
+  // Handle user activity to reset session (without immediate token refresh)
+  const handleActivity = useCallback(
+    debounce(() => {
       const now = Date.now();
-      setSessionStart(now);
-      setTokenExpiry(now + sessionDuration);
-      setTimeLeft(null);
-      setIsPopupOpen(false);
-    }
-  }, [isPopupOpen, setTokenExpiry]);
+      const timeRemaining = sessionStart + sessionDuration - now;
+
+      // Only reset session if not in popup state or if session is still valid
+      if (!isPopupOpen && timeRemaining > 0) {
+        setLastActivity(now);
+        setSessionStart(now); // Reset session to 30 minutes
+        setTokenExpiry(now + sessionDuration);
+        setTimeLeft(null); // Hide timer
+        setIsPopupOpen(false); // Hide popup
+      }
+    }, 500),
+    [isPopupOpen, sessionStart],
+  );
 
   // Attach activity listeners
   useEffect(() => {
@@ -42,15 +42,15 @@ const TokenTimer = () => {
       events.forEach((event) =>
         window.removeEventListener(event, handleActivity),
       );
+      handleActivity.cancel();
     };
   }, [handleActivity]);
 
   // Timer logic
   useEffect(() => {
-    if (!sessionStart) return;
-
     const updateTimer = () => {
       const now = Date.now();
+      const timeSinceLastActivity = now - lastActivity;
       const timeRemaining = sessionStart + sessionDuration - now;
 
       if (timeRemaining <= 0) {
@@ -59,8 +59,6 @@ const TokenTimer = () => {
         handleLogout();
         return;
       }
-
-      const timeSinceLastActivity = now - lastActivity;
 
       if (timeSinceLastActivity >= inactivityThreshold) {
         // User is inactive: show timer and potentially popup
@@ -85,37 +83,40 @@ const TokenTimer = () => {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [sessionStart, lastActivity, isPopupOpen]);
+  }, [sessionStart, lastActivity]);
 
-  // Continue session by refreshing the token
-  const handleContinue = async () => {
+  // Refresh token (used in handleContinue or when token is near expiration)
+  const refreshToken = async () => {
     try {
       const response = await axiosInstance.get("/Home/RefreshToken");
-
       if (response.data.status) {
         const { token, userType, profile, username, designation } =
           response.data;
-        const now = Date.now();
-        const newExpiry = now + sessionDuration;
-
-        // Update token and other data in localStorage
         localStorage.setItem("authToken", token);
         localStorage.setItem("userType", userType);
         localStorage.setItem("profile", profile);
         localStorage.setItem("username", username);
         localStorage.setItem("designation", designation);
-
-        // Update context and reset timer
-        setLastActivity(now);
-        setSessionStart(now);
-        setTokenExpiry(newExpiry);
-        setIsPopupOpen(false);
+        return true;
       } else {
         throw new Error(response.data.message);
       }
     } catch (error) {
       console.error("Token refresh failed:", error);
       handleLogout();
+      return false;
+    }
+  };
+
+  // Continue session by refreshing the token
+  const handleContinue = async () => {
+    const now = Date.now();
+    if (await refreshToken()) {
+      setLastActivity(now);
+      setSessionStart(now);
+      setTokenExpiry(now + sessionDuration);
+      setIsPopupOpen(false);
+      setTimeLeft(null);
     }
   };
 
@@ -126,6 +127,21 @@ const TokenTimer = () => {
     localStorage.clear();
     window.location.href = "/login";
   };
+
+  // Periodically check if token needs refreshing
+  useEffect(() => {
+    const checkTokenExpiry = async () => {
+      const now = Date.now();
+      const timeRemaining = sessionStart + sessionDuration - now;
+
+      if (timeRemaining <= tokenRefreshThreshold && timeRemaining > 0) {
+        await refreshToken();
+      }
+    };
+
+    const interval = setInterval(checkTokenExpiry, 60 * 1000); // Check every minute
+    return () => clearInterval(interval);
+  }, [sessionStart]);
 
   if (!timeLeft) return null;
 

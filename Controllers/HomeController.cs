@@ -464,7 +464,8 @@ namespace SahayataNidhi.Controllers
                 Subject = new ClaimsIdentity(claims),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _configuration["JWT:Issuer"],
-                Audience = _configuration["JWT:Audience"]
+                Audience = _configuration["JWT:Audience"],
+                Expires = DateTime.UtcNow.AddMinutes(30) // 30-minute expiration
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);

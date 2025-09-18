@@ -31,6 +31,7 @@ export function specificLength(field, value) {
 }
 
 export function isAgeGreaterThan(field, value, formData) {
+  console.log(field, value, formData);
   let maxLengthValue;
 
   // If maxLength is an object with a dependentOn key, get the dependent field's value.
