@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.HttpOverrides;
 using SahayataNidhi.Models.Entities;
 using SendEmails;
 using Microsoft.AspNetCore.DataProtection;
@@ -11,12 +12,12 @@ using EncryptionHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add this line to bind to all network interfaces
+// Bind to all network interfaces
 builder.WebHost.UseUrls("http://0.0.0.0:5004");
 
-// Add services to the container.
+// Add services
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
-builder.Services.AddSignalR(); // Add SignalR service
+builder.Services.AddSignalR();
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
     options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
@@ -27,7 +28,7 @@ builder.Services.AddDbContext<SocialWelfareDepartmentContext>(options =>
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys")))
-    .SetApplicationName("ReactMvcApp"); // Set a unique application name to prevent key conflicts
+    .SetApplicationName("ReactMvcApp");
 
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
@@ -44,7 +45,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// JWT Authentication Setup
+// JWT Authentication
 var jwtSecretKey = builder.Configuration.GetValue<string>("JWT:Secret");
 var key = Encoding.ASCII.GetBytes(jwtSecretKey!);
 builder.Services.AddAuthentication(options =>
@@ -63,7 +64,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ClockSkew = TimeSpan.Zero // Disable clock skew for strict expiration
+        ClockSkew = TimeSpan.Zero
     };
 
     options.Events = new JwtBearerEvents
@@ -86,7 +87,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Authorization policies for different roles
+// Authorization policies
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("CitizenPolicy", policy => policy.RequireRole("Citizen"))
     .AddPolicy("OfficerPolicy", policy => policy.RequireRole("Officer"))
@@ -109,19 +110,18 @@ builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<QueuedHostedService>();
 builder.Services.AddSingleton<ICronScheduler, CronScheduler>();
 builder.Services.AddHostedService<CronScheduler>();
-
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-app.UseHttpsRedirection();
 
+app.UseHttpsRedirection();
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
@@ -129,16 +129,19 @@ app.UseStaticFiles(new StaticFileOptions
         ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
         var fileExtension = Path.GetExtension(ctx.File.Name).ToLower();
         if (fileExtension == ".pdf")
-        {
             ctx.Context.Response.Headers.Append("Content-Disposition", "inline");
-        }
         else if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg" }.Contains(fileExtension))
-        {
             ctx.Context.Response.Headers.Append("Content-Type", $"image/{fileExtension.TrimStart('.')}");
-        }
     }
 });
 app.UseDetection();
+
+// ⚡ Add this for Nginx + ngrok forwarded headers
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 app.UseRouting();
 app.UseCors("AllowAll");
 
@@ -154,3 +157,4 @@ app.MapControllerRoute(
 app.MapFallbackToController("Index", "Home");
 
 app.Run();
+
