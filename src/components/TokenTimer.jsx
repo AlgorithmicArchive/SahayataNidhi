@@ -10,28 +10,31 @@ const TokenTimer = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [sessionStart, setSessionStart] = useState(Date.now());
+  const [lastRefresh, setLastRefresh] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const inactivityThreshold = 5 * 60 * 1000; // 5 minutes
   const sessionDuration = 30 * 60 * 1000; // 30 minutes
   const popupThreshold = 2 * 60 * 1000; // 2 minutes
-  const tokenRefreshThreshold = 5 * 60 * 1000; // Refresh token if within 5 minutes of expiration
+  const tokenRefreshThreshold = 5 * 60 * 1000; // 5 minutes
+  const minRefreshInterval = 2 * 60 * 1000; // 2 minutes
 
-  // Handle user activity to reset session (without immediate token refresh)
+  // Handle user activity to reset session
   const handleActivity = useCallback(
     debounce(() => {
       const now = Date.now();
+      const timeSinceLastActivity = now - lastActivity;
       const timeRemaining = sessionStart + sessionDuration - now;
 
-      // Only reset session if not in popup state or if session is still valid
-      if (!isPopupOpen && timeRemaining > 0) {
+      if (timeSinceLastActivity >= inactivityThreshold && timeRemaining > 0) {
         setLastActivity(now);
-        setSessionStart(now); // Reset session to 30 minutes
+        setSessionStart(now);
         setTokenExpiry(now + sessionDuration);
-        setTimeLeft(null); // Hide timer
-        setIsPopupOpen(false); // Hide popup
+        setTimeLeft(null);
+        setIsPopupOpen(false);
       }
     }, 500),
-    [isPopupOpen, sessionStart],
+    [isPopupOpen, lastActivity, sessionStart],
   );
 
   // Attach activity listeners
@@ -61,7 +64,6 @@ const TokenTimer = () => {
       }
 
       if (timeSinceLastActivity >= inactivityThreshold) {
-        // User is inactive: show timer and potentially popup
         const minutes = Math.floor(timeRemaining / 1000 / 60);
         const seconds = Math.floor((timeRemaining / 1000) % 60);
         setTimeLeft(
@@ -74,7 +76,6 @@ const TokenTimer = () => {
           setIsPopupOpen(true);
         }
       } else {
-        // User is active: hide timer/popup
         setTimeLeft(null);
         setIsPopupOpen(false);
       }
@@ -85,9 +86,16 @@ const TokenTimer = () => {
     return () => clearInterval(interval);
   }, [sessionStart, lastActivity]);
 
-  // Refresh token (used in handleContinue or when token is near expiration)
+  // Refresh token
   const refreshToken = async () => {
+    if (isRefreshing || Date.now() - lastRefresh < minRefreshInterval) {
+      console.log("Token refresh skipped: in progress or within cooldown");
+      return true;
+    }
+
+    setIsRefreshing(true);
     try {
+      console.log("Attempting token refresh at", new Date().toISOString());
       const response = await axiosInstance.get("/Home/RefreshToken");
       if (response.data.status) {
         const { token, userType, profile, username, designation } =
@@ -97,6 +105,7 @@ const TokenTimer = () => {
         localStorage.setItem("profile", profile);
         localStorage.setItem("username", username);
         localStorage.setItem("designation", designation);
+        setLastRefresh(Date.now());
         return true;
       } else {
         throw new Error(response.data.message);
@@ -105,10 +114,12 @@ const TokenTimer = () => {
       console.error("Token refresh failed:", error);
       handleLogout();
       return false;
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
-  // Continue session by refreshing the token
+  // Continue session
   const handleContinue = async () => {
     const now = Date.now();
     if (await refreshToken()) {
@@ -128,20 +139,24 @@ const TokenTimer = () => {
     window.location.href = "/login";
   };
 
-  // Periodically check if token needs refreshing
+  // Periodically check token expiry
   useEffect(() => {
     const checkTokenExpiry = async () => {
       const now = Date.now();
       const timeRemaining = sessionStart + sessionDuration - now;
 
-      if (timeRemaining <= tokenRefreshThreshold && timeRemaining > 0) {
+      if (
+        timeRemaining <= tokenRefreshThreshold &&
+        timeRemaining > 0 &&
+        now - lastRefresh >= minRefreshInterval
+      ) {
         await refreshToken();
       }
     };
 
-    const interval = setInterval(checkTokenExpiry, 60 * 1000); // Check every minute
+    const interval = setInterval(checkTokenExpiry, 2 * 60 * 1000); // Check every 2 minutes
     return () => clearInterval(interval);
-  }, [sessionStart]);
+  }, [sessionStart, lastRefresh]);
 
   if (!timeLeft) return null;
 

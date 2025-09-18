@@ -358673,25 +358673,33 @@ var TokenTimer = function TokenTimer() {
     _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState7, 2),
     sessionStart = _useState8[0],
     setSessionStart = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(0),
+    _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState9, 2),
+    lastRefresh = _useState0[0],
+    setLastRefresh = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
+    _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState1, 2),
+    isRefreshing = _useState10[0],
+    setIsRefreshing = _useState10[1];
   var inactivityThreshold = 5 * 60 * 1000; // 5 minutes
   var sessionDuration = 30 * 60 * 1000; // 30 minutes
   var popupThreshold = 2 * 60 * 1000; // 2 minutes
-  var tokenRefreshThreshold = 5 * 60 * 1000; // Refresh token if within 5 minutes of expiration
+  var tokenRefreshThreshold = 5 * 60 * 1000; // 5 minutes
+  var minRefreshInterval = 2 * 60 * 1000; // 2 minutes
 
-  // Handle user activity to reset session (without immediate token refresh)
+  // Handle user activity to reset session
   var handleActivity = (0,react__WEBPACK_IMPORTED_MODULE_3__.useCallback)((0,lodash__WEBPACK_IMPORTED_MODULE_10__.debounce)(function () {
     var now = Date.now();
+    var timeSinceLastActivity = now - lastActivity;
     var timeRemaining = sessionStart + sessionDuration - now;
-
-    // Only reset session if not in popup state or if session is still valid
-    if (!isPopupOpen && timeRemaining > 0) {
+    if (timeSinceLastActivity >= inactivityThreshold && timeRemaining > 0) {
       setLastActivity(now);
-      setSessionStart(now); // Reset session to 30 minutes
+      setSessionStart(now);
       setTokenExpiry(now + sessionDuration);
-      setTimeLeft(null); // Hide timer
-      setIsPopupOpen(false); // Hide popup
+      setTimeLeft(null);
+      setIsPopupOpen(false);
     }
-  }, 500), [isPopupOpen, sessionStart]);
+  }, 500), [isPopupOpen, lastActivity, sessionStart]);
 
   // Attach activity listeners
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
@@ -358720,7 +358728,6 @@ var TokenTimer = function TokenTimer() {
         return;
       }
       if (timeSinceLastActivity >= inactivityThreshold) {
-        // User is inactive: show timer and potentially popup
         var minutes = Math.floor(timeRemaining / 1000 / 60);
         var seconds = Math.floor(timeRemaining / 1000 % 60);
         setTimeLeft("".concat(minutes.toString().padStart(2, "0"), ":").concat(seconds.toString().padStart(2, "0")));
@@ -358728,7 +358735,6 @@ var TokenTimer = function TokenTimer() {
           setIsPopupOpen(true);
         }
       } else {
-        // User is active: hide timer/popup
         setTimeLeft(null);
         setIsPopupOpen(false);
       }
@@ -358740,20 +358746,29 @@ var TokenTimer = function TokenTimer() {
     };
   }, [sessionStart, lastActivity]);
 
-  // Refresh token (used in handleContinue or when token is near expiration)
+  // Refresh token
   var refreshToken = /*#__PURE__*/function () {
     var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee() {
       var response, _response$data, token, userType, profile, username, designation, _t;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context) {
         while (1) switch (_context.prev = _context.next) {
           case 0:
-            _context.prev = 0;
-            _context.next = 1;
-            return _axiosConfig__WEBPACK_IMPORTED_MODULE_9__["default"].get("/Home/RefreshToken");
+            if (!(isRefreshing || Date.now() - lastRefresh < minRefreshInterval)) {
+              _context.next = 1;
+              break;
+            }
+            console.log("Token refresh skipped: in progress or within cooldown");
+            return _context.abrupt("return", true);
           case 1:
+            setIsRefreshing(true);
+            _context.prev = 2;
+            console.log("Attempting token refresh at", new Date().toISOString());
+            _context.next = 3;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_9__["default"].get("/Home/RefreshToken");
+          case 3:
             response = _context.sent;
             if (!response.data.status) {
-              _context.next = 2;
+              _context.next = 4;
               break;
             }
             _response$data = response.data, token = _response$data.token, userType = _response$data.userType, profile = _response$data.profile, username = _response$data.username, designation = _response$data.designation;
@@ -358762,30 +358777,35 @@ var TokenTimer = function TokenTimer() {
             localStorage.setItem("profile", profile);
             localStorage.setItem("username", username);
             localStorage.setItem("designation", designation);
+            setLastRefresh(Date.now());
             return _context.abrupt("return", true);
-          case 2:
-            throw new Error(response.data.message);
-          case 3:
-            _context.next = 5;
-            break;
           case 4:
-            _context.prev = 4;
-            _t = _context["catch"](0);
+            throw new Error(response.data.message);
+          case 5:
+            _context.next = 7;
+            break;
+          case 6:
+            _context.prev = 6;
+            _t = _context["catch"](2);
             console.error("Token refresh failed:", _t);
             handleLogout();
             return _context.abrupt("return", false);
-          case 5:
+          case 7:
+            _context.prev = 7;
+            setIsRefreshing(false);
+            return _context.finish(7);
+          case 8:
           case "end":
             return _context.stop();
         }
-      }, _callee, null, [[0, 4]]);
+      }, _callee, null, [[2, 6, 7, 8]]);
     }));
     return function refreshToken() {
       return _ref.apply(this, arguments);
     };
   }();
 
-  // Continue session by refreshing the token
+  // Continue session
   var handleContinue = /*#__PURE__*/function () {
     var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee2() {
       var now;
@@ -358824,7 +358844,7 @@ var TokenTimer = function TokenTimer() {
     window.location.href = "/login";
   };
 
-  // Periodically check if token needs refreshing
+  // Periodically check token expiry
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
     var checkTokenExpiry = /*#__PURE__*/function () {
       var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee3() {
@@ -358834,7 +358854,7 @@ var TokenTimer = function TokenTimer() {
             case 0:
               now = Date.now();
               timeRemaining = sessionStart + sessionDuration - now;
-              if (!(timeRemaining <= tokenRefreshThreshold && timeRemaining > 0)) {
+              if (!(timeRemaining <= tokenRefreshThreshold && timeRemaining > 0 && now - lastRefresh >= minRefreshInterval)) {
                 _context3.next = 1;
                 break;
               }
@@ -358850,11 +358870,11 @@ var TokenTimer = function TokenTimer() {
         return _ref3.apply(this, arguments);
       };
     }();
-    var interval = setInterval(checkTokenExpiry, 60 * 1000); // Check every minute
+    var interval = setInterval(checkTokenExpiry, 2 * 60 * 1000); // Check every 2 minutes
     return function () {
       return clearInterval(interval);
     };
-  }, [sessionStart]);
+  }, [sessionStart, lastRefresh]);
   if (!timeLeft) return null;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement((react__WEBPACK_IMPORTED_MODULE_3___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
     sx: {
