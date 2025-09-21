@@ -29,21 +29,19 @@ public partial class SocialWelfareDepartmentContext : DbContext
 
     public virtual DbSet<Block> Blocks { get; set; }
 
-    public virtual DbSet<Branch> Branches { get; set; }
-
     public virtual DbSet<Certificate> Certificates { get; set; }
 
     public virtual DbSet<CitizenApplication> CitizenApplications { get; set; }
 
     public virtual DbSet<Corrigendum> Corrigenda { get; set; }
 
+    public virtual DbSet<Department> Departments { get; set; }
+
     public virtual DbSet<District> Districts { get; set; }
 
     public virtual DbSet<EmailSetting> EmailSettings { get; set; }
 
     public virtual DbSet<HalqaPanchayat> HalqaPanchayats { get; set; }
-
-    public virtual DbSet<IfscCode> IfscCodes { get; set; }
 
     public virtual DbSet<Muncipality> Muncipalities { get; set; }
 
@@ -158,21 +156,10 @@ public partial class SocialWelfareDepartmentContext : DbContext
 
         modelBuilder.Entity<Bank>(entity =>
         {
-            entity.HasKey(e => e.BankId).HasName("PK__BANK__06D33C46B8F65530");
-
             entity.ToTable("BANK");
 
-            entity.HasIndex(e => e.BankName, "UQ__BANK__AEC7A8EF60CCDF50").IsUnique();
-
-            entity.Property(e => e.BankId).HasColumnName("BANK_ID");
-            entity.Property(e => e.BankName)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("BANK_NAME");
-            entity.Property(e => e.State)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("STATE");
+            entity.Property(e => e.BankCode).HasMaxLength(5);
+            entity.Property(e => e.BankName).HasMaxLength(255);
         });
 
         modelBuilder.Entity<BankDetail>(entity =>
@@ -225,44 +212,6 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.Property(e => e.BlockName)
                 .HasMaxLength(255)
                 .IsUnicode(false);
-        });
-
-        modelBuilder.Entity<Branch>(entity =>
-        {
-            entity.HasKey(e => e.BranchId).HasName("PK__BRANCH__766E0D23319098E1");
-
-            entity.ToTable("BRANCH");
-
-            entity.Property(e => e.BranchId).HasColumnName("BRANCH_ID");
-            entity.Property(e => e.Address)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("ADDRESS");
-            entity.Property(e => e.BankId).HasColumnName("BANK_ID");
-            entity.Property(e => e.BranchName)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("BRANCH_NAME");
-            entity.Property(e => e.City1)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("CITY1");
-            entity.Property(e => e.City2)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("CITY2");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("PHONE");
-            entity.Property(e => e.State)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("STATE");
-            entity.Property(e => e.StdCode)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("STD_CODE");
         });
 
         modelBuilder.Entity<Certificate>(entity =>
@@ -377,20 +326,6 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .HasColumnName("UUID");
         });
 
-        modelBuilder.Entity<IfscCode>(entity =>
-        {
-            entity.HasKey(e => e.IfscId).HasName("PK__IFSC_COD__C4D0CD25239601D2");
-
-            entity.ToTable("IFSC_CODE");
-
-            entity.Property(e => e.IfscId).HasColumnName("IFSC_ID");
-            entity.Property(e => e.BranchId).HasColumnName("BRANCH_ID");
-            entity.Property(e => e.IfscCode1)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("IFSC_CODE");
-        });
-
         modelBuilder.Entity<Muncipality>(entity =>
         {
             entity.HasKey(e => e.Uuid);
@@ -417,7 +352,7 @@ public partial class SocialWelfareDepartmentContext : DbContext
 
             entity.Property(e => e.Uuid).HasColumnName("UUID");
             entity.Property(e => e.AccessLevel)
-                .HasMaxLength(40)
+                .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.Designation).IsUnicode(false);
             entity.Property(e => e.DesignationShort)
@@ -565,9 +500,6 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.Property(e => e.BankDetails).IsUnicode(false);
             entity.Property(e => e.CreatedAt)
                 .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Department)
-                .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.DocumentFields).HasDefaultValue("''''''");
             entity.Property(e => e.FormElement).IsUnicode(false);

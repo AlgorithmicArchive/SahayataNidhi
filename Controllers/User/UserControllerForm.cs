@@ -6,6 +6,7 @@ using System.Security.Claims;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 
 namespace SahayataNidhi.Controllers.User
 {
@@ -508,27 +509,27 @@ namespace SahayataNidhi.Controllers.User
         {
             try
             {
+                // Validate required fields
                 string referenceNumber = form["referenceNumber"].ToString();
                 if (string.IsNullOrWhiteSpace(referenceNumber))
-                    return BadRequest("Reference number is required.");
+                    return BadRequest(new { status = false, message = "Reference number is required." });
 
                 if (!int.TryParse(form["ServiceId"].ToString(), out int serviceId))
-                    return BadRequest("Invalid service ID.");
+                    return BadRequest(new { status = false, message = "Invalid service ID." });
 
-                string remarks = form["remarks"].ToString();
+                string remarks = form["remarks"].ToString() ?? string.Empty;
                 string? applicationId = form.ContainsKey("applicationId") && !string.IsNullOrWhiteSpace(form["applicationId"])
                     ? form["applicationId"].ToString()
                     : null;
 
+                // Retrieve service and application
                 var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
                 if (service == null)
-                    return BadRequest($"Service with ID {serviceId} not found.");
+                    return BadRequest(new { status = false, message = $"Service with ID {serviceId} not found." });
 
                 var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
                 if (application == null)
-                    return BadRequest($"Application with reference number '{referenceNumber}' not found.");
-
-                var workFlow = JArray.Parse(application.WorkFlow ?? "[]");
+                    return BadRequest(new { status = false, message = $"Application with reference number '{referenceNumber}' not found." });
 
                 // Parse formFields from FormDetails
                 JToken formFields;
@@ -538,45 +539,65 @@ namespace SahayataNidhi.Controllers.User
                 }
                 catch (JsonException ex)
                 {
-                    return BadRequest($"Failed to parse FormFields: {ex.Message}");
+                    return BadRequest(new { status = false, message = $"Failed to parse FormFields: {ex.Message}" });
                 }
 
-                var fieldsToCorrect = new[]
-                {
-                    "UdidCardIssueDate",
-                    "PercentageOfDisability",
-                    "IfTemporaryDisabilityUdidCardValidUpto",
-                    "UdidCard"
-                };
+                // Define fields to correct, excluding IfTemporaryDisabilityUdidCardValidUpto initially
+                var fieldsToCorrect = new[] { "UdidCardIssueDate", "PercentageOfDisability", "KindOfDisability", "UdidCard" };
+                var conditionalFields = new[] { "IfTemporaryDisabilityUdidCardValidUpto" };
 
-                // --- Get old values ---
+                // Check KindOfDisability to determine if IfTemporaryDisabilityUdidCardValidUpto should be included
+                string kindOfDisability = form["KindOfDisability"].ToString();
+                var finalFieldsToCorrect = kindOfDisability == "TEMPORARY"
+                    ? fieldsToCorrect.Concat(conditionalFields).ToArray()
+                    : fieldsToCorrect;
+
+                // Get old values
                 var oldValues = new JObject();
-                foreach (var fieldName in fieldsToCorrect)
+                foreach (var fieldName in finalFieldsToCorrect)
                 {
                     var field = FindFieldRecursively(formFields, fieldName);
-                    oldValues[fieldName] = field?["value"]?.ToString() ?? null;
+
+                    oldValues[fieldName] =
+                        field != null
+                        ? (field.TryGetValue("File", out var fileVal) ? fileVal?.ToString()
+                          : field.TryGetValue("value", out var val) ? val?.ToString()
+                          : null)
+                        : null;
                 }
 
-                // --- Get new values except UdidCard (handled separately) ---
+
+
+                // Get new values, excluding UdidCard (handled separately)
                 var newValues = new JObject();
-                foreach (var fieldName in fieldsToCorrect.Except(new[] { "UdidCard" }))
+                foreach (var fieldName in finalFieldsToCorrect.Except(new[] { "UdidCard" }))
                 {
-                    newValues[fieldName] = form[fieldName].ToString();
+                    if (form.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(form[fieldName]))
+                    {
+                        newValues[fieldName] = form[fieldName].ToString();
+                    }
+                    else
+                    {
+                        newValues[fieldName] = null;
+                    }
                 }
 
-                // --- Handle UdidCard file ---
+                // Handle UdidCard file
                 string? udidCardFileName = null;
-
-                // 1. Uploaded new file
-                if (form.Files != null && form.Files.Any(f => f.Name == "UdidCard" && f.Length > 0))
+                var udidCardFile = form.Files?.FirstOrDefault(f => f.Name == "UdidCard" && f.Length > 0);
+                if (udidCardFile != null)
                 {
-                    var udidCardFile = form.Files.First(f => f.Name == "UdidCard");
-                    string filePath = await helper.GetFilePath(udidCardFile); // Full path
-                    udidCardFileName = Path.GetFileName(filePath); // Store only filename
-                }
+                    // Validate file size (20kb–50kb) and type (.pdf)
+                    if (udidCardFile.Length < 100 * 1024 || udidCardFile.Length > 200 * 1024)
+                        return BadRequest(new { status = false, message = "UdidCard file size must be between 100kb and 200kb." });
 
-                // 2. Or server existing file
-                if (string.IsNullOrWhiteSpace(udidCardFileName) && form.Keys.Any(k => k == "serverFiles[UdidCard]"))
+                    if (!udidCardFile.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                        return BadRequest(new { status = false, message = "UdidCard file must be a PDF." });
+
+                    string filePath = await helper.GetFilePath(udidCardFile);
+                    udidCardFileName = Path.GetFileName(filePath);
+                }
+                else if (form.Keys.Any(k => k == "serverFiles[UdidCard]"))
                 {
                     string serverFile = form["serverFiles[UdidCard]"].ToString();
                     if (!string.IsNullOrWhiteSpace(serverFile))
@@ -586,9 +607,9 @@ namespace SahayataNidhi.Controllers.User
                 // Set new value for UdidCard
                 newValues["UdidCard"] = udidCardFileName;
 
-                // --- Build corrigendumFields ---
+                // Build corrigendumFields
                 var corrigendumFields = new JObject();
-                foreach (var fieldName in fieldsToCorrect)
+                foreach (var fieldName in finalFieldsToCorrect)
                 {
                     corrigendumFields[fieldName] = new JObject
                     {
@@ -612,11 +633,11 @@ namespace SahayataNidhi.Controllers.User
                 }
                 catch (JsonException ex)
                 {
-                    return BadRequest($"Failed to parse FormDetails: {ex.Message}");
+                    return BadRequest(new { status = false, message = $"Failed to parse FormDetails: {ex.Message}" });
                 }
 
                 if (!formDetails.TryGetValue("Location", out JToken? locationToken) || locationToken.Type == JTokenType.Null)
-                    return BadRequest("'Location' property is missing or null in FormDetails.");
+                    return BadRequest(new { status = false, message = "'Location' property is missing or null in FormDetails." });
 
                 string location = locationToken.ToString();
 
@@ -628,148 +649,100 @@ namespace SahayataNidhi.Controllers.User
                 }
                 catch (JsonException ex)
                 {
-                    return BadRequest($"Failed to parse OfficerEditableField: {ex.Message}");
+                    return BadRequest(new { status = false, message = $"Failed to parse OfficerEditableField: {ex.Message}" });
                 }
 
                 if (players.Count == 0)
                     return Json(new { status = false, message = "No workflow players defined for this service." });
 
-                string? corrigendumNumber = "";
+                // Generate CorrigendumId (improved to avoid collisions)
+                var locationObj = JArray.Parse(location);
+                int districtId = Convert.ToInt32(locationObj.First(l => l["name"]!.ToString() == "District")!["value"]);
+                var finYear = helper.GetCurrentFinancialYear();
+                var districtDetails = dbcontext.Districts.FirstOrDefault(s => s.DistrictId == districtId);
+                if (districtDetails == null)
+                    return BadRequest(new { status = false, message = $"District with ID {districtId} not found." });
 
-                // --- If updating existing corrigendum ---
-                if (applicationId != null)
+                string districtShort = districtDetails.DistrictShort!;
+                int count = GetCountPerDistrict(districtId, serviceId, "Amendment");
+                string corrigendumNumber = string.Format(
+                    "01{0:D2}{1:D2}{2}{3}{4:D4}",
+                    service.ServiceId,
+                    districtDetails.DistrictId,
+                    "03",
+                    finYear.Split('-')[1],
+                    count + 1
+                );
+
+                // Build workflow
+                var filteredWorkflow = new JArray();
+                foreach (var player in players)
                 {
-                    var corrigendum = dbcontext.Corrigenda.FirstOrDefault(c => c.CorrigendumId == applicationId && c.Type == "Corrigendum");
-                    if (corrigendum == null)
-                        return BadRequest($"Corrigendum with ID {applicationId} not found.");
-
-                    corrigendum.CorrigendumFields = corrigendumFields.ToString(Formatting.None);
-
-                    // Update workflow
-                    JArray corrigendumWorkFlow = JArray.Parse(corrigendum.WorkFlow ?? "[]");
-                    int currentPlayerIndex = corrigendum.CurrentPlayer;
-
-                    corrigendumWorkFlow[currentPlayerIndex]["status"] = "forwarded";
-                    corrigendumWorkFlow[currentPlayerIndex]["canPull"] = "true";
-                    corrigendumWorkFlow[currentPlayerIndex]["remarks"] = remarks;
-                    corrigendumWorkFlow[currentPlayerIndex]["completedAt"] = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
-
-                    if (currentPlayerIndex + 1 < corrigendumWorkFlow.Count)
+                    var filteredPlayer = new JObject
                     {
-                        corrigendumWorkFlow[currentPlayerIndex + 1]["status"] = "pending";
-                        corrigendumWorkFlow[currentPlayerIndex + 1]["remarks"] = "";
-                        corrigendumWorkFlow[currentPlayerIndex + 1]["completedAt"] = "";
-                        corrigendum.CurrentPlayer = currentPlayerIndex + 1;
-                    }
-
-                    corrigendum.WorkFlow = JsonConvert.SerializeObject(corrigendumWorkFlow);
-
-                    // Update history
-                    List<dynamic> history = JsonConvert.DeserializeObject<List<dynamic>>(corrigendum.History ?? "[]") ?? new List<dynamic>();
-                    history.Add(new
-                    {
-                        actionTaker = "Tehsil Social Welfare Officer" + " " + GetOfficerArea("Tehsil Social Welfare Officer", formDetails),
-                        status = "forwarded",
-                        remarks = remarks,
-                        actionTakenOn = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
-                    });
-
-                    corrigendum.History = JsonConvert.SerializeObject(history);
-                    corrigendum.Type = "Corrigendum";
-
-                    dbcontext.Corrigenda.Update(corrigendum);
-                    corrigendumNumber = corrigendum.CorrigendumId;
-                }
-                else
-                {
-                    // Create new corrigendum
-                    var locationObj = JArray.Parse(location);
-                    int districtId = Convert.ToInt32(locationObj.First(l => l["name"]!.ToString() == "District")!["value"]);
-                    var finYear = helper.GetCurrentFinancialYear();
-                    var districtDetails = dbcontext.Districts.FirstOrDefault(s => s.DistrictId == districtId);
-                    string districtShort = districtDetails!.DistrictShort!;
-                    int count = GetCountPerDistrict(districtId, serviceId, "Corrigendum");
-
-                    var random = new Random();
-                    var rnd = random.Next(100, 1000); // 100..999
-
-                    corrigendumNumber = string.Format(
-                       "01{0:D2}{1:D2}{2}{3}{4:D3}{5:D2}",
-                       service.ServiceId,
-                       districtDetails.DistrictId,
-                       "02",
-                       finYear.Split('-')[1],
-                       rnd,
-                       count
-                   );
-
-
-                    var filteredWorkflow = new JArray();
-                    foreach (var player in players)
-                    {
-                        var filteredPlayer = new JObject
-                        {
-                            ["designation"] = player["designation"],
-                            ["status"] = player["status"],
-                            ["completedAt"] = player["completedAt"],
-                            ["remarks"] = player["remarks"],
-                            ["playerId"] = player["playerId"],
-                            ["prevPlayerId"] = player["prevPlayerId"],
-                            ["nextPlayerId"] = player["nextPlayerId"],
-                            ["canPull"] = true
-                        };
-                        filteredWorkflow.Add(filteredPlayer);
-                    }
-
-                    if (filteredWorkflow.Count > 0)
-                    {
-                        filteredWorkflow[0]["status"] = "pending";
-                        filteredWorkflow[0]["remarks"] = "";
-                        filteredWorkflow[0]["completedAt"] = "";
-                    }
-
-                    var workFlowJson = JsonConvert.SerializeObject(filteredWorkflow);
-
-                    var historyEntry = new
-                    {
-                        actionTaker = "Citizen",
-                        status = "Correction Submitted",
-                        remarks = "Correction Submitted",
-                        actionTakenOn = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
+                        ["designation"] = player["designation"],
+                        ["status"] = player["status"],
+                        ["completedAt"] = player["completedAt"],
+                        ["remarks"] = player["remarks"],
+                        ["playerId"] = player["playerId"],
+                        ["prevPlayerId"] = player["prevPlayerId"],
+                        ["nextPlayerId"] = player["nextPlayerId"],
+                        ["canPull"] = true
                     };
-
-                    var corrigendum = new Corrigendum
-                    {
-                        CorrigendumId = corrigendumNumber,
-                        ReferenceNumber = referenceNumber,
-                        Location = location,
-                        CorrigendumFields = JsonConvert.SerializeObject(corrigendumFields),
-                        WorkFlow = workFlowJson,
-                        CurrentPlayer = 0,
-                        History = JsonConvert.SerializeObject(new List<dynamic> { historyEntry }),
-                        Status = "Initiated",
-                        Type = "Corrigendum"
-                    };
-
-                    dbcontext.Corrigenda.Add(corrigendum);
+                    filteredWorkflow.Add(filteredPlayer);
                 }
 
-                dbcontext.SaveChanges();
+                if (filteredWorkflow.Count > 0)
+                {
+                    filteredWorkflow[0]["status"] = "pending";
+                    filteredWorkflow[0]["remarks"] = "";
+                    filteredWorkflow[0]["completedAt"] = "";
+                }
+
+                var workFlowJson = JsonConvert.SerializeObject(filteredWorkflow);
+
+                var historyEntry = new
+                {
+                    actionTaker = "Citizen",
+                    status = "Correction Submitted",
+                    remarks = remarks,
+                    actionTakenOn = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
+                };
+
+                // Create new corrigendum
+                var corrigendum = new Corrigendum
+                {
+                    CorrigendumId = corrigendumNumber,
+                    ReferenceNumber = referenceNumber,
+                    Location = location,
+                    CorrigendumFields = JsonConvert.SerializeObject(corrigendumFields),
+                    WorkFlow = workFlowJson,
+                    CurrentPlayer = 0,
+                    History = JsonConvert.SerializeObject(new List<dynamic> { historyEntry }),
+                    Status = "Initiated",
+                    Type = "Amendment",
+                };
+
+                dbcontext.Corrigenda.Add(corrigendum);
+                await dbcontext.SaveChangesAsync();
 
                 return Json(new
                 {
                     status = true,
                     message = applicationId != null
-                        ? $"Corrigendum updated with No. {corrigendumNumber} successfully."
-                        : $"Corrigendum with No. {corrigendumNumber} forwarded successfully."
+                        ? $"Amendment updated with No. {corrigendumNumber} successfully."
+                        : $"Amendment with No. {corrigendumNumber} forwarded successfully."
                 });
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, new { status = false, message = $"Database error occurred: {ex.InnerException?.Message ?? ex.Message}" });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { status = false, message = $"An error occurred: {ex.Message}" });
             }
         }
-
 
 
     }

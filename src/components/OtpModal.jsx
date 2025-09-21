@@ -11,7 +11,6 @@ export default function OtpModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("OtpModal submitting OTP:", otp);
     onSubmit(otp);
     setOtp(""); // Reset OTP input after submission
   };
@@ -20,7 +19,6 @@ export default function OtpModal({
     <Modal
       open={open}
       onClose={() => {
-        console.log("OtpModal onClose triggered");
         onClose();
       }}
       aria-labelledby="otp-modal-title"

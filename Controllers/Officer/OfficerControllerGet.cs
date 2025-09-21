@@ -2307,7 +2307,7 @@ namespace SahayataNidhi.Controllers.Officer
             }
 
             List<dynamic> columns = [
-                new { accessorKey = "sno", header = "S.No." },
+            new { accessorKey = "sno", header = "S.No." },
             new { accessorKey = "actionTaker", header = "Action Taker" },
             new { accessorKey = "actionTaken", header = "Action Taken" },
             new { accessorKey = "remarks", header = "Remarks" },
@@ -2368,9 +2368,9 @@ namespace SahayataNidhi.Controllers.Officer
             }
 
             List<dynamic> fieldColumns = [
-                new { accessorKey = "formField", header = "Description" },
+                    new { accessorKey = "formField", header = "Description" },
                     new { accessorKey = "oldvalue", header = "As Existing" },
-                    new { accessorKey = "newvalue", header = "As Corrected" },
+                    new { accessorKey = "newvalue",header = $"{(type == "Amendment" ? "As Updated" : "As Corrected")}"},
                 ];
 
             var fieldsData = new List<dynamic>();

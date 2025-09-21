@@ -1,7 +1,15 @@
 import React from "react";
 import { Modal, Box, Typography, Button } from "@mui/material";
 
-const MessageModal = ({ open, onClose, title, message, type = "info" }) => {
+const MessageModal = ({
+  open,
+  onClose,
+  title,
+  message,
+  type = "info",
+  primaryButton,
+  secondaryButton,
+}) => {
   const getColor = () => {
     switch (type) {
       case "error":
@@ -37,9 +45,33 @@ const MessageModal = ({ open, onClose, title, message, type = "info" }) => {
         <Typography variant="body1" sx={{ mb: 3 }}>
           {message}
         </Typography>
-        <Button variant="contained" onClick={onClose} fullWidth>
-          Close
-        </Button>
+        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+          {secondaryButton && (
+            <Button
+              variant="outlined"
+              onClick={secondaryButton.action}
+              sx={{
+                borderColor: "#6B7280",
+                color: "#6B7280",
+                textTransform: "none",
+                "&:hover": { borderColor: "#4B5563", color: "#4B5563" },
+              }}
+            >
+              {secondaryButton.text}
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            onClick={primaryButton ? primaryButton.action : onClose}
+            sx={{
+              backgroundColor: getColor(),
+              textTransform: "none",
+              "&:hover": { backgroundColor: getColor() },
+            }}
+          >
+            {primaryButton ? primaryButton.text : "Close"}
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );

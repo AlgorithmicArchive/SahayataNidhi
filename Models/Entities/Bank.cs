@@ -5,9 +5,9 @@ namespace SahayataNidhi.Models.Entities;
 
 public partial class Bank
 {
-    public int BankId { get; set; }
+    public int Id { get; set; }
 
     public string BankName { get; set; } = null!;
 
-    public string? State { get; set; }
+    public string BankCode { get; set; } = null!;
 }

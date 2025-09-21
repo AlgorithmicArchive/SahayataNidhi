@@ -32,6 +32,7 @@ export const UserProvider = ({ children }) => {
   });
 
   const [officerAuthorities, setOfficerAuthorities] = useState({});
+  const [department, setDepartment] = useState(null); // New state for department
 
   const [tokenExpiry, setTokenExpiry] = useState(null); // New state for token expiry
 
@@ -98,6 +99,8 @@ export const UserProvider = ({ children }) => {
         setTokenExpiry, // Expose tokenExpiry and setter
         officerAuthorities,
         setOfficerAuthorities,
+        department,
+        setDepartment, // Expose department and setter
       }}
     >
       {children}

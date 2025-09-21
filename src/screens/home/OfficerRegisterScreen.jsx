@@ -14,7 +14,7 @@ import * as yup from "yup";
 import CustomInputField from "../../components/form/CustomInputField";
 import CustomSelectField from "../../components/form/CustomSelectField";
 import CustomButton from "../../components/CustomButton";
-import { fetchDesignation, fetchDistricts } from "../../assets/fetch";
+import { fetchDistricts } from "../../assets/fetch";
 import OtpModal from "../../components/OtpModal";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +22,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Col, Row } from "react-bootstrap";
 
-// Function to generate a random CAPTCHA (6 alphanumeric characters)
+// Function to generate a random CAPTCHA
 const generateCaptcha = () => {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -91,7 +91,7 @@ const schema = yup.object().shape({
     .max(12, "Password must be at most 12 characters")
     .matches(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,12}$/,
-      "Password must include uppercase, lowercase, number, and special character"
+      "Password must include uppercase, lowercase, number, and special character",
     ),
   confirmPassword: yup
     .string()
@@ -99,6 +99,7 @@ const schema = yup.object().shape({
     .test("passwords-match", "Passwords do not match", function (value) {
       return value === this.parent.password;
     }),
+  department: yup.string().required("Department is required"),
   designation: yup.string().required("Designation is required"),
   District: yup.string().when("designation", {
     is: (designation) =>
@@ -129,29 +130,109 @@ export default function OfficerRegisterScreen() {
     control,
     formState: { errors },
     watch,
+    trigger,
   } = useForm({
     mode: "onChange",
     reValidateMode: "onChange",
     resolver: yupResolver(schema),
+    context: { captcha: captcha },
   });
   const [captcha, setCaptcha] = useState(generateCaptcha());
+  const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [tehsilOptions, setTehsilOptions] = useState([]);
   const [accessLevelMap, setAccessLevelMap] = useState({});
-  const selectedDesignation = watch("designation");
-  const selectedDistrict = watch("District");
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [otpType, setOtpType] = useState(null); // 'email' or 'mobile'
   const [userId, setUserId] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isEmailOtpSent, setIsEmailOtpSent] = useState(false);
+  const [isEmailOtpVerified, setIsEmailOtpVerified] = useState(false);
+  const [isMobileOtpSent, setIsMobileOtpSent] = useState(false);
+  const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
+  const selectedDepartment = watch("department");
+  const selectedDesignation = watch("designation");
+  const selectedDistrict = watch("District");
+  const emailValue = watch("email");
+  const mobileValue = watch("mobileNumber");
   const navigate = useNavigate();
 
-  // Fetch designations and districts on mount
+  // Fetch departments and districts on mount
   useEffect(() => {
-    fetchDesignation(setDesignations, setAccessLevelMap);
+    // Fetch departments
+    axios
+      .get("/Home/GetDepartments")
+      .then((response) => {
+        if (response.data.status) {
+          const departmentOptions = response.data.departments.map((dept) => ({
+            label: dept.departmentName,
+            value: dept.departmentId,
+          }));
+          setDepartments(departmentOptions);
+        } else {
+          toast.error("Failed to fetch departments", {
+            position: "top-center",
+            autoClose: 3000,
+            theme: "colored",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching departments", error);
+        toast.error("Error fetching departments", {
+          position: "top-center",
+          autoClose: 3000,
+          theme: "colored",
+        });
+      });
+
     fetchDistricts(setDistrictOptions);
     setCaptcha(generateCaptcha());
   }, []);
+
+  // Fetch designations when department changes
+  useEffect(() => {
+    if (selectedDepartment) {
+      axios
+        .get(`/Home/GetDesignations?deparmentId=${selectedDepartment}`)
+        .then((response) => {
+          if (response.data.status) {
+            const designationOptions = response.data.designations.map(
+              (des) => ({
+                label: des.designation,
+                value: des.designation,
+                accessLevel: des.accessLevel, // Assuming accessLevel is returned
+              }),
+            );
+            setDesignations(designationOptions);
+            // Update accessLevelMap
+            const newAccessLevelMap = {};
+            designationOptions.forEach((des) => {
+              newAccessLevelMap[des.value] = des.accessLevel;
+            });
+            setAccessLevelMap(newAccessLevelMap);
+          } else {
+            toast.error("Failed to fetch designations", {
+              position: "top-center",
+              autoClose: 3000,
+              theme: "colored",
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching designations", error);
+          toast.error("Error fetching designations", {
+            position: "top-center",
+            autoClose: 3000,
+            theme: "colored",
+          });
+        });
+    } else {
+      setDesignations([]);
+      setAccessLevelMap({});
+    }
+  }, [selectedDepartment]);
 
   // Fetch tehsils when district changes
   useEffect(() => {
@@ -164,7 +245,7 @@ export default function OfficerRegisterScreen() {
               (tehsil) => ({
                 label: tehsil.tehsilName,
                 value: tehsil.tehsilId,
-              })
+              }),
             );
             setTehsilOptions(tehsilOptionsFormatted);
           } else {
@@ -190,8 +271,97 @@ export default function OfficerRegisterScreen() {
     setCaptcha(generateCaptcha());
   };
 
+  // Handle email validation button click
+  const handleEmailValidate = async () => {
+    const isValid = await trigger("email");
+    if (isValid && !errors.email) {
+      setLoading(true);
+      try {
+        const email = getValues("email");
+        const response = await axios.get("/Home/SendOtp", {
+          params: { email },
+        });
+        if (response.data.status) {
+          setIsEmailOtpSent(true);
+          setIsOtpModalOpen(true);
+          setOtpType("email");
+          setUserId(response.data.userId);
+          toast.success("OTP sent to your email!", {
+            position: "top-center",
+            autoClose: 3000,
+          });
+        } else {
+          toast.error("Failed to send OTP. Please try again.", {
+            position: "top-center",
+            autoClose: 3000,
+          });
+        }
+      } catch (error) {
+        console.error("Error sending OTP to email", error);
+        toast.error("Error sending OTP to email.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Handle mobile validation button click
+  const handleMobileValidate = async () => {
+    const isValid = await trigger("mobileNumber");
+    if (isValid && !errors.mobileNumber) {
+      setLoading(true);
+      try {
+        const mobile = getValues("mobileNumber");
+        const response = await axios.get("/Home/SendMobileOtp", {
+          params: { mobileNumber: mobile },
+        });
+        if (response.data.status) {
+          setIsMobileOtpSent(true);
+          setIsOtpModalOpen(true);
+          setOtpType("mobile");
+          setUserId(response.data.userId);
+          toast.success("OTP sent to your mobile number!", {
+            position: "top-center",
+            autoClose: 3000,
+          });
+        } else {
+          toast.error("Failed to send OTP. Please try again.", {
+            position: "top-center",
+            autoClose: 3000,
+          });
+        }
+      } catch (error) {
+        console.error("Error sending OTP to mobile", error);
+        toast.error("Error sending OTP to mobile.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   // Handle form submission
   const onSubmit = async (data) => {
+    if (!isEmailOtpVerified) {
+      toast.error("Please verify email OTP before registering.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      return;
+    }
+    if (!isMobileOtpVerified) {
+      toast.error("Please verify mobile OTP before registering.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      return;
+    }
+
     setLoading(true);
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -206,19 +376,21 @@ export default function OfficerRegisterScreen() {
           : accessLevelMap[selectedDesignation].includes("District")
           ? data["District"]
           : data["Division"]
-        : 0
+        : 0,
     );
     try {
       const response = await axios.post("/Home/OfficerRegistration", formData);
-      const { status, userId } = response.data;
+      const { status } = response.data;
       if (status) {
-        setIsOtpModalOpen(true);
-        setUserId(userId);
+        toast.success("Registration successful! Redirecting to login...", {
+          position: "top-center",
+          autoClose: 2000,
+        });
+        setTimeout(() => navigate("/login"), 2000);
       } else {
         toast.error("Registration failed. Please try again.", {
           position: "top-center",
           autoClose: 3000,
-          theme: "colored",
         });
       }
     } catch (error) {
@@ -226,7 +398,6 @@ export default function OfficerRegisterScreen() {
       toast.error("An error occurred. Please try again.", {
         position: "top-center",
         autoClose: 3000,
-        theme: "colored",
       });
     } finally {
       setLoading(false);
@@ -236,33 +407,66 @@ export default function OfficerRegisterScreen() {
 
   // Handle OTP submission
   const handleOtpSubmit = async (otp) => {
+    console.log("handleOtpSubmit called with OTP:", otp, "Type:", otpType);
+    if (!otp) {
+      toast.error("Please enter an OTP.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      return;
+    }
+
     setLoading(true);
     const formData = new FormData();
     formData.append("otp", otp);
-    formData.append("UserId", userId);
+    if (otpType === "email") {
+      formData.append("email", getValues("email"));
+    } else if (otpType === "mobile") {
+      formData.append("mobileNumber", getValues("mobileNumber"));
+    }
+
     try {
-      const response = await axios.post("/Home/OTPValidation", formData);
+      const response = await axios.post(
+        otpType === "email"
+          ? "/Home/OTPValidation"
+          : "/Home/MobileOTPValidation",
+        formData,
+      );
       if (response.data.status) {
-        toast.success("Registration successful! Redirecting to login...", {
-          position: "top-center",
-          autoClose: 2000,
-          theme: "colored",
-        });
-        setTimeout(() => navigate("/login"), 2000);
+        if (otpType === "email") {
+          setIsEmailOtpVerified(true);
+        } else if (otpType === "mobile") {
+          setIsMobileOtpVerified(true);
+        }
+        setIsOtpModalOpen(false);
+        setOtpType(null);
+        toast.success(
+          `${
+            otpType === "email" ? "Email" : "Mobile"
+          } OTP verified successfully!`,
+          {
+            position: "top-center",
+            autoClose: 2000,
+          },
+        );
       } else {
         toast.error("Invalid OTP. Please try again.", {
           position: "top-center",
           autoClose: 3000,
-          theme: "colored",
         });
       }
     } catch (error) {
-      console.error("OTP validation error", error);
-      toast.error("Error validating OTP. Please try again.", {
-        position: "top-center",
-        autoClose: 3000,
-        theme: "colored",
-      });
+      console.error(
+        `${otpType === "email" ? "Email" : "Mobile"} OTP validation error`,
+        error,
+      );
+      toast.error(
+        `Error validating ${otpType === "email" ? "email" : "mobile"} OTP.`,
+        {
+          position: "top-center",
+          autoClose: 3000,
+        },
+      );
     } finally {
       setLoading(false);
     }
@@ -328,7 +532,11 @@ export default function OfficerRegisterScreen() {
             <Col xs={6}>
               <CustomInputField
                 name="fullName"
-                label="Full Name"
+                label={
+                  <Typography component="span">
+                    Full Name <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                }
                 control={control}
                 errors={errors}
                 disabled={loading}
@@ -337,7 +545,11 @@ export default function OfficerRegisterScreen() {
             <Col xs={6}>
               <CustomInputField
                 name="username"
-                label="Username"
+                label={
+                  <Typography component="span">
+                    Username <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                }
                 control={control}
                 errors={errors}
                 disabled={loading}
@@ -348,30 +560,84 @@ export default function OfficerRegisterScreen() {
             <Col xs={6}>
               <CustomInputField
                 name="email"
-                label="Email"
+                label={
+                  <Typography component="span">
+                    Email <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                }
                 type="email"
                 control={control}
                 errors={errors}
-                disabled={loading}
+                disabled={loading || isEmailOtpVerified}
               />
+              {isEmailOtpVerified && (
+                <Typography
+                  variant="subtitle2"
+                  color="success"
+                  fontWeight="bold"
+                  sx={{ mt: 1 }}
+                >
+                  Verified
+                </Typography>
+              )}
+              {!isEmailOtpVerified && emailValue && (
+                <CustomButton
+                  text="Validate Email"
+                  bgColor="primary.main"
+                  color="white"
+                  width="100%"
+                  disabled={loading}
+                  onClick={handleEmailValidate}
+                  sx={{ mt: 1 }}
+                />
+              )}
             </Col>
             <Col xs={6}>
               <CustomInputField
                 name="mobileNumber"
-                label="Mobile Number"
+                label={
+                  <Typography component="span">
+                    Mobile Number <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                }
                 type="tel"
                 control={control}
                 errors={errors}
                 maxLength={10}
-                disabled={loading}
+                disabled={loading || isMobileOtpVerified}
               />
+              {isMobileOtpVerified && (
+                <Typography
+                  variant="subtitle2"
+                  color="success"
+                  fontWeight="bold"
+                  sx={{ mt: 1 }}
+                >
+                  Verified
+                </Typography>
+              )}
+              {!isMobileOtpVerified && mobileValue && (
+                <CustomButton
+                  text="Validate Mobile"
+                  bgColor="primary.main"
+                  color="white"
+                  width="100%"
+                  disabled={loading}
+                  onClick={handleMobileValidate}
+                  sx={{ mt: 1 }}
+                />
+              )}
             </Col>
           </Row>
           <Row>
             <Col xs={6}>
               <CustomInputField
                 name="password"
-                label="Password"
+                label={
+                  <Typography component="span">
+                    Password <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                }
                 type="password"
                 control={control}
                 errors={errors}
@@ -381,7 +647,11 @@ export default function OfficerRegisterScreen() {
             <Col xs={6}>
               <CustomInputField
                 name="confirmPassword"
-                label="Confirm Password"
+                label={
+                  <Typography component="span">
+                    Confirm Password <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                }
                 type="password"
                 control={control}
                 errors={errors}
@@ -392,20 +662,45 @@ export default function OfficerRegisterScreen() {
           <Row>
             <Col xs={6}>
               <CustomSelectField
-                label="Designation"
-                name="designation"
+                label={
+                  <Typography component="span">
+                    Department <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                }
+                name="department"
                 control={control}
-                placeholder="Select Designation"
-                options={designations}
+                placeholder="Select Department"
+                options={departments}
                 errors={errors}
                 disabled={loading}
               />
             </Col>
             <Col xs={6}>
+              <CustomSelectField
+                label={
+                  <Typography component="span">
+                    Designation <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                }
+                name="designation"
+                control={control}
+                placeholder="Select Designation"
+                options={designations}
+                errors={errors}
+                disabled={loading || !selectedDepartment}
+              />
+            </Col>
+          </Row>
+          <Row>
+            <Col xs={6}>
               {(accessLevelMap[selectedDesignation] === "District" ||
                 accessLevelMap[selectedDesignation] === "Tehsil") && (
                 <CustomSelectField
-                  label="District"
+                  label={
+                    <Typography component="span">
+                      District <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                  }
                   name="District"
                   control={control}
                   placeholder="Select District"
@@ -416,7 +711,11 @@ export default function OfficerRegisterScreen() {
               )}
               {accessLevelMap[selectedDesignation] === "Division" && (
                 <CustomSelectField
-                  label="Division"
+                  label={
+                    <Typography component="span">
+                      Division <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                  }
                   name="Division"
                   control={control}
                   placeholder="Select Division"
@@ -432,7 +731,11 @@ export default function OfficerRegisterScreen() {
             <Col xs={6}>
               {accessLevelMap[selectedDesignation] === "Tehsil" && (
                 <CustomSelectField
-                  label="TSWO Office"
+                  label={
+                    <Typography component="span">
+                      TSWO Office <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                  }
                   name="Tehsil"
                   control={control}
                   placeholder="Select Tehsil"
@@ -443,7 +746,6 @@ export default function OfficerRegisterScreen() {
               )}
             </Col>
           </Row>
-          {/* CAPTCHA Display and Input */}
           <Row>
             <Col xs={12}>
               <Box
@@ -495,9 +797,9 @@ export default function OfficerRegisterScreen() {
                         fontWeight: Math.random() > 0.5 ? 700 : 400,
                         color: Math.random() > 0.5 ? "primary.main" : "#2d3748",
                         transform: `rotate(${Math.floor(
-                          Math.random() * 31 - 15
+                          Math.random() * 31 - 15,
                         )}deg) translateY(${Math.floor(
-                          Math.random() * 6 - 3
+                          Math.random() * 6 - 3,
                         )}px)`,
                         margin: "0 2px",
                         userSelect: "none",
@@ -528,7 +830,11 @@ export default function OfficerRegisterScreen() {
                 </IconButton>
               </Box>
               <CustomInputField
-                label="Enter CAPTCHA"
+                label={
+                  <Typography component="span">
+                    Enter CAPTCHA <span style={{ color: "red" }}>*</span>
+                  </Typography>
+                }
                 name="captcha"
                 control={control}
                 placeholder="Enter the CAPTCHA code"
@@ -539,14 +845,13 @@ export default function OfficerRegisterScreen() {
             </Col>
           </Row>
 
-          {/* Submit Button */}
           <CustomButton
             text={loading ? "Registering..." : "Register"}
             bgColor="primary.main"
             color="background.default"
             type="submit"
             width="50%"
-            disabled={loading}
+            disabled={loading || !isEmailOtpVerified || !isMobileOtpVerified}
             startIcon={
               loading && <CircularProgress size={20} color="inherit" />
             }
@@ -562,7 +867,6 @@ export default function OfficerRegisterScreen() {
             }}
           />
 
-          {/* Login Link */}
           <Box sx={{ textAlign: "center", mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Already have an account?{" "}
@@ -583,11 +887,14 @@ export default function OfficerRegisterScreen() {
         </Box>
       </Container>
 
-      {/* OTP Modal */}
       <OtpModal
         open={isOtpModalOpen}
-        onClose={() => setIsOtpModalOpen(false)}
+        onClose={() => {
+          setIsOtpModalOpen(false);
+          setOtpType(null);
+        }}
         onSubmit={handleOtpSubmit}
+        title={`Enter ${otpType === "email" ? "Email" : "Mobile"} OTP`}
         aria-labelledby="otp-modal-title"
         sx={{
           maxWidth: 400,
@@ -598,7 +905,6 @@ export default function OfficerRegisterScreen() {
         }}
       />
 
-      {/* Toast Container */}
       <ToastContainer />
     </Box>
   );

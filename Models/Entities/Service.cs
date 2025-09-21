@@ -11,7 +11,7 @@ public partial class Service
 
     public string? NameShort { get; set; }
 
-    public string? Department { get; set; }
+    public int? DepartmentId { get; set; }
 
     public string? FormElement { get; set; }
 

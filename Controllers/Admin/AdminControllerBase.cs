@@ -24,10 +24,13 @@ namespace SahayataNidhi.Controllers.Admin
             var Admin = dbcontext.Users.FirstOrDefault(u => u.UserId.ToString() == userId);
             var additionalDetails = JsonConvert.DeserializeObject<Dictionary<string, object>>(Admin?.AdditionalDetails ?? "{}");
             string AdminDesignation = additionalDetails!.TryGetValue("Role", out var roleObj) ? roleObj?.ToString() ?? "Unknown" : "Unknown";
+            int departmentId = Convert.ToInt32(additionalDetails["Department"]);
+            var department = dbcontext.Departments.FirstOrDefault(d => d.DepartmentId == departmentId);
             string Profile = Admin!.Profile!;
             ViewData["AdminType"] = AdminDesignation;
             ViewData["UserName"] = Admin!.Username;
             ViewData["Profile"] = Profile == "" ? "/assets/dummyDocs/formImage.jpg" : Profile;
+            ViewData["Department"] = department?.DepartmentName ?? "Unknown";
         }
 
         public OfficerDetailsModal? GetOfficerDetails()

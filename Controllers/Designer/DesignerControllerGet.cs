@@ -39,6 +39,7 @@ namespace SahayataNidhi.Controllers
 
             foreach (var item in pagedData)
             {
+                var department = dbcontext.Departments.FirstOrDefault(d => d.DepartmentId == item.DepartmentId)?.DepartmentName ?? "N/A";
                 var actions = new List<dynamic>
                 {
                     new
@@ -54,7 +55,7 @@ namespace SahayataNidhi.Controllers
                 {
                     sno = (pageIndex * pageSize) + index + 1,
                     servicename = item.ServiceName,
-                    department = item.Department,
+                    department = department,
                     serviceId = item.ServiceId,
                     isActive = item.Active,
                     customActions = actions,

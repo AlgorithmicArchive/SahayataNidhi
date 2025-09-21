@@ -192,7 +192,7 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "JAMMU AND KASHMIR BANK LIMITED",
+          value: "",
         },
         {
           label: "Branch Name",
@@ -202,7 +202,7 @@ export default function Form() {
         {
           label: "IFSC Code",
           name: "IfscCode",
-          value: "JAKA0KEEPER",
+          value: "",
         },
         {
           label: "Account Number",
@@ -414,7 +414,7 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "JAMMU AND KASHMIR BANK LIMITED",
+          value: "",
         },
         {
           label: "Branch Name",
@@ -424,7 +424,7 @@ export default function Form() {
         {
           label: "IFSC Code",
           name: "IfscCode",
-          value: "JAKA0KEEPER",
+          value: "",
         },
         {
           label: "Account Number",
@@ -615,7 +615,7 @@ export default function Form() {
         {
           label: "Bank",
           name: "BankName",
-          value: "JAMMU AND KASHMIR BANK LIMITED",
+          value: "",
         },
         {
           label: "Branch Name",
@@ -625,7 +625,7 @@ export default function Form() {
         {
           label: "IFSC Code",
           name: "IfscCode",
-          value: "JAKA0KEEPER",
+          value: "",
         },
         {
           label: "Account Number",

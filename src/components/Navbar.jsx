@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { Navbar, Nav, NavDropdown, Container } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { UserContext } from "../UserContext";
@@ -8,6 +8,7 @@ const MyNavbar = () => {
   const [expanded, setExpanded] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const timeoutRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -34,6 +35,15 @@ const MyNavbar = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleLogout = () => {
     setToken(null);
     setUserType(null);
@@ -51,11 +61,23 @@ const MyNavbar = () => {
   };
 
   const handleMouseEnter = (itemName) => {
-    if (!isSmallScreen) setHoveredItem(itemName); // Only for large screens
+    if (!isSmallScreen) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      setHoveredItem(itemName);
+    }
   };
 
   const handleMouseLeave = () => {
-    if (!isSmallScreen) setHoveredItem(null); // Only for large screens
+    if (!isSmallScreen) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        setHoveredItem(null);
+      }, 200);
+    }
   };
 
   const getNavItemStyle = (itemName, path = null) => {
@@ -179,16 +201,23 @@ const MyNavbar = () => {
                         : hoveredItem === "application-status"
                     }
                   >
-                    <NavDropdown.Item
-                      onClick={() => handleNavigate("/user/initiated")}
+                    <div
+                      onMouseEnter={() =>
+                        handleMouseEnter("application-status")
+                      }
+                      onMouseLeave={handleMouseLeave}
                     >
-                      Initiated Applications
-                    </NavDropdown.Item>
-                    <NavDropdown.Item
-                      onClick={() => handleNavigate("/user/incomplete")}
-                    >
-                      Incomplete Applications
-                    </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() => handleNavigate("/user/initiated")}
+                      >
+                        Initiated Applications
+                      </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() => handleNavigate("/user/incomplete")}
+                      >
+                        Incomplete Applications
+                      </NavDropdown.Item>
+                    </div>
                   </NavDropdown>
                 </div>
               </>
@@ -233,11 +262,16 @@ const MyNavbar = () => {
                         : hoveredItem === "dsc-management"
                     }
                   >
-                    <NavDropdown.Item
-                      onClick={() => handleNavigate("/officer/registerdsc")}
+                    <div
+                      onMouseEnter={() => handleMouseEnter("dsc-management")}
+                      onMouseLeave={handleMouseLeave}
                     >
-                      Register DSC
-                    </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() => handleNavigate("/officer/registerdsc")}
+                      >
+                        Register DSC
+                      </NavDropdown.Item>
+                    </div>
                   </NavDropdown>
                 </div>
                 {officerAuthorities &&
@@ -261,95 +295,120 @@ const MyNavbar = () => {
                             : hoveredItem === "bankfiles-management"
                         }
                       >
-                        <NavDropdown.Item
-                          onClick={() => handleNavigate("/officer/bankFile")}
-                        >
-                          Create Bank File
-                        </NavDropdown.Item>
-                        <NavDropdown.Item
-                          onClick={() =>
-                            handleNavigate("/officer/responseFile")
+                        <div
+                          onMouseEnter={() =>
+                            handleMouseEnter("bankfiles-management")
                           }
+                          onMouseLeave={handleMouseLeave}
                         >
-                          Update Bank Response File
-                        </NavDropdown.Item>
+                          <NavDropdown.Item
+                            onClick={() => handleNavigate("/officer/bankFile")}
+                          >
+                            Create Bank File
+                          </NavDropdown.Item>
+                          <NavDropdown.Item
+                            onClick={() =>
+                              handleNavigate("/officer/responseFile")
+                            }
+                          >
+                            Update Bank Response File
+                          </NavDropdown.Item>
+                        </div>
                       </NavDropdown>
                     </div>
                   )}
                 <NavDropdown
                   title="Applications Updations"
                   id="applications-dropdown"
+                  show={
+                    isSmallScreen ? undefined : hoveredItem === "applications"
+                  }
                   onMouseEnter={() => handleMouseEnter("applications")}
                   onMouseLeave={handleMouseLeave}
                 >
-                  {officerAuthorities?.canCorrigendum && (
-                    <NavDropdown.Item
-                      as={Link}
-                      to="/officer/issuecorrigendum"
-                      style={getNavItemStyle(
-                        "officer-corrigendum",
-                        "/officer/corrigendum",
-                      )}
-                      onClick={() => setExpanded(false)}
-                    >
-                      Alteration
-                    </NavDropdown.Item>
-                  )}
-                  {officerAuthorities.canWithhold && (
-                    <NavDropdown.Item
-                      as={Link}
-                      to="/officer/withheld"
-                      style={getNavItemStyle(
-                        "officer-withheld",
-                        "/officer/withheld",
-                      )}
-                      onClick={() => setExpanded(false)}
-                    >
-                      Withheld Application
-                    </NavDropdown.Item>
-                  )}
-                  {officerAuthorities.canValidateAadhaar && (
-                    <NavDropdown.Item
-                      as={Link}
-                      to="/officer/validateaadhaar"
-                      style={getNavItemStyle(
-                        "officer-validateaadhaar",
-                        "/officer/validateaadhaar",
-                      )}
-                      onClick={() => setExpanded(false)}
-                    >
-                      Validate Aadhaar
-                    </NavDropdown.Item>
-                  )}
+                  <div
+                    onMouseEnter={() => handleMouseEnter("applications")}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    {officerAuthorities?.canCorrigendum && (
+                      <NavDropdown.Item
+                        as={Link}
+                        to="/officer/issuecorrigendum"
+                        style={getNavItemStyle(
+                          "officer-corrigendum",
+                          "/officer/corrigendum",
+                        )}
+                        onClick={() => setExpanded(false)}
+                      >
+                        Alteration
+                      </NavDropdown.Item>
+                    )}
+                    {officerAuthorities.canWithhold && (
+                      <NavDropdown.Item
+                        as={Link}
+                        to="/officer/withheld"
+                        style={getNavItemStyle(
+                          "officer-withheld",
+                          "/officer/withheld",
+                        )}
+                        onClick={() => setExpanded(false)}
+                      >
+                        Withheld Application
+                      </NavDropdown.Item>
+                    )}
+                    {officerAuthorities.canValidateAadhaar && (
+                      <NavDropdown.Item
+                        as={Link}
+                        to="/officer/validateaadhaar"
+                        style={getNavItemStyle(
+                          "officer-validateaadhaar",
+                          "/officer/validateaadhaar",
+                        )}
+                        onClick={() => setExpanded(false)}
+                      >
+                        Validate Aadhaar
+                      </NavDropdown.Item>
+                    )}
+                  </div>
                 </NavDropdown>
                 <NavDropdown
                   title="View Applications"
                   id="view-applications-dropdown"
-                  onMouseEnter={() => handleMouseEnter("applications")}
+                  show={
+                    isSmallScreen
+                      ? undefined
+                      : hoveredItem === "view-applications"
+                  }
+                  onMouseEnter={() => handleMouseEnter("view-applications")}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <NavDropdown.Item
-                    as={Link}
-                    to="/officer/aadhaarvalidations"
-                    style={getNavItemStyle(
-                      "officer-aadhaarvalidations",
-                      "/officer/aadhaarvalidations",
-                    )}
-                    onClick={() => setExpanded(false)}
+                  <div
+                    onMouseEnter={() => handleMouseEnter("view-applications")}
+                    onMouseLeave={handleMouseLeave}
                   >
-                    Aadhaar Validations
-                  </NavDropdown.Item>
-                  <NavDropdown.Item
-                    as={Link}
-                    to="/officer/searchapplication"
-                    style={getNavItemStyle(
-                      "officer-searchapplication",
-                      "/officer/searchapplication",
-                    )}
-                    onClick={() => setExpanded(false)}
-                  >
-                    Search Application
-                  </NavDropdown.Item>
+                    <NavDropdown.Item
+                      as={Link}
+                      to="/officer/aadhaarvalidations"
+                      style={getNavItemStyle(
+                        "officer-aadhaarvalidations",
+                        "/officer/aadhaarvalidations",
+                      )}
+                      onClick={() => setExpanded(false)}
+                    >
+                      Aadhaar Validations
+                    </NavDropdown.Item>
+                    <NavDropdown.Item
+                      as={Link}
+                      to="/officer/searchapplication"
+                      style={getNavItemStyle(
+                        "officer-searchapplication",
+                        "/officer/searchapplication",
+                      )}
+                      onClick={() => setExpanded(false)}
+                    >
+                      Search Application
+                    </NavDropdown.Item>
+                  </div>
                 </NavDropdown>
               </>
             )}
@@ -406,16 +465,36 @@ const MyNavbar = () => {
                 >
                   Reports
                 </Nav.Link>
-                <Nav.Link
-                  as={Link}
-                  to="/admin/addadmin"
-                  style={getNavItemStyle("admin-addadmin", "/admin/addadmin")}
-                  onClick={() => setExpanded(false)}
-                  onMouseEnter={() => handleMouseEnter("admin-addadmin")}
+                <div
+                  onMouseEnter={() => handleMouseEnter("admin-add")}
                   onMouseLeave={handleMouseLeave}
                 >
-                  Add Admin
-                </Nav.Link>
+                  <NavDropdown
+                    title={
+                      <span style={getNavItemStyle("add-admin")}>Add</span>
+                    }
+                    id="admin-add"
+                    show={
+                      isSmallScreen ? undefined : hoveredItem === "admin-add"
+                    }
+                  >
+                    <div
+                      onMouseEnter={() => handleMouseEnter("admin-add")}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <NavDropdown.Item
+                        onClick={() => handleNavigate("/admin/addadmin")}
+                      >
+                        Admin
+                      </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() => handleNavigate("/admin/addDesignations")}
+                      >
+                        Designation
+                      </NavDropdown.Item>
+                    </div>
+                  </NavDropdown>
+                </div>
                 <Nav.Link
                   as={Link}
                   to="/admin/validateofficer"
@@ -477,45 +556,58 @@ const MyNavbar = () => {
                         : hoveredItem === "designer-create"
                     }
                   >
-                    <NavDropdown.Item
-                      onClick={() => handleNavigate("/designer/createservice")}
+                    <div
+                      onMouseEnter={() => handleMouseEnter("designer-create")}
+                      onMouseLeave={handleMouseLeave}
                     >
-                      Service
-                    </NavDropdown.Item>
-                    <NavDropdown.Item
-                      onClick={() => handleNavigate("/designer/createworkflow")}
-                    >
-                      Workflow
-                    </NavDropdown.Item>
-                    <NavDropdown.Item
-                      onClick={() => handleNavigate("/designer/corrections")}
-                    >
-                      Corrections/Corrigendum
-                    </NavDropdown.Item>
-                    <NavDropdown.Item
-                      onClick={() =>
-                        handleNavigate("/designer/createletterpdf")
-                      }
-                    >
-                      Letter Pdf
-                    </NavDropdown.Item>
-                    <NavDropdown.Item
-                      onClick={() =>
-                        handleNavigate("/designer/createwebservice")
-                      }
-                    >
-                      Web Service
-                    </NavDropdown.Item>
-                    <NavDropdown.Item
-                      onClick={() => handleNavigate("/designer/emailsettings")}
-                    >
-                      Email
-                    </NavDropdown.Item>
-                    <NavDropdown.Item
-                      onClick={() => handleNavigate("/designer/createreports")}
-                    >
-                      Create Reports
-                    </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() =>
+                          handleNavigate("/designer/createservice")
+                        }
+                      >
+                        Service
+                      </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() =>
+                          handleNavigate("/designer/createworkflow")
+                        }
+                      >
+                        Workflow
+                      </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() => handleNavigate("/designer/corrections")}
+                      >
+                        Corrections/Corrigendum
+                      </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() =>
+                          handleNavigate("/designer/createletterpdf")
+                        }
+                      >
+                        Letter Pdf
+                      </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() =>
+                          handleNavigate("/designer/createwebservice")
+                        }
+                      >
+                        Web Service
+                      </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() =>
+                          handleNavigate("/designer/emailsettings")
+                        }
+                      >
+                        Email
+                      </NavDropdown.Item>
+                      <NavDropdown.Item
+                        onClick={() =>
+                          handleNavigate("/designer/createreports")
+                        }
+                      >
+                        Create Reports
+                      </NavDropdown.Item>
+                    </div>
                   </NavDropdown>
                 </div>
               </>
@@ -545,12 +637,19 @@ const MyNavbar = () => {
                   id="profile-dropdown"
                   show={isSmallScreen ? undefined : hoveredItem === "profile"}
                 >
-                  <NavDropdown.Item onClick={() => handleNavigate("/settings")}>
-                    Settings
-                  </NavDropdown.Item>
-                  <NavDropdown.Item onClick={handleLogout}>
-                    Logout
-                  </NavDropdown.Item>
+                  <div
+                    onMouseEnter={() => handleMouseEnter("profile")}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <NavDropdown.Item
+                      onClick={() => handleNavigate("/settings")}
+                    >
+                      Settings
+                    </NavDropdown.Item>
+                    <NavDropdown.Item onClick={handleLogout}>
+                      Logout
+                    </NavDropdown.Item>
+                  </div>
                 </NavDropdown>
               </div>
             </Nav>

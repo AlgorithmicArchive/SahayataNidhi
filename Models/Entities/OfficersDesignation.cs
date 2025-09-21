@@ -7,6 +7,8 @@ public partial class OfficersDesignation
 {
     public int Uuid { get; set; }
 
+    public int? DepartmentId { get; set; }
+
     public string? Designation { get; set; }
 
     public string? DesignationShort { get; set; }

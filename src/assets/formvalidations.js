@@ -30,57 +30,12 @@ export function specificLength(field, value) {
   return true;
 }
 
-export function isAgeGreaterThan(field, value, formData) {
-  console.log(field, value, formData);
-  let maxLengthValue;
-
-  // If maxLength is an object with a dependentOn key, get the dependent field's value.
-  if (typeof field.maxLength === "object" && field.maxLength.dependentOn) {
-    // Use the dependentOn field id to look up its current value in formData.
-    const dependentFieldId = field.maxLength.dependentOn; // e.g., "PensionType"
-    const dependentValue = formData[dependentFieldId];
-    if (!dependentValue) {
-      return `Dependent field (${dependentFieldId}) value is missing.`;
-    }
-    maxLengthValue = field.maxLength[dependentValue];
-    if (maxLengthValue === undefined) {
-      return `No maximum length defined for option (${dependentValue}).`;
-    }
-  } else {
-    maxLengthValue = field.maxLength;
-  }
-  const currentDate = new Date();
-  const compareDate = new Date(
-    currentDate.getFullYear() - maxLengthValue,
-    currentDate.getMonth(),
-    currentDate.getDate(),
-  );
-  const inputDate = new Date(value);
-  if (inputDate >= compareDate) {
-    return `Age should be greater than or equal to ${maxLengthValue}.`;
-  }
-  return true;
-}
-
 export function isEmailValid(field, value) {
-  if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+  if (
+    value.length > 0 &&
+    !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)
+  ) {
     return "Invalid Email Address.";
-  }
-  return true;
-}
-
-export function isDateWithinRange(field, value) {
-  const dateOfMarriage = new Date(value);
-  const currentDate = new Date();
-
-  const minDate = new Date(currentDate);
-  minDate.setMonth(currentDate.getMonth() + parseInt(field.minLength));
-
-  const maxDate = new Date(currentDate);
-  maxDate.setMonth(currentDate.getMonth() + parseInt(field.maxLength));
-
-  if (dateOfMarriage < minDate || dateOfMarriage > maxDate) {
-    return `The date should be between ${field.minLength} to ${field.maxLength} months from current date.`;
   }
   return true;
 }
@@ -121,36 +76,41 @@ export async function validateIfscCode(
   referenceNumber,
   setValue,
 ) {
-  // Access BankName and IfscCode directly from formData
-  const bankName = formData.BankName;
   const ifscCode = formData.IfscCode;
 
-  // Ensure both values exist before making the API call
-  if (!bankName || !ifscCode) {
-    return "Bank Name or IFSC Code is missing.";
+  // Ensure IFSC code exists
+  if (!ifscCode) {
+    return "IFSC Code is missing.";
   }
 
   try {
-    const res = await fetch(
-      `/Base/ValidateIfscCode?bankName=${encodeURIComponent(
-        bankName,
-      )}&ifscCode=${ifscCode}`,
-    );
+    const res = await fetch(`/Base/GetBankDetails?IfscCode=${ifscCode}`);
+
+    if (!res.ok) {
+      if (res.status === 404) {
+        setValue("BranchName", "", {
+          shouldValidate: true,
+        });
+        $("#" + brabchId).removeAttr("readonly");
+      }
+      return `Error: ${res.status} ${res.statusText}`;
+    }
+
     const data = await res.json();
 
-    if (!data.status) {
-      return "IFSC Code is incorrect or doesn't belong to the selected Bank.";
+    const brabchId = "field-1740199859569";
+
+    // Check if bank details are returned
+    if (!data || !data.status || !data.bankDetails) {
+      return "IFSC Code is incorrect or branch details not available.";
     }
 
-    // Update BranchName if the API returns it
-    if (data.branchName) {
-      setValue("BranchName", data.branchName, { shouldValidate: true });
-    }
+    // Update BranchName from API response
+    setValue("BranchName", data.bankDetails.branch, { shouldValidate: true });
 
     return true;
   } catch (error) {
     console.error("Error validating IFSC:", error);
-    return "Failed to validate IFSC Code.";
   }
 }
 
@@ -190,20 +150,106 @@ export function range(field, value) {
   }
 }
 
-export function isDateAfterCurrentDate(field, value, formData) {
-  const inputDate = new Date(value);
-  const currentDate = new Date();
+// Helper function to parse DD/MM/YYYY and return a Date object
+function parseDDMMYYYY(value) {
+  const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  const match = value.match(datePattern);
 
-  // Zero out time to compare only dates
-  inputDate.setHours(0, 0, 0, 0);
+  if (!match) return null;
+
+  const [, day, month, year] = match.map(Number);
+  const date = new Date(year, month - 1, day);
+
+  // Check for invalid dates like 31/02/2025
+  if (isNaN(date.getTime()) || date.getDate() !== day) return null;
+
+  date.setHours(0, 0, 0, 0); // zero out time
+  return date;
+}
+
+export function isAgeGreaterThan(field, value, formData) {
+  let maxLengthValue;
+
+  // Determine maxLength based on dependent field if needed
+  if (typeof field.maxLength === "object" && field.maxLength.dependentOn) {
+    const dependentFieldId = field.maxLength.dependentOn;
+    const dependentValue = formData[dependentFieldId];
+    if (!dependentValue) {
+      return `Dependent field (${dependentFieldId}) value is missing.`;
+    }
+    maxLengthValue = field.maxLength[dependentValue];
+    if (maxLengthValue === undefined) {
+      return `No maximum length defined for option (${dependentValue}).`;
+    }
+  } else {
+    maxLengthValue = field.maxLength;
+  }
+
+  // Parse the input date
+  const inputDate = parseDDMMYYYY(value);
+  if (!inputDate) {
+    return `${field.label || "Date"} must be in DD/MM/YYYY format and valid.`;
+  }
+
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+
+  // Compute the date that corresponds to the minimum age
+  const compareDate = new Date(
+    currentDate.getFullYear() - maxLengthValue,
+    currentDate.getMonth(),
+    currentDate.getDate(),
+  );
+  compareDate.setHours(0, 0, 0, 0);
+
+  if (inputDate >= compareDate) {
+    return `Age should be greater than or equal to ${maxLengthValue}.`;
+  }
+
+  return true;
+}
+
+// 1. Check if date is within a range of months from current date
+export function isDateWithinRange(field, value) {
+  const dateOfMarriage = parseDDMMYYYY(value);
+  if (!dateOfMarriage) {
+    return `${field.label || "Date"} must be in DD/MM/YYYY format and valid.`;
+  }
+
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+
+  const minDate = new Date(currentDate);
+  minDate.setMonth(currentDate.getMonth() + parseInt(field.minLength));
+
+  const maxDate = new Date(currentDate);
+  maxDate.setMonth(currentDate.getMonth() + parseInt(field.maxLength));
+
+  if (dateOfMarriage < minDate || dateOfMarriage > maxDate) {
+    return `The date should be between ${field.minLength} to ${field.maxLength} months from current date.`;
+  }
+
+  return true;
+}
+
+export function isDateAfterCurrentDate(field, value, formData) {
+  const inputDate = parseDDMMYYYY(value);
+  if (!inputDate) {
+    return `${field.label || "Date"} must be in DD/MM/YYYY format and valid.`;
+  }
+
+  const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
 
   if (inputDate <= currentDate) {
     return `${field.label || "Date"} must be after the current date.`;
   }
 
-  if (field.name == "IfTemporaryDisabilityUdidCardValidUpto") {
-    const issueDate = new Date(formData["UdidCardIssueDate"]);
+  if (field.name === "IfTemporaryDisabilityUdidCardValidUpto") {
+    const issueDate = parseDDMMYYYY(formData["UdidCardIssueDate"]);
+    if (!issueDate) {
+      return `UDID Card Issue Date must be in DD/MM/YYYY format and valid.`;
+    }
     if (inputDate <= issueDate) {
       return `${field.label || "Date"} must be after the UDID Card Issue date.`;
     }
@@ -212,12 +258,14 @@ export function isDateAfterCurrentDate(field, value, formData) {
   return true;
 }
 
+// 3. Check if date is before the current date
 export function isDateBeforeCurrentDate(field, value) {
-  const inputDate = new Date(value);
-  const currentDate = new Date();
+  const inputDate = parseDDMMYYYY(value);
+  if (!inputDate) {
+    return `${field.label || "Date"} must be in DD/MM/YYYY format and valid.`;
+  }
 
-  // Zero out time to compare only dates
-  inputDate.setHours(0, 0, 0, 0);
+  const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
 
   if (inputDate >= currentDate) {

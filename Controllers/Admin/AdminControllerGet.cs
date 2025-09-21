@@ -33,10 +33,11 @@ namespace SahayataNidhi.Controllers.Admin
                 var accessCode = new SqlParameter("@AccessCode", AccessCode);
                 var serviceId = new SqlParameter("@ServiceId", ServiceId);
                 var accessLevel = new SqlParameter("@AccessLevel", "District");
+                var dataType = new SqlParameter("@DataType", "new");
 
                 // Execute the stored procedure
                 var response = dbcontext.Database
-                    .SqlQueryRaw<SummaryReports>("EXEC GetApplicationsForReport @AccessCode, @ServiceId, @AccessLevel", accessCode, serviceId, accessLevel)
+                    .SqlQueryRaw<SummaryReports>("EXEC GetApplicationsForReport @AccessCode, @ServiceId, @AccessLevel, @DataType", accessCode, serviceId, accessLevel, dataType)
                     .ToList();
 
                 _logger.LogInformation($"Fetched {response.Count} records for AccessCode: {AccessCode}, ServiceId: {ServiceId}, Response: {JsonConvert.SerializeObject(response)}");
@@ -103,12 +104,13 @@ namespace SahayataNidhi.Controllers.Admin
 
                 var accessLevelParam = new SqlParameter("@AccessLevel", officer.AccessLevel ?? (object)DBNull.Value);
                 var accessCodeParam = new SqlParameter("@AccessCode", officer.AccessCode);
+                var dataTypeParam = new SqlParameter("@DataType", "new");
+                var departmentParam = new SqlParameter("@Department", officer.Department);
 
                 var result = dbcontext.Database
                 .SqlQueryRaw<DashboardData>(
-                    "EXEC GetCountForAdmin @AccessLevel, @AccessCode",
-                    new SqlParameter("@AccessLevel", officer.AccessLevel ?? (object)DBNull.Value),
-                    new SqlParameter("@AccessCode", officer.AccessCode)
+                    "EXEC GetCountForAdmin @AccessLevel, @AccessCode, @DataType, @Department",
+                   accessLevelParam, accessCodeParam, dataTypeParam, departmentParam
                 )
                 .AsEnumerable() // 👈 Move execution to client-side
                 .FirstOrDefault(); // Now safe to use
@@ -148,68 +150,94 @@ namespace SahayataNidhi.Controllers.Admin
         [HttpGet]
         public IActionResult GetOfficersList(int pageIndex = 0, int pageSize = 10)
         {
-            var officer = GetOfficerDetails();
-            if (officer == null)
+            try
             {
-                return BadRequest(new { error = "Officer details not found" });
+                var officer = GetOfficerDetails();
+                if (officer == null)
+                {
+                    return BadRequest(new { error = "Officer details not found" });
+                }
+
+                // Validate Department (optional, depending on requirements)
+                if (officer.Department == null)
+                {
+                    return BadRequest(new { error = "Department ID is required" });
+                }
+
+                // Prepare parameters for the stored procedure
+                var accessLevelParam = new SqlParameter("@AccessLevel", officer.AccessLevel ?? (object)DBNull.Value);
+                var accessCodeParam = new SqlParameter("@AccessCode", officer.AccessCode);
+                var departmentParam = new SqlParameter("@Department", officer.Department ?? (object)DBNull.Value);
+
+                // Execute the stored procedure
+                var response = dbcontext.Database
+                    .SqlQueryRaw<OfficerByAccessLevel>(
+                        "EXEC GetOfficersByAccessLevel @AccessLevel, @AccessCode, @Department",
+                        accessLevelParam, accessCodeParam, departmentParam
+                    )
+                    .ToList();
+
+                // Pagination
+                var totalRecords = response.Count;
+                var pagedData = response
+                    .Skip(pageIndex * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // Columns for frontend
+                var columns = new List<object>
+            {
+                new { accessorKey = "name", header = "Name" },
+                new { accessorKey = "username", header = "Username" },
+                new { accessorKey = "email", header = "Email" },
+                new { accessorKey = "mobileNumber", header = "Mobile Number" },
+                new { accessorKey = "designation", header = "Designation" },
+                new { accessorKey = "accessLevel", header = "Officer Level" },
+                new { accessorKey = "accessArea", header = "Officer Area" }
+            };
+
+                // Custom actions for validation
+                var customActions = new List<dynamic>
+            {
+                new
+                {
+                    type = "Validate",
+                    tooltip = "Validate",
+                    color = "#F0C38E",
+                    actionFunction = "ValidateOfficer"
+                }
+            };
+
+                // Shape the data
+                var data = pagedData.Select(item => new
+                {
+                    name = item.Name,
+                    username = item.Username,
+                    email = item.Email,
+                    mobileNumber = item.MobileNumber,
+                    designation = item.Designation,
+                    accessLevel = item.AccessLevel,
+                    accessArea = GetArea(item.AccessLevel!, Convert.ToInt32(item.AccessCode)),
+                    customActions = Convert.ToBoolean(item.IsValidated) ? (object)"Validated" : customActions
+                }).ToList();
+
+                return Json(new
+                {
+                    data,
+                    columns,
+                    totalRecords
+                });
             }
-
-
-            var response = dbcontext.Database
-            .SqlQueryRaw<OfficerByAccessLevel>(
-                "EXEC GetOfficersByAccessLevel @AccessLevel, @AccessCode",
-                new SqlParameter("@AccessLevel", officer.AccessLevel ?? (object)DBNull.Value),
-                new SqlParameter("@AccessCode", officer.AccessCode)
-            ).ToList();
-
-            var totalRecords = response.Count;
-            var pagedData = response
-                .Skip(pageIndex * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            // Columns (for frontend)
-            var columns = new List<object>
-                {
-                    new { accessorKey = "name", header = "Name" },
-                    new { accessorKey = "username", header = "Username" },
-                    new { accessorKey = "email", header = "Email" },
-                    new { accessorKey = "mobileNumber", header = "Mobile Number" },
-                    new { accessorKey = "designation", header = "Designation" },
-                    new { accessorKey = "accessLevel", header = "Officer Level" },
-                    new { accessorKey = "accessArea", header = "Officer Area" }
-                };
-
-            var customActions = new List<dynamic>
-                {
-                    new
-                    {
-                        type = "Validate",
-                        tooltip = "Validate",
-                        color = "#F0C38E",
-                        actionFunction = "ValidateOfficer"
-                    }
-                };
-            // Shape the data
-            var data = pagedData.Select(item => new
+            catch (Exception ex)
             {
-                name = item.Name,
-                username = item.Username,
-                email = item.Email,
-                mobileNumber = item.MobileNumber,
-                designation = item.Designation,
-                accessLevel = item.AccessLevel,
-                accessArea = GetArea(item.AccessLevel!, Convert.ToInt32(item.AccessCode)),
-                customActions = Convert.ToBoolean(item.IsValidated) ? (object)"Validated" : customActions
-            }).ToList();
-
-            return Json(new
-            {
-                data,
-                columns,
-                totalRecords
-            });
-
+                // Log the exception (use your logging framework, e.g., Serilog, NLog)
+                // Example: _logger.LogError(ex, "Error fetching officers list");
+                return StatusCode(500, new
+                {
+                    error = "An error occurred while fetching officers list",
+                    details = ex.Message
+                });
+            }
         }
 
         [HttpGet]
@@ -302,118 +330,140 @@ namespace SahayataNidhi.Controllers.Admin
         }
 
         [HttpGet]
-        public IActionResult GetApplicationsList(int pageIndex, int pageSize = 10)
+        public IActionResult GetApplicationsList(int pageIndex = 0, int pageSize = 10)
         {
-            var officer = GetOfficerDetails();
-            if (officer == null)
+            try
             {
-                return BadRequest(new { error = "Officer details not found" });
-            }
-
-            var response = dbcontext.Database
-                .SqlQueryRaw<ApplicationByAccessLevel>(
-                    "EXEC GetApplicationsByAccessLevel @AccessLevel, @AccessCode",
-                    new SqlParameter("@AccessLevel", officer.AccessLevel ?? (object)DBNull.Value),
-                    new SqlParameter("@AccessCode", officer.AccessCode)
-                ).ToList();
-
-            var totalRecords = response.Count;
-            var pagedData = response
-                .Skip(pageIndex * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            // Use HashSet to avoid duplicate columns
-            var columnsSet = new HashSet<string>();
-            var columns = new List<object>();
-            var data = new List<Dictionary<string, object>>();
-
-            foreach (var item in pagedData)
-            {
-                var dataDict = new Dictionary<string, object>();
-
-                dataDict["ReferenceNumber"] = item.ReferenceNumber!;
-
-                // Add column for ReferenceNumber once
-                if (columnsSet.Add("ReferenceNumber"))
-                    columns.Insert(0, new { accessorKey = "ReferenceNumber", header = "Reference Number" });
-
-                if (!string.IsNullOrWhiteSpace(item.FormDetails))
+                var officer = GetOfficerDetails();
+                if (officer == null)
                 {
-                    var formData = JsonConvert.DeserializeObject<Dictionary<string, List<JObject>>>(item.FormDetails!);
+                    return BadRequest(new { error = "Officer details not found" });
+                }
 
-                    foreach (var section in formData!)
+                // Prepare parameters for the stored procedure
+                var accessLevelParam = new SqlParameter("@AccessLevel", officer.AccessLevel ?? (object)DBNull.Value);
+                var accessCodeParam = new SqlParameter("@AccessCode", officer.AccessCode);
+                var dataTypeParam = new SqlParameter("@DataType", (object)"new" ?? DBNull.Value);
+                var departmentParam = new SqlParameter("@Department", officer.Department ?? (object)DBNull.Value);
+
+                // Execute the stored procedure
+                var response = dbcontext.Database
+                    .SqlQueryRaw<ApplicationByAccessLevel>(
+                        "EXEC GetApplicationsByAccessLevel @AccessLevel, @AccessCode, @DataType, @Department",
+                        accessLevelParam, accessCodeParam, dataTypeParam, departmentParam
+                    )
+                    .ToList();
+
+                // Pagination
+                var totalRecords = response.Count;
+                var pagedData = response
+                    .Skip(pageIndex * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // Use HashSet to avoid duplicate columns
+                var columnsSet = new HashSet<string>();
+                var columns = new List<object>();
+                var data = new List<Dictionary<string, object>>();
+
+                foreach (var item in pagedData)
+                {
+                    var dataDict = new Dictionary<string, object>();
+
+                    dataDict["ReferenceNumber"] = item.ReferenceNumber!;
+
+                    // Add column for ReferenceNumber once
+                    if (columnsSet.Add("ReferenceNumber"))
+                        columns.Insert(0, new { accessorKey = "ReferenceNumber", header = "Reference Number" });
+
+                    if (!string.IsNullOrWhiteSpace(item.FormDetails))
                     {
-                        foreach (var field in section.Value)
+                        var formData = JsonConvert.DeserializeObject<Dictionary<string, List<JObject>>>(item.FormDetails!);
+
+                        foreach (var section in formData!)
                         {
-                            string? accessorKey = field["name"]?.ToString();
-                            string? header = field["label"]?.ToString();
-                            if (accessorKey!.Contains("Tehsil") || accessorKey.Contains("District") || accessorKey.Contains("Block") ||
-                                accessorKey!.Contains("Muncipality") || accessorKey.Contains("WardNo") || accessorKey.Contains("Village"))
+                            foreach (var field in section.Value)
                             {
-                                field["value"] = GetAreaName(Convert.ToInt32(field["value"]), accessorKey);
-                            }
-
-                            if (!string.IsNullOrWhiteSpace(accessorKey) && !string.IsNullOrWhiteSpace(header))
-                            {
-                                // Add value
-                                if (field["value"] != null)
-                                    dataDict[accessorKey] = field["value"]!;
-                                else if (field["File"] != null)
-                                    dataDict[accessorKey] = System.IO.Path.GetFileName(field["File"]!.ToString());
-
-                                // Add column if not already added
-                                if (columnsSet.Add(accessorKey))
-                                    columns.Add(new { accessorKey, header });
-
-                                // Handle nested additionalFields
-                                if (field["additionalFields"] is JArray additionalFields)
+                                string? accessorKey = field["name"]?.ToString();
+                                string? header = field["label"]?.ToString();
+                                if (accessorKey!.Contains("Tehsil") || accessorKey.Contains("District") || accessorKey.Contains("Block") ||
+                                    accessorKey!.Contains("Muncipality") || accessorKey.Contains("WardNo") || accessorKey.Contains("Village"))
                                 {
-                                    foreach (var af in additionalFields)
+                                    field["value"] = GetAreaName(Convert.ToInt32(field["value"]), accessorKey);
+                                }
+
+                                if (!string.IsNullOrWhiteSpace(accessorKey) && !string.IsNullOrWhiteSpace(header))
+                                {
+                                    // Add value
+                                    if (field["value"] != null)
+                                        dataDict[accessorKey] = field["value"]!;
+                                    else if (field["File"] != null)
+                                        dataDict[accessorKey] = System.IO.Path.GetFileName(field["File"]!.ToString());
+
+                                    // Add column if not already added
+                                    if (columnsSet.Add(accessorKey))
+                                        columns.Add(new { accessorKey, header });
+
+                                    // Handle nested additionalFields
+                                    if (field["additionalFields"] is JArray additionalFields)
                                     {
-                                        string? afKey = af["name"]?.ToString();
-                                        string? afLabel = af["label"]?.ToString();
-
-                                        if (afKey!.Contains("Tehsil") || afKey.Contains("District") || afKey.Contains("Block") ||
-                                            afKey!.Contains("Muncipality") || afKey.Contains("WardNo") || afKey.Contains("Village"))
+                                        foreach (var af in additionalFields)
                                         {
-                                            af["value"] = GetAreaName(Convert.ToInt32(af["value"]), afKey);
-                                        }
+                                            string? afKey = af["name"]?.ToString();
+                                            string? afLabel = af["label"]?.ToString();
 
-                                        var afValue = af["value"] ?? (af["File"] != null ? System.IO.Path.GetFileName(af["File"]!.ToString()) : null);
+                                            if (afKey!.Contains("Tehsil") || afKey.Contains("District") || afKey.Contains("Block") ||
+                                                afKey!.Contains("Muncipality") || afKey.Contains("WardNo") || afKey.Contains("Village"))
+                                            {
+                                                af["value"] = GetAreaName(Convert.ToInt32(af["value"]), afKey);
+                                            }
 
-                                        if (!string.IsNullOrWhiteSpace(afKey) && !string.IsNullOrWhiteSpace(afLabel))
-                                        {
-                                            dataDict[afKey] = afValue?.ToString() ?? "";
+                                            var afValue = af["value"] ?? (af["File"] != null ? System.IO.Path.GetFileName(af["File"]!.ToString()) : null);
 
-                                            if (columnsSet.Add(afKey))
-                                                columns.Add(new { accessorKey = afKey, header = afLabel });
+                                            if (!string.IsNullOrWhiteSpace(afKey) && !string.IsNullOrWhiteSpace(afLabel))
+                                            {
+                                                dataDict[afKey] = afValue?.ToString() ?? "";
+
+                                                if (columnsSet.Add(afKey))
+                                                    columns.Add(new { accessorKey = afKey, header = afLabel });
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+
+                    data.Add(dataDict);
                 }
 
-                data.Add(dataDict);
+                return Json(new
+                {
+                    data,
+                    columns,
+                    totalRecords
+                });
             }
-
-            return Json(new
+            catch (Exception ex)
             {
-                data,
-                columns,
-                totalRecords
-            });
+                // Log the exception (use your logging framework, e.g., Serilog, NLog)
+                // Example: _logger.LogError(ex, "Error fetching applications list for AccessLevel: {AccessLevel}, AccessCode: {AccessCode}", officer.AccessLevel, officer.AccessCode);
+                return StatusCode(500, new
+                {
+                    error = "An error occurred while fetching applications list",
+                    details = ex.Message
+                });
+            }
         }
-
 
         [HttpGet]
         public IActionResult GetServices(int pageIndex = 0, int pageSize = 10)
         {
+            var officer = GetOfficerDetails();
             // Fetch and materialize all active services
             var services = dbcontext.Services
-                .FromSqlRaw("SELECT * FROM Services WHERE Active=1")
+                .Where(s => s.DepartmentId == officer!.Department || officer.Department == null)
+                .OrderBy(s => s.ServiceName) // Optional: order by service name
                 .ToList();
 
             var totalCount = services.Count;
@@ -440,12 +490,13 @@ namespace SahayataNidhi.Controllers.Admin
             foreach (var item in pagedServices)
             {
                 int serialNo = (pageIndex * pageSize) + index + 1;
+                var department = dbcontext.Departments.FirstOrDefault(d => d.DepartmentId == item.DepartmentId)?.DepartmentName ?? "N/A";
 
                 var row = new
                 {
                     sno = serialNo,
                     servicename = item.ServiceName,
-                    department = item.Department,
+                    department,
                     serviceId = item.ServiceId,
                 };
 
@@ -461,8 +512,6 @@ namespace SahayataNidhi.Controllers.Admin
                 totalCount
             });
         }
-
-
 
         public IActionResult GetOfficerToValidate(int pageIndex = 0, int pageSize = 10)
         {
@@ -555,10 +604,11 @@ namespace SahayataNidhi.Controllers.Admin
             var officer = GetOfficerDetails();
             var additionalDetails = new
             {
-                Role = officer?.Role,
-                RoleShort = officer?.RoleShort,
-                AccessLevel = officer?.AccessLevel,
-                AccessCode = officer?.AccessCode,
+                officer?.Role,
+                officer?.RoleShort,
+                officer?.AccessLevel,
+                officer?.AccessCode,
+                officer?.Department
             };
             dynamic? districts = null;
 
@@ -583,10 +633,75 @@ namespace SahayataNidhi.Controllers.Admin
 
             return Json(new
             {
-                UserType = officer?.UserType,
+                officer?.UserType,
                 AdditionalDetails = JsonConvert.SerializeObject(additionalDetails),
                 districts
             });
+        }
+
+        public IActionResult GetDesignations(int pageIndex = 0, int pageSize = 10)
+        {
+            try
+            {
+                var officer = GetOfficerDetails();
+                if (officer == null)
+                {
+                    return BadRequest(new { error = "Officer details not found" });
+                }
+
+                // Fetch designations filtered by DepartmentId
+                var designations = dbcontext.OfficersDesignations
+                    .Where(d => d.DepartmentId == officer.Department)
+                    .Select(d => new
+                    {
+                        UUID = d.Uuid,
+                        Designation = d.Designation,
+                        DesignationShort = d.DesignationShort,
+                        AccessLevel = d.AccessLevel
+                    })
+                    .ToList();
+
+                // Pagination
+                var totalRecords = designations.Count;
+                var pagedData = designations
+                    .Skip(pageIndex * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // Define columns for the frontend
+                var columns = new List<object>
+            {
+                new { accessorKey = "uuid", header = "ID" },
+                new { accessorKey = "designation", header = "Designation" },
+                new { accessorKey = "designationShort", header = "Short Name" },
+                new { accessorKey = "accessLevel", header = "Access Level" }
+            };
+
+                // Shape data
+                var data = pagedData.Select(d => new
+                {
+                    uuid = d.UUID,
+                    designation = d.Designation,
+                    designationShort = d.DesignationShort,
+                    accessLevel = d.AccessLevel
+                }).ToList();
+
+                return Json(new
+                {
+                    data,
+                    columns,
+                    totalRecords
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (use your logging framework, e.g., Serilog, NLog)
+                return StatusCode(500, new
+                {
+                    error = "An error occurred while fetching designations",
+                    details = ex.Message
+                });
+            }
         }
 
     }

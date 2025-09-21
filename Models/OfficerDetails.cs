@@ -13,4 +13,5 @@ public class OfficerDetailsModal
     public string? RoleShort { get; set; }
     public string? AccessLevel { get; set; }
     public int? AccessCode { get; set; }
+    public int? Department { get; set; }
 }

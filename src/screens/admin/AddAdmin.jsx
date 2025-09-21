@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col } from "react-bootstrap";
 import {
+  Box,
+  Container,
+  Grid,
   TextField,
+  FormControl,
+  InputLabel,
   Select,
   MenuItem,
   Button,
-  FormControl,
-  InputLabel,
   Typography,
-  Box,
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import { useForm, Controller } from "react-hook-form";
 import axiosInstance from "../../axiosConfig";
 import MessageModal from "../../components/MessageModal";
@@ -65,26 +65,7 @@ const districts = [
   { id: 3, name: "District 3", divisionId: 2 },
 ];
 
-const useStyles = makeStyles((theme) => ({
-  formContainer: {
-    padding: "20px",
-    backgroundColor: "#f5f5f5",
-    borderRadius: "8px",
-    marginTop: "20px",
-  },
-  submitButton: {
-    marginTop: "20px",
-  },
-  loadingContainer: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "200px",
-  },
-}));
-
 export default function AddAdmin() {
-  const classes = useStyles();
   const {
     control,
     handleSubmit,
@@ -111,6 +92,7 @@ export default function AddAdmin() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const [department, setDepartment] = useState(0);
 
   const selectedRole = watch("role");
   const selectedDivision = watch("division");
@@ -120,7 +102,7 @@ export default function AddAdmin() {
       setIsLoading(true);
       try {
         const response = await axiosInstance.get(
-          "/Admin/GetCurrentAdminDetails"
+          "/Admin/GetCurrentAdminDetails",
         );
         if (!response.data || !response.data.additionalDetails) {
           throw new Error("Admin data is missing");
@@ -140,8 +122,8 @@ export default function AddAdmin() {
           setAvailableRoles(adminHierarchy[details.AccessLevel].roles);
         }
 
-        // Filter districts for Division-level admin
-        setFilteredDistricts(response.data.districts || []);
+        setDepartment(details.Department || 0);
+        setFilteredDistricts(response.data.districts || districts);
       } catch (error) {
         setErrorMessage(`Error loading admin data: ${error.message}`);
       } finally {
@@ -151,6 +133,15 @@ export default function AddAdmin() {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (selectedRole === "District Admin" && selectedDivision) {
+      setFilteredDistricts(
+        districts.filter((d) => d.divisionId === parseInt(selectedDivision)),
+      );
+      setValue("district", "");
+    }
+  }, [selectedDivision, selectedRole, setValue]);
 
   const onSubmit = async (data) => {
     const selectedRoleObj = availableRoles.find((r) => r.Role === data.role);
@@ -163,14 +154,13 @@ export default function AddAdmin() {
       Role: selectedRoleObj.Role,
       RoleShort: selectedRoleObj.RoleShort,
       AccessLevel: selectedRoleObj.AccessLevel,
-      AccessCode: selectedRoleObj.AccessCode,
+      AccessCode: data.district || data.division || selectedRoleObj.AccessCode,
+      Department: department,
       Validate: true,
     };
 
     try {
       const formData = new FormData();
-
-      // Append basic fields
       formData.append("name", data.name);
       formData.append("username", data.username);
       formData.append("email", data.email);
@@ -179,26 +169,22 @@ export default function AddAdmin() {
       formData.append("role", data.role);
       formData.append("division", data.division);
       formData.append("district", data.district);
-
-      // Append AdditionalDetails as JSON string
       formData.append("AdditionalDetails", JSON.stringify(additionalDetails));
 
       const response = await axiosInstance.post("/Admin/AddAdmin", formData);
 
       if (response.data.status) {
         setShowMessageModal(true);
+        setValue("name", "");
+        setValue("username", "");
+        setValue("email", "");
+        setValue("password", "");
+        setValue("mobileNumber", "");
+        setValue("role", "");
+        setValue("division", "");
+        setValue("district", "");
+        setErrorMessage("");
       }
-
-      // Reset form
-      setValue("name", "");
-      setValue("username", "");
-      setValue("email", "");
-      setValue("password", "");
-      setValue("mobileNumber", "");
-      setValue("role", "");
-      setValue("division", "");
-      setValue("district", "");
-      setErrorMessage("");
     } catch (error) {
       setErrorMessage(`Error creating admin: ${error.message}`);
     }
@@ -206,30 +192,40 @@ export default function AddAdmin() {
 
   if (isLoading) {
     return (
-      <Container className={classes.loadingContainer}>
-        <CircularProgress />
-      </Container>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          bgcolor: "grey.100",
+        }}
+      >
+        <CircularProgress size={60} />
+      </Box>
     );
   }
 
   if (errorMessage) {
     return (
-      <Container>
-        <Typography variant="h5" gutterBottom>
+      <Container maxWidth="md" sx={{ py: 8 }}>
+        <Typography variant="h4" fontWeight="bold" align="center" gutterBottom>
           Add New Admin
         </Typography>
-        <Alert severity="error">{errorMessage}</Alert>
+        <Alert severity="error" sx={{ mb: 4 }}>
+          {errorMessage}
+        </Alert>
       </Container>
     );
   }
 
   if (currentAdminLevel === "District") {
     return (
-      <Container>
-        <Typography variant="h5" gutterBottom>
+      <Container maxWidth="md" sx={{ py: 8 }}>
+        <Typography variant="h4" fontWeight="bold" align="center" gutterBottom>
           Add New Admin
         </Typography>
-        <Alert severity="warning">
+        <Alert severity="warning" sx={{ mb: 4 }}>
           District Admins are not authorized to create new admins.
         </Alert>
       </Container>
@@ -237,246 +233,242 @@ export default function AddAdmin() {
   }
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-        minHeight: "100vh",
-        bgcolor: "#f8f9fa",
-        py: 10,
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <Container>
-        <Typography
-          variant="h5"
-          textAlign={"center"}
-          fontWeight={"bold"}
-          gutterBottom
-        >
-          Add New Admin
-        </Typography>
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-        <Box className={classes.formContainer}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Row>
-              <Col md={6}>
-                <Controller
-                  name="name"
-                  control={control}
-                  rules={{ required: "Name is required" }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label="Name"
-                      error={!!errors.name}
-                      helperText={errors.name?.message}
-                      margin="normal"
-                    />
-                  )}
-                />
-              </Col>
-              <Col md={6}>
-                <Controller
-                  name="username"
-                  control={control}
-                  rules={{ required: "Username is required" }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label="Username"
-                      error={!!errors.username}
-                      helperText={errors.username?.message}
-                      margin="normal"
-                    />
-                  )}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col md={6}>
-                <Controller
-                  name="email"
-                  control={control}
-                  rules={{
-                    required: "Email is required",
-                    pattern: {
-                      value: /\S+@\S+\.\S+/,
-                      message: "Invalid email format",
-                    },
-                  }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label="Email"
-                      type="email"
-                      error={!!errors.email}
-                      helperText={errors.email?.message}
-                      margin="normal"
-                    />
-                  )}
-                />
-              </Col>
-              <Col md={6}>
-                <Controller
-                  name="password"
-                  control={control}
-                  rules={{ required: "Password is required" }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label="Password"
-                      type="password"
-                      error={!!errors.password}
-                      helperText={errors.password?.message}
-                      margin="normal"
-                    />
-                  )}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col md={6}>
-                <Controller
-                  name="mobileNumber"
-                  control={control}
-                  rules={{ required: "Mobile number is required" }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label="Mobile Number"
-                      error={!!errors.mobileNumber}
-                      helperText={errors.mobileNumber?.message}
-                      margin="normal"
-                    />
-                  )}
-                />
-              </Col>
-              <Col md={6}>
-                <Controller
-                  name="role"
-                  control={control}
-                  rules={{ required: "Role is required" }}
-                  render={({ field }) => (
-                    <FormControl
-                      fullWidth
-                      margin="normal"
-                      error={!!errors.role}
-                    >
-                      <InputLabel>Role</InputLabel>
-                      <Select {...field}>
-                        <MenuItem value="">Select Role</MenuItem>
-                        {availableRoles.map((role) => (
-                          <MenuItem key={role.RoleShort} value={role.Role}>
-                            {role.Role}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.role && (
-                        <Typography color="error">
-                          {errors.role.message}
-                        </Typography>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Col>
-            </Row>
+    <Container maxWidth="md" sx={{ py: 8 }}>
+      <Typography variant="h4" fontWeight="bold" align="center" gutterBottom>
+        Add New Admin
+      </Typography>
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          {errorMessage}
+        </Alert>
+      )}
+      <Box
+        sx={{
+          bgcolor: "white",
+          p: 4,
+          borderRadius: 2,
+          boxShadow: 3,
+        }}
+      >
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="name"
+                control={control}
+                rules={{ required: "Name is required" }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="Name"
+                    variant="outlined"
+                    error={!!errors.name}
+                    helperText={errors.name?.message}
+                    InputLabelProps={{ shrink: true }}
+                    aria-invalid={errors.name ? "true" : "false"}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="username"
+                control={control}
+                rules={{ required: "Username is required" }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="Username"
+                    variant="outlined"
+                    error={!!errors.username}
+                    helperText={errors.username?.message}
+                    InputLabelProps={{ shrink: true }}
+                    aria-invalid={errors.username ? "true" : "false"}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="email"
+                control={control}
+                rules={{
+                  required: "Email is required",
+                  pattern: {
+                    value: /\S+@\S+\.\S+/,
+                    message: "Invalid email format",
+                  },
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="Email"
+                    type="email"
+                    variant="outlined"
+                    error={!!errors.email}
+                    helperText={errors.email?.message}
+                    InputLabelProps={{ shrink: true }}
+                    aria-invalid={errors.email ? "true" : "false"}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="password"
+                control={control}
+                rules={{ required: "Password is required" }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="Password"
+                    type="password"
+                    variant="outlined"
+                    error={!!errors.password}
+                    helperText={errors.password?.message}
+                    InputLabelProps={{ shrink: true }}
+                    aria-invalid={errors.password ? "true" : "false"}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="mobileNumber"
+                control={control}
+                rules={{ required: "Mobile number is required" }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="Mobile Number"
+                    variant="outlined"
+                    error={!!errors.mobileNumber}
+                    helperText={errors.mobileNumber?.message}
+                    InputLabelProps={{ shrink: true }}
+                    aria-invalid={errors.mobileNumber ? "true" : "false"}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="role"
+                control={control}
+                rules={{ required: "Role is required" }}
+                render={({ field }) => (
+                  <FormControl
+                    fullWidth
+                    variant="outlined"
+                    error={!!errors.role}
+                  >
+                    <InputLabel shrink>Role</InputLabel>
+                    <Select {...field} label="Role">
+                      <MenuItem value="">Select Role</MenuItem>
+                      {availableRoles.map((role) => (
+                        <MenuItem key={role.RoleShort} value={role.Role}>
+                          {role.Role}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.role && (
+                      <Typography color="error" variant="caption">
+                        {errors.role.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                )}
+              />
+            </Grid>
             {selectedRole === "Division Admin" &&
               currentAdminLevel === "State" && (
-                <Row>
-                  <Col md={6}>
-                    <Controller
-                      name="division"
-                      control={control}
-                      rules={{ required: "Division is required" }}
-                      render={({ field }) => (
-                        <FormControl
-                          fullWidth
-                          margin="normal"
-                          error={!!errors.division}
-                        >
-                          <InputLabel>Division</InputLabel>
-                          <Select {...field}>
-                            <MenuItem value="">Select Division</MenuItem>
-                            {divisions.map((division) => (
-                              <MenuItem key={division.id} value={division.id}>
-                                {division.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                          {errors.division && (
-                            <Typography color="error">
-                              {errors.division.message}
-                            </Typography>
-                          )}
-                        </FormControl>
-                      )}
-                    />
-                  </Col>
-                </Row>
-              )}
-            {selectedRole === "District Admin" && (
-              <Row>
-                <Col md={6}>
+                <Grid item xs={12} sm={6}>
                   <Controller
-                    name="district"
+                    name="division"
                     control={control}
-                    rules={{ required: "District is required" }}
+                    rules={{ required: "Division is required" }}
                     render={({ field }) => (
                       <FormControl
                         fullWidth
-                        margin="normal"
-                        error={!!errors.district}
+                        variant="outlined"
+                        error={!!errors.division}
                       >
-                        <InputLabel>District</InputLabel>
-                        <Select {...field}>
-                          <MenuItem value="">Select District</MenuItem>
-                          {filteredDistricts.map((district) => (
-                            <MenuItem
-                              key={district.districtId}
-                              value={district.districtId}
-                            >
-                              {district.districtName}
+                        <InputLabel shrink>Division</InputLabel>
+                        <Select {...field} label="Division">
+                          <MenuItem value="">Select Division</MenuItem>
+                          {divisions.map((division) => (
+                            <MenuItem key={division.id} value={division.id}>
+                              {division.name}
                             </MenuItem>
                           ))}
                         </Select>
-                        {errors.district && (
-                          <Typography color="error">
-                            {errors.district.message}
+                        {errors.division && (
+                          <Typography color="error" variant="caption">
+                            {errors.division.message}
                           </Typography>
                         )}
                       </FormControl>
                     )}
                   />
-                </Col>
-              </Row>
+                </Grid>
+              )}
+            {selectedRole === "District Admin" && (
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="district"
+                  control={control}
+                  rules={{ required: "District is required" }}
+                  render={({ field }) => (
+                    <FormControl
+                      fullWidth
+                      variant="outlined"
+                      error={!!errors.district}
+                    >
+                      <InputLabel shrink>District</InputLabel>
+                      <Select {...field} label="District">
+                        <MenuItem value="">Select District</MenuItem>
+                        {filteredDistricts.map((district) => (
+                          <MenuItem key={district.id} value={district.id}>
+                            {district.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.district && (
+                        <Typography color="error" variant="caption">
+                          {errors.district.message}
+                        </Typography>
+                      )}
+                    </FormControl>
+                  )}
+                />
+              </Grid>
             )}
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              sx={{ margin: "0 auto" }}
-              className={classes.submitButton}
-            >
-              Create Admin
-            </Button>
-          </form>
-        </Box>
-      </Container>
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{ mt: 3, py: 1.5, fontSize: "1.1rem" }}
+              >
+                Create Admin
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      </Box>
       <MessageModal
         title="Add Admin"
-        message={"Admin Added Successfully."}
+        message="Admin Added Successfully."
         type="success"
-        key={"addadmin"}
+        key="addadmin"
         open={showMessageModal}
         onClose={() => setShowMessageModal(false)}
       />
-    </Box>
+    </Container>
   );
 }

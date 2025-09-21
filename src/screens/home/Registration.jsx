@@ -61,21 +61,25 @@ export default function RegisterScreen() {
     },
   });
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [otpType, setOtpType] = useState(null); // 'email' or 'mobile'
   const [userId, setUserId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [tehsilOptions, setTehsilOptions] = useState([]);
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [isEmailOtpSent, setIsEmailOtpSent] = useState(false);
+  const [isEmailOtpVerified, setIsEmailOtpVerified] = useState(false);
+  const [isMobileOtpSent, setIsMobileOtpSent] = useState(false);
+  const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
   const selectedDistrict = watch("District");
-  const emailValue = watch("email"); // Watch email field for conditional rendering
+  const emailValue = watch("email");
+  const mobileValue = watch("mobileNumber");
 
   const navigate = useNavigate();
 
   // Debug OtpModal state
   useEffect(() => {
-    console.log("OtpModal open state:", isOtpModalOpen);
-  }, [isOtpModalOpen]);
+    console.log("OtpModal open state:", isOtpModalOpen, "OTP Type:", otpType);
+  }, [isOtpModalOpen, otpType]);
 
   // Reset captcha field when captcha state changes
   useEffect(() => {
@@ -99,7 +103,7 @@ export default function RegisterScreen() {
               (tehsil) => ({
                 label: tehsil.tehsilName,
                 value: tehsil.tehsilId,
-              })
+              }),
             );
             setTehsilOptions(tehsilOptionsFormatted);
           } else {
@@ -128,6 +132,10 @@ export default function RegisterScreen() {
 
   // Handle email validation button click
   const handleEmailValidate = async () => {
+    if (!emailValue) {
+      setIsEmailOtpVerified(true); // Skip OTP if email is empty
+      return;
+    }
     const isValid = await trigger("email");
     if (isValid && !errors.email) {
       setLoading(true);
@@ -137,8 +145,9 @@ export default function RegisterScreen() {
           params: { email },
         });
         if (response.data.status) {
-          setIsOtpSent(true);
+          setIsEmailOtpSent(true);
           setIsOtpModalOpen(true);
+          setOtpType("email");
           setUserId(response.data.userId);
           toast.success("OTP sent to your email!", {
             position: "top-center",
@@ -151,8 +160,45 @@ export default function RegisterScreen() {
           });
         }
       } catch (error) {
-        console.error("Error sending OTP", error);
-        toast.error("Error sending OTP.", {
+        console.error("Error sending OTP to email", error);
+        toast.error("Error sending OTP to email.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Handle mobile validation button click
+  const handleMobileValidate = async () => {
+    const isValid = await trigger("mobileNumber");
+    if (isValid && !errors.mobileNumber) {
+      setLoading(true);
+      try {
+        const mobile = getValues("email");
+        const response = await axios.get("/Home/SendOtp", {
+          params: { email: mobile },
+        });
+        if (response.data.status) {
+          setIsMobileOtpSent(true);
+          setIsOtpModalOpen(true);
+          setOtpType("mobile");
+          setUserId(response.data.userId);
+          toast.success("OTP sent to your mobile number!", {
+            position: "top-center",
+            autoClose: 3000,
+          });
+        } else {
+          toast.error("Failed to send OTP. Please try again.", {
+            position: "top-center",
+            autoClose: 3000,
+          });
+        }
+      } catch (error) {
+        console.error("Error sending OTP to mobile", error);
+        toast.error("Error sending OTP to mobile.", {
           position: "top-center",
           autoClose: 3000,
         });
@@ -163,8 +209,15 @@ export default function RegisterScreen() {
   };
 
   const onSubmit = async (data) => {
-    if (!isOtpVerified) {
-      toast.error("Please verify OTP before registering.", {
+    if (emailValue && !isEmailOtpVerified) {
+      toast.error("Please verify email OTP before registering.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      return;
+    }
+    if (!isMobileOtpVerified) {
+      toast.error("Please verify mobile OTP before registering.", {
         position: "top-center",
         autoClose: 3000,
       });
@@ -203,7 +256,7 @@ export default function RegisterScreen() {
   };
 
   const handleOtpSubmit = async (otp) => {
-    console.log("handleOtpSubmit called with OTP:", otp);
+    console.log("handleOtpSubmit called with OTP:", otp, "Type:", otpType);
     if (!otp) {
       toast.error("Please enter an OTP.", {
         position: "top-center",
@@ -214,19 +267,35 @@ export default function RegisterScreen() {
 
     setLoading(true);
     const formData = new FormData();
-    const email = getValues("email");
     formData.append("otp", otp);
-    formData.append("email", email);
+    if (otpType === "email") {
+      formData.append("email", getValues("email"));
+    } else if (otpType === "mobile") {
+      formData.append("email", getValues("email"));
+    }
 
     try {
-      const response = await axios.post("/Home/OTPValidation", formData);
+      const response = await axios.post(
+        otpType === "email" ? "/Home/OTPValidation" : "/Home/OTPValidation",
+        formData,
+      );
       if (response.data.status) {
-        setIsOtpVerified(true);
+        if (otpType === "email") {
+          setIsEmailOtpVerified(true);
+        } else if (otpType === "mobile") {
+          setIsMobileOtpVerified(true);
+        }
         setIsOtpModalOpen(false);
-        toast.success("OTP verified successfully!", {
-          position: "top-center",
-          autoClose: 2000,
-        });
+        setOtpType(null);
+        toast.success(
+          `${
+            otpType === "email" ? "Email" : "Mobile"
+          } OTP verified successfully!`,
+          {
+            position: "top-center",
+            autoClose: 2000,
+          },
+        );
       } else {
         toast.error("Invalid OTP. Please try again.", {
           position: "top-center",
@@ -234,11 +303,17 @@ export default function RegisterScreen() {
         });
       }
     } catch (error) {
-      console.error("OTP validation error", error);
-      toast.error("Error validating OTP.", {
-        position: "top-center",
-        autoClose: 3000,
-      });
+      console.error(
+        `${otpType === "email" ? "Email" : "Mobile"} OTP validation error`,
+        error,
+      );
+      toast.error(
+        `Error validating ${otpType === "email" ? "email" : "mobile"} OTP.`,
+        {
+          position: "top-center",
+          autoClose: 3000,
+        },
+      );
     } finally {
       setLoading(false);
     }
@@ -297,7 +372,11 @@ export default function RegisterScreen() {
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
-                        label="Full Name"
+                        label={
+                          <Typography component="span">
+                            Full Name <span style={{ color: "red" }}>*</span>
+                          </Typography>
+                        }
                         variant="outlined"
                         fullWidth
                         disabled={loading}
@@ -336,7 +415,11 @@ export default function RegisterScreen() {
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
-                        label="Username"
+                        label={
+                          <Typography component="span">
+                            Username <span style={{ color: "red" }}>*</span>
+                          </Typography>
+                        }
                         variant="outlined"
                         fullWidth
                         disabled={loading}
@@ -356,13 +439,12 @@ export default function RegisterScreen() {
                       name="email"
                       control={control}
                       rules={{
-                        required: "Email is required",
                         pattern: {
                           value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                           message: "Invalid email format",
                         },
                         validate: async (value) => {
-                          if (!value) return "Email is required";
+                          if (!value) return true; // Email is optional
                           try {
                             const res = await axios.get("/Home/CheckEmail", {
                               params: { email: value, UserType: "Citizen" },
@@ -380,7 +462,7 @@ export default function RegisterScreen() {
                           type="email"
                           variant="outlined"
                           fullWidth
-                          disabled={loading || isOtpVerified}
+                          disabled={loading || isEmailOtpVerified}
                           error={!!error}
                           helperText={error ? error.message : ""}
                           sx={{ mb: 2, flex: 1 }}
@@ -388,7 +470,7 @@ export default function RegisterScreen() {
                         />
                       )}
                     />
-                    {isOtpVerified && (
+                    {isEmailOtpVerified && emailValue && (
                       <Typography
                         variant="subtitle2"
                         color="success"
@@ -398,7 +480,7 @@ export default function RegisterScreen() {
                       </Typography>
                     )}
                   </Box>
-                  {!isOtpVerified && !errors.email && emailValue && (
+                  {!isEmailOtpVerified && emailValue && (
                     <CustomButton
                       text="Validate Email"
                       bgColor="primary.main"
@@ -411,48 +493,76 @@ export default function RegisterScreen() {
                   )}
                 </Col>
                 <Col xs={6}>
-                  <Controller
-                    name="mobileNumber"
-                    control={control}
-                    rules={{
-                      required: "Mobile Number is required",
-                      pattern: {
-                        value: /^[0-9]{10}$/,
-                        message: "Enter 10 digit number",
-                      },
-                      validate: async (value) => {
-                        if (!value) return "Mobile Number is required";
-                        try {
-                          const res = await axios.get(
-                            "/Home/CheckMobileNumber",
-                            {
-                              params: { number: value, UserType: "Citizen" },
-                            }
-                          );
-                          return (
-                            res.data?.isUnique || "Mobile Number already exists"
-                          );
-                        } catch {
-                          return "Error checking mobile number";
-                        }
-                      },
-                    }}
-                    render={({ field, fieldState: { error } }) => (
-                      <TextField
-                        {...field}
-                        label="Mobile Number"
-                        type="tel"
-                        variant="outlined"
-                        fullWidth
-                        disabled={loading}
-                        error={!!error}
-                        helperText={error ? error.message : ""}
-                        inputProps={{ maxLength: 10 }}
-                        sx={{ mb: 2 }}
-                        aria-label="Mobile Number"
-                      />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Controller
+                      name="mobileNumber"
+                      control={control}
+                      rules={{
+                        required: "Mobile Number is required",
+                        pattern: {
+                          value: /^[0-9]{10}$/,
+                          message: "Enter 10 digit number",
+                        },
+                        validate: async (value) => {
+                          if (!value) return "Mobile Number is required";
+                          try {
+                            const res = await axios.get(
+                              "/Home/CheckMobileNumber",
+                              {
+                                params: { number: value, UserType: "Citizen" },
+                              },
+                            );
+                            return (
+                              res.data?.isUnique ||
+                              "Mobile Number already exists"
+                            );
+                          } catch {
+                            return "Error checking mobile number";
+                          }
+                        },
+                      }}
+                      render={({ field, fieldState: { error } }) => (
+                        <TextField
+                          {...field}
+                          label={
+                            <Typography component="span">
+                              Mobile Number{" "}
+                              <span style={{ color: "red" }}>*</span>
+                            </Typography>
+                          }
+                          type="tel"
+                          variant="outlined"
+                          fullWidth
+                          disabled={loading || isMobileOtpVerified}
+                          error={!!error}
+                          helperText={error ? error.message : ""}
+                          inputProps={{ maxLength: 10 }}
+                          sx={{ mb: 2, flex: 1 }}
+                          aria-label="Mobile Number"
+                        />
+                      )}
+                    />
+                    {isMobileOtpVerified && (
+                      <Typography
+                        variant="subtitle2"
+                        color="success"
+                        fontWeight="bold"
+                      >
+                        Verified
+                      </Typography>
                     )}
-                  />
+                  </Box>
+                  {!isMobileOtpVerified && mobileValue && (
+                    <CustomButton
+                      text="Validate Mobile"
+                      bgColor="primary.main"
+                      color="white"
+                      width="100%"
+                      disabled={loading}
+                      onClick={handleMobileValidate}
+                      sx={{ mb: 2 }}
+                    />
+                  )}
                 </Col>
               </Row>
               <Row>
@@ -480,7 +590,11 @@ export default function RegisterScreen() {
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
-                        label="Password"
+                        label={
+                          <Typography component="span">
+                            Password <span style={{ color: "red" }}>*</span>
+                          </Typography>
+                        }
                         type="password"
                         variant="outlined"
                         fullWidth
@@ -506,7 +620,12 @@ export default function RegisterScreen() {
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
-                        label="Confirm Password"
+                        label={
+                          <Typography component="span">
+                            Confirm Password{" "}
+                            <span style={{ color: "red" }}>*</span>
+                          </Typography>
+                        }
                         type="password"
                         variant="outlined"
                         fullWidth
@@ -516,6 +635,82 @@ export default function RegisterScreen() {
                         sx={{ mb: 2 }}
                         aria-label="Confirm Password"
                       />
+                    )}
+                  />
+                </Col>
+              </Row>
+              <Row>
+                <Col xs={6}>
+                  <Controller
+                    name="District"
+                    control={control}
+                    rules={{
+                      required: "District is required",
+                    }}
+                    render={({ field, fieldState: { error } }) => (
+                      <FormControl fullWidth sx={{ mb: 2 }} error={!!error}>
+                        <InputLabel>
+                          District <span style={{ color: "red" }}>*</span>
+                        </InputLabel>
+                        <Select
+                          {...field}
+                          label={
+                            <Typography component="span">
+                              District <span style={{ color: "red" }}>*</span>
+                            </Typography>
+                          }
+                          disabled={loading}
+                          aria-label="District"
+                        >
+                          {districtOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {error && (
+                          <Typography color="error" variant="caption">
+                            {error.message}
+                          </Typography>
+                        )}
+                      </FormControl>
+                    )}
+                  />
+                </Col>
+                <Col xs={6}>
+                  <Controller
+                    name="Tehsil"
+                    control={control}
+                    rules={{
+                      required: "Tehsil is required",
+                    }}
+                    render={({ field, fieldState: { error } }) => (
+                      <FormControl fullWidth sx={{ mb: 2 }} error={!!error}>
+                        <InputLabel>
+                          Tehsil <span style={{ color: "red" }}>*</span>
+                        </InputLabel>
+                        <Select
+                          {...field}
+                          label={
+                            <Typography component="span">
+                              Tehsil <span style={{ color: "red" }}>*</span>
+                            </Typography>
+                          }
+                          disabled={loading || !selectedDistrict}
+                          aria-label="Tehsil"
+                        >
+                          {tehsilOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {error && (
+                          <Typography color="error" variant="caption">
+                            {error.message}
+                          </Typography>
+                        )}
+                      </FormControl>
                     )}
                   />
                 </Col>
@@ -573,9 +768,9 @@ export default function RegisterScreen() {
                             color:
                               Math.random() > 0.5 ? "primary.main" : "#2d3748",
                             transform: `rotate(${Math.floor(
-                              Math.random() * 31 - 15
+                              Math.random() * 31 - 15,
                             )}deg) translateY(${Math.floor(
-                              Math.random() * 6 - 3
+                              Math.random() * 6 - 3,
                             )}px)`,
                             margin: "0 2px",
                             userSelect: "none",
@@ -622,7 +817,12 @@ export default function RegisterScreen() {
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
-                        label="Enter CAPTCHA"
+                        label={
+                          <Typography component="span">
+                            Enter CAPTCHA{" "}
+                            <span style={{ color: "red" }}>*</span>
+                          </Typography>
+                        }
                         variant="outlined"
                         fullWidth
                         disabled={loading}
@@ -644,7 +844,11 @@ export default function RegisterScreen() {
                 bgColor="primary.main"
                 color="white"
                 width="50%"
-                disabled={loading || !isOtpVerified}
+                disabled={
+                  loading ||
+                  !isMobileOtpVerified ||
+                  (emailValue && !isEmailOtpVerified)
+                }
                 startIcon={
                   loading && <CircularProgress size={20} color="inherit" />
                 }
@@ -670,7 +874,7 @@ export default function RegisterScreen() {
           </Box>
           <Box textAlign="center" mt={2}>
             <Typography variant="body2">
-              Department Officer ?
+              Department Officer?{" "}
               <Link
                 href="/officerRegistration"
                 onClick={(e) => {
@@ -685,23 +889,23 @@ export default function RegisterScreen() {
           </Box>
         </Container>
 
-        {/* OTP Modal */}
         {OtpModal && (
           <OtpModal
             open={isOtpModalOpen}
             onClose={() => {
               console.log("OtpModal onClose triggered");
               setIsOtpModalOpen(false);
+              setOtpType(null);
             }}
             onSubmit={handleOtpSubmit}
+            registeredAt={otpType}
+            title={`Enter ${otpType === "email" ? "Email" : "Mobile"} OTP`}
           />
         )}
 
-        {/* Toast */}
         <ToastContainer />
       </Box>
 
-      {/* Full-screen loader */}
       {loading && (
         <Box
           sx={{

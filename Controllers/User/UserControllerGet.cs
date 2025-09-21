@@ -188,7 +188,7 @@ namespace SahayataNidhi.Controllers.User
                             actions.Clear();
                             actions.Add(new
                             {
-                                tooltip = "Update Expiring Document",
+                                tooltip = "Update PCP UDID Card",
                                 tooltipText = "To update UDID Card as its validity is expiring soon",
                                 color = "#F0C38E",
                                 actionFunction = "UpdateExpiringDocument"
@@ -206,7 +206,9 @@ namespace SahayataNidhi.Controllers.User
                     applicantName = GetFieldValue("ApplicantName", formDetails),
                     currentlyWith = officerDesignation + " " + officerArea,
                     status = actionMap[(string)officers[currentPlayer!]!["status"]!],
-                    submissionDate = application.CreatedAt,
+                    submissionDate = DateTime.TryParse(application.CreatedAt, out var createdAt)
+                    ? createdAt.ToString("dd MMM yyyy")
+                    : "",
                     serviceId = application.ServiceId,
                     customActions = actions // Embed actions here
                 });
@@ -370,23 +372,24 @@ namespace SahayataNidhi.Controllers.User
             foreach (var item in pagedServices)
             {
                 int serialNo = (pageIndex * pageSize) + index + 1;
+                var department = dbcontext.Departments.FirstOrDefault(d => d.DepartmentId == item.DepartmentId)?.DepartmentName ?? "N/A";
 
                 var row = new
                 {
                     sno = serialNo,
                     servicename = item.ServiceName,
-                    department = item.Department,
+                    department = department,
                     serviceId = item.ServiceId,
                     customActions = new List<dynamic>
-            {
-                new
                 {
-                    tooltip = "Apply",
-                    color = "#F0C38E",
-                    actionFunction = "OpenForm",
-                    parameters = new[] { item.ServiceId }
+                    new
+                    {
+                        tooltip = "Apply",
+                        color = "#F0C38E",
+                        actionFunction = "OpenForm",
+                        parameters = new[] { item.ServiceId }
+                    }
                 }
-            }
                 };
 
                 data.Add(row);
@@ -628,6 +631,7 @@ namespace SahayataNidhi.Controllers.User
                         UdidCardNumber = udidCardNumberField,
                         UdidCardIssueDate = udidCardIssueDateField,
                         PercentageOfDisability = percentageOfDisabilityField,
+                        kindOfDisabilityField = kindOfDisabilityField,
                         IfTemporaryDisabilityUdidCardValidUpto = ifTemporaryDisabilityUdidCardValidUptoField,
                         UdidCard = udidCardField
                     }

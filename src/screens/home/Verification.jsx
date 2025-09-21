@@ -135,7 +135,7 @@ export default function Verification() {
           <CustomInputField
             label={
               selectedOption === "otp"
-                ? "Enter OTP sent to your email."
+                ? "Enter OTP sent to your Email and Mobile Number."
                 : "Enter your backup code."
             }
             name={selectedOption === "otp" ? "otp" : "backupCode"}

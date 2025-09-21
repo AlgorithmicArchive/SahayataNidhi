@@ -131,6 +131,24 @@ function _asyncToGenerator(n) {
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/classCallCheck.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _classCallCheck)
+/* harmony export */ });
+function _classCallCheck(a, n) {
+  if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function");
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/esm/createClass.js":
 /*!****************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/esm/createClass.js ***!
@@ -203,6 +221,55 @@ function _extends() {
     }
     return n;
   }, _extends.apply(null, arguments);
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _getPrototypeOf)
+/* harmony export */ });
+function _getPrototypeOf(t) {
+  return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) {
+    return t.__proto__ || Object.getPrototypeOf(t);
+  }, _getPrototypeOf(t);
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/inherits.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/inherits.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _inherits)
+/* harmony export */ });
+/* harmony import */ var _setPrototypeOf_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./setPrototypeOf.js */ "./node_modules/@babel/runtime/helpers/esm/setPrototypeOf.js");
+
+function _inherits(t, e) {
+  if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function");
+  t.prototype = Object.create(e && e.prototype, {
+    constructor: {
+      value: t,
+      writable: !0,
+      configurable: !0
+    }
+  }), Object.defineProperty(t, "prototype", {
+    writable: !1
+  }), e && (0,_setPrototypeOf_js__WEBPACK_IMPORTED_MODULE_0__["default"])(t, e);
 }
 
 
@@ -381,6 +448,30 @@ function _objectWithoutPropertiesLoose(r, e) {
     t[n] = r[n];
   }
   return t;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/possibleConstructorReturn.js":
+/*!******************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/possibleConstructorReturn.js ***!
+  \******************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _possibleConstructorReturn)
+/* harmony export */ });
+/* harmony import */ var _typeof_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./typeof.js */ "./node_modules/@babel/runtime/helpers/esm/typeof.js");
+/* harmony import */ var _assertThisInitialized_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./assertThisInitialized.js */ "./node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js");
+
+
+function _possibleConstructorReturn(t, e) {
+  if (e && ("object" == (0,_typeof_js__WEBPACK_IMPORTED_MODULE_0__["default"])(e) || "function" == typeof e)) return e;
+  if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined");
+  return (0,_assertThisInitialized_js__WEBPACK_IMPORTED_MODULE_1__["default"])(t);
 }
 
 
@@ -58943,819 +59034,6 @@ function internal_serializeStyles(styles) {
 
 
 
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/StylesProvider/StylesProvider.js":
-/*!*******************************************************************!*\
-  !*** ./node_modules/@mui/styles/StylesProvider/StylesProvider.js ***!
-  \*******************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   StylesContext: () => (/* binding */ StylesContext),
-/* harmony export */   "default": () => (/* binding */ StylesProvider),
-/* harmony export */   sheetsManager: () => (/* binding */ defaultSheetsManager)
-/* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! prop-types */ "./node_modules/prop-types/index.js");
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _mui_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @mui/utils */ "./node_modules/@mui/utils/esm/exactProp/exactProp.js");
-/* harmony import */ var jss__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! jss */ "./node_modules/jss/dist/jss.esm.js");
-/* harmony import */ var _createGenerateClassName_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../createGenerateClassName/index.js */ "./node_modules/@mui/styles/createGenerateClassName/createGenerateClassName.js");
-/* harmony import */ var _jssPreset_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../jssPreset/index.js */ "./node_modules/@mui/styles/jssPreset/jssPreset.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/jsx-runtime.js");
-'use client';
-
-
-
-
-
-
-
-
-// Default JSS instance.
-
-const defaultJSS = (0,jss__WEBPACK_IMPORTED_MODULE_3__.create)((0,_jssPreset_index_js__WEBPACK_IMPORTED_MODULE_5__["default"])());
-
-// Use a singleton or the provided one by the context.
-//
-// The counter-based approach doesn't tolerate any mistake.
-// It's much safer to use the same counter everywhere.
-const defaultGenerateClassName = (0,_createGenerateClassName_index_js__WEBPACK_IMPORTED_MODULE_4__["default"])();
-const defaultSheetsManager = new Map();
-// Exported for test purposes
-
-const defaultOptions = {
-  disableGeneration: false,
-  generateClassName: defaultGenerateClassName,
-  jss: defaultJSS,
-  sheetsCache: null,
-  sheetsManager: defaultSheetsManager,
-  sheetsRegistry: null
-};
-const StylesContext = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createContext(defaultOptions);
-if (true) {
-  StylesContext.displayName = 'StylesContext';
-}
-let injectFirstNode;
-function StylesProvider(props) {
-  const {
-    children,
-    injectFirst = false,
-    disableGeneration = false,
-    ...localOptions
-  } = props;
-  const outerOptions = react__WEBPACK_IMPORTED_MODULE_0__.useContext(StylesContext);
-  const {
-    generateClassName,
-    jss,
-    serverGenerateClassName,
-    sheetsCache,
-    sheetsManager,
-    sheetsRegistry
-  } = {
-    ...outerOptions,
-    ...localOptions
-  };
-  if (true) {
-    if (injectFirst && localOptions.jss) {
-      console.error('MUI: You cannot use the jss and injectFirst props at the same time.');
-    }
-  }
-  const value = react__WEBPACK_IMPORTED_MODULE_0__.useMemo(() => {
-    const context = {
-      disableGeneration,
-      generateClassName,
-      jss,
-      serverGenerateClassName,
-      sheetsCache,
-      sheetsManager,
-      sheetsRegistry
-    };
-    if (true) {
-      if (typeof window === 'undefined' && !context.sheetsManager) {
-        console.error('MUI: You need to use the ServerStyleSheets API when rendering on the server.');
-      }
-    }
-    if (true) {
-      if (context.jss.options.insertionPoint && injectFirst) {
-        console.error('MUI: You cannot use a custom insertionPoint and <StylesContext injectFirst> at the same time.');
-      }
-    }
-    if (!context.jss.options.insertionPoint && injectFirst && typeof window !== 'undefined') {
-      if (!injectFirstNode) {
-        const head = document.head;
-        // TODO: uncomment once we enable eslint-plugin-react-compiler // eslint-disable-next-line react-compiler/react-compiler -- injectFirstNode is called inside callback
-        injectFirstNode = document.createComment('mui-inject-first');
-        head.insertBefore(injectFirstNode, head.firstChild);
-      }
-      context.jss = (0,jss__WEBPACK_IMPORTED_MODULE_3__.create)({
-        plugins: (0,_jssPreset_index_js__WEBPACK_IMPORTED_MODULE_5__["default"])().plugins,
-        insertionPoint: injectFirstNode
-      });
-    }
-    return context;
-  }, [injectFirst, disableGeneration, generateClassName, jss, serverGenerateClassName, sheetsCache, sheetsManager, sheetsRegistry]);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(StylesContext.Provider, {
-    value: value,
-    children: children
-  });
-}
- true ? StylesProvider.propTypes = {
-  /**
-   * Your component tree.
-   */
-  children: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().node),
-  /**
-   * You can disable the generation of the styles with this option.
-   * It can be useful when traversing the React tree outside of the HTML
-   * rendering step on the server.
-   * Let's say you are using react-apollo to extract all
-   * the queries made by the interface server-side - you can significantly speed up the traversal with this prop.
-   */
-  disableGeneration: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().bool),
-  /**
-   * JSS's class name generator.
-   */
-  generateClassName: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().func),
-  /**
-   * By default, the styles are injected last in the <head> element of the page.
-   * As a result, they gain more specificity than any other style sheet.
-   * If you want to override MUI's styles, set this prop.
-   */
-  injectFirst: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().bool),
-  /**
-   * JSS's instance.
-   */
-  jss: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().object),
-  /**
-   * @ignore
-   */
-  serverGenerateClassName: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().func),
-  /**
-   * @ignore
-   *
-   * Beta feature.
-   *
-   * Cache for the sheets.
-   */
-  sheetsCache: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().object),
-  /**
-   * @ignore
-   *
-   * The sheetsManager is used to deduplicate style sheet injection in the page.
-   * It's deduplicating using the (theme, styles) couple.
-   * On the server, you should provide a new instance for each request.
-   */
-  sheetsManager: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().object),
-  /**
-   * @ignore
-   *
-   * Collect the sheets.
-   */
-  sheetsRegistry: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().object)
-} : 0;
-if (true) {
-   true ? StylesProvider.propTypes = (0,_mui_utils__WEBPACK_IMPORTED_MODULE_2__["default"])(StylesProvider.propTypes) : 0;
-}
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/createGenerateClassName/createGenerateClassName.js":
-/*!*************************************************************************************!*\
-  !*** ./node_modules/@mui/styles/createGenerateClassName/createGenerateClassName.js ***!
-  \*************************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ createGenerateClassName)
-/* harmony export */ });
-/* harmony import */ var _mui_private_theming_ThemeProvider__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @mui/private-theming/ThemeProvider */ "./node_modules/@mui/private-theming/ThemeProvider/nested.js");
-
-
-/**
- * This is the list of the style rule name we use as drop in replacement for the built-in
- * pseudo classes (:checked, :disabled, :focused, etc.).
- *
- * Why do they exist in the first place?
- * These classes are used at a specificity of 2.
- * It allows them to override previously defined styles as well as
- * being untouched by simple user overrides.
- */
-const stateClasses = ['checked', 'disabled', 'error', 'focused', 'focusVisible', 'required', 'expanded', 'selected'];
-
-// Returns a function which generates unique class names based on counters.
-// When new generator function is created, rule counter is reset.
-// We need to reset the rule counter for SSR for each request.
-//
-// It's inspired by
-// https://github.com/cssinjs/jss/blob/4e6a05dd3f7b6572fdd3ab216861d9e446c20331/src/utils/createGenerateClassName.js
-function createGenerateClassName(options = {}) {
-  const {
-    disableGlobal = false,
-    productionPrefix = 'jss',
-    seed = ''
-  } = options;
-  const seedPrefix = seed === '' ? '' : `${seed}-`;
-  let ruleCounter = 0;
-  const getNextCounterId = () => {
-    ruleCounter += 1;
-    if (true) {
-      if (ruleCounter >= 1e10) {
-        console.warn(['MUI: You might have a memory leak.', 'The ruleCounter is not supposed to grow that much.'].join(''));
-      }
-    }
-    return ruleCounter;
-  };
-  return (rule, styleSheet) => {
-    const name = styleSheet.options.name;
-
-    // Is a global static MUI style?
-    if (name && name.startsWith('Mui') && !styleSheet.options.link && !disableGlobal) {
-      // We can use a shorthand class name, we never use the keys to style the components.
-      if (stateClasses.includes(rule.key)) {
-        return `Mui-${rule.key}`;
-      }
-      const prefix = `${seedPrefix}${name}-${rule.key}`;
-      if (!styleSheet.options.theme[_mui_private_theming_ThemeProvider__WEBPACK_IMPORTED_MODULE_0__["default"]] || seed !== '') {
-        return prefix;
-      }
-      return `${prefix}-${getNextCounterId()}`;
-    }
-    if (false) // removed by dead control flow
-{}
-    const suffix = `${rule.key}-${getNextCounterId()}`;
-
-    // Help with debuggability.
-    if (styleSheet.options.classNamePrefix) {
-      return `${seedPrefix}${styleSheet.options.classNamePrefix}-${suffix}`;
-    }
-    return `${seedPrefix}${suffix}`;
-  };
-}
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/getStylesCreator/getStylesCreator.js":
-/*!***********************************************************************!*\
-  !*** ./node_modules/@mui/styles/getStylesCreator/getStylesCreator.js ***!
-  \***********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ getStylesCreator)
-/* harmony export */ });
-/* harmony import */ var _mui_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @mui/utils */ "./node_modules/@mui/utils/esm/deepmerge/deepmerge.js");
-/* harmony import */ var _propsToClassKey_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../propsToClassKey/index.js */ "./node_modules/@mui/styles/propsToClassKey/propsToClassKey.js");
-/* harmony import */ var _noopTheme_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./noopTheme.js */ "./node_modules/@mui/styles/getStylesCreator/noopTheme.js");
-
-
-
-function getStylesCreator(stylesOrCreator) {
-  const themingEnabled = typeof stylesOrCreator === 'function';
-  if (true) {
-    if (typeof stylesOrCreator !== 'object' && !themingEnabled) {
-      console.error(['MUI: The `styles` argument provided is invalid.', 'You need to provide a function generating the styles or a styles object.'].join('\n'));
-    }
-  }
-  return {
-    create: (theme, name) => {
-      let styles;
-      try {
-        styles = themingEnabled ? stylesOrCreator(theme) : stylesOrCreator;
-      } catch (err) {
-        if (true) {
-          if (themingEnabled === true && theme === _noopTheme_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
-            // TODO: prepend error message/name instead
-            console.error(['MUI: The `styles` argument provided is invalid.', 'You are providing a function without a theme in the context.', 'One of the parent elements needs to use a ThemeProvider.'].join('\n'));
-          }
-        }
-        throw err;
-      }
-      if (!name || !theme.components || !theme.components[name] || !theme.components[name].styleOverrides && !theme.components[name].variants) {
-        return styles;
-      }
-      const overrides = theme.components[name].styleOverrides || {};
-      const variants = theme.components[name].variants || [];
-      const stylesWithOverrides = {
-        ...styles
-      };
-      Object.keys(overrides).forEach(key => {
-        if (true) {
-          if (!stylesWithOverrides[key]) {
-            console.warn(['MUI: You are trying to override a style that does not exist.', `Fix the \`${key}\` key of \`theme.components.${name}.styleOverrides\`.`, '', `If you intentionally wanted to add a new key, please use the theme.components[${name}].variants option.`].join('\n'));
-          }
-        }
-        stylesWithOverrides[key] = (0,_mui_utils__WEBPACK_IMPORTED_MODULE_0__["default"])(stylesWithOverrides[key] || {}, overrides[key]);
-      });
-      variants.forEach(definition => {
-        const classKey = (0,_propsToClassKey_index_js__WEBPACK_IMPORTED_MODULE_1__["default"])(definition.props);
-        stylesWithOverrides[classKey] = (0,_mui_utils__WEBPACK_IMPORTED_MODULE_0__["default"])(stylesWithOverrides[classKey] || {}, definition.style);
-      });
-      return stylesWithOverrides;
-    },
-    options: {}
-  };
-}
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/getStylesCreator/noopTheme.js":
-/*!****************************************************************!*\
-  !*** ./node_modules/@mui/styles/getStylesCreator/noopTheme.js ***!
-  \****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-// We use the same empty object to ref count the styles that don't need a theme object.
-const noopTheme = {};
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (noopTheme);
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/jssPreset/jssPreset.js":
-/*!*********************************************************!*\
-  !*** ./node_modules/@mui/styles/jssPreset/jssPreset.js ***!
-  \*********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ jssPreset)
-/* harmony export */ });
-/* harmony import */ var jss_plugin_rule_value_function__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jss-plugin-rule-value-function */ "./node_modules/jss-plugin-rule-value-function/dist/jss-plugin-rule-value-function.esm.js");
-/* harmony import */ var jss_plugin_global__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jss-plugin-global */ "./node_modules/jss-plugin-global/dist/jss-plugin-global.esm.js");
-/* harmony import */ var jss_plugin_nested__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! jss-plugin-nested */ "./node_modules/jss-plugin-nested/dist/jss-plugin-nested.esm.js");
-/* harmony import */ var jss_plugin_camel_case__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! jss-plugin-camel-case */ "./node_modules/jss-plugin-camel-case/dist/jss-plugin-camel-case.esm.js");
-/* harmony import */ var jss_plugin_default_unit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! jss-plugin-default-unit */ "./node_modules/jss-plugin-default-unit/dist/jss-plugin-default-unit.esm.js");
-/* harmony import */ var jss_plugin_vendor_prefixer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! jss-plugin-vendor-prefixer */ "./node_modules/jss-plugin-vendor-prefixer/dist/jss-plugin-vendor-prefixer.esm.js");
-/* harmony import */ var jss_plugin_props_sort__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! jss-plugin-props-sort */ "./node_modules/jss-plugin-props-sort/dist/jss-plugin-props-sort.esm.js");
-
-
-
-
-
-
-
-
-// Subset of jss-preset-default with only the plugins the MUI components are using.
-function jssPreset() {
-  return {
-    plugins: [(0,jss_plugin_rule_value_function__WEBPACK_IMPORTED_MODULE_0__["default"])(), (0,jss_plugin_global__WEBPACK_IMPORTED_MODULE_1__["default"])(), (0,jss_plugin_nested__WEBPACK_IMPORTED_MODULE_2__["default"])(), (0,jss_plugin_camel_case__WEBPACK_IMPORTED_MODULE_3__["default"])(), (0,jss_plugin_default_unit__WEBPACK_IMPORTED_MODULE_4__["default"])(),
-    // Disable the vendor prefixer server-side, it does nothing.
-    // This way, we can get a performance boost.
-    // In the documentation, we are using `autoprefixer` to solve this problem.
-    typeof window === 'undefined' ? null : (0,jss_plugin_vendor_prefixer__WEBPACK_IMPORTED_MODULE_5__["default"])(), (0,jss_plugin_props_sort__WEBPACK_IMPORTED_MODULE_6__["default"])()]
-  };
-}
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/makeStyles/indexCounter.js":
-/*!*************************************************************!*\
-  !*** ./node_modules/@mui/styles/makeStyles/indexCounter.js ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   increment: () => (/* binding */ increment)
-/* harmony export */ });
-/* eslint-disable import/prefer-default-export */
-// Global index counter to preserve source order.
-// We create the style sheet during the creation of the component,
-// children are handled after the parents, so the order of style elements would be parent->child.
-// It is a problem though when a parent passes a className
-// which needs to override any child's styles.
-// StyleSheet of the child has a higher specificity, because of the source order.
-// So our solution is to render sheets them in the reverse order child->sheet, so
-// that parent has a higher specificity.
-let indexCounter = -1e9;
-function increment() {
-  indexCounter += 1;
-  if (true) {
-    if (indexCounter >= 0) {
-      console.warn(['MUI: You might have a memory leak.', 'The indexCounter is not supposed to grow that much.'].join('\n'));
-    }
-  }
-  return indexCounter;
-}
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/makeStyles/makeStyles.js":
-/*!***********************************************************!*\
-  !*** ./node_modules/@mui/styles/makeStyles/makeStyles.js ***!
-  \***********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ makeStyles)
-/* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jss */ "./node_modules/jss/dist/jss.esm.js");
-/* harmony import */ var _mergeClasses_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../mergeClasses/index.js */ "./node_modules/@mui/styles/mergeClasses/mergeClasses.js");
-/* harmony import */ var _multiKeyStore_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./multiKeyStore.js */ "./node_modules/@mui/styles/makeStyles/multiKeyStore.js");
-/* harmony import */ var _useTheme_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../useTheme/index.js */ "./node_modules/@mui/styles/useTheme/index.js");
-/* harmony import */ var _StylesProvider_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../StylesProvider/index.js */ "./node_modules/@mui/styles/StylesProvider/StylesProvider.js");
-/* harmony import */ var _indexCounter_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./indexCounter.js */ "./node_modules/@mui/styles/makeStyles/indexCounter.js");
-/* harmony import */ var _getStylesCreator_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../getStylesCreator/index.js */ "./node_modules/@mui/styles/getStylesCreator/getStylesCreator.js");
-/* harmony import */ var _getStylesCreator_noopTheme_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../getStylesCreator/noopTheme.js */ "./node_modules/@mui/styles/getStylesCreator/noopTheme.js");
-'use client';
-
-
-
-
-
-
-
-
-
-
-function getClasses({
-  state,
-  stylesOptions
-}, classes, Component) {
-  if (stylesOptions.disableGeneration) {
-    return classes || {};
-  }
-  if (!state.cacheClasses) {
-    state.cacheClasses = {
-      // Cache for the finalized classes value.
-      value: null,
-      // Cache for the last used classes prop pointer.
-      lastProp: null,
-      // Cache for the last used rendered classes pointer.
-      lastJSS: {}
-    };
-  }
-
-  // Tracks if either the rendered classes or classes prop has changed,
-  // requiring the generation of a new finalized classes object.
-  let generate = false;
-  if (state.classes !== state.cacheClasses.lastJSS) {
-    state.cacheClasses.lastJSS = state.classes;
-    generate = true;
-  }
-  if (classes !== state.cacheClasses.lastProp) {
-    state.cacheClasses.lastProp = classes;
-    generate = true;
-  }
-  if (generate) {
-    state.cacheClasses.value = (0,_mergeClasses_index_js__WEBPACK_IMPORTED_MODULE_2__["default"])({
-      baseClasses: state.cacheClasses.lastJSS,
-      newClasses: classes,
-      Component
-    });
-  }
-  return state.cacheClasses.value;
-}
-function attach({
-  state,
-  theme,
-  stylesOptions,
-  stylesCreator,
-  name
-}, props) {
-  if (stylesOptions.disableGeneration) {
-    return;
-  }
-  let sheetManager = _multiKeyStore_js__WEBPACK_IMPORTED_MODULE_3__["default"].get(stylesOptions.sheetsManager, stylesCreator, theme);
-  if (!sheetManager) {
-    sheetManager = {
-      refs: 0,
-      staticSheet: null,
-      dynamicStyles: null
-    };
-    _multiKeyStore_js__WEBPACK_IMPORTED_MODULE_3__["default"].set(stylesOptions.sheetsManager, stylesCreator, theme, sheetManager);
-  }
-  const options = {
-    ...stylesCreator.options,
-    ...stylesOptions,
-    theme,
-    flip: typeof stylesOptions.flip === 'boolean' ? stylesOptions.flip : theme.direction === 'rtl'
-  };
-  options.generateId = options.serverGenerateClassName || options.generateClassName;
-  const sheetsRegistry = stylesOptions.sheetsRegistry;
-  if (sheetManager.refs === 0) {
-    let staticSheet;
-    if (stylesOptions.sheetsCache) {
-      staticSheet = _multiKeyStore_js__WEBPACK_IMPORTED_MODULE_3__["default"].get(stylesOptions.sheetsCache, stylesCreator, theme);
-    }
-    const styles = stylesCreator.create(theme, name);
-    if (!staticSheet) {
-      staticSheet = stylesOptions.jss.createStyleSheet(styles, {
-        link: false,
-        ...options
-      });
-      staticSheet.attach();
-      if (stylesOptions.sheetsCache) {
-        _multiKeyStore_js__WEBPACK_IMPORTED_MODULE_3__["default"].set(stylesOptions.sheetsCache, stylesCreator, theme, staticSheet);
-      }
-    }
-    if (sheetsRegistry) {
-      sheetsRegistry.add(staticSheet);
-    }
-    sheetManager.staticSheet = staticSheet;
-    sheetManager.dynamicStyles = (0,jss__WEBPACK_IMPORTED_MODULE_1__.getDynamicStyles)(styles);
-  }
-  if (sheetManager.dynamicStyles) {
-    const dynamicSheet = stylesOptions.jss.createStyleSheet(sheetManager.dynamicStyles, {
-      link: true,
-      ...options
-    });
-    dynamicSheet.update(props);
-    dynamicSheet.attach();
-    state.dynamicSheet = dynamicSheet;
-    state.classes = (0,_mergeClasses_index_js__WEBPACK_IMPORTED_MODULE_2__["default"])({
-      baseClasses: sheetManager.staticSheet.classes,
-      newClasses: dynamicSheet.classes
-    });
-    if (sheetsRegistry) {
-      sheetsRegistry.add(dynamicSheet);
-    }
-  } else {
-    state.classes = sheetManager.staticSheet.classes;
-  }
-  sheetManager.refs += 1;
-}
-function update({
-  state
-}, props) {
-  if (state.dynamicSheet) {
-    state.dynamicSheet.update(props);
-  }
-}
-function detach({
-  state,
-  theme,
-  stylesOptions,
-  stylesCreator
-}) {
-  if (stylesOptions.disableGeneration) {
-    return;
-  }
-  const sheetManager = _multiKeyStore_js__WEBPACK_IMPORTED_MODULE_3__["default"].get(stylesOptions.sheetsManager, stylesCreator, theme);
-  sheetManager.refs -= 1;
-  const sheetsRegistry = stylesOptions.sheetsRegistry;
-  if (sheetManager.refs === 0) {
-    _multiKeyStore_js__WEBPACK_IMPORTED_MODULE_3__["default"].delete(stylesOptions.sheetsManager, stylesCreator, theme);
-    stylesOptions.jss.removeStyleSheet(sheetManager.staticSheet);
-    if (sheetsRegistry) {
-      sheetsRegistry.remove(sheetManager.staticSheet);
-    }
-  }
-  if (state.dynamicSheet) {
-    stylesOptions.jss.removeStyleSheet(state.dynamicSheet);
-    if (sheetsRegistry) {
-      sheetsRegistry.remove(state.dynamicSheet);
-    }
-  }
-}
-function useSynchronousEffect(func, values) {
-  const key = react__WEBPACK_IMPORTED_MODULE_0__.useRef([]);
-  let output;
-
-  // Store "generation" key. Just returns a new object every time
-  // TODO: uncomment once we enable eslint-plugin-react-compiler // eslint-disable-next-line react-compiler/react-compiler
-  const currentKey = react__WEBPACK_IMPORTED_MODULE_0__.useMemo(() => ({}), values); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // "the first render", or "memo dropped the value"
-  if (key.current !== currentKey) {
-    key.current = currentKey;
-    output = func();
-  }
-  react__WEBPACK_IMPORTED_MODULE_0__.useEffect(() => () => {
-    if (output) {
-      output();
-    }
-  }, [currentKey] // eslint-disable-line react-hooks/exhaustive-deps
-  );
-}
-function makeStyles(stylesOrCreator, options = {}) {
-  const {
-    // alias for classNamePrefix, if provided will listen to theme (required for theme.components[name].styleOverrides)
-    name,
-    // Help with debuggability.
-    classNamePrefix: classNamePrefixOption,
-    Component,
-    defaultTheme = _getStylesCreator_noopTheme_js__WEBPACK_IMPORTED_MODULE_8__["default"],
-    ...stylesOptions2
-  } = options;
-  const stylesCreator = (0,_getStylesCreator_index_js__WEBPACK_IMPORTED_MODULE_7__["default"])(stylesOrCreator);
-  const classNamePrefix = name || classNamePrefixOption || 'makeStyles';
-  stylesCreator.options = {
-    index: (0,_indexCounter_js__WEBPACK_IMPORTED_MODULE_6__.increment)(),
-    name,
-    meta: classNamePrefix,
-    classNamePrefix
-  };
-  const useStyles = (props = {}) => {
-    const theme = (0,_useTheme_index_js__WEBPACK_IMPORTED_MODULE_4__["default"])() || defaultTheme;
-    const stylesOptions = {
-      ...react__WEBPACK_IMPORTED_MODULE_0__.useContext(_StylesProvider_index_js__WEBPACK_IMPORTED_MODULE_5__.StylesContext),
-      ...stylesOptions2
-    };
-    const instance = react__WEBPACK_IMPORTED_MODULE_0__.useRef();
-    const shouldUpdate = react__WEBPACK_IMPORTED_MODULE_0__.useRef();
-    useSynchronousEffect(() => {
-      const current = {
-        name,
-        state: {},
-        stylesCreator,
-        stylesOptions,
-        theme
-      };
-      attach(current, props);
-      shouldUpdate.current = false;
-      instance.current = current;
-      return () => {
-        detach(current);
-      };
-    }, [theme, stylesCreator]);
-    react__WEBPACK_IMPORTED_MODULE_0__.useEffect(() => {
-      if (shouldUpdate.current) {
-        update(instance.current, props);
-      }
-      shouldUpdate.current = true;
-    });
-    const classes = getClasses(instance.current, props.classes, Component);
-    if (true) {
-      // TODO: uncomment once we enable eslint-plugin-react-compiler // eslint-disable-next-line react-compiler/react-compiler
-      // eslint-disable-next-line react-hooks/rules-of-hooks -- process.env never changes
-      react__WEBPACK_IMPORTED_MODULE_0__.useDebugValue(classes);
-    }
-    if (true) {
-      const supportedComponents = ['MuiAvatar', 'MuiBadge', 'MuiButton', 'MuiButtonGroup', 'MuiChip', 'MuiDivider', 'MuiFab', 'MuiPaper', 'MuiToolbar', 'MuiTypography', 'MuiAlert', 'MuiPagination', 'MuiPaginationItem', 'MuiSkeleton', 'MuiTimelineDot'];
-      if (name && supportedComponents.includes(name) && props.variant && !classes[props.variant]) {
-        console.error([`MUI: You are using a variant value \`${props.variant}\` for which you didn't define styles.`, `Please create a new variant matcher in your theme for this variant. To learn more about matchers visit https://mui.com/r/custom-component-variants.`].join('\n'));
-      }
-    }
-    return classes;
-  };
-  return useStyles;
-}
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/makeStyles/multiKeyStore.js":
-/*!**************************************************************!*\
-  !*** ./node_modules/@mui/styles/makeStyles/multiKeyStore.js ***!
-  \**************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-// Used https://github.com/thinkloop/multi-key-cache as inspiration
-
-const multiKeyStore = {
-  set: (cache, key1, key2, value) => {
-    let subCache = cache.get(key1);
-    if (!subCache) {
-      subCache = new Map();
-      cache.set(key1, subCache);
-    }
-    subCache.set(key2, value);
-  },
-  get: (cache, key1, key2) => {
-    const subCache = cache.get(key1);
-    return subCache ? subCache.get(key2) : undefined;
-  },
-  delete: (cache, key1, key2) => {
-    const subCache = cache.get(key1);
-    subCache.delete(key2);
-  }
-};
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (multiKeyStore);
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/mergeClasses/mergeClasses.js":
-/*!***************************************************************!*\
-  !*** ./node_modules/@mui/styles/mergeClasses/mergeClasses.js ***!
-  \***************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ mergeClasses)
-/* harmony export */ });
-/* harmony import */ var _mui_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @mui/utils */ "./node_modules/@mui/utils/esm/getDisplayName/getDisplayName.js");
-
-function mergeClasses(options = {}) {
-  const {
-    baseClasses,
-    newClasses,
-    Component
-  } = options;
-  if (!newClasses) {
-    return baseClasses;
-  }
-  const nextClasses = {
-    ...baseClasses
-  };
-  if (true) {
-    if (typeof newClasses === 'string') {
-      console.error([`MUI: The value \`${newClasses}\` ` + `provided to the classes prop of ${(0,_mui_utils__WEBPACK_IMPORTED_MODULE_0__["default"])(Component)} is incorrect.`, 'You might want to use the className prop instead.'].join('\n'));
-      return baseClasses;
-    }
-  }
-  Object.keys(newClasses).forEach(key => {
-    if (true) {
-      if (!baseClasses[key] && newClasses[key]) {
-        console.error([`MUI: The key \`${key}\` ` + `provided to the classes prop is not implemented in ${(0,_mui_utils__WEBPACK_IMPORTED_MODULE_0__["default"])(Component)}.`, `You can only override one of the following: ${Object.keys(baseClasses).join(',')}.`].join('\n'));
-      }
-      if (newClasses[key] && typeof newClasses[key] !== 'string') {
-        console.error([`MUI: The key \`${key}\` ` + `provided to the classes prop is not valid for ${(0,_mui_utils__WEBPACK_IMPORTED_MODULE_0__["default"])(Component)}.`, `You need to provide a non empty string instead of: ${newClasses[key]}.`].join('\n'));
-      }
-    }
-    if (newClasses[key]) {
-      nextClasses[key] = `${baseClasses[key]} ${newClasses[key]}`;
-    }
-  });
-  return nextClasses;
-}
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/propsToClassKey/propsToClassKey.js":
-/*!*********************************************************************!*\
-  !*** ./node_modules/@mui/styles/propsToClassKey/propsToClassKey.js ***!
-  \*********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ propsToClassKey)
-/* harmony export */ });
-/* harmony import */ var _mui_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @mui/utils */ "./node_modules/@mui/utils/esm/capitalize/capitalize.js");
-
-function isEmpty(string) {
-  return string.length === 0;
-}
-
-/**
- * Generates string classKey based on the properties provided. It starts with the
- * variant if defined, and then it appends all other properties in alphabetical order.
- * @param {object} props - the properties for which the classKey should be created
- */
-function propsToClassKey(props) {
-  const {
-    variant,
-    ...other
-  } = props;
-  let classKey = variant || '';
-  Object.keys(other).sort().forEach(key => {
-    if (key === 'color') {
-      classKey += isEmpty(classKey) ? props[key] : (0,_mui_utils__WEBPACK_IMPORTED_MODULE_0__["default"])(props[key]);
-    } else {
-      classKey += `${isEmpty(classKey) ? key : (0,_mui_utils__WEBPACK_IMPORTED_MODULE_0__["default"])(key)}${(0,_mui_utils__WEBPACK_IMPORTED_MODULE_0__["default"])(props[key].toString())}`;
-    }
-  });
-  return classKey;
-}
-
-/***/ }),
-
-/***/ "./node_modules/@mui/styles/useTheme/index.js":
-/*!****************************************************!*\
-  !*** ./node_modules/@mui/styles/useTheme/index.js ***!
-  \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ useTheme)
-/* harmony export */ });
-/* harmony import */ var _mui_private_theming_useTheme__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @mui/private-theming/useTheme */ "./node_modules/@mui/private-theming/useTheme/useTheme.js");
-
-function useTheme() {
-  const privateTheme = (0,_mui_private_theming_useTheme__WEBPACK_IMPORTED_MODULE_0__["default"])();
-  return privateTheme?.$$material ?? privateTheme;
-}
 
 /***/ }),
 
@@ -138289,599 +137567,6 @@ module.exports = function (item) {
 
 /***/ }),
 
-/***/ "./node_modules/css-vendor/dist/css-vendor.esm.js":
-/*!********************************************************!*\
-  !*** ./node_modules/css-vendor/dist/css-vendor.esm.js ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   prefix: () => (/* binding */ prefix),
-/* harmony export */   supportedKeyframes: () => (/* binding */ supportedKeyframes),
-/* harmony export */   supportedProperty: () => (/* binding */ supportedProperty),
-/* harmony export */   supportedValue: () => (/* binding */ supportedValue)
-/* harmony export */ });
-/* harmony import */ var is_in_browser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! is-in-browser */ "./node_modules/is-in-browser/dist/module.js");
-/* harmony import */ var _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
-
-
-
-// Export javascript style and css style vendor prefixes.
-var js = '';
-var css = '';
-var vendor = '';
-var browser = '';
-var isTouch = is_in_browser__WEBPACK_IMPORTED_MODULE_0__["default"] && 'ontouchstart' in document.documentElement; // We should not do anything if required serverside.
-
-if (is_in_browser__WEBPACK_IMPORTED_MODULE_0__["default"]) {
-  // Order matters. We need to check Webkit the last one because
-  // other vendors use to add Webkit prefixes to some properties
-  var jsCssMap = {
-    Moz: '-moz-',
-    ms: '-ms-',
-    O: '-o-',
-    Webkit: '-webkit-'
-  };
-
-  var _document$createEleme = document.createElement('p'),
-      style = _document$createEleme.style;
-
-  var testProp = 'Transform';
-
-  for (var key in jsCssMap) {
-    if (key + testProp in style) {
-      js = key;
-      css = jsCssMap[key];
-      break;
-    }
-  } // Correctly detect the Edge browser.
-
-
-  if (js === 'Webkit' && 'msHyphens' in style) {
-    js = 'ms';
-    css = jsCssMap.ms;
-    browser = 'edge';
-  } // Correctly detect the Safari browser.
-
-
-  if (js === 'Webkit' && '-apple-trailing-word' in style) {
-    vendor = 'apple';
-  }
-}
-/**
- * Vendor prefix string for the current browser.
- *
- * @type {{js: String, css: String, vendor: String, browser: String}}
- * @api public
- */
-
-
-var prefix = {
-  js: js,
-  css: css,
-  vendor: vendor,
-  browser: browser,
-  isTouch: isTouch
-};
-
-/**
- * Test if a keyframe at-rule should be prefixed or not
- *
- * @param {String} vendor prefix string for the current browser.
- * @return {String}
- * @api public
- */
-
-function supportedKeyframes(key) {
-  // Keyframes is already prefixed. e.g. key = '@-webkit-keyframes a'
-  if (key[1] === '-') return key; // No need to prefix IE/Edge. Older browsers will ignore unsupported rules.
-  // https://caniuse.com/#search=keyframes
-
-  if (prefix.js === 'ms') return key;
-  return "@" + prefix.css + "keyframes" + key.substr(10);
-}
-
-// https://caniuse.com/#search=appearance
-
-var appearence = {
-  noPrefill: ['appearance'],
-  supportedProperty: function supportedProperty(prop) {
-    if (prop !== 'appearance') return false;
-    if (prefix.js === 'ms') return "-webkit-" + prop;
-    return prefix.css + prop;
-  }
-};
-
-// https://caniuse.com/#search=color-adjust
-
-var colorAdjust = {
-  noPrefill: ['color-adjust'],
-  supportedProperty: function supportedProperty(prop) {
-    if (prop !== 'color-adjust') return false;
-    if (prefix.js === 'Webkit') return prefix.css + "print-" + prop;
-    return prop;
-  }
-};
-
-var regExp = /[-\s]+(.)?/g;
-/**
- * Replaces the letter with the capital letter
- *
- * @param {String} match
- * @param {String} c
- * @return {String}
- * @api private
- */
-
-function toUpper(match, c) {
-  return c ? c.toUpperCase() : '';
-}
-/**
- * Convert dash separated strings to camel-cased.
- *
- * @param {String} str
- * @return {String}
- * @api private
- */
-
-
-function camelize(str) {
-  return str.replace(regExp, toUpper);
-}
-
-/**
- * Convert dash separated strings to pascal cased.
- *
- * @param {String} str
- * @return {String}
- * @api private
- */
-
-function pascalize(str) {
-  return camelize("-" + str);
-}
-
-// but we can use a longhand property instead.
-// https://caniuse.com/#search=mask
-
-var mask = {
-  noPrefill: ['mask'],
-  supportedProperty: function supportedProperty(prop, style) {
-    if (!/^mask/.test(prop)) return false;
-
-    if (prefix.js === 'Webkit') {
-      var longhand = 'mask-image';
-
-      if (camelize(longhand) in style) {
-        return prop;
-      }
-
-      if (prefix.js + pascalize(longhand) in style) {
-        return prefix.css + prop;
-      }
-    }
-
-    return prop;
-  }
-};
-
-// https://caniuse.com/#search=text-orientation
-
-var textOrientation = {
-  noPrefill: ['text-orientation'],
-  supportedProperty: function supportedProperty(prop) {
-    if (prop !== 'text-orientation') return false;
-
-    if (prefix.vendor === 'apple' && !prefix.isTouch) {
-      return prefix.css + prop;
-    }
-
-    return prop;
-  }
-};
-
-// https://caniuse.com/#search=transform
-
-var transform = {
-  noPrefill: ['transform'],
-  supportedProperty: function supportedProperty(prop, style, options) {
-    if (prop !== 'transform') return false;
-
-    if (options.transform) {
-      return prop;
-    }
-
-    return prefix.css + prop;
-  }
-};
-
-// https://caniuse.com/#search=transition
-
-var transition = {
-  noPrefill: ['transition'],
-  supportedProperty: function supportedProperty(prop, style, options) {
-    if (prop !== 'transition') return false;
-
-    if (options.transition) {
-      return prop;
-    }
-
-    return prefix.css + prop;
-  }
-};
-
-// https://caniuse.com/#search=writing-mode
-
-var writingMode = {
-  noPrefill: ['writing-mode'],
-  supportedProperty: function supportedProperty(prop) {
-    if (prop !== 'writing-mode') return false;
-
-    if (prefix.js === 'Webkit' || prefix.js === 'ms' && prefix.browser !== 'edge') {
-      return prefix.css + prop;
-    }
-
-    return prop;
-  }
-};
-
-// https://caniuse.com/#search=user-select
-
-var userSelect = {
-  noPrefill: ['user-select'],
-  supportedProperty: function supportedProperty(prop) {
-    if (prop !== 'user-select') return false;
-
-    if (prefix.js === 'Moz' || prefix.js === 'ms' || prefix.vendor === 'apple') {
-      return prefix.css + prop;
-    }
-
-    return prop;
-  }
-};
-
-// https://caniuse.com/#search=multicolumn
-// https://github.com/postcss/autoprefixer/issues/491
-// https://github.com/postcss/autoprefixer/issues/177
-
-var breakPropsOld = {
-  supportedProperty: function supportedProperty(prop, style) {
-    if (!/^break-/.test(prop)) return false;
-
-    if (prefix.js === 'Webkit') {
-      var jsProp = "WebkitColumn" + pascalize(prop);
-      return jsProp in style ? prefix.css + "column-" + prop : false;
-    }
-
-    if (prefix.js === 'Moz') {
-      var _jsProp = "page" + pascalize(prop);
-
-      return _jsProp in style ? "page-" + prop : false;
-    }
-
-    return false;
-  }
-};
-
-// See https://github.com/postcss/autoprefixer/issues/324.
-
-var inlineLogicalOld = {
-  supportedProperty: function supportedProperty(prop, style) {
-    if (!/^(border|margin|padding)-inline/.test(prop)) return false;
-    if (prefix.js === 'Moz') return prop;
-    var newProp = prop.replace('-inline', '');
-    return prefix.js + pascalize(newProp) in style ? prefix.css + newProp : false;
-  }
-};
-
-// Camelization is required because we can't test using.
-// CSS syntax for e.g. in FF.
-
-var unprefixed = {
-  supportedProperty: function supportedProperty(prop, style) {
-    return camelize(prop) in style ? prop : false;
-  }
-};
-
-var prefixed = {
-  supportedProperty: function supportedProperty(prop, style) {
-    var pascalized = pascalize(prop); // Return custom CSS variable without prefixing.
-
-    if (prop[0] === '-') return prop; // Return already prefixed value without prefixing.
-
-    if (prop[0] === '-' && prop[1] === '-') return prop;
-    if (prefix.js + pascalized in style) return prefix.css + prop; // Try webkit fallback.
-
-    if (prefix.js !== 'Webkit' && "Webkit" + pascalized in style) return "-webkit-" + prop;
-    return false;
-  }
-};
-
-// https://caniuse.com/#search=scroll-snap
-
-var scrollSnap = {
-  supportedProperty: function supportedProperty(prop) {
-    if (prop.substring(0, 11) !== 'scroll-snap') return false;
-
-    if (prefix.js === 'ms') {
-      return "" + prefix.css + prop;
-    }
-
-    return prop;
-  }
-};
-
-// https://caniuse.com/#search=overscroll-behavior
-
-var overscrollBehavior = {
-  supportedProperty: function supportedProperty(prop) {
-    if (prop !== 'overscroll-behavior') return false;
-
-    if (prefix.js === 'ms') {
-      return prefix.css + "scroll-chaining";
-    }
-
-    return prop;
-  }
-};
-
-var propMap = {
-  'flex-grow': 'flex-positive',
-  'flex-shrink': 'flex-negative',
-  'flex-basis': 'flex-preferred-size',
-  'justify-content': 'flex-pack',
-  order: 'flex-order',
-  'align-items': 'flex-align',
-  'align-content': 'flex-line-pack' // 'align-self' is handled by 'align-self' plugin.
-
-}; // Support old flex spec from 2012.
-
-var flex2012 = {
-  supportedProperty: function supportedProperty(prop, style) {
-    var newProp = propMap[prop];
-    if (!newProp) return false;
-    return prefix.js + pascalize(newProp) in style ? prefix.css + newProp : false;
-  }
-};
-
-var propMap$1 = {
-  flex: 'box-flex',
-  'flex-grow': 'box-flex',
-  'flex-direction': ['box-orient', 'box-direction'],
-  order: 'box-ordinal-group',
-  'align-items': 'box-align',
-  'flex-flow': ['box-orient', 'box-direction'],
-  'justify-content': 'box-pack'
-};
-var propKeys = Object.keys(propMap$1);
-
-var prefixCss = function prefixCss(p) {
-  return prefix.css + p;
-}; // Support old flex spec from 2009.
-
-
-var flex2009 = {
-  supportedProperty: function supportedProperty(prop, style, _ref) {
-    var multiple = _ref.multiple;
-
-    if (propKeys.indexOf(prop) > -1) {
-      var newProp = propMap$1[prop];
-
-      if (!Array.isArray(newProp)) {
-        return prefix.js + pascalize(newProp) in style ? prefix.css + newProp : false;
-      }
-
-      if (!multiple) return false;
-
-      for (var i = 0; i < newProp.length; i++) {
-        if (!(prefix.js + pascalize(newProp[0]) in style)) {
-          return false;
-        }
-      }
-
-      return newProp.map(prefixCss);
-    }
-
-    return false;
-  }
-};
-
-// plugins = [
-//   ...plugins,
-//    breakPropsOld,
-//    inlineLogicalOld,
-//    unprefixed,
-//    prefixed,
-//    scrollSnap,
-//    flex2012,
-//    flex2009
-// ]
-// Plugins without 'noPrefill' value, going last.
-// 'flex-*' plugins should be at the bottom.
-// 'flex2009' going after 'flex2012'.
-// 'prefixed' going after 'unprefixed'
-
-var plugins = [appearence, colorAdjust, mask, textOrientation, transform, transition, writingMode, userSelect, breakPropsOld, inlineLogicalOld, unprefixed, prefixed, scrollSnap, overscrollBehavior, flex2012, flex2009];
-var propertyDetectors = plugins.filter(function (p) {
-  return p.supportedProperty;
-}).map(function (p) {
-  return p.supportedProperty;
-});
-var noPrefill = plugins.filter(function (p) {
-  return p.noPrefill;
-}).reduce(function (a, p) {
-  a.push.apply(a, (0,_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(p.noPrefill));
-  return a;
-}, []);
-
-var el;
-var cache = {};
-
-if (is_in_browser__WEBPACK_IMPORTED_MODULE_0__["default"]) {
-  el = document.createElement('p'); // We test every property on vendor prefix requirement.
-  // Once tested, result is cached. It gives us up to 70% perf boost.
-  // http://jsperf.com/element-style-object-access-vs-plain-object
-  //
-  // Prefill cache with known css properties to reduce amount of
-  // properties we need to feature test at runtime.
-  // http://davidwalsh.name/vendor-prefix
-
-  var computed = window.getComputedStyle(document.documentElement, '');
-
-  for (var key$1 in computed) {
-    // eslint-disable-next-line no-restricted-globals
-    if (!isNaN(key$1)) cache[computed[key$1]] = computed[key$1];
-  } // Properties that cannot be correctly detected using the
-  // cache prefill method.
-
-
-  noPrefill.forEach(function (x) {
-    return delete cache[x];
-  });
-}
-/**
- * Test if a property is supported, returns supported property with vendor
- * prefix if required. Returns `false` if not supported.
- *
- * @param {String} prop dash separated
- * @param {Object} [options]
- * @return {String|Boolean}
- * @api public
- */
-
-
-function supportedProperty(prop, options) {
-  if (options === void 0) {
-    options = {};
-  }
-
-  // For server-side rendering.
-  if (!el) return prop; // Remove cache for benchmark tests or return property from the cache.
-
-  if ( true && cache[prop] != null) {
-    return cache[prop];
-  } // Check if 'transition' or 'transform' natively supported in browser.
-
-
-  if (prop === 'transition' || prop === 'transform') {
-    options[prop] = prop in el.style;
-  } // Find a plugin for current prefix property.
-
-
-  for (var i = 0; i < propertyDetectors.length; i++) {
-    cache[prop] = propertyDetectors[i](prop, el.style, options); // Break loop, if value found.
-
-    if (cache[prop]) break;
-  } // Reset styles for current property.
-  // Firefox can even throw an error for invalid properties, e.g., "0".
-
-
-  try {
-    el.style[prop] = '';
-  } catch (err) {
-    return false;
-  }
-
-  return cache[prop];
-}
-
-var cache$1 = {};
-var transitionProperties = {
-  transition: 1,
-  'transition-property': 1,
-  '-webkit-transition': 1,
-  '-webkit-transition-property': 1
-};
-var transPropsRegExp = /(^\s*[\w-]+)|, (\s*[\w-]+)(?![^()]*\))/g;
-var el$1;
-/**
- * Returns prefixed value transition/transform if needed.
- *
- * @param {String} match
- * @param {String} p1
- * @param {String} p2
- * @return {String}
- * @api private
- */
-
-function prefixTransitionCallback(match, p1, p2) {
-  if (p1 === 'var') return 'var';
-  if (p1 === 'all') return 'all';
-  if (p2 === 'all') return ', all';
-  var prefixedValue = p1 ? supportedProperty(p1) : ", " + supportedProperty(p2);
-  if (!prefixedValue) return p1 || p2;
-  return prefixedValue;
-}
-
-if (is_in_browser__WEBPACK_IMPORTED_MODULE_0__["default"]) el$1 = document.createElement('p');
-/**
- * Returns prefixed value if needed. Returns `false` if value is not supported.
- *
- * @param {String} property
- * @param {String} value
- * @return {String|Boolean}
- * @api public
- */
-
-function supportedValue(property, value) {
-  // For server-side rendering.
-  var prefixedValue = value;
-  if (!el$1 || property === 'content') return value; // It is a string or a number as a string like '1'.
-  // We want only prefixable values here.
-  // eslint-disable-next-line no-restricted-globals
-
-  if (typeof prefixedValue !== 'string' || !isNaN(parseInt(prefixedValue, 10))) {
-    return prefixedValue;
-  } // Create cache key for current value.
-
-
-  var cacheKey = property + prefixedValue; // Remove cache for benchmark tests or return value from cache.
-
-  if ( true && cache$1[cacheKey] != null) {
-    return cache$1[cacheKey];
-  } // IE can even throw an error in some cases, for e.g. style.content = 'bar'.
-
-
-  try {
-    // Test value as it is.
-    el$1.style[property] = prefixedValue;
-  } catch (err) {
-    // Return false if value not supported.
-    cache$1[cacheKey] = false;
-    return false;
-  } // If 'transition' or 'transition-property' property.
-
-
-  if (transitionProperties[property]) {
-    prefixedValue = prefixedValue.replace(transPropsRegExp, prefixTransitionCallback);
-  } else if (el$1.style[property] === '') {
-    // Value with a vendor prefix.
-    prefixedValue = prefix.css + prefixedValue; // Hardcode test to convert "flex" to "-ms-flexbox" for IE10.
-
-    if (prefixedValue === '-ms-flex') el$1.style[property] = '-ms-flexbox'; // Test prefixed value.
-
-    el$1.style[property] = prefixedValue; // Return false if value not supported.
-
-    if (el$1.style[property] === '') {
-      cache$1[cacheKey] = false;
-      return false;
-    }
-  } // Reset styles for current property.
-
-
-  el$1.style[property] = ''; // Write current value to cache.
-
-  cache$1[cacheKey] = prefixedValue;
-  return cache$1[cacheKey];
-}
-
-
-
-
-/***/ }),
-
 /***/ "./node_modules/d3-array/src/ascending.js":
 /*!************************************************!*\
   !*** ./node_modules/d3-array/src/ascending.js ***!
@@ -174806,40 +173491,6 @@ if (false) // removed by dead control flow
 
 /***/ }),
 
-/***/ "./node_modules/hyphenate-style-name/index.js":
-/*!****************************************************!*\
-  !*** ./node_modules/hyphenate-style-name/index.js ***!
-  \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* eslint-disable no-var, prefer-template */
-var uppercasePattern = /[A-Z]/g
-var msPattern = /^ms-/
-var cache = {}
-
-function toHyphenLower(match) {
-  return '-' + match.toLowerCase()
-}
-
-function hyphenateStyleName(name) {
-  if (cache.hasOwnProperty(name)) {
-    return cache[name]
-  }
-
-  var hName = name.replace(uppercasePattern, toHyphenLower)
-  return (cache[name] = msPattern.test(hName) ? '-' + hName : hName)
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (hyphenateStyleName);
-
-
-/***/ }),
-
 /***/ "./node_modules/immer/dist/immer.mjs":
 /*!*******************************************!*\
   !*** ./node_modules/immer/dist/immer.mjs ***!
@@ -176222,27 +174873,6 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 };
 
 module.exports = invariant;
-
-
-/***/ }),
-
-/***/ "./node_modules/is-in-browser/dist/module.js":
-/*!***************************************************!*\
-  !*** ./node_modules/is-in-browser/dist/module.js ***!
-  \***************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   isBrowser: () => (/* binding */ isBrowser)
-/* harmony export */ });
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var isBrowser = (typeof window === "undefined" ? "undefined" : _typeof(window)) === "object" && (typeof document === "undefined" ? "undefined" : _typeof(document)) === 'object' && document.nodeType === 9;
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (isBrowser);
 
 
 /***/ }),
@@ -180905,3201 +179535,6 @@ function(t){var e=function(){return void 0===this.internal.vFS&&(this.internal.v
  */
 function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,o,s,c,u=e,h=[[0,3,0,1,0,0,0],[0,3,0,1,2,2,0],[0,3,0,17,2,0,1],[0,3,5,5,4,1,0],[0,3,21,21,4,0,1],[0,3,5,5,4,2,0]],l=[[2,0,1,1,0,1,0],[2,0,1,1,0,2,0],[2,0,2,1,3,2,0],[2,0,2,33,3,1,1]],f={L:0,R:1,EN:2,AN:3,N:4,B:5,S:6},d={0:0,5:1,6:2,7:3,32:4,251:5,254:6,255:7},p=["(",")","(","<",">","<","[","]","[","{","}","{","«","»","«","‹","›","‹","⁅","⁆","⁅","⁽","⁾","⁽","₍","₎","₍","≤","≥","≤","〈","〉","〈","﹙","﹚","﹙","﹛","﹜","﹛","﹝","﹞","﹝","﹤","﹥","﹤"],g=new RegExp(/^([1-4|9]|1[0-9]|2[0-9]|3[0168]|4[04589]|5[012]|7[78]|159|16[0-9]|17[0-2]|21[569]|22[03489]|250)$/),m=!1,v=0;this.__bidiEngine__={};var b=function(t){var e=t.charCodeAt(),r=e>>8,n=d[r];return void 0!==n?u[256*n+(255&e)]:252===r||253===r?"AL":g.test(r)?"L":8===r?"R":"N"},y=function(t){for(var e,r=0;r<t.length;r++){if("L"===(e=b(t.charAt(r))))return!1;if("R"===e)return!0}return!1},w=function(t,e,o,s){var c,u,h,l,f=e[s];switch(f){case"L":case"R":m=!1;break;case"N":case"AN":break;case"EN":m&&(f="AN");break;case"AL":m=!0,f="R";break;case"WS":f="N";break;case"CS":s<1||s+1>=e.length||"EN"!==(c=o[s-1])&&"AN"!==c||"EN"!==(u=e[s+1])&&"AN"!==u?f="N":m&&(u="AN"),f=u===c?u:"N";break;case"ES":f="EN"===(c=s>0?o[s-1]:"B")&&s+1<e.length&&"EN"===e[s+1]?"EN":"N";break;case"ET":if(s>0&&"EN"===o[s-1]){f="EN";break}if(m){f="N";break}for(h=s+1,l=e.length;h<l&&"ET"===e[h];)h++;f=h<l&&"EN"===e[h]?"EN":"N";break;case"NSM":if(i&&!a){for(l=e.length,h=s+1;h<l&&"NSM"===e[h];)h++;if(h<l){var d=t[s],p=d>=1425&&d<=2303||64286===d;if(c=e[h],p&&("R"===c||"AL"===c)){f="R";break}}}f=s<1||"B"===(c=e[s-1])?"N":o[s-1];break;case"B":m=!1,r=!0,f=v;break;case"S":n=!0,f="N";break;case"LRE":case"RLE":case"LRO":case"RLO":case"PDF":m=!1;break;case"BN":f="N"}return f},N=function(t,e,r){var n=t.split("");return r&&L(n,r,{hiLevel:v}),n.reverse(),e&&e.reverse(),n.join("")},L=function(t,e,i){var a,o,s,c,u,d=-1,p=t.length,g=0,y=[],N=v?l:h,L=[];for(m=!1,r=!1,n=!1,o=0;o<p;o++)L[o]=b(t[o]);for(s=0;s<p;s++){if(u=g,y[s]=w(t,L,y,s),a=240&(g=N[u][f[y[s]]]),g&=15,e[s]=c=N[g][5],a>0)if(16===a){for(o=d;o<s;o++)e[o]=1;d=-1}else d=-1;if(N[g][6])-1===d&&(d=s);else if(d>-1){for(o=d;o<s;o++)e[o]=c;d=-1}"B"===L[s]&&(e[s]=0),i.hiLevel|=c}n&&function(t,e,r){for(var n=0;n<r;n++)if("S"===t[n]){e[n]=v;for(var i=n-1;i>=0&&"WS"===t[i];i--)e[i]=v}}(L,e,p)},A=function(t,e,n,i,a){if(!(a.hiLevel<t)){if(1===t&&1===v&&!r)return e.reverse(),void(n&&n.reverse());for(var o,s,c,u,h=e.length,l=0;l<h;){if(i[l]>=t){for(c=l+1;c<h&&i[c]>=t;)c++;for(u=l,s=c-1;u<s;u++,s--)o=e[u],e[u]=e[s],e[s]=o,n&&(o=n[u],n[u]=n[s],n[s]=o);l=c}l++}}},x=function(t,e,r){var n=t.split(""),i={hiLevel:v};return r||(r=[]),L(n,r,i),function(t,e,r){if(0!==r.hiLevel&&c)for(var n,i=0;i<t.length;i++)1===e[i]&&(n=p.indexOf(t[i]))>=0&&(t[i]=p[n+1])}(n,r,i),A(2,n,e,r,i),A(1,n,e,r,i),n.join("")};return this.__bidiEngine__.doBidiReorder=function(t,e,r){if(function(t,e){if(e)for(var r=0;r<t.length;r++)e[r]=r;void 0===a&&(a=y(t)),void 0===s&&(s=y(t))}(t,e),i||!o||s)if(i&&o&&a^s)v=a?1:0,t=N(t,e,r);else if(!i&&o&&s)v=a?1:0,t=x(t,e,r),t=N(t,e);else if(!i||a||o||s){if(i&&!o&&a^s)t=N(t,e),a?(v=0,t=x(t,e,r)):(v=1,t=x(t,e,r),t=N(t,e));else if(i&&a&&!o&&s)v=1,t=x(t,e,r),t=N(t,e);else if(!i&&!o&&a^s){var n=c;a?(v=1,t=x(t,e,r),v=0,c=!1,t=x(t,e,r),c=n):(v=0,t=x(t,e,r),t=N(t,e),v=1,c=!1,t=x(t,e,r),c=n,t=N(t,e))}}else v=0,t=x(t,e,r);else v=a?1:0,t=x(t,e,r);return t},this.__bidiEngine__.setOptions=function(t){t&&(i=t.isInputVisual,o=t.isOutputVisual,a=t.isInputRtl,s=t.isOutputRtl,c=t.isSymmetricSwapping)},this.__bidiEngine__.setOptions(t),this.__bidiEngine__};var e=["BN","BN","BN","BN","BN","BN","BN","BN","BN","S","B","S","WS","B","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","B","B","B","S","WS","N","N","ET","ET","ET","N","N","N","N","N","ES","CS","ES","CS","CS","EN","EN","EN","EN","EN","EN","EN","EN","EN","EN","CS","N","N","N","N","N","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","N","N","N","N","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","N","N","N","BN","BN","BN","BN","BN","BN","B","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","BN","CS","N","ET","ET","ET","ET","N","N","N","N","L","N","N","BN","N","N","ET","ET","EN","EN","N","L","N","N","N","EN","L","N","N","N","N","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","N","L","L","L","L","L","L","L","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","L","N","N","N","N","N","ET","N","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","R","NSM","R","NSM","NSM","R","NSM","NSM","R","NSM","N","N","N","N","N","N","N","N","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","N","N","N","N","N","R","R","R","R","R","N","N","N","N","N","N","N","N","N","N","N","AN","AN","AN","AN","AN","AN","N","N","AL","ET","ET","AL","CS","AL","N","N","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","AL","AL","N","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","AN","AN","AN","AN","AN","AN","AN","AN","AN","AN","ET","AN","AN","AL","AL","AL","NSM","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","NSM","NSM","NSM","NSM","NSM","NSM","NSM","AN","N","NSM","NSM","NSM","NSM","NSM","NSM","AL","AL","NSM","NSM","N","NSM","NSM","NSM","NSM","AL","AL","EN","EN","EN","EN","EN","EN","EN","EN","EN","EN","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","N","AL","AL","NSM","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","N","N","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","AL","N","N","N","N","N","N","N","N","N","N","N","N","N","N","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","R","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","R","R","N","N","N","N","R","N","N","N","N","N","WS","WS","WS","WS","WS","WS","WS","WS","WS","WS","WS","BN","BN","BN","L","R","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","WS","B","LRE","RLE","PDF","LRO","RLO","CS","ET","ET","ET","ET","ET","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","CS","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","WS","BN","BN","BN","BN","BN","N","LRI","RLI","FSI","PDI","BN","BN","BN","BN","BN","BN","EN","L","N","N","EN","EN","EN","EN","EN","EN","ES","ES","N","N","N","L","EN","EN","EN","EN","EN","EN","EN","EN","EN","EN","ES","ES","N","N","N","N","L","L","L","L","L","L","L","L","L","L","L","L","L","N","N","N","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","ET","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","L","L","L","L","L","L","L","N","N","N","N","N","N","N","N","N","N","N","N","L","L","L","L","L","N","N","N","N","N","R","NSM","R","R","R","R","R","R","R","R","R","R","ES","R","R","R","R","R","R","R","R","R","R","R","R","R","N","R","R","R","R","R","N","R","N","R","R","N","R","R","N","R","R","R","R","R","R","R","R","R","R","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","NSM","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","CS","N","CS","N","N","CS","N","N","N","N","N","N","N","N","N","ET","N","N","ES","ES","N","N","N","N","N","ET","ET","N","N","N","N","N","AL","AL","AL","AL","AL","N","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","AL","N","N","BN","N","N","N","ET","ET","ET","N","N","N","N","N","ES","CS","ES","CS","CS","EN","EN","EN","EN","EN","EN","EN","EN","EN","EN","CS","N","N","N","N","N","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","N","N","N","N","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","N","N","N","N","N","N","N","N","N","N","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","L","N","N","N","L","L","L","L","L","L","N","N","L","L","L","L","L","L","N","N","L","L","L","L","L","L","N","N","L","L","L","N","N","N","ET","ET","N","N","N","ET","ET","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N","N"],r=new t.__bidiEngine__({isInputVisual:!0});t.API.events.push(["postProcessText",function(t){var e=t.text,n=(t.x,t.y,t.options||{}),i=(t.mutex,n.lang,[]);if(n.isInputVisual="boolean"!=typeof n.isInputVisual||n.isInputVisual,r.setOptions(n),"[object Array]"===Object.prototype.toString.call(e)){var a=0;for(i=[],a=0;a<e.length;a+=1)"[object Array]"===Object.prototype.toString.call(e[a])?i.push([r.doBidiReorder(e[a][0]),e[a][1],e[a][2]]):i.push([r.doBidiReorder(e[a])]);t.text=i}else t.text=r.doBidiReorder(e);r.setOptions({isInputVisual:!0})}])}(E),E.API.TTFFont=function(){function t(t){var e;if(this.rawData=t,e=this.contents=new ne(t),this.contents.pos=4,"ttcf"===e.readString(4))throw new Error("TTCF not supported.");e.pos=0,this.parse(),this.subset=new Le(this),this.registerTTF()}return t.open=function(e){return new t(e)},t.prototype.parse=function(){return this.directory=new ie(this.contents),this.head=new se(this),this.name=new pe(this),this.cmap=new ue(this),this.toUnicode={},this.hhea=new he(this),this.maxp=new ge(this),this.hmtx=new me(this),this.post=new fe(this),this.os2=new le(this),this.loca=new Ne(this),this.glyf=new be(this),this.ascender=this.os2.exists&&this.os2.ascender||this.hhea.ascender,this.decender=this.os2.exists&&this.os2.decender||this.hhea.decender,this.lineGap=this.os2.exists&&this.os2.lineGap||this.hhea.lineGap,this.bbox=[this.head.xMin,this.head.yMin,this.head.xMax,this.head.yMax]},t.prototype.registerTTF=function(){var t,e,r,n,i;if(this.scaleFactor=1e3/this.head.unitsPerEm,this.bbox=function(){var e,r,n,i;for(i=[],e=0,r=(n=this.bbox).length;e<r;e++)t=n[e],i.push(Math.round(t*this.scaleFactor));return i}.call(this),this.stemV=0,this.post.exists?(r=255&(n=this.post.italic_angle),0!=(32768&(e=n>>16))&&(e=-(1+(65535^e))),this.italicAngle=+(e+"."+r)):this.italicAngle=0,this.ascender=Math.round(this.ascender*this.scaleFactor),this.decender=Math.round(this.decender*this.scaleFactor),this.lineGap=Math.round(this.lineGap*this.scaleFactor),this.capHeight=this.os2.exists&&this.os2.capHeight||this.ascender,this.xHeight=this.os2.exists&&this.os2.xHeight||0,this.familyClass=(this.os2.exists&&this.os2.familyClass||0)>>8,this.isSerif=1===(i=this.familyClass)||2===i||3===i||4===i||5===i||7===i,this.isScript=10===this.familyClass,this.flags=0,this.post.isFixedPitch&&(this.flags|=1),this.isSerif&&(this.flags|=2),this.isScript&&(this.flags|=8),0!==this.italicAngle&&(this.flags|=64),this.flags|=32,!this.cmap.unicode)throw new Error("No unicode cmap for font")},t.prototype.characterToGlyph=function(t){var e;return(null!=(e=this.cmap.unicode)?e.codeMap[t]:void 0)||0},t.prototype.widthOfGlyph=function(t){var e;return e=1e3/this.head.unitsPerEm,this.hmtx.forGlyph(t).advance*e},t.prototype.widthOfString=function(t,e,r){var n,i,a,o;for(a=0,i=0,o=(t=""+t).length;0<=o?i<o:i>o;i=0<=o?++i:--i)n=t.charCodeAt(i),a+=this.widthOfGlyph(this.characterToGlyph(n))+r*(1e3/e)||0;return a*(e/1e3)},t.prototype.lineHeight=function(t,e){var r;return null==e&&(e=!1),r=e?this.lineGap:0,(this.ascender+r-this.decender)/1e3*t},t}();var re,ne=function(){function t(t){this.data=null!=t?t:[],this.pos=0,this.length=this.data.length}return t.prototype.readByte=function(){return this.data[this.pos++]},t.prototype.writeByte=function(t){return this.data[this.pos++]=t},t.prototype.readUInt32=function(){return 16777216*this.readByte()+(this.readByte()<<16)+(this.readByte()<<8)+this.readByte()},t.prototype.writeUInt32=function(t){return this.writeByte(t>>>24&255),this.writeByte(t>>16&255),this.writeByte(t>>8&255),this.writeByte(255&t)},t.prototype.readInt32=function(){var t;return(t=this.readUInt32())>=2147483648?t-4294967296:t},t.prototype.writeInt32=function(t){return t<0&&(t+=4294967296),this.writeUInt32(t)},t.prototype.readUInt16=function(){return this.readByte()<<8|this.readByte()},t.prototype.writeUInt16=function(t){return this.writeByte(t>>8&255),this.writeByte(255&t)},t.prototype.readInt16=function(){var t;return(t=this.readUInt16())>=32768?t-65536:t},t.prototype.writeInt16=function(t){return t<0&&(t+=65536),this.writeUInt16(t)},t.prototype.readString=function(t){var e,r;for(r=[],e=0;0<=t?e<t:e>t;e=0<=t?++e:--e)r[e]=String.fromCharCode(this.readByte());return r.join("")},t.prototype.writeString=function(t){var e,r,n;for(n=[],e=0,r=t.length;0<=r?e<r:e>r;e=0<=r?++e:--e)n.push(this.writeByte(t.charCodeAt(e)));return n},t.prototype.readShort=function(){return this.readInt16()},t.prototype.writeShort=function(t){return this.writeInt16(t)},t.prototype.readLongLong=function(){var t,e,r,n,i,a,o,s;return t=this.readByte(),e=this.readByte(),r=this.readByte(),n=this.readByte(),i=this.readByte(),a=this.readByte(),o=this.readByte(),s=this.readByte(),128&t?-1*(72057594037927940*(255^t)+281474976710656*(255^e)+1099511627776*(255^r)+4294967296*(255^n)+16777216*(255^i)+65536*(255^a)+256*(255^o)+(255^s)+1):72057594037927940*t+281474976710656*e+1099511627776*r+4294967296*n+16777216*i+65536*a+256*o+s},t.prototype.writeLongLong=function(t){var e,r;return e=Math.floor(t/4294967296),r=4294967295&t,this.writeByte(e>>24&255),this.writeByte(e>>16&255),this.writeByte(e>>8&255),this.writeByte(255&e),this.writeByte(r>>24&255),this.writeByte(r>>16&255),this.writeByte(r>>8&255),this.writeByte(255&r)},t.prototype.readInt=function(){return this.readInt32()},t.prototype.writeInt=function(t){return this.writeInt32(t)},t.prototype.read=function(t){var e,r;for(e=[],r=0;0<=t?r<t:r>t;r=0<=t?++r:--r)e.push(this.readByte());return e},t.prototype.write=function(t){var e,r,n,i;for(i=[],r=0,n=t.length;r<n;r++)e=t[r],i.push(this.writeByte(e));return i},t}(),ie=function(){var t;function e(t){var e,r,n;for(this.scalarType=t.readInt(),this.tableCount=t.readShort(),this.searchRange=t.readShort(),this.entrySelector=t.readShort(),this.rangeShift=t.readShort(),this.tables={},r=0,n=this.tableCount;0<=n?r<n:r>n;r=0<=n?++r:--r)e={tag:t.readString(4),checksum:t.readInt(),offset:t.readInt(),length:t.readInt()},this.tables[e.tag]=e}return e.prototype.encode=function(e){var r,n,i,a,o,s,c,u,h,l,f,d,p;for(p in f=Object.keys(e).length,s=Math.log(2),h=16*Math.floor(Math.log(f)/s),a=Math.floor(h/s),u=16*f-h,(n=new ne).writeInt(this.scalarType),n.writeShort(f),n.writeShort(h),n.writeShort(a),n.writeShort(u),i=16*f,c=n.pos+i,o=null,d=[],e)for(l=e[p],n.writeString(p),n.writeInt(t(l)),n.writeInt(c),n.writeInt(l.length),d=d.concat(l),"head"===p&&(o=c),c+=l.length;c%4;)d.push(0),c++;return n.write(d),r=2981146554-t(n.data),n.pos=o+8,n.writeUInt32(r),n.data},t=function(t){var e,r,n,i;for(t=ve.call(t);t.length%4;)t.push(0);for(n=new ne(t),r=0,e=0,i=t.length;e<i;e=e+=4)r+=n.readUInt32();return 4294967295&r},e}(),ae={}.hasOwnProperty,oe=function(t,e){for(var r in e)ae.call(e,r)&&(t[r]=e[r]);function n(){this.constructor=t}return n.prototype=e.prototype,t.prototype=new n,t.__super__=e.prototype,t};re=function(){function t(t){var e;this.file=t,e=this.file.directory.tables[this.tag],this.exists=!!e,e&&(this.offset=e.offset,this.length=e.length,this.parse(this.file.contents))}return t.prototype.parse=function(){},t.prototype.encode=function(){},t.prototype.raw=function(){return this.exists?(this.file.contents.pos=this.offset,this.file.contents.read(this.length)):null},t}();var se=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="head",e.prototype.parse=function(t){return t.pos=this.offset,this.version=t.readInt(),this.revision=t.readInt(),this.checkSumAdjustment=t.readInt(),this.magicNumber=t.readInt(),this.flags=t.readShort(),this.unitsPerEm=t.readShort(),this.created=t.readLongLong(),this.modified=t.readLongLong(),this.xMin=t.readShort(),this.yMin=t.readShort(),this.xMax=t.readShort(),this.yMax=t.readShort(),this.macStyle=t.readShort(),this.lowestRecPPEM=t.readShort(),this.fontDirectionHint=t.readShort(),this.indexToLocFormat=t.readShort(),this.glyphDataFormat=t.readShort()},e.prototype.encode=function(t){var e;return(e=new ne).writeInt(this.version),e.writeInt(this.revision),e.writeInt(this.checkSumAdjustment),e.writeInt(this.magicNumber),e.writeShort(this.flags),e.writeShort(this.unitsPerEm),e.writeLongLong(this.created),e.writeLongLong(this.modified),e.writeShort(this.xMin),e.writeShort(this.yMin),e.writeShort(this.xMax),e.writeShort(this.yMax),e.writeShort(this.macStyle),e.writeShort(this.lowestRecPPEM),e.writeShort(this.fontDirectionHint),e.writeShort(t),e.writeShort(this.glyphDataFormat),e.data},e}(),ce=function(){function t(t,e){var r,n,i,a,o,s,c,u,h,l,f,d,p,g,m,v,b;switch(this.platformID=t.readUInt16(),this.encodingID=t.readShort(),this.offset=e+t.readInt(),h=t.pos,t.pos=this.offset,this.format=t.readUInt16(),this.length=t.readUInt16(),this.language=t.readUInt16(),this.isUnicode=3===this.platformID&&1===this.encodingID&&4===this.format||0===this.platformID&&4===this.format,this.codeMap={},this.format){case 0:for(s=0;s<256;++s)this.codeMap[s]=t.readByte();break;case 4:for(f=t.readUInt16(),l=f/2,t.pos+=6,i=function(){var e,r;for(r=[],s=e=0;0<=l?e<l:e>l;s=0<=l?++e:--e)r.push(t.readUInt16());return r}(),t.pos+=2,p=function(){var e,r;for(r=[],s=e=0;0<=l?e<l:e>l;s=0<=l?++e:--e)r.push(t.readUInt16());return r}(),c=function(){var e,r;for(r=[],s=e=0;0<=l?e<l:e>l;s=0<=l?++e:--e)r.push(t.readUInt16());return r}(),u=function(){var e,r;for(r=[],s=e=0;0<=l?e<l:e>l;s=0<=l?++e:--e)r.push(t.readUInt16());return r}(),n=(this.length-t.pos+this.offset)/2,o=function(){var e,r;for(r=[],s=e=0;0<=n?e<n:e>n;s=0<=n?++e:--e)r.push(t.readUInt16());return r}(),s=m=0,b=i.length;m<b;s=++m)for(g=i[s],r=v=d=p[s];d<=g?v<=g:v>=g;r=d<=g?++v:--v)0===u[s]?a=r+c[s]:0!==(a=o[u[s]/2+(r-d)-(l-s)]||0)&&(a+=c[s]),this.codeMap[r]=65535&a}t.pos=h}return t.encode=function(t,e){var r,n,i,a,o,s,c,u,h,l,f,d,p,g,m,v,b,y,w,N,L,A,x,S,_,P,k,I,F,C,j,O,B,M,E,q,D,R,T,U,z,H,W,V,G,Y;switch(I=new ne,a=Object.keys(t).sort((function(t,e){return t-e})),e){case"macroman":for(p=0,g=function(){var t=[];for(d=0;d<256;++d)t.push(0);return t}(),v={0:0},i={},F=0,B=a.length;F<B;F++)null==v[W=t[n=a[F]]]&&(v[W]=++p),i[n]={old:t[n],new:v[t[n]]},g[n]=v[t[n]];return I.writeUInt16(1),I.writeUInt16(0),I.writeUInt32(12),I.writeUInt16(0),I.writeUInt16(262),I.writeUInt16(0),I.write(g),{charMap:i,subtable:I.data,maxGlyphID:p+1};case"unicode":for(P=[],h=[],b=0,v={},r={},m=c=null,C=0,M=a.length;C<M;C++)null==v[w=t[n=a[C]]]&&(v[w]=++b),r[n]={old:w,new:v[w]},o=v[w]-n,null!=m&&o===c||(m&&h.push(m),P.push(n),c=o),m=n;for(m&&h.push(m),h.push(65535),P.push(65535),S=2*(x=P.length),A=2*Math.pow(Math.log(x)/Math.LN2,2),l=Math.log(A/2)/Math.LN2,L=2*x-A,s=[],N=[],f=[],d=j=0,E=P.length;j<E;d=++j){if(_=P[d],u=h[d],65535===_){s.push(0),N.push(0);break}if(_-(k=r[_].new)>=32768)for(s.push(0),N.push(2*(f.length+x-d)),n=O=_;_<=u?O<=u:O>=u;n=_<=u?++O:--O)f.push(r[n].new);else s.push(k-_),N.push(0)}for(I.writeUInt16(3),I.writeUInt16(1),I.writeUInt32(12),I.writeUInt16(4),I.writeUInt16(16+8*x+2*f.length),I.writeUInt16(0),I.writeUInt16(S),I.writeUInt16(A),I.writeUInt16(l),I.writeUInt16(L),z=0,q=h.length;z<q;z++)n=h[z],I.writeUInt16(n);for(I.writeUInt16(0),H=0,D=P.length;H<D;H++)n=P[H],I.writeUInt16(n);for(V=0,R=s.length;V<R;V++)o=s[V],I.writeUInt16(o);for(G=0,T=N.length;G<T;G++)y=N[G],I.writeUInt16(y);for(Y=0,U=f.length;Y<U;Y++)p=f[Y],I.writeUInt16(p);return{charMap:r,subtable:I.data,maxGlyphID:b+1}}},t}(),ue=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="cmap",e.prototype.parse=function(t){var e,r,n;for(t.pos=this.offset,this.version=t.readUInt16(),n=t.readUInt16(),this.tables=[],this.unicode=null,r=0;0<=n?r<n:r>n;r=0<=n?++r:--r)e=new ce(t,this.offset),this.tables.push(e),e.isUnicode&&null==this.unicode&&(this.unicode=e);return!0},e.encode=function(t,e){var r,n;return null==e&&(e="macroman"),r=ce.encode(t,e),(n=new ne).writeUInt16(0),n.writeUInt16(1),r.table=n.data.concat(r.subtable),r},e}(),he=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="hhea",e.prototype.parse=function(t){return t.pos=this.offset,this.version=t.readInt(),this.ascender=t.readShort(),this.decender=t.readShort(),this.lineGap=t.readShort(),this.advanceWidthMax=t.readShort(),this.minLeftSideBearing=t.readShort(),this.minRightSideBearing=t.readShort(),this.xMaxExtent=t.readShort(),this.caretSlopeRise=t.readShort(),this.caretSlopeRun=t.readShort(),this.caretOffset=t.readShort(),t.pos+=8,this.metricDataFormat=t.readShort(),this.numberOfMetrics=t.readUInt16()},e}(),le=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="OS/2",e.prototype.parse=function(t){if(t.pos=this.offset,this.version=t.readUInt16(),this.averageCharWidth=t.readShort(),this.weightClass=t.readUInt16(),this.widthClass=t.readUInt16(),this.type=t.readShort(),this.ySubscriptXSize=t.readShort(),this.ySubscriptYSize=t.readShort(),this.ySubscriptXOffset=t.readShort(),this.ySubscriptYOffset=t.readShort(),this.ySuperscriptXSize=t.readShort(),this.ySuperscriptYSize=t.readShort(),this.ySuperscriptXOffset=t.readShort(),this.ySuperscriptYOffset=t.readShort(),this.yStrikeoutSize=t.readShort(),this.yStrikeoutPosition=t.readShort(),this.familyClass=t.readShort(),this.panose=function(){var e,r;for(r=[],e=0;e<10;++e)r.push(t.readByte());return r}(),this.charRange=function(){var e,r;for(r=[],e=0;e<4;++e)r.push(t.readInt());return r}(),this.vendorID=t.readString(4),this.selection=t.readShort(),this.firstCharIndex=t.readShort(),this.lastCharIndex=t.readShort(),this.version>0&&(this.ascent=t.readShort(),this.descent=t.readShort(),this.lineGap=t.readShort(),this.winAscent=t.readShort(),this.winDescent=t.readShort(),this.codePageRange=function(){var e,r;for(r=[],e=0;e<2;e=++e)r.push(t.readInt());return r}(),this.version>1))return this.xHeight=t.readShort(),this.capHeight=t.readShort(),this.defaultChar=t.readShort(),this.breakChar=t.readShort(),this.maxContext=t.readShort()},e}(),fe=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="post",e.prototype.parse=function(t){var e,r,n;switch(t.pos=this.offset,this.format=t.readInt(),this.italicAngle=t.readInt(),this.underlinePosition=t.readShort(),this.underlineThickness=t.readShort(),this.isFixedPitch=t.readInt(),this.minMemType42=t.readInt(),this.maxMemType42=t.readInt(),this.minMemType1=t.readInt(),this.maxMemType1=t.readInt(),this.format){case 65536:break;case 131072:var i;for(r=t.readUInt16(),this.glyphNameIndex=[],i=0;0<=r?i<r:i>r;i=0<=r?++i:--i)this.glyphNameIndex.push(t.readUInt16());for(this.names=[],n=[];t.pos<this.offset+this.length;)e=t.readByte(),n.push(this.names.push(t.readString(e)));return n;case 151552:return r=t.readUInt16(),this.offsets=t.read(r);case 196608:break;case 262144:return this.map=function(){var e,r,n;for(n=[],i=e=0,r=this.file.maxp.numGlyphs;0<=r?e<r:e>r;i=0<=r?++e:--e)n.push(t.readUInt32());return n}.call(this)}},e}(),de=function(t,e){this.raw=t,this.length=t.length,this.platformID=e.platformID,this.encodingID=e.encodingID,this.languageID=e.languageID},pe=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="name",e.prototype.parse=function(t){var e,r,n,i,a,o,s,c,u,h,l;for(t.pos=this.offset,t.readShort(),e=t.readShort(),o=t.readShort(),r=[],i=0;0<=e?i<e:i>e;i=0<=e?++i:--i)r.push({platformID:t.readShort(),encodingID:t.readShort(),languageID:t.readShort(),nameID:t.readShort(),length:t.readShort(),offset:this.offset+o+t.readShort()});for(s={},i=u=0,h=r.length;u<h;i=++u)n=r[i],t.pos=n.offset,c=t.readString(n.length),a=new de(c,n),null==s[l=n.nameID]&&(s[l]=[]),s[n.nameID].push(a);this.strings=s,this.copyright=s[0],this.fontFamily=s[1],this.fontSubfamily=s[2],this.uniqueSubfamily=s[3],this.fontName=s[4],this.version=s[5];try{this.postscriptName=s[6][0].raw.replace(/[\x00-\x19\x80-\xff]/g,"")}catch(t){this.postscriptName=s[4][0].raw.replace(/[\x00-\x19\x80-\xff]/g,"")}return this.trademark=s[7],this.manufacturer=s[8],this.designer=s[9],this.description=s[10],this.vendorUrl=s[11],this.designerUrl=s[12],this.license=s[13],this.licenseUrl=s[14],this.preferredFamily=s[15],this.preferredSubfamily=s[17],this.compatibleFull=s[18],this.sampleText=s[19]},e}(),ge=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="maxp",e.prototype.parse=function(t){return t.pos=this.offset,this.version=t.readInt(),this.numGlyphs=t.readUInt16(),this.maxPoints=t.readUInt16(),this.maxContours=t.readUInt16(),this.maxCompositePoints=t.readUInt16(),this.maxComponentContours=t.readUInt16(),this.maxZones=t.readUInt16(),this.maxTwilightPoints=t.readUInt16(),this.maxStorage=t.readUInt16(),this.maxFunctionDefs=t.readUInt16(),this.maxInstructionDefs=t.readUInt16(),this.maxStackElements=t.readUInt16(),this.maxSizeOfInstructions=t.readUInt16(),this.maxComponentElements=t.readUInt16(),this.maxComponentDepth=t.readUInt16()},e}(),me=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="hmtx",e.prototype.parse=function(t){var e,r,n,i,a,o,s;for(t.pos=this.offset,this.metrics=[],e=0,o=this.file.hhea.numberOfMetrics;0<=o?e<o:e>o;e=0<=o?++e:--e)this.metrics.push({advance:t.readUInt16(),lsb:t.readInt16()});for(n=this.file.maxp.numGlyphs-this.file.hhea.numberOfMetrics,this.leftSideBearings=function(){var r,i;for(i=[],e=r=0;0<=n?r<n:r>n;e=0<=n?++r:--r)i.push(t.readInt16());return i}(),this.widths=function(){var t,e,r,n;for(n=[],t=0,e=(r=this.metrics).length;t<e;t++)i=r[t],n.push(i.advance);return n}.call(this),r=this.widths[this.widths.length-1],s=[],e=a=0;0<=n?a<n:a>n;e=0<=n?++a:--a)s.push(this.widths.push(r));return s},e.prototype.forGlyph=function(t){return t in this.metrics?this.metrics[t]:{advance:this.metrics[this.metrics.length-1].advance,lsb:this.leftSideBearings[t-this.metrics.length]}},e}(),ve=[].slice,be=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="glyf",e.prototype.parse=function(){return this.cache={}},e.prototype.glyphFor=function(t){var e,r,n,i,a,o,s,c,u,h;return t in this.cache?this.cache[t]:(i=this.file.loca,e=this.file.contents,r=i.indexOf(t),0===(n=i.lengthOf(t))?this.cache[t]=null:(e.pos=this.offset+r,a=(o=new ne(e.read(n))).readShort(),c=o.readShort(),h=o.readShort(),s=o.readShort(),u=o.readShort(),this.cache[t]=-1===a?new we(o,c,h,s,u):new ye(o,a,c,h,s,u),this.cache[t]))},e.prototype.encode=function(t,e,r){var n,i,a,o,s;for(a=[],i=[],o=0,s=e.length;o<s;o++)n=t[e[o]],i.push(a.length),n&&(a=a.concat(n.encode(r)));return i.push(a.length),{table:a,offsets:i}},e}(),ye=function(){function t(t,e,r,n,i,a){this.raw=t,this.numberOfContours=e,this.xMin=r,this.yMin=n,this.xMax=i,this.yMax=a,this.compound=!1}return t.prototype.encode=function(){return this.raw.data},t}(),we=function(){function t(t,e,r,n,i){var a,o;for(this.raw=t,this.xMin=e,this.yMin=r,this.xMax=n,this.yMax=i,this.compound=!0,this.glyphIDs=[],this.glyphOffsets=[],a=this.raw;o=a.readShort(),this.glyphOffsets.push(a.pos),this.glyphIDs.push(a.readUInt16()),32&o;)a.pos+=1&o?4:2,128&o?a.pos+=8:64&o?a.pos+=4:8&o&&(a.pos+=2)}return 1,8,32,64,128,t.prototype.encode=function(){var t,e,r;for(e=new ne(ve.call(this.raw.data)),t=0,r=this.glyphIDs.length;t<r;++t)e.pos=this.glyphOffsets[t];return e.data},t}(),Ne=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return oe(e,re),e.prototype.tag="loca",e.prototype.parse=function(t){var e,r;return t.pos=this.offset,e=this.file.head.indexToLocFormat,this.offsets=0===e?function(){var e,n;for(n=[],r=0,e=this.length;r<e;r+=2)n.push(2*t.readUInt16());return n}.call(this):function(){var e,n;for(n=[],r=0,e=this.length;r<e;r+=4)n.push(t.readUInt32());return n}.call(this)},e.prototype.indexOf=function(t){return this.offsets[t]},e.prototype.lengthOf=function(t){return this.offsets[t+1]-this.offsets[t]},e.prototype.encode=function(t,e){for(var r=new Uint32Array(this.offsets.length),n=0,i=0,a=0;a<r.length;++a)if(r[a]=n,i<e.length&&e[i]==a){++i,r[a]=n;var o=this.offsets[a],s=this.offsets[a+1]-o;s>0&&(n+=s)}for(var c=new Array(4*r.length),u=0;u<r.length;++u)c[4*u+3]=255&r[u],c[4*u+2]=(65280&r[u])>>8,c[4*u+1]=(16711680&r[u])>>16,c[4*u]=(4278190080&r[u])>>24;return c},e}(),Le=function(){function t(t){this.font=t,this.subset={},this.unicodes={},this.next=33}return t.prototype.generateCmap=function(){var t,e,r,n,i;for(e in n=this.font.cmap.tables[0].codeMap,t={},i=this.subset)r=i[e],t[e]=n[r];return t},t.prototype.glyphsFor=function(t){var e,r,n,i,a,o,s;for(n={},a=0,o=t.length;a<o;a++)n[i=t[a]]=this.font.glyf.glyphFor(i);for(i in e=[],n)(null!=(r=n[i])?r.compound:void 0)&&e.push.apply(e,r.glyphIDs);if(e.length>0)for(i in s=this.glyphsFor(e))r=s[i],n[i]=r;return n},t.prototype.encode=function(t,e){var r,n,i,a,o,s,c,u,h,l,f,d,p,g,m;for(n in r=ue.encode(this.generateCmap(),"unicode"),a=this.glyphsFor(t),f={0:0},m=r.charMap)f[(s=m[n]).old]=s.new;for(d in l=r.maxGlyphID,a)d in f||(f[d]=l++);return u=function(t){var e,r;for(e in r={},t)r[t[e]]=e;return r}(f),h=Object.keys(u).sort((function(t,e){return t-e})),p=function(){var t,e,r;for(r=[],t=0,e=h.length;t<e;t++)o=h[t],r.push(u[o]);return r}(),i=this.font.glyf.encode(a,p,f),c=this.font.loca.encode(i.offsets,p),g={cmap:this.font.cmap.raw(),glyf:i.table,loca:c,hmtx:this.font.hmtx.raw(),hhea:this.font.hhea.raw(),maxp:this.font.maxp.raw(),post:this.font.post.raw(),name:this.font.name.raw(),head:this.font.head.encode(e)},this.font.os2.exists&&(g["OS/2"]=this.font.os2.raw()),this.font.directory.encode(g)},t}();E.API.PDFObject=function(){var t;function e(){}return t=function(t,e){return(Array(e+1).join("0")+t).slice(-e)},e.convert=function(r){var n,i,a,o;if(Array.isArray(r))return"["+function(){var t,i,a;for(a=[],t=0,i=r.length;t<i;t++)n=r[t],a.push(e.convert(n));return a}().join(" ")+"]";if("string"==typeof r)return"/"+r;if(null!=r?r.isString:void 0)return"("+r+")";if(r instanceof Date)return"(D:"+t(r.getUTCFullYear(),4)+t(r.getUTCMonth(),2)+t(r.getUTCDate(),2)+t(r.getUTCHours(),2)+t(r.getUTCMinutes(),2)+t(r.getUTCSeconds(),2)+"Z)";if("[object Object]"==={}.toString.call(r)){for(i in a=["<<"],r)o=r[i],a.push("/"+i+" "+e.convert(o));return a.push(">>"),a.join("\n")}return""+r},e}();/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (E);
 //# sourceMappingURL=jspdf.es.min.js.map
-
-
-/***/ }),
-
-/***/ "./node_modules/jss-plugin-camel-case/dist/jss-plugin-camel-case.esm.js":
-/*!******************************************************************************!*\
-  !*** ./node_modules/jss-plugin-camel-case/dist/jss-plugin-camel-case.esm.js ***!
-  \******************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var hyphenate_style_name__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! hyphenate-style-name */ "./node_modules/hyphenate-style-name/index.js");
-
-
-/**
- * Convert camel cased property names to dash separated.
- */
-
-function convertCase(style) {
-  var converted = {};
-
-  for (var prop in style) {
-    var key = prop.indexOf('--') === 0 ? prop : (0,hyphenate_style_name__WEBPACK_IMPORTED_MODULE_0__["default"])(prop);
-    converted[key] = style[prop];
-  }
-
-  if (style.fallbacks) {
-    if (Array.isArray(style.fallbacks)) converted.fallbacks = style.fallbacks.map(convertCase);else converted.fallbacks = convertCase(style.fallbacks);
-  }
-
-  return converted;
-}
-/**
- * Allow camel cased property names by converting them back to dasherized.
- */
-
-
-function camelCase() {
-  function onProcessStyle(style) {
-    if (Array.isArray(style)) {
-      // Handle rules like @font-face, which can have multiple styles in an array
-      for (var index = 0; index < style.length; index++) {
-        style[index] = convertCase(style[index]);
-      }
-
-      return style;
-    }
-
-    return convertCase(style);
-  }
-
-  function onChangeValue(value, prop, rule) {
-    if (prop.indexOf('--') === 0) {
-      return value;
-    }
-
-    var hyphenatedProp = (0,hyphenate_style_name__WEBPACK_IMPORTED_MODULE_0__["default"])(prop); // There was no camel case in place
-
-    if (prop === hyphenatedProp) return value;
-    rule.prop(hyphenatedProp, value); // Core will ignore that property value we set the proper one above.
-
-    return null;
-  }
-
-  return {
-    onProcessStyle: onProcessStyle,
-    onChangeValue: onChangeValue
-  };
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (camelCase);
-
-
-/***/ }),
-
-/***/ "./node_modules/jss-plugin-default-unit/dist/jss-plugin-default-unit.esm.js":
-/*!**********************************************************************************!*\
-  !*** ./node_modules/jss-plugin-default-unit/dist/jss-plugin-default-unit.esm.js ***!
-  \**********************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var jss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jss */ "./node_modules/jss/dist/jss.esm.js");
-
-
-var px = jss__WEBPACK_IMPORTED_MODULE_0__.hasCSSTOMSupport && CSS ? CSS.px : 'px';
-var ms = jss__WEBPACK_IMPORTED_MODULE_0__.hasCSSTOMSupport && CSS ? CSS.ms : 'ms';
-var percent = jss__WEBPACK_IMPORTED_MODULE_0__.hasCSSTOMSupport && CSS ? CSS.percent : '%';
-/**
- * Generated jss-plugin-default-unit CSS property units
- */
-
-var defaultUnits = {
-  // Animation properties
-  'animation-delay': ms,
-  'animation-duration': ms,
-  // Background properties
-  'background-position': px,
-  'background-position-x': px,
-  'background-position-y': px,
-  'background-size': px,
-  // Border Properties
-  border: px,
-  'border-bottom': px,
-  'border-bottom-left-radius': px,
-  'border-bottom-right-radius': px,
-  'border-bottom-width': px,
-  'border-left': px,
-  'border-left-width': px,
-  'border-radius': px,
-  'border-right': px,
-  'border-right-width': px,
-  'border-top': px,
-  'border-top-left-radius': px,
-  'border-top-right-radius': px,
-  'border-top-width': px,
-  'border-width': px,
-  'border-block': px,
-  'border-block-end': px,
-  'border-block-end-width': px,
-  'border-block-start': px,
-  'border-block-start-width': px,
-  'border-block-width': px,
-  'border-inline': px,
-  'border-inline-end': px,
-  'border-inline-end-width': px,
-  'border-inline-start': px,
-  'border-inline-start-width': px,
-  'border-inline-width': px,
-  'border-start-start-radius': px,
-  'border-start-end-radius': px,
-  'border-end-start-radius': px,
-  'border-end-end-radius': px,
-  // Margin properties
-  margin: px,
-  'margin-bottom': px,
-  'margin-left': px,
-  'margin-right': px,
-  'margin-top': px,
-  'margin-block': px,
-  'margin-block-end': px,
-  'margin-block-start': px,
-  'margin-inline': px,
-  'margin-inline-end': px,
-  'margin-inline-start': px,
-  // Padding properties
-  padding: px,
-  'padding-bottom': px,
-  'padding-left': px,
-  'padding-right': px,
-  'padding-top': px,
-  'padding-block': px,
-  'padding-block-end': px,
-  'padding-block-start': px,
-  'padding-inline': px,
-  'padding-inline-end': px,
-  'padding-inline-start': px,
-  // Mask properties
-  'mask-position-x': px,
-  'mask-position-y': px,
-  'mask-size': px,
-  // Width and height properties
-  height: px,
-  width: px,
-  'min-height': px,
-  'max-height': px,
-  'min-width': px,
-  'max-width': px,
-  // Position properties
-  bottom: px,
-  left: px,
-  top: px,
-  right: px,
-  inset: px,
-  'inset-block': px,
-  'inset-block-end': px,
-  'inset-block-start': px,
-  'inset-inline': px,
-  'inset-inline-end': px,
-  'inset-inline-start': px,
-  // Shadow properties
-  'box-shadow': px,
-  'text-shadow': px,
-  // Column properties
-  'column-gap': px,
-  'column-rule': px,
-  'column-rule-width': px,
-  'column-width': px,
-  // Font and text properties
-  'font-size': px,
-  'font-size-delta': px,
-  'letter-spacing': px,
-  'text-decoration-thickness': px,
-  'text-indent': px,
-  'text-stroke': px,
-  'text-stroke-width': px,
-  'word-spacing': px,
-  // Motion properties
-  motion: px,
-  'motion-offset': px,
-  // Outline properties
-  outline: px,
-  'outline-offset': px,
-  'outline-width': px,
-  // Perspective properties
-  perspective: px,
-  'perspective-origin-x': percent,
-  'perspective-origin-y': percent,
-  // Transform properties
-  'transform-origin': percent,
-  'transform-origin-x': percent,
-  'transform-origin-y': percent,
-  'transform-origin-z': percent,
-  // Transition properties
-  'transition-delay': ms,
-  'transition-duration': ms,
-  // Alignment properties
-  'vertical-align': px,
-  'flex-basis': px,
-  // Some random properties
-  'shape-margin': px,
-  size: px,
-  gap: px,
-  // Grid properties
-  grid: px,
-  'grid-gap': px,
-  'row-gap': px,
-  'grid-row-gap': px,
-  'grid-column-gap': px,
-  'grid-template-rows': px,
-  'grid-template-columns': px,
-  'grid-auto-rows': px,
-  'grid-auto-columns': px,
-  // Not existing properties.
-  // Used to avoid issues with jss-plugin-expand integration.
-  'box-shadow-x': px,
-  'box-shadow-y': px,
-  'box-shadow-blur': px,
-  'box-shadow-spread': px,
-  'font-line-height': px,
-  'text-shadow-x': px,
-  'text-shadow-y': px,
-  'text-shadow-blur': px
-};
-
-/**
- * Clones the object and adds a camel cased property version.
- */
-
-function addCamelCasedVersion(obj) {
-  var regExp = /(-[a-z])/g;
-
-  var replace = function replace(str) {
-    return str[1].toUpperCase();
-  };
-
-  var newObj = {};
-
-  for (var key in obj) {
-    newObj[key] = obj[key];
-    newObj[key.replace(regExp, replace)] = obj[key];
-  }
-
-  return newObj;
-}
-
-var units = addCamelCasedVersion(defaultUnits);
-/**
- * Recursive deep style passing function
- */
-
-function iterate(prop, value, options) {
-  if (value == null) return value;
-
-  if (Array.isArray(value)) {
-    for (var i = 0; i < value.length; i++) {
-      value[i] = iterate(prop, value[i], options);
-    }
-  } else if (typeof value === 'object') {
-    if (prop === 'fallbacks') {
-      for (var innerProp in value) {
-        value[innerProp] = iterate(innerProp, value[innerProp], options);
-      }
-    } else {
-      for (var _innerProp in value) {
-        value[_innerProp] = iterate(prop + "-" + _innerProp, value[_innerProp], options);
-      }
-    } // eslint-disable-next-line no-restricted-globals
-
-  } else if (typeof value === 'number' && isNaN(value) === false) {
-    var unit = options[prop] || units[prop]; // Add the unit if available, except for the special case of 0px.
-
-    if (unit && !(value === 0 && unit === px)) {
-      return typeof unit === 'function' ? unit(value).toString() : "" + value + unit;
-    }
-
-    return value.toString();
-  }
-
-  return value;
-}
-/**
- * Add unit to numeric values.
- */
-
-
-function defaultUnit(options) {
-  if (options === void 0) {
-    options = {};
-  }
-
-  var camelCasedOptions = addCamelCasedVersion(options);
-
-  function onProcessStyle(style, rule) {
-    if (rule.type !== 'style') return style;
-
-    for (var prop in style) {
-      style[prop] = iterate(prop, style[prop], camelCasedOptions);
-    }
-
-    return style;
-  }
-
-  function onChangeValue(value, prop) {
-    return iterate(prop, value, camelCasedOptions);
-  }
-
-  return {
-    onProcessStyle: onProcessStyle,
-    onChangeValue: onChangeValue
-  };
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (defaultUnit);
-
-
-/***/ }),
-
-/***/ "./node_modules/jss-plugin-global/dist/jss-plugin-global.esm.js":
-/*!**********************************************************************!*\
-  !*** ./node_modules/jss-plugin-global/dist/jss-plugin-global.esm.js ***!
-  \**********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
-/* harmony import */ var jss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jss */ "./node_modules/jss/dist/jss.esm.js");
-
-
-
-var at = '@global';
-var atPrefix = '@global ';
-
-var GlobalContainerRule =
-/*#__PURE__*/
-function () {
-  function GlobalContainerRule(key, styles, options) {
-    this.type = 'global';
-    this.at = at;
-    this.isProcessed = false;
-    this.key = key;
-    this.options = options;
-    this.rules = new jss__WEBPACK_IMPORTED_MODULE_1__.RuleList((0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      parent: this
-    }));
-
-    for (var selector in styles) {
-      this.rules.add(selector, styles[selector]);
-    }
-
-    this.rules.process();
-  }
-  /**
-   * Get a rule.
-   */
-
-
-  var _proto = GlobalContainerRule.prototype;
-
-  _proto.getRule = function getRule(name) {
-    return this.rules.get(name);
-  }
-  /**
-   * Create and register rule, run plugins.
-   */
-  ;
-
-  _proto.addRule = function addRule(name, style, options) {
-    var rule = this.rules.add(name, style, options);
-    if (rule) this.options.jss.plugins.onProcessRule(rule);
-    return rule;
-  }
-  /**
-   * Replace rule, run plugins.
-   */
-  ;
-
-  _proto.replaceRule = function replaceRule(name, style, options) {
-    var newRule = this.rules.replace(name, style, options);
-    if (newRule) this.options.jss.plugins.onProcessRule(newRule);
-    return newRule;
-  }
-  /**
-   * Get index of a rule.
-   */
-  ;
-
-  _proto.indexOf = function indexOf(rule) {
-    return this.rules.indexOf(rule);
-  }
-  /**
-   * Generates a CSS string.
-   */
-  ;
-
-  _proto.toString = function toString(options) {
-    return this.rules.toString(options);
-  };
-
-  return GlobalContainerRule;
-}();
-
-var GlobalPrefixedRule =
-/*#__PURE__*/
-function () {
-  function GlobalPrefixedRule(key, style, options) {
-    this.type = 'global';
-    this.at = at;
-    this.isProcessed = false;
-    this.key = key;
-    this.options = options;
-    var selector = key.substr(atPrefix.length);
-    this.rule = options.jss.createRule(selector, style, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      parent: this
-    }));
-  }
-
-  var _proto2 = GlobalPrefixedRule.prototype;
-
-  _proto2.toString = function toString(options) {
-    return this.rule ? this.rule.toString(options) : '';
-  };
-
-  return GlobalPrefixedRule;
-}();
-
-var separatorRegExp = /\s*,\s*/g;
-
-function addScope(selector, scope) {
-  var parts = selector.split(separatorRegExp);
-  var scoped = '';
-
-  for (var i = 0; i < parts.length; i++) {
-    scoped += scope + " " + parts[i].trim();
-    if (parts[i + 1]) scoped += ', ';
-  }
-
-  return scoped;
-}
-
-function handleNestedGlobalContainerRule(rule, sheet) {
-  var options = rule.options,
-      style = rule.style;
-  var rules = style ? style[at] : null;
-  if (!rules) return;
-
-  for (var name in rules) {
-    sheet.addRule(name, rules[name], (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      selector: addScope(name, rule.selector)
-    }));
-  }
-
-  delete style[at];
-}
-
-function handlePrefixedGlobalRule(rule, sheet) {
-  var options = rule.options,
-      style = rule.style;
-
-  for (var prop in style) {
-    if (prop[0] !== '@' || prop.substr(0, at.length) !== at) continue;
-    var selector = addScope(prop.substr(at.length), rule.selector);
-    sheet.addRule(selector, style[prop], (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      selector: selector
-    }));
-    delete style[prop];
-  }
-}
-/**
- * Convert nested rules to separate, remove them from original styles.
- */
-
-
-function jssGlobal() {
-  function onCreateRule(name, styles, options) {
-    if (!name) return null;
-
-    if (name === at) {
-      return new GlobalContainerRule(name, styles, options);
-    }
-
-    if (name[0] === '@' && name.substr(0, atPrefix.length) === atPrefix) {
-      return new GlobalPrefixedRule(name, styles, options);
-    }
-
-    var parent = options.parent;
-
-    if (parent) {
-      if (parent.type === 'global' || parent.options.parent && parent.options.parent.type === 'global') {
-        options.scoped = false;
-      }
-    }
-
-    if (!options.selector && options.scoped === false) {
-      options.selector = name;
-    }
-
-    return null;
-  }
-
-  function onProcessRule(rule, sheet) {
-    if (rule.type !== 'style' || !sheet) return;
-    handleNestedGlobalContainerRule(rule, sheet);
-    handlePrefixedGlobalRule(rule, sheet);
-  }
-
-  return {
-    onCreateRule: onCreateRule,
-    onProcessRule: onProcessRule
-  };
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (jssGlobal);
-
-
-/***/ }),
-
-/***/ "./node_modules/jss-plugin-nested/dist/jss-plugin-nested.esm.js":
-/*!**********************************************************************!*\
-  !*** ./node_modules/jss-plugin-nested/dist/jss-plugin-nested.esm.js ***!
-  \**********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
-/* harmony import */ var tiny_warning__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tiny-warning */ "./node_modules/tiny-warning/dist/tiny-warning.esm.js");
-
-
-
-var separatorRegExp = /\s*,\s*/g;
-var parentRegExp = /&/g;
-var refRegExp = /\$([\w-]+)/g;
-/**
- * Convert nested rules to separate, remove them from original styles.
- */
-
-function jssNested() {
-  // Get a function to be used for $ref replacement.
-  function getReplaceRef(container, sheet) {
-    return function (match, key) {
-      var rule = container.getRule(key) || sheet && sheet.getRule(key);
-
-      if (rule) {
-        return rule.selector;
-      }
-
-       true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_1__["default"])(false, "[JSS] Could not find the referenced rule \"" + key + "\" in \"" + (container.options.meta || container.toString()) + "\".") : 0;
-      return key;
-    };
-  }
-
-  function replaceParentRefs(nestedProp, parentProp) {
-    var parentSelectors = parentProp.split(separatorRegExp);
-    var nestedSelectors = nestedProp.split(separatorRegExp);
-    var result = '';
-
-    for (var i = 0; i < parentSelectors.length; i++) {
-      var parent = parentSelectors[i];
-
-      for (var j = 0; j < nestedSelectors.length; j++) {
-        var nested = nestedSelectors[j];
-        if (result) result += ', '; // Replace all & by the parent or prefix & with the parent.
-
-        result += nested.indexOf('&') !== -1 ? nested.replace(parentRegExp, parent) : parent + " " + nested;
-      }
-    }
-
-    return result;
-  }
-
-  function getOptions(rule, container, prevOptions) {
-    // Options has been already created, now we only increase index.
-    if (prevOptions) return (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, prevOptions, {
-      index: prevOptions.index + 1
-    });
-    var nestingLevel = rule.options.nestingLevel;
-    nestingLevel = nestingLevel === undefined ? 1 : nestingLevel + 1;
-
-    var options = (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, rule.options, {
-      nestingLevel: nestingLevel,
-      index: container.indexOf(rule) + 1 // We don't need the parent name to be set options for chlid.
-
-    });
-
-    delete options.name;
-    return options;
-  }
-
-  function onProcessStyle(style, rule, sheet) {
-    if (rule.type !== 'style') return style;
-    var styleRule = rule;
-    var container = styleRule.options.parent;
-    var options;
-    var replaceRef;
-
-    for (var prop in style) {
-      var isNested = prop.indexOf('&') !== -1;
-      var isNestedConditional = prop[0] === '@';
-      if (!isNested && !isNestedConditional) continue;
-      options = getOptions(styleRule, container, options);
-
-      if (isNested) {
-        var selector = replaceParentRefs(prop, styleRule.selector); // Lazily create the ref replacer function just once for
-        // all nested rules within the sheet.
-
-        if (!replaceRef) replaceRef = getReplaceRef(container, sheet); // Replace all $refs.
-
-        selector = selector.replace(refRegExp, replaceRef);
-        var name = styleRule.key + "-" + prop;
-
-        if ('replaceRule' in container) {
-          // for backward compatibility
-          container.replaceRule(name, style[prop], (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-            selector: selector
-          }));
-        } else {
-          container.addRule(name, style[prop], (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-            selector: selector
-          }));
-        }
-      } else if (isNestedConditional) {
-        // Place conditional right after the parent rule to ensure right ordering.
-        container.addRule(prop, {}, options).addRule(styleRule.key, style[prop], {
-          selector: styleRule.selector
-        });
-      }
-
-      delete style[prop];
-    }
-
-    return style;
-  }
-
-  return {
-    onProcessStyle: onProcessStyle
-  };
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (jssNested);
-
-
-/***/ }),
-
-/***/ "./node_modules/jss-plugin-props-sort/dist/jss-plugin-props-sort.esm.js":
-/*!******************************************************************************!*\
-  !*** ./node_modules/jss-plugin-props-sort/dist/jss-plugin-props-sort.esm.js ***!
-  \******************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/**
- * Sort props by length.
- */
-function jssPropsSort() {
-  var sort = function sort(prop0, prop1) {
-    if (prop0.length === prop1.length) {
-      return prop0 > prop1 ? 1 : -1;
-    }
-
-    return prop0.length - prop1.length;
-  };
-
-  return {
-    onProcessStyle: function onProcessStyle(style, rule) {
-      if (rule.type !== 'style') return style;
-      var newStyle = {};
-      var props = Object.keys(style).sort(sort);
-
-      for (var i = 0; i < props.length; i++) {
-        newStyle[props[i]] = style[props[i]];
-      }
-
-      return newStyle;
-    }
-  };
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (jssPropsSort);
-
-
-/***/ }),
-
-/***/ "./node_modules/jss-plugin-rule-value-function/dist/jss-plugin-rule-value-function.esm.js":
-/*!************************************************************************************************!*\
-  !*** ./node_modules/jss-plugin-rule-value-function/dist/jss-plugin-rule-value-function.esm.js ***!
-  \************************************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var tiny_warning__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tiny-warning */ "./node_modules/tiny-warning/dist/tiny-warning.esm.js");
-/* harmony import */ var jss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jss */ "./node_modules/jss/dist/jss.esm.js");
-
-
-
-var now = Date.now();
-var fnValuesNs = "fnValues" + now;
-var fnRuleNs = "fnStyle" + ++now;
-
-var functionPlugin = function functionPlugin() {
-  return {
-    onCreateRule: function onCreateRule(name, decl, options) {
-      if (typeof decl !== 'function') return null;
-      var rule = (0,jss__WEBPACK_IMPORTED_MODULE_1__.createRule)(name, {}, options);
-      rule[fnRuleNs] = decl;
-      return rule;
-    },
-    onProcessStyle: function onProcessStyle(style, rule) {
-      // We need to extract function values from the declaration, so that we can keep core unaware of them.
-      // We need to do that only once.
-      // We don't need to extract functions on each style update, since this can happen only once.
-      // We don't support function values inside of function rules.
-      if (fnValuesNs in rule || fnRuleNs in rule) return style;
-      var fnValues = {};
-
-      for (var prop in style) {
-        var value = style[prop];
-        if (typeof value !== 'function') continue;
-        delete style[prop];
-        fnValues[prop] = value;
-      }
-
-      rule[fnValuesNs] = fnValues;
-      return style;
-    },
-    onUpdate: function onUpdate(data, rule, sheet, options) {
-      var styleRule = rule;
-      var fnRule = styleRule[fnRuleNs]; // If we have a style function, the entire rule is dynamic and style object
-      // will be returned from that function.
-
-      if (fnRule) {
-        // Empty object will remove all currently defined props
-        // in case function rule returns a falsy value.
-        styleRule.style = fnRule(data) || {};
-
-        if (true) {
-          for (var prop in styleRule.style) {
-            if (typeof styleRule.style[prop] === 'function') {
-               true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_0__["default"])(false, '[JSS] Function values inside function rules are not supported.') : 0;
-              break;
-            }
-          }
-        }
-      }
-
-      var fnValues = styleRule[fnValuesNs]; // If we have a fn values map, it is a rule with function values.
-
-      if (fnValues) {
-        for (var _prop in fnValues) {
-          styleRule.prop(_prop, fnValues[_prop](data), options);
-        }
-      }
-    }
-  };
-};
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (functionPlugin);
-
-
-/***/ }),
-
-/***/ "./node_modules/jss-plugin-vendor-prefixer/dist/jss-plugin-vendor-prefixer.esm.js":
-/*!****************************************************************************************!*\
-  !*** ./node_modules/jss-plugin-vendor-prefixer/dist/jss-plugin-vendor-prefixer.esm.js ***!
-  \****************************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var css_vendor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! css-vendor */ "./node_modules/css-vendor/dist/css-vendor.esm.js");
-/* harmony import */ var jss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jss */ "./node_modules/jss/dist/jss.esm.js");
-
-
-
-/**
- * Add vendor prefix to a property name when needed.
- */
-
-function jssVendorPrefixer() {
-  function onProcessRule(rule) {
-    if (rule.type === 'keyframes') {
-      var atRule = rule;
-      atRule.at = (0,css_vendor__WEBPACK_IMPORTED_MODULE_0__.supportedKeyframes)(atRule.at);
-    }
-  }
-
-  function prefixStyle(style) {
-    for (var prop in style) {
-      var value = style[prop];
-
-      if (prop === 'fallbacks' && Array.isArray(value)) {
-        style[prop] = value.map(prefixStyle);
-        continue;
-      }
-
-      var changeProp = false;
-      var supportedProp = (0,css_vendor__WEBPACK_IMPORTED_MODULE_0__.supportedProperty)(prop);
-      if (supportedProp && supportedProp !== prop) changeProp = true;
-      var changeValue = false;
-      var supportedValue$1 = (0,css_vendor__WEBPACK_IMPORTED_MODULE_0__.supportedValue)(supportedProp, (0,jss__WEBPACK_IMPORTED_MODULE_1__.toCssValue)(value));
-      if (supportedValue$1 && supportedValue$1 !== value) changeValue = true;
-
-      if (changeProp || changeValue) {
-        if (changeProp) delete style[prop];
-        style[supportedProp || prop] = supportedValue$1 || value;
-      }
-    }
-
-    return style;
-  }
-
-  function onProcessStyle(style, rule) {
-    if (rule.type !== 'style') return style;
-    return prefixStyle(style);
-  }
-
-  function onChangeValue(value, prop) {
-    return (0,css_vendor__WEBPACK_IMPORTED_MODULE_0__.supportedValue)(prop, (0,jss__WEBPACK_IMPORTED_MODULE_1__.toCssValue)(value)) || value;
-  }
-
-  return {
-    onProcessRule: onProcessRule,
-    onProcessStyle: onProcessStyle,
-    onChangeValue: onChangeValue
-  };
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (jssVendorPrefixer);
-
-
-/***/ }),
-
-/***/ "./node_modules/jss/dist/jss.esm.js":
-/*!******************************************!*\
-  !*** ./node_modules/jss/dist/jss.esm.js ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   RuleList: () => (/* binding */ RuleList),
-/* harmony export */   SheetsManager: () => (/* binding */ SheetsManager),
-/* harmony export */   SheetsRegistry: () => (/* binding */ SheetsRegistry),
-/* harmony export */   create: () => (/* binding */ createJss),
-/* harmony export */   createGenerateId: () => (/* binding */ createGenerateId),
-/* harmony export */   createRule: () => (/* binding */ createRule),
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   getDynamicStyles: () => (/* binding */ getDynamicStyles),
-/* harmony export */   hasCSSTOMSupport: () => (/* binding */ hasCSSTOMSupport),
-/* harmony export */   sheets: () => (/* binding */ sheets),
-/* harmony export */   toCssValue: () => (/* binding */ toCssValue)
-/* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
-/* harmony import */ var is_in_browser__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! is-in-browser */ "./node_modules/is-in-browser/dist/module.js");
-/* harmony import */ var tiny_warning__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! tiny-warning */ "./node_modules/tiny-warning/dist/tiny-warning.esm.js");
-/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
-/* harmony import */ var _babel_runtime_helpers_esm_inheritsLoose__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/esm/inheritsLoose */ "./node_modules/@babel/runtime/helpers/esm/inheritsLoose.js");
-/* harmony import */ var _babel_runtime_helpers_esm_assertThisInitialized__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @babel/runtime/helpers/esm/assertThisInitialized */ "./node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js");
-/* harmony import */ var _babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @babel/runtime/helpers/esm/objectWithoutPropertiesLoose */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js");
-
-
-
-
-
-
-
-
-var plainObjectConstrurctor = {}.constructor;
-function cloneStyle(style) {
-  if (style == null || typeof style !== 'object') return style;
-  if (Array.isArray(style)) return style.map(cloneStyle);
-  if (style.constructor !== plainObjectConstrurctor) return style;
-  var newStyle = {};
-
-  for (var name in style) {
-    newStyle[name] = cloneStyle(style[name]);
-  }
-
-  return newStyle;
-}
-
-/**
- * Create a rule instance.
- */
-
-function createRule(name, decl, options) {
-  if (name === void 0) {
-    name = 'unnamed';
-  }
-
-  var jss = options.jss;
-  var declCopy = cloneStyle(decl);
-  var rule = jss.plugins.onCreateRule(name, declCopy, options);
-  if (rule) return rule; // It is an at-rule and it has no instance.
-
-  if (name[0] === '@') {
-     true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "[JSS] Unknown rule " + name) : 0;
-  }
-
-  return null;
-}
-
-var join = function join(value, by) {
-  var result = '';
-
-  for (var i = 0; i < value.length; i++) {
-    // Remove !important from the value, it will be readded later.
-    if (value[i] === '!important') break;
-    if (result) result += by;
-    result += value[i];
-  }
-
-  return result;
-};
-/**
- * Converts JSS array value to a CSS string.
- *
- * `margin: [['5px', '10px']]` > `margin: 5px 10px;`
- * `border: ['1px', '2px']` > `border: 1px, 2px;`
- * `margin: [['5px', '10px'], '!important']` > `margin: 5px 10px !important;`
- * `color: ['red', !important]` > `color: red !important;`
- */
-
-
-var toCssValue = function toCssValue(value) {
-  if (!Array.isArray(value)) return value;
-  var cssValue = ''; // Support space separated values via `[['5px', '10px']]`.
-
-  if (Array.isArray(value[0])) {
-    for (var i = 0; i < value.length; i++) {
-      if (value[i] === '!important') break;
-      if (cssValue) cssValue += ', ';
-      cssValue += join(value[i], ' ');
-    }
-  } else cssValue = join(value, ', '); // Add !important, because it was ignored.
-
-
-  if (value[value.length - 1] === '!important') {
-    cssValue += ' !important';
-  }
-
-  return cssValue;
-};
-
-function getWhitespaceSymbols(options) {
-  if (options && options.format === false) {
-    return {
-      linebreak: '',
-      space: ''
-    };
-  }
-
-  return {
-    linebreak: '\n',
-    space: ' '
-  };
-}
-
-/**
- * Indent a string.
- * http://jsperf.com/array-join-vs-for
- */
-
-function indentStr(str, indent) {
-  var result = '';
-
-  for (var index = 0; index < indent; index++) {
-    result += '  ';
-  }
-
-  return result + str;
-}
-/**
- * Converts a Rule to CSS string.
- */
-
-
-function toCss(selector, style, options) {
-  if (options === void 0) {
-    options = {};
-  }
-
-  var result = '';
-  if (!style) return result;
-  var _options = options,
-      _options$indent = _options.indent,
-      indent = _options$indent === void 0 ? 0 : _options$indent;
-  var fallbacks = style.fallbacks;
-
-  if (options.format === false) {
-    indent = -Infinity;
-  }
-
-  var _getWhitespaceSymbols = getWhitespaceSymbols(options),
-      linebreak = _getWhitespaceSymbols.linebreak,
-      space = _getWhitespaceSymbols.space;
-
-  if (selector) indent++; // Apply fallbacks first.
-
-  if (fallbacks) {
-    // Array syntax {fallbacks: [{prop: value}]}
-    if (Array.isArray(fallbacks)) {
-      for (var index = 0; index < fallbacks.length; index++) {
-        var fallback = fallbacks[index];
-
-        for (var prop in fallback) {
-          var value = fallback[prop];
-
-          if (value != null) {
-            if (result) result += linebreak;
-            result += indentStr(prop + ":" + space + toCssValue(value) + ";", indent);
-          }
-        }
-      }
-    } else {
-      // Object syntax {fallbacks: {prop: value}}
-      for (var _prop in fallbacks) {
-        var _value = fallbacks[_prop];
-
-        if (_value != null) {
-          if (result) result += linebreak;
-          result += indentStr(_prop + ":" + space + toCssValue(_value) + ";", indent);
-        }
-      }
-    }
-  }
-
-  for (var _prop2 in style) {
-    var _value2 = style[_prop2];
-
-    if (_value2 != null && _prop2 !== 'fallbacks') {
-      if (result) result += linebreak;
-      result += indentStr(_prop2 + ":" + space + toCssValue(_value2) + ";", indent);
-    }
-  } // Allow empty style in this case, because properties will be added dynamically.
-
-
-  if (!result && !options.allowEmpty) return result; // When rule is being stringified before selector was defined.
-
-  if (!selector) return result;
-  indent--;
-  if (result) result = "" + linebreak + result + linebreak;
-  return indentStr("" + selector + space + "{" + result, indent) + indentStr('}', indent);
-}
-
-var escapeRegex = /([[\].#*$><+~=|^:(),"'`\s])/g;
-var nativeEscape = typeof CSS !== 'undefined' && CSS.escape;
-var escape = (function (str) {
-  return nativeEscape ? nativeEscape(str) : str.replace(escapeRegex, '\\$1');
-});
-
-var BaseStyleRule =
-/*#__PURE__*/
-function () {
-  function BaseStyleRule(key, style, options) {
-    this.type = 'style';
-    this.isProcessed = false;
-    var sheet = options.sheet,
-        Renderer = options.Renderer;
-    this.key = key;
-    this.options = options;
-    this.style = style;
-    if (sheet) this.renderer = sheet.renderer;else if (Renderer) this.renderer = new Renderer();
-  }
-  /**
-   * Get or set a style property.
-   */
-
-
-  var _proto = BaseStyleRule.prototype;
-
-  _proto.prop = function prop(name, value, options) {
-    // It's a getter.
-    if (value === undefined) return this.style[name]; // Don't do anything if the value has not changed.
-
-    var force = options ? options.force : false;
-    if (!force && this.style[name] === value) return this;
-    var newValue = value;
-
-    if (!options || options.process !== false) {
-      newValue = this.options.jss.plugins.onChangeValue(value, name, this);
-    }
-
-    var isEmpty = newValue == null || newValue === false;
-    var isDefined = name in this.style; // Value is empty and wasn't defined before.
-
-    if (isEmpty && !isDefined && !force) return this; // We are going to remove this value.
-
-    var remove = isEmpty && isDefined;
-    if (remove) delete this.style[name];else this.style[name] = newValue; // Renderable is defined if StyleSheet option `link` is true.
-
-    if (this.renderable && this.renderer) {
-      if (remove) this.renderer.removeProperty(this.renderable, name);else this.renderer.setProperty(this.renderable, name, newValue);
-      return this;
-    }
-
-    var sheet = this.options.sheet;
-
-    if (sheet && sheet.attached) {
-       true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, '[JSS] Rule is not linked. Missing sheet option "link: true".') : 0;
-    }
-
-    return this;
-  };
-
-  return BaseStyleRule;
-}();
-var StyleRule =
-/*#__PURE__*/
-function (_BaseStyleRule) {
-  (0,_babel_runtime_helpers_esm_inheritsLoose__WEBPACK_IMPORTED_MODULE_4__["default"])(StyleRule, _BaseStyleRule);
-
-  function StyleRule(key, style, options) {
-    var _this;
-
-    _this = _BaseStyleRule.call(this, key, style, options) || this;
-    var selector = options.selector,
-        scoped = options.scoped,
-        sheet = options.sheet,
-        generateId = options.generateId;
-
-    if (selector) {
-      _this.selectorText = selector;
-    } else if (scoped !== false) {
-      _this.id = generateId((0,_babel_runtime_helpers_esm_assertThisInitialized__WEBPACK_IMPORTED_MODULE_5__["default"])((0,_babel_runtime_helpers_esm_assertThisInitialized__WEBPACK_IMPORTED_MODULE_5__["default"])(_this)), sheet);
-      _this.selectorText = "." + escape(_this.id);
-    }
-
-    return _this;
-  }
-  /**
-   * Set selector string.
-   * Attention: use this with caution. Most browsers didn't implement
-   * selectorText setter, so this may result in rerendering of entire Style Sheet.
-   */
-
-
-  var _proto2 = StyleRule.prototype;
-
-  /**
-   * Apply rule to an element inline.
-   */
-  _proto2.applyTo = function applyTo(renderable) {
-    var renderer = this.renderer;
-
-    if (renderer) {
-      var json = this.toJSON();
-
-      for (var prop in json) {
-        renderer.setProperty(renderable, prop, json[prop]);
-      }
-    }
-
-    return this;
-  }
-  /**
-   * Returns JSON representation of the rule.
-   * Fallbacks are not supported.
-   * Useful for inline styles.
-   */
-  ;
-
-  _proto2.toJSON = function toJSON() {
-    var json = {};
-
-    for (var prop in this.style) {
-      var value = this.style[prop];
-      if (typeof value !== 'object') json[prop] = value;else if (Array.isArray(value)) json[prop] = toCssValue(value);
-    }
-
-    return json;
-  }
-  /**
-   * Generates a CSS string.
-   */
-  ;
-
-  _proto2.toString = function toString(options) {
-    var sheet = this.options.sheet;
-    var link = sheet ? sheet.options.link : false;
-    var opts = link ? (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      allowEmpty: true
-    }) : options;
-    return toCss(this.selectorText, this.style, opts);
-  };
-
-  (0,_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_3__["default"])(StyleRule, [{
-    key: "selector",
-    set: function set(selector) {
-      if (selector === this.selectorText) return;
-      this.selectorText = selector;
-      var renderer = this.renderer,
-          renderable = this.renderable;
-      if (!renderable || !renderer) return;
-      var hasChanged = renderer.setSelector(renderable, selector); // If selector setter is not implemented, rerender the rule.
-
-      if (!hasChanged) {
-        renderer.replaceRule(renderable, this);
-      }
-    }
-    /**
-     * Get selector string.
-     */
-    ,
-    get: function get() {
-      return this.selectorText;
-    }
-  }]);
-
-  return StyleRule;
-}(BaseStyleRule);
-var pluginStyleRule = {
-  onCreateRule: function onCreateRule(key, style, options) {
-    if (key[0] === '@' || options.parent && options.parent.type === 'keyframes') {
-      return null;
-    }
-
-    return new StyleRule(key, style, options);
-  }
-};
-
-var defaultToStringOptions = {
-  indent: 1,
-  children: true
-};
-var atRegExp = /@([\w-]+)/;
-/**
- * Conditional rule for @media, @supports
- */
-
-var ConditionalRule =
-/*#__PURE__*/
-function () {
-  function ConditionalRule(key, styles, options) {
-    this.type = 'conditional';
-    this.isProcessed = false;
-    this.key = key;
-    var atMatch = key.match(atRegExp);
-    this.at = atMatch ? atMatch[1] : 'unknown'; // Key might contain a unique suffix in case the `name` passed by user was duplicate.
-
-    this.query = options.name || "@" + this.at;
-    this.options = options;
-    this.rules = new RuleList((0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      parent: this
-    }));
-
-    for (var name in styles) {
-      this.rules.add(name, styles[name]);
-    }
-
-    this.rules.process();
-  }
-  /**
-   * Get a rule.
-   */
-
-
-  var _proto = ConditionalRule.prototype;
-
-  _proto.getRule = function getRule(name) {
-    return this.rules.get(name);
-  }
-  /**
-   * Get index of a rule.
-   */
-  ;
-
-  _proto.indexOf = function indexOf(rule) {
-    return this.rules.indexOf(rule);
-  }
-  /**
-   * Create and register rule, run plugins.
-   */
-  ;
-
-  _proto.addRule = function addRule(name, style, options) {
-    var rule = this.rules.add(name, style, options);
-    if (!rule) return null;
-    this.options.jss.plugins.onProcessRule(rule);
-    return rule;
-  }
-  /**
-   * Replace rule, run plugins.
-   */
-  ;
-
-  _proto.replaceRule = function replaceRule(name, style, options) {
-    var newRule = this.rules.replace(name, style, options);
-    if (newRule) this.options.jss.plugins.onProcessRule(newRule);
-    return newRule;
-  }
-  /**
-   * Generates a CSS string.
-   */
-  ;
-
-  _proto.toString = function toString(options) {
-    if (options === void 0) {
-      options = defaultToStringOptions;
-    }
-
-    var _getWhitespaceSymbols = getWhitespaceSymbols(options),
-        linebreak = _getWhitespaceSymbols.linebreak;
-
-    if (options.indent == null) options.indent = defaultToStringOptions.indent;
-    if (options.children == null) options.children = defaultToStringOptions.children;
-
-    if (options.children === false) {
-      return this.query + " {}";
-    }
-
-    var children = this.rules.toString(options);
-    return children ? this.query + " {" + linebreak + children + linebreak + "}" : '';
-  };
-
-  return ConditionalRule;
-}();
-var keyRegExp = /@container|@media|@supports\s+/;
-var pluginConditionalRule = {
-  onCreateRule: function onCreateRule(key, styles, options) {
-    return keyRegExp.test(key) ? new ConditionalRule(key, styles, options) : null;
-  }
-};
-
-var defaultToStringOptions$1 = {
-  indent: 1,
-  children: true
-};
-var nameRegExp = /@keyframes\s+([\w-]+)/;
-/**
- * Rule for @keyframes
- */
-
-var KeyframesRule =
-/*#__PURE__*/
-function () {
-  function KeyframesRule(key, frames, options) {
-    this.type = 'keyframes';
-    this.at = '@keyframes';
-    this.isProcessed = false;
-    var nameMatch = key.match(nameRegExp);
-
-    if (nameMatch && nameMatch[1]) {
-      this.name = nameMatch[1];
-    } else {
-      this.name = 'noname';
-       true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "[JSS] Bad keyframes name " + key) : 0;
-    }
-
-    this.key = this.type + "-" + this.name;
-    this.options = options;
-    var scoped = options.scoped,
-        sheet = options.sheet,
-        generateId = options.generateId;
-    this.id = scoped === false ? this.name : escape(generateId(this, sheet));
-    this.rules = new RuleList((0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      parent: this
-    }));
-
-    for (var name in frames) {
-      this.rules.add(name, frames[name], (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-        parent: this
-      }));
-    }
-
-    this.rules.process();
-  }
-  /**
-   * Generates a CSS string.
-   */
-
-
-  var _proto = KeyframesRule.prototype;
-
-  _proto.toString = function toString(options) {
-    if (options === void 0) {
-      options = defaultToStringOptions$1;
-    }
-
-    var _getWhitespaceSymbols = getWhitespaceSymbols(options),
-        linebreak = _getWhitespaceSymbols.linebreak;
-
-    if (options.indent == null) options.indent = defaultToStringOptions$1.indent;
-    if (options.children == null) options.children = defaultToStringOptions$1.children;
-
-    if (options.children === false) {
-      return this.at + " " + this.id + " {}";
-    }
-
-    var children = this.rules.toString(options);
-    if (children) children = "" + linebreak + children + linebreak;
-    return this.at + " " + this.id + " {" + children + "}";
-  };
-
-  return KeyframesRule;
-}();
-var keyRegExp$1 = /@keyframes\s+/;
-var refRegExp = /\$([\w-]+)/g;
-
-var findReferencedKeyframe = function findReferencedKeyframe(val, keyframes) {
-  if (typeof val === 'string') {
-    return val.replace(refRegExp, function (match, name) {
-      if (name in keyframes) {
-        return keyframes[name];
-      }
-
-       true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "[JSS] Referenced keyframes rule \"" + name + "\" is not defined.") : 0;
-      return match;
-    });
-  }
-
-  return val;
-};
-/**
- * Replace the reference for a animation name.
- */
-
-
-var replaceRef = function replaceRef(style, prop, keyframes) {
-  var value = style[prop];
-  var refKeyframe = findReferencedKeyframe(value, keyframes);
-
-  if (refKeyframe !== value) {
-    style[prop] = refKeyframe;
-  }
-};
-
-var pluginKeyframesRule = {
-  onCreateRule: function onCreateRule(key, frames, options) {
-    return typeof key === 'string' && keyRegExp$1.test(key) ? new KeyframesRule(key, frames, options) : null;
-  },
-  // Animation name ref replacer.
-  onProcessStyle: function onProcessStyle(style, rule, sheet) {
-    if (rule.type !== 'style' || !sheet) return style;
-    if ('animation-name' in style) replaceRef(style, 'animation-name', sheet.keyframes);
-    if ('animation' in style) replaceRef(style, 'animation', sheet.keyframes);
-    return style;
-  },
-  onChangeValue: function onChangeValue(val, prop, rule) {
-    var sheet = rule.options.sheet;
-
-    if (!sheet) {
-      return val;
-    }
-
-    switch (prop) {
-      case 'animation':
-        return findReferencedKeyframe(val, sheet.keyframes);
-
-      case 'animation-name':
-        return findReferencedKeyframe(val, sheet.keyframes);
-
-      default:
-        return val;
-    }
-  }
-};
-
-var KeyframeRule =
-/*#__PURE__*/
-function (_BaseStyleRule) {
-  (0,_babel_runtime_helpers_esm_inheritsLoose__WEBPACK_IMPORTED_MODULE_4__["default"])(KeyframeRule, _BaseStyleRule);
-
-  function KeyframeRule() {
-    return _BaseStyleRule.apply(this, arguments) || this;
-  }
-
-  var _proto = KeyframeRule.prototype;
-
-  /**
-   * Generates a CSS string.
-   */
-  _proto.toString = function toString(options) {
-    var sheet = this.options.sheet;
-    var link = sheet ? sheet.options.link : false;
-    var opts = link ? (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      allowEmpty: true
-    }) : options;
-    return toCss(this.key, this.style, opts);
-  };
-
-  return KeyframeRule;
-}(BaseStyleRule);
-var pluginKeyframeRule = {
-  onCreateRule: function onCreateRule(key, style, options) {
-    if (options.parent && options.parent.type === 'keyframes') {
-      return new KeyframeRule(key, style, options);
-    }
-
-    return null;
-  }
-};
-
-var FontFaceRule =
-/*#__PURE__*/
-function () {
-  function FontFaceRule(key, style, options) {
-    this.type = 'font-face';
-    this.at = '@font-face';
-    this.isProcessed = false;
-    this.key = key;
-    this.style = style;
-    this.options = options;
-  }
-  /**
-   * Generates a CSS string.
-   */
-
-
-  var _proto = FontFaceRule.prototype;
-
-  _proto.toString = function toString(options) {
-    var _getWhitespaceSymbols = getWhitespaceSymbols(options),
-        linebreak = _getWhitespaceSymbols.linebreak;
-
-    if (Array.isArray(this.style)) {
-      var str = '';
-
-      for (var index = 0; index < this.style.length; index++) {
-        str += toCss(this.at, this.style[index]);
-        if (this.style[index + 1]) str += linebreak;
-      }
-
-      return str;
-    }
-
-    return toCss(this.at, this.style, options);
-  };
-
-  return FontFaceRule;
-}();
-var keyRegExp$2 = /@font-face/;
-var pluginFontFaceRule = {
-  onCreateRule: function onCreateRule(key, style, options) {
-    return keyRegExp$2.test(key) ? new FontFaceRule(key, style, options) : null;
-  }
-};
-
-var ViewportRule =
-/*#__PURE__*/
-function () {
-  function ViewportRule(key, style, options) {
-    this.type = 'viewport';
-    this.at = '@viewport';
-    this.isProcessed = false;
-    this.key = key;
-    this.style = style;
-    this.options = options;
-  }
-  /**
-   * Generates a CSS string.
-   */
-
-
-  var _proto = ViewportRule.prototype;
-
-  _proto.toString = function toString(options) {
-    return toCss(this.key, this.style, options);
-  };
-
-  return ViewportRule;
-}();
-var pluginViewportRule = {
-  onCreateRule: function onCreateRule(key, style, options) {
-    return key === '@viewport' || key === '@-ms-viewport' ? new ViewportRule(key, style, options) : null;
-  }
-};
-
-var SimpleRule =
-/*#__PURE__*/
-function () {
-  function SimpleRule(key, value, options) {
-    this.type = 'simple';
-    this.isProcessed = false;
-    this.key = key;
-    this.value = value;
-    this.options = options;
-  }
-  /**
-   * Generates a CSS string.
-   */
-  // eslint-disable-next-line no-unused-vars
-
-
-  var _proto = SimpleRule.prototype;
-
-  _proto.toString = function toString(options) {
-    if (Array.isArray(this.value)) {
-      var str = '';
-
-      for (var index = 0; index < this.value.length; index++) {
-        str += this.key + " " + this.value[index] + ";";
-        if (this.value[index + 1]) str += '\n';
-      }
-
-      return str;
-    }
-
-    return this.key + " " + this.value + ";";
-  };
-
-  return SimpleRule;
-}();
-var keysMap = {
-  '@charset': true,
-  '@import': true,
-  '@namespace': true
-};
-var pluginSimpleRule = {
-  onCreateRule: function onCreateRule(key, value, options) {
-    return key in keysMap ? new SimpleRule(key, value, options) : null;
-  }
-};
-
-var plugins = [pluginStyleRule, pluginConditionalRule, pluginKeyframesRule, pluginKeyframeRule, pluginFontFaceRule, pluginViewportRule, pluginSimpleRule];
-
-var defaultUpdateOptions = {
-  process: true
-};
-var forceUpdateOptions = {
-  force: true,
-  process: true
-  /**
-   * Contains rules objects and allows adding/removing etc.
-   * Is used for e.g. by `StyleSheet` or `ConditionalRule`.
-   */
-
-};
-
-var RuleList =
-/*#__PURE__*/
-function () {
-  // Rules registry for access by .get() method.
-  // It contains the same rule registered by name and by selector.
-  // Original styles object.
-  // Used to ensure correct rules order.
-  function RuleList(options) {
-    this.map = {};
-    this.raw = {};
-    this.index = [];
-    this.counter = 0;
-    this.options = options;
-    this.classes = options.classes;
-    this.keyframes = options.keyframes;
-  }
-  /**
-   * Create and register rule.
-   *
-   * Will not render after Style Sheet was rendered the first time.
-   */
-
-
-  var _proto = RuleList.prototype;
-
-  _proto.add = function add(name, decl, ruleOptions) {
-    var _this$options = this.options,
-        parent = _this$options.parent,
-        sheet = _this$options.sheet,
-        jss = _this$options.jss,
-        Renderer = _this$options.Renderer,
-        generateId = _this$options.generateId,
-        scoped = _this$options.scoped;
-
-    var options = (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
-      classes: this.classes,
-      parent: parent,
-      sheet: sheet,
-      jss: jss,
-      Renderer: Renderer,
-      generateId: generateId,
-      scoped: scoped,
-      name: name,
-      keyframes: this.keyframes,
-      selector: undefined
-    }, ruleOptions); // When user uses .createStyleSheet(), duplicate names are not possible, but
-    // `sheet.addRule()` opens the door for any duplicate rule name. When this happens
-    // we need to make the key unique within this RuleList instance scope.
-
-
-    var key = name;
-
-    if (name in this.raw) {
-      key = name + "-d" + this.counter++;
-    } // We need to save the original decl before creating the rule
-    // because cache plugin needs to use it as a key to return a cached rule.
-
-
-    this.raw[key] = decl;
-
-    if (key in this.classes) {
-      // E.g. rules inside of @media container
-      options.selector = "." + escape(this.classes[key]);
-    }
-
-    var rule = createRule(key, decl, options);
-    if (!rule) return null;
-    this.register(rule);
-    var index = options.index === undefined ? this.index.length : options.index;
-    this.index.splice(index, 0, rule);
-    return rule;
-  }
-  /**
-   * Replace rule.
-   * Create a new rule and remove old one instead of overwriting
-   * because we want to invoke onCreateRule hook to make plugins work.
-   */
-  ;
-
-  _proto.replace = function replace(name, decl, ruleOptions) {
-    var oldRule = this.get(name);
-    var oldIndex = this.index.indexOf(oldRule);
-
-    if (oldRule) {
-      this.remove(oldRule);
-    }
-
-    var options = ruleOptions;
-    if (oldIndex !== -1) options = (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, ruleOptions, {
-      index: oldIndex
-    });
-    return this.add(name, decl, options);
-  }
-  /**
-   * Get a rule by name or selector.
-   */
-  ;
-
-  _proto.get = function get(nameOrSelector) {
-    return this.map[nameOrSelector];
-  }
-  /**
-   * Delete a rule.
-   */
-  ;
-
-  _proto.remove = function remove(rule) {
-    this.unregister(rule);
-    delete this.raw[rule.key];
-    this.index.splice(this.index.indexOf(rule), 1);
-  }
-  /**
-   * Get index of a rule.
-   */
-  ;
-
-  _proto.indexOf = function indexOf(rule) {
-    return this.index.indexOf(rule);
-  }
-  /**
-   * Run `onProcessRule()` plugins on every rule.
-   */
-  ;
-
-  _proto.process = function process() {
-    var plugins = this.options.jss.plugins; // We need to clone array because if we modify the index somewhere else during a loop
-    // we end up with very hard-to-track-down side effects.
-
-    this.index.slice(0).forEach(plugins.onProcessRule, plugins);
-  }
-  /**
-   * Register a rule in `.map`, `.classes` and `.keyframes` maps.
-   */
-  ;
-
-  _proto.register = function register(rule) {
-    this.map[rule.key] = rule;
-
-    if (rule instanceof StyleRule) {
-      this.map[rule.selector] = rule;
-      if (rule.id) this.classes[rule.key] = rule.id;
-    } else if (rule instanceof KeyframesRule && this.keyframes) {
-      this.keyframes[rule.name] = rule.id;
-    }
-  }
-  /**
-   * Unregister a rule.
-   */
-  ;
-
-  _proto.unregister = function unregister(rule) {
-    delete this.map[rule.key];
-
-    if (rule instanceof StyleRule) {
-      delete this.map[rule.selector];
-      delete this.classes[rule.key];
-    } else if (rule instanceof KeyframesRule) {
-      delete this.keyframes[rule.name];
-    }
-  }
-  /**
-   * Update the function values with a new data.
-   */
-  ;
-
-  _proto.update = function update() {
-    var name;
-    var data;
-    var options;
-
-    if (typeof (arguments.length <= 0 ? undefined : arguments[0]) === 'string') {
-      name = arguments.length <= 0 ? undefined : arguments[0];
-      data = arguments.length <= 1 ? undefined : arguments[1];
-      options = arguments.length <= 2 ? undefined : arguments[2];
-    } else {
-      data = arguments.length <= 0 ? undefined : arguments[0];
-      options = arguments.length <= 1 ? undefined : arguments[1];
-      name = null;
-    }
-
-    if (name) {
-      this.updateOne(this.get(name), data, options);
-    } else {
-      for (var index = 0; index < this.index.length; index++) {
-        this.updateOne(this.index[index], data, options);
-      }
-    }
-  }
-  /**
-   * Execute plugins, update rule props.
-   */
-  ;
-
-  _proto.updateOne = function updateOne(rule, data, options) {
-    if (options === void 0) {
-      options = defaultUpdateOptions;
-    }
-
-    var _this$options2 = this.options,
-        plugins = _this$options2.jss.plugins,
-        sheet = _this$options2.sheet; // It is a rules container like for e.g. ConditionalRule.
-
-    if (rule.rules instanceof RuleList) {
-      rule.rules.update(data, options);
-      return;
-    }
-
-    var style = rule.style;
-    plugins.onUpdate(data, rule, sheet, options); // We rely on a new `style` ref in case it was mutated during onUpdate hook.
-
-    if (options.process && style && style !== rule.style) {
-      // We need to run the plugins in case new `style` relies on syntax plugins.
-      plugins.onProcessStyle(rule.style, rule, sheet); // Update and add props.
-
-      for (var prop in rule.style) {
-        var nextValue = rule.style[prop];
-        var prevValue = style[prop]; // We need to use `force: true` because `rule.style` has been updated during onUpdate hook, so `rule.prop()` will not update the CSSOM rule.
-        // We do this comparison to avoid unneeded `rule.prop()` calls, since we have the old `style` object here.
-
-        if (nextValue !== prevValue) {
-          rule.prop(prop, nextValue, forceUpdateOptions);
-        }
-      } // Remove props.
-
-
-      for (var _prop in style) {
-        var _nextValue = rule.style[_prop];
-        var _prevValue = style[_prop]; // We need to use `force: true` because `rule.style` has been updated during onUpdate hook, so `rule.prop()` will not update the CSSOM rule.
-        // We do this comparison to avoid unneeded `rule.prop()` calls, since we have the old `style` object here.
-
-        if (_nextValue == null && _nextValue !== _prevValue) {
-          rule.prop(_prop, null, forceUpdateOptions);
-        }
-      }
-    }
-  }
-  /**
-   * Convert rules to a CSS string.
-   */
-  ;
-
-  _proto.toString = function toString(options) {
-    var str = '';
-    var sheet = this.options.sheet;
-    var link = sheet ? sheet.options.link : false;
-
-    var _getWhitespaceSymbols = getWhitespaceSymbols(options),
-        linebreak = _getWhitespaceSymbols.linebreak;
-
-    for (var index = 0; index < this.index.length; index++) {
-      var rule = this.index[index];
-      var css = rule.toString(options); // No need to render an empty rule.
-
-      if (!css && !link) continue;
-      if (str) str += linebreak;
-      str += css;
-    }
-
-    return str;
-  };
-
-  return RuleList;
-}();
-
-var StyleSheet =
-/*#__PURE__*/
-function () {
-  function StyleSheet(styles, options) {
-    this.attached = false;
-    this.deployed = false;
-    this.classes = {};
-    this.keyframes = {};
-    this.options = (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      sheet: this,
-      parent: this,
-      classes: this.classes,
-      keyframes: this.keyframes
-    });
-
-    if (options.Renderer) {
-      this.renderer = new options.Renderer(this);
-    }
-
-    this.rules = new RuleList(this.options);
-
-    for (var name in styles) {
-      this.rules.add(name, styles[name]);
-    }
-
-    this.rules.process();
-  }
-  /**
-   * Attach renderable to the render tree.
-   */
-
-
-  var _proto = StyleSheet.prototype;
-
-  _proto.attach = function attach() {
-    if (this.attached) return this;
-    if (this.renderer) this.renderer.attach();
-    this.attached = true; // Order is important, because we can't use insertRule API if style element is not attached.
-
-    if (!this.deployed) this.deploy();
-    return this;
-  }
-  /**
-   * Remove renderable from render tree.
-   */
-  ;
-
-  _proto.detach = function detach() {
-    if (!this.attached) return this;
-    if (this.renderer) this.renderer.detach();
-    this.attached = false;
-    return this;
-  }
-  /**
-   * Add a rule to the current stylesheet.
-   * Will insert a rule also after the stylesheet has been rendered first time.
-   */
-  ;
-
-  _proto.addRule = function addRule(name, decl, options) {
-    var queue = this.queue; // Plugins can create rules.
-    // In order to preserve the right order, we need to queue all `.addRule` calls,
-    // which happen after the first `rules.add()` call.
-
-    if (this.attached && !queue) this.queue = [];
-    var rule = this.rules.add(name, decl, options);
-    if (!rule) return null;
-    this.options.jss.plugins.onProcessRule(rule);
-
-    if (this.attached) {
-      if (!this.deployed) return rule; // Don't insert rule directly if there is no stringified version yet.
-      // It will be inserted all together when .attach is called.
-
-      if (queue) queue.push(rule);else {
-        this.insertRule(rule);
-
-        if (this.queue) {
-          this.queue.forEach(this.insertRule, this);
-          this.queue = undefined;
-        }
-      }
-      return rule;
-    } // We can't add rules to a detached style node.
-    // We will redeploy the sheet once user will attach it.
-
-
-    this.deployed = false;
-    return rule;
-  }
-  /**
-   * Replace a rule in the current stylesheet.
-   */
-  ;
-
-  _proto.replaceRule = function replaceRule(nameOrSelector, decl, options) {
-    var oldRule = this.rules.get(nameOrSelector);
-    if (!oldRule) return this.addRule(nameOrSelector, decl, options);
-    var newRule = this.rules.replace(nameOrSelector, decl, options);
-
-    if (newRule) {
-      this.options.jss.plugins.onProcessRule(newRule);
-    }
-
-    if (this.attached) {
-      if (!this.deployed) return newRule; // Don't replace / delete rule directly if there is no stringified version yet.
-      // It will be inserted all together when .attach is called.
-
-      if (this.renderer) {
-        if (!newRule) {
-          this.renderer.deleteRule(oldRule);
-        } else if (oldRule.renderable) {
-          this.renderer.replaceRule(oldRule.renderable, newRule);
-        }
-      }
-
-      return newRule;
-    } // We can't replace rules to a detached style node.
-    // We will redeploy the sheet once user will attach it.
-
-
-    this.deployed = false;
-    return newRule;
-  }
-  /**
-   * Insert rule into the StyleSheet
-   */
-  ;
-
-  _proto.insertRule = function insertRule(rule) {
-    if (this.renderer) {
-      this.renderer.insertRule(rule);
-    }
-  }
-  /**
-   * Create and add rules.
-   * Will render also after Style Sheet was rendered the first time.
-   */
-  ;
-
-  _proto.addRules = function addRules(styles, options) {
-    var added = [];
-
-    for (var name in styles) {
-      var rule = this.addRule(name, styles[name], options);
-      if (rule) added.push(rule);
-    }
-
-    return added;
-  }
-  /**
-   * Get a rule by name or selector.
-   */
-  ;
-
-  _proto.getRule = function getRule(nameOrSelector) {
-    return this.rules.get(nameOrSelector);
-  }
-  /**
-   * Delete a rule by name.
-   * Returns `true`: if rule has been deleted from the DOM.
-   */
-  ;
-
-  _proto.deleteRule = function deleteRule(name) {
-    var rule = typeof name === 'object' ? name : this.rules.get(name);
-
-    if (!rule || // Style sheet was created without link: true and attached, in this case we
-    // won't be able to remove the CSS rule from the DOM.
-    this.attached && !rule.renderable) {
-      return false;
-    }
-
-    this.rules.remove(rule);
-
-    if (this.attached && rule.renderable && this.renderer) {
-      return this.renderer.deleteRule(rule.renderable);
-    }
-
-    return true;
-  }
-  /**
-   * Get index of a rule.
-   */
-  ;
-
-  _proto.indexOf = function indexOf(rule) {
-    return this.rules.indexOf(rule);
-  }
-  /**
-   * Deploy pure CSS string to a renderable.
-   */
-  ;
-
-  _proto.deploy = function deploy() {
-    if (this.renderer) this.renderer.deploy();
-    this.deployed = true;
-    return this;
-  }
-  /**
-   * Update the function values with a new data.
-   */
-  ;
-
-  _proto.update = function update() {
-    var _this$rules;
-
-    (_this$rules = this.rules).update.apply(_this$rules, arguments);
-
-    return this;
-  }
-  /**
-   * Updates a single rule.
-   */
-  ;
-
-  _proto.updateOne = function updateOne(rule, data, options) {
-    this.rules.updateOne(rule, data, options);
-    return this;
-  }
-  /**
-   * Convert rules to a CSS string.
-   */
-  ;
-
-  _proto.toString = function toString(options) {
-    return this.rules.toString(options);
-  };
-
-  return StyleSheet;
-}();
-
-var PluginsRegistry =
-/*#__PURE__*/
-function () {
-  function PluginsRegistry() {
-    this.plugins = {
-      internal: [],
-      external: []
-    };
-    this.registry = {};
-  }
-
-  var _proto = PluginsRegistry.prototype;
-
-  /**
-   * Call `onCreateRule` hooks and return an object if returned by a hook.
-   */
-  _proto.onCreateRule = function onCreateRule(name, decl, options) {
-    for (var i = 0; i < this.registry.onCreateRule.length; i++) {
-      var rule = this.registry.onCreateRule[i](name, decl, options);
-      if (rule) return rule;
-    }
-
-    return null;
-  }
-  /**
-   * Call `onProcessRule` hooks.
-   */
-  ;
-
-  _proto.onProcessRule = function onProcessRule(rule) {
-    if (rule.isProcessed) return;
-    var sheet = rule.options.sheet;
-
-    for (var i = 0; i < this.registry.onProcessRule.length; i++) {
-      this.registry.onProcessRule[i](rule, sheet);
-    }
-
-    if (rule.style) this.onProcessStyle(rule.style, rule, sheet);
-    rule.isProcessed = true;
-  }
-  /**
-   * Call `onProcessStyle` hooks.
-   */
-  ;
-
-  _proto.onProcessStyle = function onProcessStyle(style, rule, sheet) {
-    for (var i = 0; i < this.registry.onProcessStyle.length; i++) {
-      rule.style = this.registry.onProcessStyle[i](rule.style, rule, sheet);
-    }
-  }
-  /**
-   * Call `onProcessSheet` hooks.
-   */
-  ;
-
-  _proto.onProcessSheet = function onProcessSheet(sheet) {
-    for (var i = 0; i < this.registry.onProcessSheet.length; i++) {
-      this.registry.onProcessSheet[i](sheet);
-    }
-  }
-  /**
-   * Call `onUpdate` hooks.
-   */
-  ;
-
-  _proto.onUpdate = function onUpdate(data, rule, sheet, options) {
-    for (var i = 0; i < this.registry.onUpdate.length; i++) {
-      this.registry.onUpdate[i](data, rule, sheet, options);
-    }
-  }
-  /**
-   * Call `onChangeValue` hooks.
-   */
-  ;
-
-  _proto.onChangeValue = function onChangeValue(value, prop, rule) {
-    var processedValue = value;
-
-    for (var i = 0; i < this.registry.onChangeValue.length; i++) {
-      processedValue = this.registry.onChangeValue[i](processedValue, prop, rule);
-    }
-
-    return processedValue;
-  }
-  /**
-   * Register a plugin.
-   */
-  ;
-
-  _proto.use = function use(newPlugin, options) {
-    if (options === void 0) {
-      options = {
-        queue: 'external'
-      };
-    }
-
-    var plugins = this.plugins[options.queue]; // Avoids applying same plugin twice, at least based on ref.
-
-    if (plugins.indexOf(newPlugin) !== -1) {
-      return;
-    }
-
-    plugins.push(newPlugin);
-    this.registry = [].concat(this.plugins.external, this.plugins.internal).reduce(function (registry, plugin) {
-      for (var name in plugin) {
-        if (name in registry) {
-          registry[name].push(plugin[name]);
-        } else {
-           true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "[JSS] Unknown hook \"" + name + "\".") : 0;
-        }
-      }
-
-      return registry;
-    }, {
-      onCreateRule: [],
-      onProcessRule: [],
-      onProcessStyle: [],
-      onProcessSheet: [],
-      onChangeValue: [],
-      onUpdate: []
-    });
-  };
-
-  return PluginsRegistry;
-}();
-
-/**
- * Sheets registry to access all instances in one place.
- */
-
-var SheetsRegistry =
-/*#__PURE__*/
-function () {
-  function SheetsRegistry() {
-    this.registry = [];
-  }
-
-  var _proto = SheetsRegistry.prototype;
-
-  /**
-   * Register a Style Sheet.
-   */
-  _proto.add = function add(sheet) {
-    var registry = this.registry;
-    var index = sheet.options.index;
-    if (registry.indexOf(sheet) !== -1) return;
-
-    if (registry.length === 0 || index >= this.index) {
-      registry.push(sheet);
-      return;
-    } // Find a position.
-
-
-    for (var i = 0; i < registry.length; i++) {
-      if (registry[i].options.index > index) {
-        registry.splice(i, 0, sheet);
-        return;
-      }
-    }
-  }
-  /**
-   * Reset the registry.
-   */
-  ;
-
-  _proto.reset = function reset() {
-    this.registry = [];
-  }
-  /**
-   * Remove a Style Sheet.
-   */
-  ;
-
-  _proto.remove = function remove(sheet) {
-    var index = this.registry.indexOf(sheet);
-    this.registry.splice(index, 1);
-  }
-  /**
-   * Convert all attached sheets to a CSS string.
-   */
-  ;
-
-  _proto.toString = function toString(_temp) {
-    var _ref = _temp === void 0 ? {} : _temp,
-        attached = _ref.attached,
-        options = (0,_babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_6__["default"])(_ref, ["attached"]);
-
-    var _getWhitespaceSymbols = getWhitespaceSymbols(options),
-        linebreak = _getWhitespaceSymbols.linebreak;
-
-    var css = '';
-
-    for (var i = 0; i < this.registry.length; i++) {
-      var sheet = this.registry[i];
-
-      if (attached != null && sheet.attached !== attached) {
-        continue;
-      }
-
-      if (css) css += linebreak;
-      css += sheet.toString(options);
-    }
-
-    return css;
-  };
-
-  (0,_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_3__["default"])(SheetsRegistry, [{
-    key: "index",
-
-    /**
-     * Current highest index number.
-     */
-    get: function get() {
-      return this.registry.length === 0 ? 0 : this.registry[this.registry.length - 1].options.index;
-    }
-  }]);
-
-  return SheetsRegistry;
-}();
-
-/**
- * This is a global sheets registry. Only DomRenderer will add sheets to it.
- * On the server one should use an own SheetsRegistry instance and add the
- * sheets to it, because you need to make sure to create a new registry for
- * each request in order to not leak sheets across requests.
- */
-
-var sheets = new SheetsRegistry();
-
-/* eslint-disable */
-
-/**
- * Now that `globalThis` is available on most platforms
- * (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis#browser_compatibility)
- * we check for `globalThis` first. `globalThis` is necessary for jss
- * to run in Agoric's secure version of JavaScript (SES). Under SES,
- * `globalThis` exists, but `window`, `self`, and `Function('return
- * this')()` are all undefined for security reasons.
- *
- * https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
- */
-var globalThis$1 = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' && window.Math === Math ? window : typeof self !== 'undefined' && self.Math === Math ? self : Function('return this')();
-
-var ns = '2f1acc6c3a606b082e5eef5e54414ffb';
-if (globalThis$1[ns] == null) globalThis$1[ns] = 0; // Bundle may contain multiple JSS versions at the same time. In order to identify
-// the current version with just one short number and use it for classes generation
-// we use a counter. Also it is more accurate, because user can manually reevaluate
-// the module.
-
-var moduleId = globalThis$1[ns]++;
-
-var maxRules = 1e10;
-/**
- * Returns a function which generates unique class names based on counters.
- * When new generator function is created, rule counter is reseted.
- * We need to reset the rule counter for SSR for each request.
- */
-
-var createGenerateId = function createGenerateId(options) {
-  if (options === void 0) {
-    options = {};
-  }
-
-  var ruleCounter = 0;
-
-  var generateId = function generateId(rule, sheet) {
-    ruleCounter += 1;
-
-    if (ruleCounter > maxRules) {
-       true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "[JSS] You might have a memory leak. Rule counter is at " + ruleCounter + ".") : 0;
-    }
-
-    var jssId = '';
-    var prefix = '';
-
-    if (sheet) {
-      if (sheet.options.classNamePrefix) {
-        prefix = sheet.options.classNamePrefix;
-      }
-
-      if (sheet.options.jss.id != null) {
-        jssId = String(sheet.options.jss.id);
-      }
-    }
-
-    if (options.minify) {
-      // Using "c" because a number can't be the first char in a class name.
-      return "" + (prefix || 'c') + moduleId + jssId + ruleCounter;
-    }
-
-    return prefix + rule.key + "-" + moduleId + (jssId ? "-" + jssId : '') + "-" + ruleCounter;
-  };
-
-  return generateId;
-};
-
-/**
- * Cache the value from the first time a function is called.
- */
-
-var memoize = function memoize(fn) {
-  var value;
-  return function () {
-    if (!value) value = fn();
-    return value;
-  };
-};
-/**
- * Get a style property value.
- */
-
-
-var getPropertyValue = function getPropertyValue(cssRule, prop) {
-  try {
-    // Support CSSTOM.
-    if (cssRule.attributeStyleMap) {
-      return cssRule.attributeStyleMap.get(prop);
-    }
-
-    return cssRule.style.getPropertyValue(prop);
-  } catch (err) {
-    // IE may throw if property is unknown.
-    return '';
-  }
-};
-/**
- * Set a style property.
- */
-
-
-var setProperty = function setProperty(cssRule, prop, value) {
-  try {
-    var cssValue = value;
-
-    if (Array.isArray(value)) {
-      cssValue = toCssValue(value);
-    } // Support CSSTOM.
-
-
-    if (cssRule.attributeStyleMap) {
-      cssRule.attributeStyleMap.set(prop, cssValue);
-    } else {
-      var indexOfImportantFlag = cssValue ? cssValue.indexOf('!important') : -1;
-      var cssValueWithoutImportantFlag = indexOfImportantFlag > -1 ? cssValue.substr(0, indexOfImportantFlag - 1) : cssValue;
-      cssRule.style.setProperty(prop, cssValueWithoutImportantFlag, indexOfImportantFlag > -1 ? 'important' : '');
-    }
-  } catch (err) {
-    // IE may throw if property is unknown.
-    return false;
-  }
-
-  return true;
-};
-/**
- * Remove a style property.
- */
-
-
-var removeProperty = function removeProperty(cssRule, prop) {
-  try {
-    // Support CSSTOM.
-    if (cssRule.attributeStyleMap) {
-      cssRule.attributeStyleMap.delete(prop);
-    } else {
-      cssRule.style.removeProperty(prop);
-    }
-  } catch (err) {
-     true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "[JSS] DOMException \"" + err.message + "\" was thrown. Tried to remove property \"" + prop + "\".") : 0;
-  }
-};
-/**
- * Set the selector.
- */
-
-
-var setSelector = function setSelector(cssRule, selectorText) {
-  cssRule.selectorText = selectorText; // Return false if setter was not successful.
-  // Currently works in chrome only.
-
-  return cssRule.selectorText === selectorText;
-};
-/**
- * Gets the `head` element upon the first call and caches it.
- * We assume it can't be null.
- */
-
-
-var getHead = memoize(function () {
-  return document.querySelector('head');
-});
-/**
- * Find attached sheet with an index higher than the passed one.
- */
-
-function findHigherSheet(registry, options) {
-  for (var i = 0; i < registry.length; i++) {
-    var sheet = registry[i];
-
-    if (sheet.attached && sheet.options.index > options.index && sheet.options.insertionPoint === options.insertionPoint) {
-      return sheet;
-    }
-  }
-
-  return null;
-}
-/**
- * Find attached sheet with the highest index.
- */
-
-
-function findHighestSheet(registry, options) {
-  for (var i = registry.length - 1; i >= 0; i--) {
-    var sheet = registry[i];
-
-    if (sheet.attached && sheet.options.insertionPoint === options.insertionPoint) {
-      return sheet;
-    }
-  }
-
-  return null;
-}
-/**
- * Find a comment with "jss" inside.
- */
-
-
-function findCommentNode(text) {
-  var head = getHead();
-
-  for (var i = 0; i < head.childNodes.length; i++) {
-    var node = head.childNodes[i];
-
-    if (node.nodeType === 8 && node.nodeValue.trim() === text) {
-      return node;
-    }
-  }
-
-  return null;
-}
-/**
- * Find a node before which we can insert the sheet.
- */
-
-
-function findPrevNode(options) {
-  var registry = sheets.registry;
-
-  if (registry.length > 0) {
-    // Try to insert before the next higher sheet.
-    var sheet = findHigherSheet(registry, options);
-
-    if (sheet && sheet.renderer) {
-      return {
-        parent: sheet.renderer.element.parentNode,
-        node: sheet.renderer.element
-      };
-    } // Otherwise insert after the last attached.
-
-
-    sheet = findHighestSheet(registry, options);
-
-    if (sheet && sheet.renderer) {
-      return {
-        parent: sheet.renderer.element.parentNode,
-        node: sheet.renderer.element.nextSibling
-      };
-    }
-  } // Try to find a comment placeholder if registry is empty.
-
-
-  var insertionPoint = options.insertionPoint;
-
-  if (insertionPoint && typeof insertionPoint === 'string') {
-    var comment = findCommentNode(insertionPoint);
-
-    if (comment) {
-      return {
-        parent: comment.parentNode,
-        node: comment.nextSibling
-      };
-    } // If user specifies an insertion point and it can't be found in the document -
-    // bad specificity issues may appear.
-
-
-     true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "[JSS] Insertion point \"" + insertionPoint + "\" not found.") : 0;
-  }
-
-  return false;
-}
-/**
- * Insert style element into the DOM.
- */
-
-
-function insertStyle(style, options) {
-  var insertionPoint = options.insertionPoint;
-  var nextNode = findPrevNode(options);
-
-  if (nextNode !== false && nextNode.parent) {
-    nextNode.parent.insertBefore(style, nextNode.node);
-    return;
-  } // Works with iframes and any node types.
-
-
-  if (insertionPoint && typeof insertionPoint.nodeType === 'number') {
-    var insertionPointElement = insertionPoint;
-    var parentNode = insertionPointElement.parentNode;
-    if (parentNode) parentNode.insertBefore(style, insertionPointElement.nextSibling);else  true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, '[JSS] Insertion point is not in the DOM.') : 0;
-    return;
-  }
-
-  getHead().appendChild(style);
-}
-/**
- * Read jss nonce setting from the page if the user has set it.
- */
-
-
-var getNonce = memoize(function () {
-  var node = document.querySelector('meta[property="csp-nonce"]');
-  return node ? node.getAttribute('content') : null;
-});
-
-var _insertRule = function insertRule(container, rule, index) {
-  try {
-    if ('insertRule' in container) {
-      container.insertRule(rule, index);
-    } // Keyframes rule.
-    else if ('appendRule' in container) {
-        container.appendRule(rule);
-      }
-  } catch (err) {
-     true ? (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "[JSS] " + err.message) : 0;
-    return false;
-  }
-
-  return container.cssRules[index];
-};
-
-var getValidRuleInsertionIndex = function getValidRuleInsertionIndex(container, index) {
-  var maxIndex = container.cssRules.length; // In case previous insertion fails, passed index might be wrong
-
-  if (index === undefined || index > maxIndex) {
-    // eslint-disable-next-line no-param-reassign
-    return maxIndex;
-  }
-
-  return index;
-};
-
-var createStyle = function createStyle() {
-  var el = document.createElement('style'); // Without it, IE will have a broken source order specificity if we
-  // insert rules after we insert the style tag.
-  // It seems to kick-off the source order specificity algorithm.
-
-  el.textContent = '\n';
-  return el;
-};
-
-var DomRenderer =
-/*#__PURE__*/
-function () {
-  // Will be empty if link: true option is not set, because
-  // it is only for use together with insertRule API.
-  function DomRenderer(sheet) {
-    this.getPropertyValue = getPropertyValue;
-    this.setProperty = setProperty;
-    this.removeProperty = removeProperty;
-    this.setSelector = setSelector;
-    this.hasInsertedRules = false;
-    this.cssRules = [];
-    // There is no sheet when the renderer is used from a standalone StyleRule.
-    if (sheet) sheets.add(sheet);
-    this.sheet = sheet;
-
-    var _ref = this.sheet ? this.sheet.options : {},
-        media = _ref.media,
-        meta = _ref.meta,
-        element = _ref.element;
-
-    this.element = element || createStyle();
-    this.element.setAttribute('data-jss', '');
-    if (media) this.element.setAttribute('media', media);
-    if (meta) this.element.setAttribute('data-meta', meta);
-    var nonce = getNonce();
-    if (nonce) this.element.setAttribute('nonce', nonce);
-  }
-  /**
-   * Insert style element into render tree.
-   */
-
-
-  var _proto = DomRenderer.prototype;
-
-  _proto.attach = function attach() {
-    // In the case the element node is external and it is already in the DOM.
-    if (this.element.parentNode || !this.sheet) return;
-    insertStyle(this.element, this.sheet.options); // When rules are inserted using `insertRule` API, after `sheet.detach().attach()`
-    // most browsers create a new CSSStyleSheet, except of all IEs.
-
-    var deployed = Boolean(this.sheet && this.sheet.deployed);
-
-    if (this.hasInsertedRules && deployed) {
-      this.hasInsertedRules = false;
-      this.deploy();
-    }
-  }
-  /**
-   * Remove style element from render tree.
-   */
-  ;
-
-  _proto.detach = function detach() {
-    if (!this.sheet) return;
-    var parentNode = this.element.parentNode;
-    if (parentNode) parentNode.removeChild(this.element); // In the most browsers, rules inserted using insertRule() API will be lost when style element is removed.
-    // Though IE will keep them and we need a consistent behavior.
-
-    if (this.sheet.options.link) {
-      this.cssRules = [];
-      this.element.textContent = '\n';
-    }
-  }
-  /**
-   * Inject CSS string into element.
-   */
-  ;
-
-  _proto.deploy = function deploy() {
-    var sheet = this.sheet;
-    if (!sheet) return;
-
-    if (sheet.options.link) {
-      this.insertRules(sheet.rules);
-      return;
-    }
-
-    this.element.textContent = "\n" + sheet.toString() + "\n";
-  }
-  /**
-   * Insert RuleList into an element.
-   */
-  ;
-
-  _proto.insertRules = function insertRules(rules, nativeParent) {
-    for (var i = 0; i < rules.index.length; i++) {
-      this.insertRule(rules.index[i], i, nativeParent);
-    }
-  }
-  /**
-   * Insert a rule into element.
-   */
-  ;
-
-  _proto.insertRule = function insertRule(rule, index, nativeParent) {
-    if (nativeParent === void 0) {
-      nativeParent = this.element.sheet;
-    }
-
-    if (rule.rules) {
-      var parent = rule;
-      var latestNativeParent = nativeParent;
-
-      if (rule.type === 'conditional' || rule.type === 'keyframes') {
-        var _insertionIndex = getValidRuleInsertionIndex(nativeParent, index); // We need to render the container without children first.
-
-
-        latestNativeParent = _insertRule(nativeParent, parent.toString({
-          children: false
-        }), _insertionIndex);
-
-        if (latestNativeParent === false) {
-          return false;
-        }
-
-        this.refCssRule(rule, _insertionIndex, latestNativeParent);
-      }
-
-      this.insertRules(parent.rules, latestNativeParent);
-      return latestNativeParent;
-    }
-
-    var ruleStr = rule.toString();
-    if (!ruleStr) return false;
-    var insertionIndex = getValidRuleInsertionIndex(nativeParent, index);
-
-    var nativeRule = _insertRule(nativeParent, ruleStr, insertionIndex);
-
-    if (nativeRule === false) {
-      return false;
-    }
-
-    this.hasInsertedRules = true;
-    this.refCssRule(rule, insertionIndex, nativeRule);
-    return nativeRule;
-  };
-
-  _proto.refCssRule = function refCssRule(rule, index, cssRule) {
-    rule.renderable = cssRule; // We only want to reference the top level rules, deleteRule API doesn't support removing nested rules
-    // like rules inside media queries or keyframes
-
-    if (rule.options.parent instanceof StyleSheet) {
-      this.cssRules.splice(index, 0, cssRule);
-    }
-  }
-  /**
-   * Delete a rule.
-   */
-  ;
-
-  _proto.deleteRule = function deleteRule(cssRule) {
-    var sheet = this.element.sheet;
-    var index = this.indexOf(cssRule);
-    if (index === -1) return false;
-    sheet.deleteRule(index);
-    this.cssRules.splice(index, 1);
-    return true;
-  }
-  /**
-   * Get index of a CSS Rule.
-   */
-  ;
-
-  _proto.indexOf = function indexOf(cssRule) {
-    return this.cssRules.indexOf(cssRule);
-  }
-  /**
-   * Generate a new CSS rule and replace the existing one.
-   */
-  ;
-
-  _proto.replaceRule = function replaceRule(cssRule, rule) {
-    var index = this.indexOf(cssRule);
-    if (index === -1) return false;
-    this.element.sheet.deleteRule(index);
-    this.cssRules.splice(index, 1);
-    return this.insertRule(rule, index);
-  }
-  /**
-   * Get all rules elements.
-   */
-  ;
-
-  _proto.getRules = function getRules() {
-    return this.element.sheet.cssRules;
-  };
-
-  return DomRenderer;
-}();
-
-var instanceCounter = 0;
-
-var Jss =
-/*#__PURE__*/
-function () {
-  function Jss(options) {
-    this.id = instanceCounter++;
-    this.version = "10.10.0";
-    this.plugins = new PluginsRegistry();
-    this.options = {
-      id: {
-        minify: false
-      },
-      createGenerateId: createGenerateId,
-      Renderer: is_in_browser__WEBPACK_IMPORTED_MODULE_1__["default"] ? DomRenderer : null,
-      plugins: []
-    };
-    this.generateId = createGenerateId({
-      minify: false
-    });
-
-    for (var i = 0; i < plugins.length; i++) {
-      this.plugins.use(plugins[i], {
-        queue: 'internal'
-      });
-    }
-
-    this.setup(options);
-  }
-  /**
-   * Prepares various options, applies plugins.
-   * Should not be used twice on the same instance, because there is no plugins
-   * deduplication logic.
-   */
-
-
-  var _proto = Jss.prototype;
-
-  _proto.setup = function setup(options) {
-    if (options === void 0) {
-      options = {};
-    }
-
-    if (options.createGenerateId) {
-      this.options.createGenerateId = options.createGenerateId;
-    }
-
-    if (options.id) {
-      this.options.id = (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, this.options.id, options.id);
-    }
-
-    if (options.createGenerateId || options.id) {
-      this.generateId = this.options.createGenerateId(this.options.id);
-    }
-
-    if (options.insertionPoint != null) this.options.insertionPoint = options.insertionPoint;
-
-    if ('Renderer' in options) {
-      this.options.Renderer = options.Renderer;
-    } // eslint-disable-next-line prefer-spread
-
-
-    if (options.plugins) this.use.apply(this, options.plugins);
-    return this;
-  }
-  /**
-   * Create a Style Sheet.
-   */
-  ;
-
-  _proto.createStyleSheet = function createStyleSheet(styles, options) {
-    if (options === void 0) {
-      options = {};
-    }
-
-    var _options = options,
-        index = _options.index;
-
-    if (typeof index !== 'number') {
-      index = sheets.index === 0 ? 0 : sheets.index + 1;
-    }
-
-    var sheet = new StyleSheet(styles, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      jss: this,
-      generateId: options.generateId || this.generateId,
-      insertionPoint: this.options.insertionPoint,
-      Renderer: this.options.Renderer,
-      index: index
-    }));
-    this.plugins.onProcessSheet(sheet);
-    return sheet;
-  }
-  /**
-   * Detach the Style Sheet and remove it from the registry.
-   */
-  ;
-
-  _proto.removeStyleSheet = function removeStyleSheet(sheet) {
-    sheet.detach();
-    sheets.remove(sheet);
-    return this;
-  }
-  /**
-   * Create a rule without a Style Sheet.
-   * [Deprecated] will be removed in the next major version.
-   */
-  ;
-
-  _proto.createRule = function createRule$1(name, style, options) {
-    if (style === void 0) {
-      style = {};
-    }
-
-    if (options === void 0) {
-      options = {};
-    }
-
-    // Enable rule without name for inline styles.
-    if (typeof name === 'object') {
-      return this.createRule(undefined, name, style);
-    }
-
-    var ruleOptions = (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, options, {
-      name: name,
-      jss: this,
-      Renderer: this.options.Renderer
-    });
-
-    if (!ruleOptions.generateId) ruleOptions.generateId = this.generateId;
-    if (!ruleOptions.classes) ruleOptions.classes = {};
-    if (!ruleOptions.keyframes) ruleOptions.keyframes = {};
-
-    var rule = createRule(name, style, ruleOptions);
-
-    if (rule) this.plugins.onProcessRule(rule);
-    return rule;
-  }
-  /**
-   * Register plugin. Passed function will be invoked with a rule instance.
-   */
-  ;
-
-  _proto.use = function use() {
-    var _this = this;
-
-    for (var _len = arguments.length, plugins = new Array(_len), _key = 0; _key < _len; _key++) {
-      plugins[_key] = arguments[_key];
-    }
-
-    plugins.forEach(function (plugin) {
-      _this.plugins.use(plugin);
-    });
-    return this;
-  };
-
-  return Jss;
-}();
-
-var createJss = function createJss(options) {
-  return new Jss(options);
-};
-
-/**
- * SheetsManager is like a WeakMap which is designed to count StyleSheet
- * instances and attach/detach automatically.
- * Used in react-jss.
- */
-
-var SheetsManager =
-/*#__PURE__*/
-function () {
-  function SheetsManager() {
-    this.length = 0;
-    this.sheets = new WeakMap();
-  }
-
-  var _proto = SheetsManager.prototype;
-
-  _proto.get = function get(key) {
-    var entry = this.sheets.get(key);
-    return entry && entry.sheet;
-  };
-
-  _proto.add = function add(key, sheet) {
-    if (this.sheets.has(key)) return;
-    this.length++;
-    this.sheets.set(key, {
-      sheet: sheet,
-      refs: 0
-    });
-  };
-
-  _proto.manage = function manage(key) {
-    var entry = this.sheets.get(key);
-
-    if (entry) {
-      if (entry.refs === 0) {
-        entry.sheet.attach();
-      }
-
-      entry.refs++;
-      return entry.sheet;
-    }
-
-    (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "[JSS] SheetsManager: can't find sheet to manage");
-    return undefined;
-  };
-
-  _proto.unmanage = function unmanage(key) {
-    var entry = this.sheets.get(key);
-
-    if (entry) {
-      if (entry.refs > 0) {
-        entry.refs--;
-        if (entry.refs === 0) entry.sheet.detach();
-      }
-    } else {
-      (0,tiny_warning__WEBPACK_IMPORTED_MODULE_2__["default"])(false, "SheetsManager: can't find sheet to unmanage");
-    }
-  };
-
-  (0,_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_3__["default"])(SheetsManager, [{
-    key: "size",
-    get: function get() {
-      return this.length;
-    }
-  }]);
-
-  return SheetsManager;
-}();
-
-/**
-* Export a constant indicating if this browser has CSSTOM support.
-* https://developers.google.com/web/updates/2018/03/cssom
-*/
-var hasCSSTOMSupport = typeof CSS === 'object' && CSS != null && 'number' in CSS;
-
-/**
- * Extracts a styles object with only props that contain function values.
- */
-function getDynamicStyles(styles) {
-  var to = null;
-
-  for (var key in styles) {
-    var value = styles[key];
-    var type = typeof value;
-
-    if (type === 'function') {
-      if (!to) to = {};
-      to[key] = value;
-    } else if (type === 'object' && value !== null && !Array.isArray(value)) {
-      var extracted = getDynamicStyles(value);
-
-      if (extracted) {
-        if (!to) to = {};
-        to[key] = extracted;
-      }
-    }
-  }
-
-  return to;
-}
-
-/**
- * A better abstraction over CSS.
- *
- * @copyright Oleg Isonen (Slobodskoi) / Isonen 2014-present
- * @website https://github.com/cssinjs/jss
- * @license MIT
- */
-var index = createJss();
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (index);
-
 
 
 /***/ }),
@@ -324107,41 +319542,6 @@ function invariant(condition, message) {
 
 /***/ }),
 
-/***/ "./node_modules/tiny-warning/dist/tiny-warning.esm.js":
-/*!************************************************************!*\
-  !*** ./node_modules/tiny-warning/dist/tiny-warning.esm.js ***!
-  \************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-var isProduction = "development" === 'production';
-function warning(condition, message) {
-  if (!isProduction) {
-    if (condition) {
-      return;
-    }
-
-    var text = "Warning: " + message;
-
-    if (typeof console !== 'undefined') {
-      console.warn(text);
-    }
-
-    try {
-      throw Error(text);
-    } catch (x) {}
-  }
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (warning);
-
-
-/***/ }),
-
 /***/ "./node_modules/toposort/index.js":
 /*!****************************************!*\
   !*** ./node_modules/toposort/index.js ***!
@@ -352848,8 +348248,13 @@ var UserProvider = function UserProvider(_ref) {
     setOfficerAuthorities = _useState12[1];
   var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
     _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState13, 2),
-    tokenExpiry = _useState14[0],
-    setTokenExpiry = _useState14[1]; // New state for token expiry
+    department = _useState14[0],
+    setDepartment = _useState14[1]; // New state for department
+
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+    _useState16 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState15, 2),
+    tokenExpiry = _useState16[0],
+    setTokenExpiry = _useState16[1]; // New state for token expiry
 
   (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
     if (userType) {
@@ -352907,7 +348312,9 @@ var UserProvider = function UserProvider(_ref) {
       setTokenExpiry: setTokenExpiry,
       // Expose tokenExpiry and setter
       officerAuthorities: officerAuthorities,
-      setOfficerAuthorities: setOfficerAuthorities
+      setOfficerAuthorities: setOfficerAuthorities,
+      department: department,
+      setDepartment: setDepartment // Expose department and setter
     }
   }, children);
 };
@@ -354611,10 +350018,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   validateIfscCode: () => (/* binding */ validateIfscCode),
 /* harmony export */   validationFunctionsList: () => (/* binding */ validationFunctionsList)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
-/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/esm/typeof.js");
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/esm/typeof.js");
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__);
+
 
 
 
@@ -354649,48 +350058,9 @@ function specificLength(field, value) {
   }
   return true;
 }
-function isAgeGreaterThan(field, value, formData) {
-  console.log(field, value, formData);
-  var maxLengthValue;
-
-  // If maxLength is an object with a dependentOn key, get the dependent field's value.
-  if ((0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_1__["default"])(field.maxLength) === "object" && field.maxLength.dependentOn) {
-    // Use the dependentOn field id to look up its current value in formData.
-    var dependentFieldId = field.maxLength.dependentOn; // e.g., "PensionType"
-    var dependentValue = formData[dependentFieldId];
-    if (!dependentValue) {
-      return "Dependent field (".concat(dependentFieldId, ") value is missing.");
-    }
-    maxLengthValue = field.maxLength[dependentValue];
-    if (maxLengthValue === undefined) {
-      return "No maximum length defined for option (".concat(dependentValue, ").");
-    }
-  } else {
-    maxLengthValue = field.maxLength;
-  }
-  var currentDate = new Date();
-  var compareDate = new Date(currentDate.getFullYear() - maxLengthValue, currentDate.getMonth(), currentDate.getDate());
-  var inputDate = new Date(value);
-  if (inputDate >= compareDate) {
-    return "Age should be greater than or equal to ".concat(maxLengthValue, ".");
-  }
-  return true;
-}
 function isEmailValid(field, value) {
-  if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+  if (value.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
     return "Invalid Email Address.";
-  }
-  return true;
-}
-function isDateWithinRange(field, value) {
-  var dateOfMarriage = new Date(value);
-  var currentDate = new Date();
-  var minDate = new Date(currentDate);
-  minDate.setMonth(currentDate.getMonth() + parseInt(field.minLength));
-  var maxDate = new Date(currentDate);
-  maxDate.setMonth(currentDate.getMonth() + parseInt(field.maxLength));
-  if (dateOfMarriage < minDate || dateOfMarriage > maxDate) {
-    return "The date should be between ".concat(field.minLength, " to ").concat(field.maxLength, " months from current date.");
   }
   return true;
 }
@@ -354698,9 +350068,9 @@ function duplicateAccountNumber(_x, _x2, _x3, _x4) {
   return _duplicateAccountNumber.apply(this, arguments);
 }
 function _duplicateAccountNumber() {
-  _duplicateAccountNumber = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee2(field, value, formData, referenceNumber) {
+  _duplicateAccountNumber = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2(field, value, formData, referenceNumber) {
     var bankName, ifscCode, res, data, _t3;
-    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context2) {
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
@@ -354738,52 +350108,60 @@ function validateIfscCode(_x5, _x6, _x7, _x8, _x9) {
   return _validateIfscCode.apply(this, arguments);
 }
 function _validateIfscCode() {
-  _validateIfscCode = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee3(field, value, formData, referenceNumber, setValue) {
-    var bankName, ifscCode, res, data, _t4;
-    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context3) {
+  _validateIfscCode = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee3(field, value, formData, referenceNumber, setValue) {
+    var ifscCode, res, data, brabchId, _t4;
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context3) {
       while (1) switch (_context3.prev = _context3.next) {
         case 0:
-          // Access BankName and IfscCode directly from formData
-          bankName = formData.BankName;
-          ifscCode = formData.IfscCode; // Ensure both values exist before making the API call
-          if (!(!bankName || !ifscCode)) {
+          ifscCode = formData.IfscCode; // Ensure IFSC code exists
+          if (ifscCode) {
             _context3.next = 1;
             break;
           }
-          return _context3.abrupt("return", "Bank Name or IFSC Code is missing.");
+          return _context3.abrupt("return", "IFSC Code is missing.");
         case 1:
           _context3.prev = 1;
           _context3.next = 2;
-          return fetch("/Base/ValidateIfscCode?bankName=".concat(encodeURIComponent(bankName), "&ifscCode=").concat(ifscCode));
+          return fetch("/Base/GetBankDetails?IfscCode=".concat(ifscCode));
         case 2:
           res = _context3.sent;
-          _context3.next = 3;
-          return res.json();
-        case 3:
-          data = _context3.sent;
-          if (data.status) {
-            _context3.next = 4;
+          if (res.ok) {
+            _context3.next = 3;
             break;
           }
-          return _context3.abrupt("return", "IFSC Code is incorrect or doesn't belong to the selected Bank.");
-        case 4:
-          // Update BranchName if the API returns it
-          if (data.branchName) {
-            setValue("BranchName", data.branchName, {
+          if (res.status === 404) {
+            setValue("BranchName", "", {
               shouldValidate: true
             });
+            $("#" + brabchId).removeAttr("readonly");
           }
-          return _context3.abrupt("return", true);
+          return _context3.abrupt("return", "Error: ".concat(res.status, " ").concat(res.statusText));
+        case 3:
+          _context3.next = 4;
+          return res.json();
+        case 4:
+          data = _context3.sent;
+          brabchId = "field-1740199859569"; // Check if bank details are returned
+          if (!(!data || !data.status || !data.bankDetails)) {
+            _context3.next = 5;
+            break;
+          }
+          return _context3.abrupt("return", "IFSC Code is incorrect or branch details not available.");
         case 5:
-          _context3.prev = 5;
+          // Update BranchName from API response
+          setValue("BranchName", data.bankDetails.branch, {
+            shouldValidate: true
+          });
+          return _context3.abrupt("return", true);
+        case 6:
+          _context3.prev = 6;
           _t4 = _context3["catch"](1);
           console.error("Error validating IFSC:", _t4);
-          return _context3.abrupt("return", "Failed to validate IFSC Code.");
-        case 6:
+        case 7:
         case "end":
           return _context3.stop();
       }
-    }, _callee3, null, [[1, 5]]);
+    }, _callee3, null, [[1, 6]]);
   }));
   return _validateIfscCode.apply(this, arguments);
 }
@@ -354791,9 +350169,9 @@ function validateFile(_x0, _x1) {
   return _validateFile.apply(this, arguments);
 }
 function _validateFile() {
-  _validateFile = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee4(field, value) {
+  _validateFile = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee4(field, value) {
     var formData, notRequired, res, data, _t5;
-    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context4) {
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context4) {
       while (1) switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
@@ -354861,30 +350239,105 @@ function range(field, value) {
     return "The value must be between ".concat(field.minLength, " and ").concat(field.maxLength, ".");
   }
 }
-function isDateAfterCurrentDate(field, value, formData) {
-  var inputDate = new Date(value);
-  var currentDate = new Date();
 
-  // Zero out time to compare only dates
-  inputDate.setHours(0, 0, 0, 0);
+// Helper function to parse DD/MM/YYYY and return a Date object
+function parseDDMMYYYY(value) {
+  var datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  var match = value.match(datePattern);
+  if (!match) return null;
+  var _match$map = match.map(Number),
+    _match$map2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_match$map, 4),
+    day = _match$map2[1],
+    month = _match$map2[2],
+    year = _match$map2[3];
+  var date = new Date(year, month - 1, day);
+
+  // Check for invalid dates like 31/02/2025
+  if (isNaN(date.getTime()) || date.getDate() !== day) return null;
+  date.setHours(0, 0, 0, 0); // zero out time
+  return date;
+}
+function isAgeGreaterThan(field, value, formData) {
+  var maxLengthValue;
+
+  // Determine maxLength based on dependent field if needed
+  if ((0,_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__["default"])(field.maxLength) === "object" && field.maxLength.dependentOn) {
+    var dependentFieldId = field.maxLength.dependentOn;
+    var dependentValue = formData[dependentFieldId];
+    if (!dependentValue) {
+      return "Dependent field (".concat(dependentFieldId, ") value is missing.");
+    }
+    maxLengthValue = field.maxLength[dependentValue];
+    if (maxLengthValue === undefined) {
+      return "No maximum length defined for option (".concat(dependentValue, ").");
+    }
+  } else {
+    maxLengthValue = field.maxLength;
+  }
+
+  // Parse the input date
+  var inputDate = parseDDMMYYYY(value);
+  if (!inputDate) {
+    return "".concat(field.label || "Date", " must be in DD/MM/YYYY format and valid.");
+  }
+  var currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+
+  // Compute the date that corresponds to the minimum age
+  var compareDate = new Date(currentDate.getFullYear() - maxLengthValue, currentDate.getMonth(), currentDate.getDate());
+  compareDate.setHours(0, 0, 0, 0);
+  if (inputDate >= compareDate) {
+    return "Age should be greater than or equal to ".concat(maxLengthValue, ".");
+  }
+  return true;
+}
+
+// 1. Check if date is within a range of months from current date
+function isDateWithinRange(field, value) {
+  var dateOfMarriage = parseDDMMYYYY(value);
+  if (!dateOfMarriage) {
+    return "".concat(field.label || "Date", " must be in DD/MM/YYYY format and valid.");
+  }
+  var currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+  var minDate = new Date(currentDate);
+  minDate.setMonth(currentDate.getMonth() + parseInt(field.minLength));
+  var maxDate = new Date(currentDate);
+  maxDate.setMonth(currentDate.getMonth() + parseInt(field.maxLength));
+  if (dateOfMarriage < minDate || dateOfMarriage > maxDate) {
+    return "The date should be between ".concat(field.minLength, " to ").concat(field.maxLength, " months from current date.");
+  }
+  return true;
+}
+function isDateAfterCurrentDate(field, value, formData) {
+  var inputDate = parseDDMMYYYY(value);
+  if (!inputDate) {
+    return "".concat(field.label || "Date", " must be in DD/MM/YYYY format and valid.");
+  }
+  var currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
   if (inputDate <= currentDate) {
     return "".concat(field.label || "Date", " must be after the current date.");
   }
-  if (field.name == "IfTemporaryDisabilityUdidCardValidUpto") {
-    var issueDate = new Date(formData["UdidCardIssueDate"]);
+  if (field.name === "IfTemporaryDisabilityUdidCardValidUpto") {
+    var issueDate = parseDDMMYYYY(formData["UdidCardIssueDate"]);
+    if (!issueDate) {
+      return "UDID Card Issue Date must be in DD/MM/YYYY format and valid.";
+    }
     if (inputDate <= issueDate) {
       return "".concat(field.label || "Date", " must be after the UDID Card Issue date.");
     }
   }
   return true;
 }
-function isDateBeforeCurrentDate(field, value) {
-  var inputDate = new Date(value);
-  var currentDate = new Date();
 
-  // Zero out time to compare only dates
-  inputDate.setHours(0, 0, 0, 0);
+// 3. Check if date is before the current date
+function isDateBeforeCurrentDate(field, value) {
+  var inputDate = parseDDMMYYYY(value);
+  if (!inputDate) {
+    return "".concat(field.label || "Date", " must be in DD/MM/YYYY format and valid.");
+  }
+  var currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
   if (inputDate >= currentDate) {
     return "".concat(field.label || "Date", " must be before the current date.");
@@ -354895,9 +350348,9 @@ function tehsilForDistrict(_x10, _x11) {
   return _tehsilForDistrict.apply(this, arguments);
 }
 function _tehsilForDistrict() {
-  _tehsilForDistrict = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee5(field, districtValue) {
+  _tehsilForDistrict = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee5(field, districtValue) {
     var response, data, _t6;
-    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context5) {
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context5) {
       while (1) switch (_context5.prev = _context5.next) {
         case 0:
           if (districtValue) {
@@ -354941,9 +350394,9 @@ function _tehsilForDistrict() {
   return _tehsilForDistrict.apply(this, arguments);
 }
 var runValidations = /*#__PURE__*/function () {
-  var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee(field, value, formData, referenceNumber, setValue) {
+  var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee(field, value, formData, referenceNumber, setValue) {
     var _iterator, _step, validationFn, fun, error, _t, _t2;
-    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context) {
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           if (Array.isArray(field.validationFunctions)) {
@@ -356277,7 +351730,9 @@ var MessageModal = function MessageModal(_ref) {
     title = _ref.title,
     message = _ref.message,
     _ref$type = _ref.type,
-    type = _ref$type === void 0 ? "info" : _ref$type;
+    type = _ref$type === void 0 ? "info" : _ref$type,
+    primaryButton = _ref.primaryButton,
+    secondaryButton = _ref.secondaryButton;
   var getColor = function getColor() {
     switch (type) {
       case "error":
@@ -356321,11 +351776,35 @@ var MessageModal = function MessageModal(_ref) {
     sx: {
       mb: 3
     }
-  }, message), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_3__["default"], {
+  }, message), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    sx: {
+      display: "flex",
+      gap: 2,
+      justifyContent: "flex-end"
+    }
+  }, secondaryButton && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    variant: "outlined",
+    onClick: secondaryButton.action,
+    sx: {
+      borderColor: "#6B7280",
+      color: "#6B7280",
+      textTransform: "none",
+      "&:hover": {
+        borderColor: "#4B5563",
+        color: "#4B5563"
+      }
+    }
+  }, secondaryButton.text), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_3__["default"], {
     variant: "contained",
-    onClick: onClose,
-    fullWidth: true
-  }, "Close")));
+    onClick: primaryButton ? primaryButton.action : onClose,
+    sx: {
+      backgroundColor: getColor(),
+      textTransform: "none",
+      "&:hover": {
+        backgroundColor: getColor()
+      }
+    }
+  }, primaryButton ? primaryButton.text : "Close"))));
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (MessageModal);
 
@@ -356372,6 +351851,7 @@ var MyNavbar = function MyNavbar() {
     _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState5, 2),
     isSmallScreen = _useState6[0],
     setIsSmallScreen = _useState6[1];
+  var timeoutRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
   var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_6__.useNavigate)();
   var location = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_6__.useLocation)();
   var _useContext = (0,react__WEBPACK_IMPORTED_MODULE_1__.useContext)(_UserContext__WEBPACK_IMPORTED_MODULE_8__.UserContext),
@@ -356398,6 +351878,15 @@ var MyNavbar = function MyNavbar() {
       return window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  // Cleanup timeout on unmount
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
+    return function () {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
   var handleLogout = function handleLogout() {
     setToken(null);
     setUserType(null);
@@ -356413,10 +351902,22 @@ var MyNavbar = function MyNavbar() {
     setExpanded(false);
   };
   var handleMouseEnter = function handleMouseEnter(itemName) {
-    if (!isSmallScreen) setHoveredItem(itemName); // Only for large screens
+    if (!isSmallScreen) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      setHoveredItem(itemName);
+    }
   };
   var handleMouseLeave = function handleMouseLeave() {
-    if (!isSmallScreen) setHoveredItem(null); // Only for large screens
+    if (!isSmallScreen) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(function () {
+        setHoveredItem(null);
+      }, 200);
+    }
   };
   var getNavItemStyle = function getNavItemStyle(itemName) {
     var path = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
@@ -356533,6 +352034,11 @@ var MyNavbar = function MyNavbar() {
     }, "Application Status"),
     id: "application-status",
     show: isSmallScreen ? undefined : hoveredItem === "application-status"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("application-status");
+    },
+    onMouseLeave: handleMouseLeave
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"].Item, {
     onClick: function onClick() {
       return handleNavigate("/user/initiated");
@@ -356541,7 +352047,7 @@ var MyNavbar = function MyNavbar() {
     onClick: function onClick() {
       return handleNavigate("/user/incomplete");
     }
-  }, "Incomplete Applications")))), userType === "Officer" && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement((react__WEBPACK_IMPORTED_MODULE_1___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
+  }, "Incomplete Applications"))))), userType === "Officer" && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement((react__WEBPACK_IMPORTED_MODULE_1___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
     as: react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Link,
     to: "/officer/home",
     style: getNavItemStyle("officer-home", "/officer/home"),
@@ -356574,11 +352080,16 @@ var MyNavbar = function MyNavbar() {
     }, "DSC Management"),
     id: "dsc-management",
     show: isSmallScreen ? undefined : hoveredItem === "dsc-management"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("dsc-management");
+    },
+    onMouseLeave: handleMouseLeave
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"].Item, {
     onClick: function onClick() {
       return handleNavigate("/officer/registerdsc");
     }
-  }, "Register DSC"))), officerAuthorities && officerAuthorities.canManageBankFiles && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+  }, "Register DSC")))), officerAuthorities && officerAuthorities.canManageBankFiles && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
     onMouseEnter: function onMouseEnter() {
       return handleMouseEnter("bankfiles-management");
     },
@@ -356589,6 +352100,11 @@ var MyNavbar = function MyNavbar() {
     }, "Bank Files"),
     id: "bankfiles-management",
     show: isSmallScreen ? undefined : hoveredItem === "bankfiles-management"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("bankfiles-management");
+    },
+    onMouseLeave: handleMouseLeave
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"].Item, {
     onClick: function onClick() {
       return handleNavigate("/officer/bankFile");
@@ -356597,9 +352113,15 @@ var MyNavbar = function MyNavbar() {
     onClick: function onClick() {
       return handleNavigate("/officer/responseFile");
     }
-  }, "Update Bank Response File"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
+  }, "Update Bank Response File")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
     title: "Applications Updations",
     id: "applications-dropdown",
+    show: isSmallScreen ? undefined : hoveredItem === "applications",
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("applications");
+    },
+    onMouseLeave: handleMouseLeave
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
     onMouseEnter: function onMouseEnter() {
       return handleMouseEnter("applications");
     },
@@ -356625,11 +352147,17 @@ var MyNavbar = function MyNavbar() {
     onClick: function onClick() {
       return setExpanded(false);
     }
-  }, "Validate Aadhaar")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
+  }, "Validate Aadhaar"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
     title: "View Applications",
     id: "view-applications-dropdown",
+    show: isSmallScreen ? undefined : hoveredItem === "view-applications",
     onMouseEnter: function onMouseEnter() {
-      return handleMouseEnter("applications");
+      return handleMouseEnter("view-applications");
+    },
+    onMouseLeave: handleMouseLeave
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("view-applications");
     },
     onMouseLeave: handleMouseLeave
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"].Item, {
@@ -356646,7 +352174,7 @@ var MyNavbar = function MyNavbar() {
     onClick: function onClick() {
       return setExpanded(false);
     }
-  }, "Search Application"))), userType === "Viewer" && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement((react__WEBPACK_IMPORTED_MODULE_1___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
+  }, "Search Application")))), userType === "Viewer" && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement((react__WEBPACK_IMPORTED_MODULE_1___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
     as: react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Link,
     to: "/viewer/home",
     style: getNavItemStyle("viewer-home", "/viewer/home"),
@@ -356690,18 +352218,31 @@ var MyNavbar = function MyNavbar() {
       return handleMouseEnter("admin-reports");
     },
     onMouseLeave: handleMouseLeave
-  }, "Reports"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
-    as: react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Link,
-    to: "/admin/addadmin",
-    style: getNavItemStyle("admin-addadmin", "/admin/addadmin"),
-    onClick: function onClick() {
-      return setExpanded(false);
-    },
+  }, "Reports"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
     onMouseEnter: function onMouseEnter() {
-      return handleMouseEnter("admin-addadmin");
+      return handleMouseEnter("admin-add");
     },
     onMouseLeave: handleMouseLeave
-  }, "Add Admin"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    title: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
+      style: getNavItemStyle("add-admin")
+    }, "Add"),
+    id: "admin-add",
+    show: isSmallScreen ? undefined : hoveredItem === "admin-add"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("admin-add");
+    },
+    onMouseLeave: handleMouseLeave
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"].Item, {
+    onClick: function onClick() {
+      return handleNavigate("/admin/addadmin");
+    }
+  }, "Admin"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"].Item, {
+    onClick: function onClick() {
+      return handleNavigate("/admin/addDesignations");
+    }
+  }, "Designation")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"].Link, {
     as: react_router_dom__WEBPACK_IMPORTED_MODULE_7__.Link,
     to: "/admin/validateofficer",
     style: getNavItemStyle("admin-validateofficer", "/admin/validateofficer"),
@@ -356745,6 +352286,11 @@ var MyNavbar = function MyNavbar() {
     }, "Create/Update"),
     id: "designer-create",
     show: isSmallScreen ? undefined : hoveredItem === "designer-create"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("designer-create");
+    },
+    onMouseLeave: handleMouseLeave
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"].Item, {
     onClick: function onClick() {
       return handleNavigate("/designer/createservice");
@@ -356773,7 +352319,7 @@ var MyNavbar = function MyNavbar() {
     onClick: function onClick() {
       return handleNavigate("/designer/createreports");
     }
-  }, "Create Reports"))))), userType && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"], {
+  }, "Create Reports")))))), userType && verified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_3__["default"], {
     className: "ms-auto d-flex align-items-center gap-2"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
     style: {
@@ -356795,13 +352341,18 @@ var MyNavbar = function MyNavbar() {
     }),
     id: "profile-dropdown",
     show: isSmallScreen ? undefined : hoveredItem === "profile"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    onMouseEnter: function onMouseEnter() {
+      return handleMouseEnter("profile");
+    },
+    onMouseLeave: handleMouseLeave
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"].Item, {
     onClick: function onClick() {
       return handleNavigate("/settings");
     }
   }, "Settings"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"].Item, {
     onClick: handleLogout
-  }, "Logout")))))));
+  }, "Logout"))))))));
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (MyNavbar);
 
@@ -356841,14 +352392,12 @@ function OtpModal(_ref) {
     setOtp = _useState2[1];
   var handleSubmit = function handleSubmit(e) {
     e.preventDefault();
-    console.log("OtpModal submitting OTP:", otp);
     onSubmit(otp);
     setOtp(""); // Reset OTP input after submission
   };
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
     open: open,
     onClose: function onClose() {
-      console.log("OtpModal onClose triggered");
       _onClose();
     },
     "aria-labelledby": "otp-modal-title",
@@ -357046,6 +352595,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _screens_officer_AadhaarValidations__WEBPACK_IMPORTED_MODULE_50__ = __webpack_require__(/*! ../screens/officer/AadhaarValidations */ "./src/screens/officer/AadhaarValidations.jsx");
 /* harmony import */ var _screens_officer_SearchApplication__WEBPACK_IMPORTED_MODULE_51__ = __webpack_require__(/*! ../screens/officer/SearchApplication */ "./src/screens/officer/SearchApplication.jsx");
 /* harmony import */ var _screens_designer_CreateReports__WEBPACK_IMPORTED_MODULE_52__ = __webpack_require__(/*! ../screens/designer/CreateReports */ "./src/screens/designer/CreateReports.jsx");
+/* harmony import */ var _screens_admin_AddDesignations__WEBPACK_IMPORTED_MODULE_53__ = __webpack_require__(/*! ../screens/admin/AddDesignations */ "./src/screens/admin/AddDesignations.jsx");
 // RoutesComponent.jsx
 
 
@@ -357061,6 +352611,7 @@ __webpack_require__.r(__webpack_exports__);
 
  // Import the ProtectedRoute component
  // Create this component
+
 
 
 
@@ -357231,6 +352782,9 @@ var RoutesComponent = function RoutesComponent() {
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "addadmin",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_screens_admin_AddAdmin__WEBPACK_IMPORTED_MODULE_38__["default"], null)
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
+    path: "addDesignations",
+    element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_screens_admin_AddDesignations__WEBPACK_IMPORTED_MODULE_53__["default"], null)
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "validateofficer",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_screens_admin_ValidateOfficer__WEBPACK_IMPORTED_MODULE_39__["default"], null)
@@ -358660,48 +354214,49 @@ var TokenTimer = function TokenTimer() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(null),
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState, 2),
     timeLeft = _useState2[0],
-    setTimeLeft = _useState2[1];
+    setTimeLeft = _useState2[1]; // Format: "MM:SS" or null
   var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
     _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState3, 2),
     isPopupOpen = _useState4[0],
     setIsPopupOpen = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(Date.now()),
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(null),
     _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState5, 2),
-    lastActivity = _useState6[0],
-    setLastActivity = _useState6[1];
-  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(Date.now()),
+    countdownStartTime = _useState6[0],
+    setCountdownStartTime = _useState6[1]; // Timestamp when 30-min countdown begins
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
     _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState7, 2),
-    sessionStart = _useState8[0],
-    setSessionStart = _useState8[1];
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(0),
-    _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState9, 2),
-    lastRefresh = _useState0[0],
-    setLastRefresh = _useState0[1];
-  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
-    _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState1, 2),
-    isRefreshing = _useState10[0],
-    setIsRefreshing = _useState10[1];
+    isRefreshing = _useState8[0],
+    setIsRefreshing = _useState8[1];
+  var lastActivityRef = (0,react__WEBPACK_IMPORTED_MODULE_3__.useRef)(Date.now()); // Use ref to avoid re-renders on updates
+  var intervalRef = (0,react__WEBPACK_IMPORTED_MODULE_3__.useRef)(null); // Ref for countdown interval
+
   var inactivityThreshold = 5 * 60 * 1000; // 5 minutes
   var sessionDuration = 30 * 60 * 1000; // 30 minutes
   var popupThreshold = 2 * 60 * 1000; // 2 minutes
-  var tokenRefreshThreshold = 5 * 60 * 1000; // 5 minutes
-  var minRefreshInterval = 2 * 60 * 1000; // 2 minutes
 
-  // Handle user activity to reset session
+  // Initialize lastActivity from localStorage for persistence across refreshes
+  (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
+    var savedActivity = localStorage.getItem("lastActivity");
+    if (savedActivity) {
+      lastActivityRef.current = parseInt(savedActivity, 10);
+    }
+    setTokenExpiry(Date.now() + sessionDuration); // Initial expiry
+  }, [setTokenExpiry]);
+
+  // Debounced activity handler: Updates lastActivity and handles resumption
   var handleActivity = (0,react__WEBPACK_IMPORTED_MODULE_3__.useCallback)((0,lodash__WEBPACK_IMPORTED_MODULE_10__.debounce)(function () {
     var now = Date.now();
-    var timeSinceLastActivity = now - lastActivity;
-    var timeRemaining = sessionStart + sessionDuration - now;
-    if (timeSinceLastActivity >= inactivityThreshold && timeRemaining > 0) {
-      setLastActivity(now);
-      setSessionStart(now);
-      setTokenExpiry(now + sessionDuration);
-      setTimeLeft(null);
-      setIsPopupOpen(false);
-    }
-  }, 500), [isPopupOpen, lastActivity, sessionStart]);
+    lastActivityRef.current = now;
+    localStorage.setItem("lastActivity", now.toString());
 
-  // Attach activity listeners
+    // If countdown is active, stop it and send keep-alive request
+    if (countdownStartTime) {
+      stopCountdown();
+      keepAlive(); // Send request to remove backend expiration
+    }
+  }, 500), [countdownStartTime]);
+
+  // Attach/detach activity listeners
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
     var events = ["mousemove", "click", "keypress", "scroll"];
     events.forEach(function (event) {
@@ -358715,54 +354270,84 @@ var TokenTimer = function TokenTimer() {
     };
   }, [handleActivity]);
 
-  // Timer logic
+  // Check for 5-min inactivity and start countdown (runs every 10 seconds to minimize checks)
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
-    var updateTimer = function updateTimer() {
+    var checkInactivity = function checkInactivity() {
       var now = Date.now();
-      var timeSinceLastActivity = now - lastActivity;
-      var timeRemaining = sessionStart + sessionDuration - now;
+      var timeIdle = now - lastActivityRef.current;
+      if (timeIdle >= inactivityThreshold && !countdownStartTime) {
+        // Start 30-min countdown from NOW (not from last activity)
+        setCountdownStartTime(now);
+        refreshToken(); // Refresh backend token
+      }
+    };
+    checkInactivity();
+    var checkInterval = setInterval(checkInactivity, 10000); // Check every 10 seconds (low frequency)
+    return function () {
+      return clearInterval(checkInterval);
+    };
+  }, [countdownStartTime]); // Only re-run if countdown starts/stops
+
+  // Countdown logic: Once started, update timer every 1 second
+  (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
+    if (!countdownStartTime) return;
+    var updateCountdown = function updateCountdown() {
+      var now = Date.now();
+      var timeElapsed = now - countdownStartTime;
+      var timeRemaining = sessionDuration - timeElapsed;
       if (timeRemaining <= 0) {
-        setTimeLeft("Expired");
-        setIsPopupOpen(false);
+        stopCountdown();
         handleLogout();
         return;
       }
-      if (timeSinceLastActivity >= inactivityThreshold) {
-        var minutes = Math.floor(timeRemaining / 1000 / 60);
-        var seconds = Math.floor(timeRemaining / 1000 % 60);
-        setTimeLeft("".concat(minutes.toString().padStart(2, "0"), ":").concat(seconds.toString().padStart(2, "0")));
-        if (timeRemaining <= popupThreshold) {
-          setIsPopupOpen(true);
-        }
-      } else {
-        setTimeLeft(null);
-        setIsPopupOpen(false);
+
+      // Format and show timer
+      var minutes = Math.floor(timeRemaining / 60000);
+      var seconds = Math.floor(timeRemaining % 60000 / 1000);
+      setTimeLeft("".concat(minutes.toString().padStart(2, "0"), ":").concat(seconds.toString().padStart(2, "0")));
+
+      // Show popup in last 2 min
+      if (timeRemaining <= popupThreshold) {
+        setIsPopupOpen(true);
       }
     };
-    updateTimer();
-    var interval = setInterval(updateTimer, 1000);
-    return function () {
-      return clearInterval(interval);
-    };
-  }, [sessionStart, lastActivity]);
+    updateCountdown();
+    intervalRef.current = setInterval(updateCountdown, 1000); // Update every second for countdown
 
-  // Refresh token
+    return function () {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [countdownStartTime]);
+
+  // Stop countdown helper
+  var stopCountdown = (0,react__WEBPACK_IMPORTED_MODULE_3__.useCallback)(function () {
+    setCountdownStartTime(null);
+    setTimeLeft(null);
+    setIsPopupOpen(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // Refresh token (called only on 5-min idle detection)
   var refreshToken = /*#__PURE__*/function () {
     var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee() {
       var response, _response$data, token, userType, profile, username, designation, _t;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context) {
         while (1) switch (_context.prev = _context.next) {
           case 0:
-            if (!(isRefreshing || Date.now() - lastRefresh < minRefreshInterval)) {
+            if (!isRefreshing) {
               _context.next = 1;
               break;
             }
-            console.log("Token refresh skipped: in progress or within cooldown");
-            return _context.abrupt("return", true);
+            return _context.abrupt("return");
           case 1:
             setIsRefreshing(true);
             _context.prev = 2;
-            console.log("Attempting token refresh at", new Date().toISOString());
+            console.log("Refreshing token due to 5-min inactivity");
             _context.next = 3;
             return _axiosConfig__WEBPACK_IMPORTED_MODULE_9__["default"].get("/Home/RefreshToken");
           case 3:
@@ -358777,8 +354362,9 @@ var TokenTimer = function TokenTimer() {
             localStorage.setItem("profile", profile);
             localStorage.setItem("username", username);
             localStorage.setItem("designation", designation);
-            setLastRefresh(Date.now());
-            return _context.abrupt("return", true);
+            setTokenExpiry(Date.now() + sessionDuration);
+            _context.next = 5;
+            break;
           case 4:
             throw new Error(response.data.message);
           case 5:
@@ -358789,7 +354375,6 @@ var TokenTimer = function TokenTimer() {
             _t = _context["catch"](2);
             console.error("Token refresh failed:", _t);
             handleLogout();
-            return _context.abrupt("return", false);
           case 7:
             _context.prev = 7;
             setIsRefreshing(false);
@@ -358805,76 +354390,92 @@ var TokenTimer = function TokenTimer() {
     };
   }();
 
-  // Continue session
-  var handleContinue = /*#__PURE__*/function () {
+  // Keep alive (remove expiration - called on activity resumption)
+  var keepAlive = /*#__PURE__*/function () {
     var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee2() {
-      var now;
+      var response, _response$data2, token, userType, profile, username, designation, _t2;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            now = Date.now();
-            _context2.next = 1;
-            return refreshToken();
-          case 1:
-            if (!_context2.sent) {
-              _context2.next = 2;
+            if (!isRefreshing) {
+              _context2.next = 1;
               break;
             }
-            setLastActivity(now);
-            setSessionStart(now);
-            setTokenExpiry(now + sessionDuration);
-            setIsPopupOpen(false);
-            setTimeLeft(null);
-          case 2:
+            return _context2.abrupt("return");
+          case 1:
+            setIsRefreshing(true);
+            _context2.prev = 2;
+            console.log("Sending keep-alive to remove backend expiration");
+            _context2.next = 3;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_9__["default"].get("/Home/KeepAlive");
+          case 3:
+            response = _context2.sent;
+            if (!response.data.status) {
+              _context2.next = 4;
+              break;
+            }
+            _response$data2 = response.data, token = _response$data2.token, userType = _response$data2.userType, profile = _response$data2.profile, username = _response$data2.username, designation = _response$data2.designation;
+            localStorage.setItem("authToken", token);
+            localStorage.setItem("userType", userType);
+            localStorage.setItem("profile", profile);
+            localStorage.setItem("username", username);
+            localStorage.setItem("designation", designation);
+            setTokenExpiry(Date.now() + 24 * 60 * 60 * 1000); // e.g., 24 hours
+            _context2.next = 5;
+            break;
+          case 4:
+            throw new Error(response.data.message);
+          case 5:
+            _context2.next = 7;
+            break;
+          case 6:
+            _context2.prev = 6;
+            _t2 = _context2["catch"](2);
+            console.error("Keep-alive failed:", _t2);
+            // Optionally fallback to refreshToken() or ignore if non-critical
+          case 7:
+            _context2.prev = 7;
+            setIsRefreshing(false);
+            return _context2.finish(7);
+          case 8:
           case "end":
             return _context2.stop();
         }
-      }, _callee2);
+      }, _callee2, null, [[2, 6, 7, 8]]);
     }));
-    return function handleContinue() {
+    return function keepAlive() {
       return _ref2.apply(this, arguments);
     };
   }();
 
-  // Handle logout
+  // Continue session (from popup - refreshes and stops countdown)
+  var handleContinue = /*#__PURE__*/function () {
+    var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee3() {
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.next = 1;
+            return refreshToken();
+          case 1:
+            // Extend the current countdown session
+            stopCountdown();
+          case 2:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3);
+    }));
+    return function handleContinue() {
+      return _ref3.apply(this, arguments);
+    };
+  }();
+
+  // Logout
   var handleLogout = function handleLogout() {
-    setTimeLeft("Expired");
-    setIsPopupOpen(false);
+    stopCountdown();
     localStorage.clear();
     window.location.href = "/login";
   };
-
-  // Periodically check token expiry
-  (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
-    var checkTokenExpiry = /*#__PURE__*/function () {
-      var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee3() {
-        var now, timeRemaining;
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context3) {
-          while (1) switch (_context3.prev = _context3.next) {
-            case 0:
-              now = Date.now();
-              timeRemaining = sessionStart + sessionDuration - now;
-              if (!(timeRemaining <= tokenRefreshThreshold && timeRemaining > 0 && now - lastRefresh >= minRefreshInterval)) {
-                _context3.next = 1;
-                break;
-              }
-              _context3.next = 1;
-              return refreshToken();
-            case 1:
-            case "end":
-              return _context3.stop();
-          }
-        }, _callee3);
-      }));
-      return function checkTokenExpiry() {
-        return _ref3.apply(this, arguments);
-      };
-    }();
-    var interval = setInterval(checkTokenExpiry, 2 * 60 * 1000); // Check every 2 minutes
-    return function () {
-      return clearInterval(interval);
-    };
-  }, [sessionStart, lastRefresh]);
   if (!timeLeft) return null;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement((react__WEBPACK_IMPORTED_MODULE_3___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
     sx: {
@@ -358884,7 +354485,8 @@ var TokenTimer = function TokenTimer() {
       zIndex: 1300,
       px: 3,
       py: 1.5,
-      bgcolor: timeLeft === "Expired" ? "error.main" : "#ff9800",
+      bgcolor: timeLeft === "00:00" ? "error.main" : "#ff9800",
+      // Note: timeLeft won't be "00:00" exactly due to async
       color: "#fff",
       borderRadius: "8px",
       boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.3)",
@@ -358894,7 +354496,7 @@ var TokenTimer = function TokenTimer() {
       minWidth: "220px",
       transition: "all 0.3s ease"
     }
-  }, timeLeft === "Expired" ? "Session Expired" : "Session expires in: ".concat(timeLeft)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+  }, "Session expires in: ", timeLeft), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     open: isPopupOpen,
     onClose: function onClose() {}
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
@@ -358935,7 +354537,8 @@ var TokenTimer = function TokenTimer() {
         bgcolor: "primary.dark"
       }
     },
-    onClick: handleContinue
+    onClick: handleContinue,
+    disabled: isRefreshing
   }, "Continue"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
     variant: "outlined",
     sx: {
@@ -362267,7 +357870,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormGroup/FormGroup.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControlLabel/FormControlLabel.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormHelperText/FormHelperText.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Autocomplete/Autocomplete.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/IconButton/IconButton.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Grid2/Grid2.js");
@@ -362562,10 +358165,18 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
     _useState22 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_useState21, 2),
     otpModal = _useState22[0],
     setOtpModal = _useState22[1];
-  var _useState23 = (0,react__WEBPACK_IMPORTED_MODULE_7__.useState)([]),
+  var _useState23 = (0,react__WEBPACK_IMPORTED_MODULE_7__.useState)(false),
     _useState24 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_useState23, 2),
-    DependableFields = _useState24[0],
-    setDependableFields = _useState24[1];
+    emailAlertModalOpen = _useState24[0],
+    setEmailAlertModalOpen = _useState24[1];
+  var _useState25 = (0,react__WEBPACK_IMPORTED_MODULE_7__.useState)(""),
+    _useState26 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_useState25, 2),
+    ifscPrefix = _useState26[0],
+    setIfscPrefix = _useState26[1];
+  var _useState27 = (0,react__WEBPACK_IMPORTED_MODULE_7__.useState)([]),
+    _useState28 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_useState27, 2),
+    DependableFields = _useState28[0],
+    setDependableFields = _useState28[1];
   var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_26__.useNavigate)();
   var location = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_26__.useLocation)();
   var hasRunRef = (0,react__WEBPACK_IMPORTED_MODULE_7__.useRef)(false);
@@ -363688,7 +359299,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
             banks = response.data.data.map(function (bank) {
               return {
                 value: bank.id.toString(),
-                label: bank.name
+                label: bank.bankName
               };
             });
             return _context0.abrupt("return", [{
@@ -363719,163 +359330,37 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
       return _ref10.apply(this, arguments);
     };
   }();
-
-  // const handleBankChange = async (sectionIndex, field, value) => {
-  //   try {
-  //     const pleaseSelectOption = [
-  //       { label: "Please Select", value: "Please Select" },
-  //     ];
-
-  //     if (value === "Please Select") {
-  //       const childField =
-  //         field.name === "BankName" ? "BranchName" : "IfscCode";
-  //       const nextChild = field.name === "BankName" ? "IfscCode" : null;
-
-  //       // Only reset child fields, don't force set them
-  //       const currentChildValue = getValues(childField);
-  //       if (currentChildValue && currentChildValue !== "Please Select") {
-  //         setValue(childField, "Please Select", { shouldValidate: true });
-  //       }
-
-  //       setFormSections((prevSections) => {
-  //         const newSections = [...prevSections];
-  //         newSections[sectionIndex].fields = newSections[
-  //           sectionIndex
-  //         ].fields.map((f) =>
-  //           f.name === childField ? { ...f, options: pleaseSelectOption } : f,
-  //         );
-  //         return newSections;
-  //       });
-
-  //       if (nextChild) {
-  //         const currentNextValue = getValues(nextChild);
-  //         if (currentNextValue && currentNextValue !== "Please Select") {
-  //           setValue(nextChild, "Please Select", { shouldValidate: true });
-  //         }
-
-  //         setFormSections((prevSections) => {
-  //           const newSections = [...prevSections];
-  //           newSections[sectionIndex].fields = newSections[
-  //             sectionIndex
-  //           ].fields.map((f) =>
-  //             f.name === nextChild ? { ...f, options: pleaseSelectOption } : f,
-  //           );
-  //           return newSections;
-  //         });
-  //       }
-  //       return;
-  //     }
-
-  //     const fieldNames = [
-  //       {
-  //         name: "BankName",
-  //         childname: "BranchName",
-  //         respectiveTable: "Branches",
-  //       },
-  //       {
-  //         name: "BranchName",
-  //         childname: "IfscCode",
-  //         respectiveTable: "IfscCodes",
-  //       },
-  //     ];
-
-  //     const match = fieldNames.find((f) => f.name === field.name);
-  //     if (!match) {
-  //       console.warn(`Field "${field.name}" not found in bank fieldNames.`);
-  //       return;
-  //     }
-
-  //     const childFieldName = match.childname;
-  //     let endpoint;
-  //     if (field.name === "BankName") {
-  //       endpoint = `/Base/GetBranches?bankId=${value}`;
-  //     } else if (field.name === "BranchName") {
-  //       endpoint = `/Base/GetIfscCodes?branchId=${value}`;
-  //     }
-
-  //     const response = await axiosInstance.get(endpoint);
-  //     const data = response.data?.data || [];
-
-  //     // Deduplicate options
-  //     const uniqueOptions = [];
-  //     const seenValues = new Set();
-  //     data.forEach((item) => {
-  //       const optionValue = item.id ?? item.value;
-  //       if (!seenValues.has(optionValue)) {
-  //         seenValues.add(optionValue);
-  //         uniqueOptions.push({
-  //           value: optionValue,
-  //           label: item.name ?? item.label,
-  //         });
-  //       }
-  //     });
-
-  //     const newOptions = [
-  //       { label: "Please Select", value: "Please Select" },
-  //       ...uniqueOptions,
-  //     ];
-
-  //     // Update child field options
-  //     setFormSections((prevSections) => {
-  //       const newSections = [...prevSections];
-  //       const section = newSections[sectionIndex];
-
-  //       section.fields = section.fields.map((f) =>
-  //         f.name === childFieldName ? { ...f, options: newOptions } : f,
-  //       );
-
-  //       return newSections;
-  //     });
-
-  //     // CRITICAL: Only reset if the current value is NOT in the new options
-  //     const currentValue = getValues(childFieldName);
-  //     const isValueValid = newOptions.some(
-  //       (option) => option.value.toString() === currentValue?.toString(),
-  //     );
-
-  //     // Only reset if current value is invalid (not in new options)
-  //     if (currentValue && !isValueValid && currentValue !== "Please Select") {
-  //       setValue(childFieldName, "Please Select", { shouldValidate: true });
-  //     }
-
-  //     // Reset IfscCode when BankName changes (but only if it's not valid)
-  //     if (field.name === "BankName") {
-  //       const currentIfscValue = getValues("IfscCode");
-  //       // Always reset IFSC when bank changes since it depends on branch
-  //       setValue("IfscCode", "Please Select", { shouldValidate: true });
-  //       setFormSections((prevSections) => {
-  //         const newSections = [...prevSections];
-  //         newSections[sectionIndex].fields = newSections[
-  //           sectionIndex
-  //         ].fields.map((f) =>
-  //           f.name === "IfscCode" ? { ...f, options: pleaseSelectOption } : f,
-  //         );
-  //         return newSections;
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error(`Error fetching options for ${field.name}:`, error);
-  //     toast.error(
-  //       `Failed to load options for ${field.label}. Please try again.`,
-  //     );
-
-  //     const pleaseSelectOption = [
-  //       { label: "Please Select", value: "Please Select" },
-  //     ];
-  //     const childField = field.name === "BankName" ? "BranchName" : "IfscCode";
-
-  //     setValue(childField, "Please Select", { shouldValidate: true });
-  //     setFormSections((prevSections) => {
-  //       const newSections = [...prevSections];
-  //       newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(
-  //         (f) =>
-  //           f.name === childField ? { ...f, options: pleaseSelectOption } : f,
-  //       );
-  //       return newSections;
-  //     });
-  //   }
-  // };
-
+  var handleBankChange = /*#__PURE__*/function () {
+    var _ref11 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee9(value) {
+      var _response$data2, response, bankCode, _t8;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context1) {
+        while (1) switch (_context1.prev = _context1.next) {
+          case 0:
+            _context1.prev = 0;
+            _context1.next = 1;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_27__["default"].get("/Base/GetBankCode?bankId=".concat(value));
+          case 1:
+            response = _context1.sent;
+            bankCode = ((_response$data2 = response.data) === null || _response$data2 === void 0 ? void 0 : _response$data2.bankCode) || "";
+            setIfscPrefix(bankCode);
+            setValue("IfscCode", bankCode, {
+              shouldValidate: true
+            });
+            _context1.next = 3;
+            break;
+          case 2:
+            _context1.prev = 2;
+            _t8 = _context1["catch"](0);
+          case 3:
+          case "end":
+            return _context1.stop();
+        }
+      }, _callee9, null, [[0, 2]]);
+    }));
+    return function handleBankChange(_x8) {
+      return _ref11.apply(this, arguments);
+    };
+  }();
   var _processField = function processField(field, formData, initialData) {
     if (field.type === "enclosure" && field.isDependentEnclosure) {
       var parentValue = formData[field.dependentField] || initialData[field.dependentField];
@@ -363925,22 +359410,52 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
     }
     return sectionFormData;
   };
+  var handleEmailAlertSubmit = function handleEmailAlertSubmit() {
+    setEmailAlertModalOpen(false);
+
+    // Continue submission with current form values
+    var data = getValues();
+    onSubmit(data, "submit"); // will not block even if email is empty
+  };
+  var handleEmailAlertCancel = function handleEmailAlertCancel() {
+    setEmailAlertModalOpen(false);
+    // Do nothing, abort submission
+  };
   var onSubmit = /*#__PURE__*/function () {
-    var _ref11 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee9(data, operationType) {
-      var scrollX, scrollY, groupedFormData, returnFieldsArray, returnFields, formdata, section, url, response, result, _t8;
-      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context1) {
-        while (1) switch (_context1.prev = _context1.next) {
+    var _ref12 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee0(data, operationType) {
+      var scrollX, scrollY, emailFieldValue, groupedFormData, returnFieldsArray, returnFields, formdata, section, url, response, result, _t9;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context10) {
+        while (1) switch (_context10.prev = _context10.next) {
           case 0:
             scrollX = window.scrollX;
             scrollY = window.scrollY;
             data = getValues();
             if (!(!aadhaarValid && operationType !== "save")) {
-              _context1.next = 1;
+              _context10.next = 1;
               break;
             }
             alert("Aadhaar Number is not validated.");
-            return _context1.abrupt("return");
+            return _context10.abrupt("return");
           case 1:
+            // Find the email field dynamically
+            // Find email field dynamically
+            emailFieldValue = "";
+            formSections.forEach(function (section) {
+              section.fields.forEach(function (field) {
+                if (field.type === "email") {
+                  emailFieldValue = getValues(field.name) || "";
+                }
+              });
+            });
+
+            // Show warning modal if email is empty, **but continue submission if user clicks Submit in modal**
+            if (!(operationType === "submit" && !emailFieldValue && !emailAlertModalOpen)) {
+              _context10.next = 2;
+              break;
+            }
+            setEmailAlertModalOpen(true);
+            return _context10.abrupt("return");
+          case 2:
             setLoading(true);
             groupedFormData = {};
             returnFieldsArray = [];
@@ -363953,7 +359468,6 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               section.fields.forEach(function (field) {
                 var sectionData = _processField(field, data, initialData || {});
                 if (sectionData !== null) {
-                  // Override AadharNumber value based on operationType
                   if (field.name === "AadharNumber") {
                     sectionData.value = operationType === "submit" ? aadhaarNumber : "";
                   }
@@ -363991,11 +359505,11 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               formdata.append("returnFields", JSON.stringify(returnFieldsArray));
               url = "/User/UpdateApplicationDetails";
             }
-            _context1.prev = 2;
-            _context1.next = 3;
+            _context10.prev = 3;
+            _context10.next = 4;
             return _axiosConfig__WEBPACK_IMPORTED_MODULE_27__["default"].post(url, formdata);
-          case 3:
-            response = _context1.sent;
+          case 4:
+            response = _context10.sent;
             result = response.data;
             setLoading(false);
             if (result.status) {
@@ -364022,24 +359536,24 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               console.error("Submission failed:", result);
               react_toastify__WEBPACK_IMPORTED_MODULE_37__.toast.error("Failed to save form details.");
             }
-            _context1.next = 5;
+            _context10.next = 6;
             break;
-          case 4:
-            _context1.prev = 4;
-            _t8 = _context1["catch"](2);
-            console.error("Error submitting form:", _t8);
+          case 5:
+            _context10.prev = 5;
+            _t9 = _context10["catch"](3);
+            console.error("Error submitting form:", _t9);
             setLoading(false);
             react_toastify__WEBPACK_IMPORTED_MODULE_37__.toast.error("An error occurred while saving the form.");
-          case 5:
-            window.scrollTo(scrollX, scrollY);
           case 6:
+            window.scrollTo(scrollX, scrollY);
+          case 7:
           case "end":
-            return _context1.stop();
+            return _context10.stop();
         }
-      }, _callee9, null, [[2, 4]]);
+      }, _callee0, null, [[3, 5]]);
     }));
-    return function onSubmit(_x8, _x9) {
-      return _ref11.apply(this, arguments);
+    return function onSubmit(_x9, _x0) {
+      return _ref12.apply(this, arguments);
     };
   }();
   var addDynamicEnclosure = function addDynamicEnclosure(sectionId) {
@@ -364189,38 +359703,38 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: "",
           rules: {
             validate: function () {
-              var _validate = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee0(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context10) {
-                  while (1) switch (_context10.prev = _context10.next) {
+              var _validate = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee1(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context11) {
+                  while (1) switch (_context11.prev = _context11.next) {
                     case 0:
                       if (!(field.name === "AadharNumber" && (mode === "edit" || mode === "incomplete" || aadhaarValid))) {
-                        _context10.next = 1;
+                        _context11.next = 1;
                         break;
                       }
-                      return _context10.abrupt("return", true);
+                      return _context11.abrupt("return", true);
                     case 1:
-                      _context10.next = 2;
+                      _context11.next = 2;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value, getValues(), referenceNumber, setValue);
                     case 2:
-                      return _context10.abrupt("return", _context10.sent);
+                      return _context11.abrupt("return", _context11.sent);
                     case 3:
                     case "end":
-                      return _context10.stop();
+                      return _context11.stop();
                   }
-                }, _callee0);
+                }, _callee1);
               }));
-              function validate(_x0) {
+              function validate(_x1) {
                 return _validate.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref12) {
+          render: function render(_ref13) {
             var _errors$field$name, _errors$field$name2;
-            var _ref12$field = _ref12.field,
-              _onChange = _ref12$field.onChange,
-              value = _ref12$field.value,
-              ref = _ref12$field.ref;
+            var _ref13$field = _ref13.field,
+              _onChange = _ref13$field.onChange,
+              value = _ref13$field.value,
+              ref = _ref13$field.ref;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
               sx: {
                 display: "flex",
@@ -364237,7 +359751,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                 _onChange(formatted);
                 trigger(field.name);
               },
-              format: "dd MMM yyyy" // Display format
+              format: "dd/MM/yyyy" // Display format
               ,
               slotProps: {
                 textField: {
@@ -364260,7 +359774,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
               }
             })) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
               type: field.type,
-              id: "field-".concat(field.id),
+              id: "".concat(field.id),
               label: getLabelWithAsteriskJSX(field),
               value: value || "",
               onKeyDown: function onKeyDown(e) {
@@ -364273,7 +359787,21 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                 var fieldName = field.name;
                 var transformedVal = val;
 
-                // Aadhaar-specific logic
+                // 🔒 IFSC-specific logic
+                if (fieldName === "IfscCode" && ifscPrefix) {
+                  // Always enforce prefix
+                  if (!val.startsWith(ifscPrefix)) {
+                    val = ifscPrefix + val.slice(ifscPrefix.length);
+                  }
+
+                  // Limit length to 11 characters
+                  if (val.length > 11) {
+                    val = val.slice(0, 11);
+                  }
+                  transformedVal = val; // ensure prefix stays in final value
+                }
+
+                // 🔑 Aadhaar-specific logic (unchanged)
                 if (fieldName === "AadharNumber") {
                   setAadhaarValid(false);
                   var lastChar = val.toString().charAt(val.length - 1);
@@ -364288,7 +359816,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                   val = updatedAadhaar;
                 }
 
-                // Generic transformation logic
+                // 🔧 Generic transformation logic (unchanged)
                 if (((_field$transformation = field.transformationFunctions) === null || _field$transformation === void 0 ? void 0 : _field$transformation.length) > 0) {
                   field.transformationFunctions.forEach(function (fnName) {
                     var transformFn = _assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.TransformationFunctionsList[fnName];
@@ -364344,61 +359872,61 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: field.isConsentCheckbox ? false : ((_field$options = field.options) === null || _field$options === void 0 ? void 0 : _field$options.length) > 0 ? [] : "",
           rules: {
             validate: function () {
-              var _validate2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee1(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context11) {
-                  while (1) switch (_context11.prev = _context11.next) {
+              var _validate2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee10(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context12) {
+                  while (1) switch (_context12.prev = _context12.next) {
                     case 0:
                       if (!field.required) {
-                        _context11.next = 4;
+                        _context12.next = 4;
                         break;
                       }
                       if (!field.isConsentCheckbox) {
-                        _context11.next = 1;
+                        _context12.next = 1;
                         break;
                       }
-                      return _context11.abrupt("return", true);
+                      return _context12.abrupt("return", true);
                     case 1:
                       if (!Array.isArray(value)) {
-                        _context11.next = 3;
+                        _context12.next = 3;
                         break;
                       }
                       if (!(!value || value.length === 0)) {
-                        _context11.next = 2;
+                        _context12.next = 2;
                         break;
                       }
-                      return _context11.abrupt("return", "At least one option must be selected");
+                      return _context12.abrupt("return", "At least one option must be selected");
                     case 2:
-                      _context11.next = 4;
+                      _context12.next = 4;
                       break;
                     case 3:
                       if (value) {
-                        _context11.next = 4;
+                        _context12.next = 4;
                         break;
                       }
-                      return _context11.abrupt("return", "This field is required");
+                      return _context12.abrupt("return", "This field is required");
                     case 4:
-                      _context11.next = 5;
+                      _context12.next = 5;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value, getValues(), referenceNumber);
                     case 5:
-                      return _context11.abrupt("return", _context11.sent);
+                      return _context12.abrupt("return", _context12.sent);
                     case 6:
                     case "end":
-                      return _context11.stop();
+                      return _context12.stop();
                   }
-                }, _callee1);
+                }, _callee10);
               }));
-              function validate(_x1) {
+              function validate(_x10) {
                 return _validate2.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref13) {
+          render: function render(_ref14) {
             var _field$options2, _errors$field$name3;
-            var _ref13$field = _ref13.field,
-              _onChange2 = _ref13$field.onChange,
-              value = _ref13$field.value,
-              ref = _ref13$field.ref;
+            var _ref14$field = _ref14.field,
+              _onChange2 = _ref14$field.onChange,
+              value = _ref14$field.value,
+              ref = _ref14$field.ref;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
               component: "fieldset",
               fullWidth: true,
@@ -364472,31 +360000,31 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: null,
           rules: {
             validate: function () {
-              var _validate3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee10(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context12) {
-                  while (1) switch (_context12.prev = _context12.next) {
+              var _validate3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee11(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context13) {
+                  while (1) switch (_context13.prev = _context13.next) {
                     case 0:
-                      _context12.next = 1;
+                      _context13.next = 1;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value);
                     case 1:
-                      return _context12.abrupt("return", _context12.sent);
+                      return _context13.abrupt("return", _context13.sent);
                     case 2:
                     case "end":
-                      return _context12.stop();
+                      return _context13.stop();
                   }
-                }, _callee10);
+                }, _callee11);
               }));
-              function validate(_x10) {
+              function validate(_x11) {
                 return _validate3.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref14) {
+          render: function render(_ref15) {
             var _errors$field$name4;
-            var _ref14$field = _ref14.field,
-              _onChange3 = _ref14$field.onChange,
-              ref = _ref14$field.ref;
+            var _ref15$field = _ref15.field,
+              _onChange3 = _ref15$field.onChange,
+              ref = _ref15$field.ref;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
               fullWidth: true,
               margin: "normal",
@@ -364535,32 +360063,31 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: ((_field$options$ = field.options[0]) === null || _field$options$ === void 0 ? void 0 : _field$options$.value) || "Please Select",
           rules: {
             validate: function () {
-              var _validate4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee11(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context13) {
-                  while (1) switch (_context13.prev = _context13.next) {
+              var _validate4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee12(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context14) {
+                  while (1) switch (_context14.prev = _context14.next) {
                     case 0:
-                      _context13.next = 1;
+                      _context14.next = 1;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value, getValues());
                     case 1:
-                      return _context13.abrupt("return", _context13.sent);
+                      return _context14.abrupt("return", _context14.sent);
                     case 2:
                     case "end":
-                      return _context13.stop();
+                      return _context14.stop();
                   }
-                }, _callee11);
+                }, _callee12);
               }));
-              function validate(_x11) {
+              function validate(_x12) {
                 return _validate4.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref15) {
-            var _errors$field$name5;
-            var _ref15$field = _ref15.field,
-              _onChange4 = _ref15$field.onChange,
-              value = _ref15$field.value,
-              ref = _ref15$field.ref;
+          render: function render(_ref16) {
+            var _ref16$field = _ref16.field,
+              _onChange4 = _ref16$field.onChange,
+              value = _ref16$field.value,
+              ref = _ref16$field.ref;
             var options = [];
             if (field.dependentOn && field.dependentOn != "") {
               var _parentValue3 = watch(field.dependentOn);
@@ -364576,26 +360103,36 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                 label: value.toString()
               }]);
             }
-            return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement((react__WEBPACK_IMPORTED_MODULE_7___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
-              select: true,
+            return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement((react__WEBPACK_IMPORTED_MODULE_7___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
+              fullWidth: true
+            }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
               fullWidth: true,
-              variant: "outlined",
-              label: getLabelWithAsteriskJSX(field),
-              value: value || "Please Select",
-              id: "field-".concat(field.id),
-              onChange: function onChange(e) {
-                _onChange4(e);
-                var newValue = e.target.value;
-                // Call handleAreaChange only for area parent fields
+              options: options,
+              value: options.find(function (opt) {
+                return opt.value === value;
+              }) || null,
+              getOptionLabel: function getOptionLabel(option) {
+                return option.label || "";
+              },
+              onChange: function onChange(event, newOption) {
+                var newValue = (newOption === null || newOption === void 0 ? void 0 : newOption.value) || "";
+                _onChange4({
+                  target: {
+                    value: newValue
+                  }
+                }); // mimic event for RHF
+
                 if (/district|muncipality|block|halqapanchayat/i.test(field.name)) {
                   handleAreaChange(sectionIndex, field, newValue);
                 }
-                // Unregister additional fields that do not belong to the current value
+                if (field.name === "BankName") {
+                  handleBankChange(newValue);
+                }
                 if (field.additionalFields) {
-                  Object.entries(field.additionalFields).forEach(function (_ref16) {
-                    var _ref17 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_ref16, 2),
-                      key = _ref17[0],
-                      additionalFields = _ref17[1];
+                  Object.entries(field.additionalFields).forEach(function (_ref17) {
+                    var _ref18 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_ref17, 2),
+                      key = _ref18[0],
+                      additionalFields = _ref18[1];
                     if (key !== newValue) {
                       additionalFields.forEach(function (additionalField) {
                         var nestedFieldName = additionalField.name || "".concat(field.name, "_").concat(additionalField.id);
@@ -364607,36 +360144,26 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                   });
                 }
               },
-              error: Boolean(errors[field.name]),
-              helperText: ((_errors$field$name5 = errors[field.name]) === null || _errors$field$name5 === void 0 ? void 0 : _errors$field$name5.message) || "",
-              InputLabelProps: {
-                shrink: true,
-                style: {
-                  fontSize: "1.2rem",
-                  color: "#000000"
-                }
-              },
-              inputRef: ref,
-              sx: commonStyles,
-              disabled: isFieldDisabled(field.name)
-            }, options.map(function (option, index) {
-              return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
-                key: "".concat(option.value, "-").concat(index),
-                value: option.value,
-                sx: {
-                  color: "#1F2937",
-                  // Gray-900
-                  "&:hover": {
-                    backgroundColor: "#DBEAFE"
+              renderInput: function renderInput(params) {
+                var _errors$field$name5;
+                return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, params, {
+                  variant: "outlined",
+                  label: getLabelWithAsteriskJSX(field),
+                  error: Boolean(errors[field.name]),
+                  helperText: ((_errors$field$name5 = errors[field.name]) === null || _errors$field$name5 === void 0 ? void 0 : _errors$field$name5.message) || "",
+                  InputLabelProps: {
+                    shrink: true,
+                    style: {
+                      fontSize: "1.2rem",
+                      color: "#000000"
+                    }
                   },
-                  // Blue-100
-                  "&.Mui-selected": {
-                    backgroundColor: "#6366F1",
-                    // Indigo-500
-                    color: "#FFFFFF"
-                  }
-                }
-              }, option.label);
+                  inputRef: ref,
+                  sx: commonStyles,
+                  disabled: isFieldDisabled(field.name)
+                }));
+              },
+              disableClearable: true
             })), field.additionalFields && field.additionalFields[value] && field.additionalFields[value].map(function (additionalField) {
               var nestedFieldName = additionalField.name || "".concat(field.name, "_").concat(additionalField.id);
               return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
@@ -364699,9 +360226,9 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           rules: {
             required: "Enclosure name is required"
           },
-          render: function render(_ref18) {
+          render: function render(_ref19) {
             var _errors$selectFieldNa;
-            var field = _ref18.field;
+            var field = _ref19.field;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
               label: "Enclosure Name",
               fullWidth: true,
@@ -364718,28 +360245,28 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: (initialData === null || initialData === void 0 || (_initialData$field$na5 = initialData[field.name]) === null || _initialData$field$na5 === void 0 ? void 0 : _initialData$field$na5.selected) || "",
           rules: {
             validate: function () {
-              var _validate5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee12(value) {
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context14) {
-                  while (1) switch (_context14.prev = _context14.next) {
+              var _validate5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee13(value) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context15) {
+                  while (1) switch (_context15.prev = _context15.next) {
                     case 0:
-                      return _context14.abrupt("return", field.required && !value ? "Please select an option" : true);
+                      return _context15.abrupt("return", field.required && !value ? "Please select an option" : true);
                     case 1:
                     case "end":
-                      return _context14.stop();
+                      return _context15.stop();
                   }
-                }, _callee12);
+                }, _callee13);
               }));
-              function validate(_x12) {
+              function validate(_x13) {
                 return _validate5.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref19) {
+          render: function render(_ref20) {
             var _errors$selectFieldNa2;
-            var _ref19$field = _ref19.field,
-              _onChange5 = _ref19$field.onChange,
-              value = _ref19$field.value;
+            var _ref20$field = _ref20.field,
+              _onChange5 = _ref20$field.onChange,
+              value = _ref20$field.value;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
               select: true,
               label: getLabelWithAsteriskJSX(field),
@@ -364774,56 +360301,56 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
           defaultValue: (initialData === null || initialData === void 0 || (_initialData$field$na6 = initialData[field.name]) === null || _initialData$field$na6 === void 0 ? void 0 : _initialData$field$na6.file) || null,
           rules: {
             validate: function () {
-              var _validate6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee13(value) {
+              var _validate6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().mark(function _callee14(value) {
                 var selectValue, extension;
-                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context15) {
-                  while (1) switch (_context15.prev = _context15.next) {
+                return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_6___default().wrap(function (_context16) {
+                  while (1) switch (_context16.prev = _context16.next) {
                     case 0:
                       selectValue = getValues(selectFieldName);
                       if (!(field.required && !value && selectValue)) {
-                        _context15.next = 1;
+                        _context16.next = 1;
                         break;
                       }
-                      return _context15.abrupt("return", "Please upload a file");
+                      return _context16.abrupt("return", "Please upload a file");
                     case 1:
                       if (!(value instanceof File)) {
-                        _context15.next = 3;
+                        _context16.next = 3;
                         break;
                       }
                       if (!(value.size > 200000)) {
-                        _context15.next = 2;
+                        _context16.next = 2;
                         break;
                       }
-                      return _context15.abrupt("return", "File must be under 200KB");
+                      return _context16.abrupt("return", "File must be under 200KB");
                     case 2:
                       extension = ".".concat(value.name.split(".").pop().toLowerCase());
                       if (field.accept.split(",").includes(extension)) {
-                        _context15.next = 3;
+                        _context16.next = 3;
                         break;
                       }
-                      return _context15.abrupt("return", "Invalid file type. Accepted types: ".concat(field.accept));
+                      return _context16.abrupt("return", "Invalid file type. Accepted types: ".concat(field.accept));
                     case 3:
-                      _context15.next = 4;
+                      _context16.next = 4;
                       return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_9__.runValidations)(field, value, getValues(), referenceNumber);
                     case 4:
-                      return _context15.abrupt("return", _context15.sent);
+                      return _context16.abrupt("return", _context16.sent);
                     case 5:
                     case "end":
-                      return _context15.stop();
+                      return _context16.stop();
                   }
-                }, _callee13);
+                }, _callee14);
               }));
-              function validate(_x13) {
+              function validate(_x14) {
                 return _validate6.apply(this, arguments);
               }
               return validate;
             }()
           },
-          render: function render(_ref20) {
+          render: function render(_ref21) {
             var _errors$fileFieldName;
-            var _ref20$field = _ref20.field,
-              _onChange6 = _ref20$field.onChange,
-              value = _ref20$field.value;
+            var _ref21$field = _ref21.field,
+              _onChange6 = _ref21$field.onChange,
+              value = _ref21$field.value;
             return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], null, value && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
               display: "flex",
               alignItems: "center",
@@ -365120,12 +360647,26 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
     title: "Error",
     message: "Some fields are not filled or are incorrectly filed. Please correctly fill all fields.",
     type: "error" // can be: "error", "success", "warning", "info"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_MessageModal__WEBPACK_IMPORTED_MODULE_35__["default"], {
+    open: emailAlertModalOpen,
+    title: "Email Required",
+    message: "Documents like Acknowledgement and Sanction Letters are sent via email. Please provide an email address to proceed.",
+    primaryButton: {
+      text: "Submit",
+      action: handleEmailAlertSubmit
+    },
+    secondaryButton: {
+      text: "Cancel",
+      action: handleEmailAlertCancel
+    },
+    onClose: handleEmailAlertCancel
   }), otpModal && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(_OtpModal__WEBPACK_IMPORTED_MODULE_38__["default"], {
     open: otpModal,
     onClose: function onClose() {
       setOtpModal(false);
     },
-    onSubmit: handleOtpSubmit
+    onSubmit: handleOtpSubmit,
+    registeredAt: "Mobile Number"
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default().createElement(react_toastify__WEBPACK_IMPORTED_MODULE_37__.ToastContainer, null));
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DynamicScrollableForm);
@@ -366402,25 +361943,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Col.js");
-/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Container.js");
-/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Row.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Alert/Alert.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControl/FormControl.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/InputLabel/InputLabel.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Select/Select.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
-/* harmony import */ var _mui_styles__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/styles */ "./node_modules/@mui/styles/makeStyles/makeStyles.js");
-/* harmony import */ var react_hook_form__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! react-hook-form */ "./node_modules/react-hook-form/dist/index.esm.mjs");
-/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
-/* harmony import */ var _components_MessageModal__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ../../components/MessageModal */ "./src/components/MessageModal.jsx");
-
-
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Container/Container.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Alert/Alert.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Grid/Grid.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControl/FormControl.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/InputLabel/InputLabel.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Select/Select.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
+/* harmony import */ var react_hook_form__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! react-hook-form */ "./node_modules/react-hook-form/dist/index.esm.mjs");
+/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
+/* harmony import */ var _components_MessageModal__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../../components/MessageModal */ "./src/components/MessageModal.jsx");
 
 
 
@@ -366483,28 +362020,8 @@ var districts = [{
   name: "District 3",
   divisionId: 2
 }];
-var useStyles = (0,_mui_styles__WEBPACK_IMPORTED_MODULE_18__["default"])(function (theme) {
-  return {
-    formContainer: {
-      padding: "20px",
-      backgroundColor: "#f5f5f5",
-      borderRadius: "8px",
-      marginTop: "20px"
-    },
-    submitButton: {
-      marginTop: "20px"
-    },
-    loadingContainer: {
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      minHeight: "200px"
-    }
-  };
-});
 function AddAdmin() {
-  var classes = useStyles();
-  var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_19__.useForm)({
+  var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_17__.useForm)({
       defaultValues: {
         name: "",
         username: "",
@@ -366550,6 +362067,10 @@ function AddAdmin() {
     _useState12 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState11, 2),
     showMessageModal = _useState12[0],
     setShowMessageModal = _useState12[1];
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(0),
+    _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState13, 2),
+    department = _useState14[0],
+    setDepartment = _useState14[1];
   var selectedRole = watch("role");
   var selectedDivision = watch("division");
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
@@ -366562,7 +362083,7 @@ function AddAdmin() {
               setIsLoading(true);
               _context.prev = 1;
               _context.next = 2;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_20__["default"].get("/Admin/GetCurrentAdminDetails");
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Admin/GetCurrentAdminDetails");
             case 2:
               response = _context.sent;
               if (!(!response.data || !response.data.additionalDetails)) {
@@ -366585,9 +362106,8 @@ function AddAdmin() {
               if (adminHierarchy[details.AccessLevel]) {
                 setAvailableRoles(adminHierarchy[details.AccessLevel].roles);
               }
-
-              // Filter districts for Division-level admin
-              setFilteredDistricts(response.data.districts || []);
+              setDepartment(details.Department || 0);
+              setFilteredDistricts(response.data.districts || districts);
               _context.next = 6;
               break;
             case 5:
@@ -366610,6 +362130,14 @@ function AddAdmin() {
     }();
     fetchData();
   }, []);
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    if (selectedRole === "District Admin" && selectedDivision) {
+      setFilteredDistricts(districts.filter(function (d) {
+        return d.divisionId === parseInt(selectedDivision);
+      }));
+      setValue("district", "");
+    }
+  }, [selectedDivision, selectedRole, setValue]);
   var onSubmit = /*#__PURE__*/function () {
     var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2(data) {
       var selectedRoleObj, additionalDetails, formData, response, _t2;
@@ -366630,11 +362158,12 @@ function AddAdmin() {
               Role: selectedRoleObj.Role,
               RoleShort: selectedRoleObj.RoleShort,
               AccessLevel: selectedRoleObj.AccessLevel,
-              AccessCode: selectedRoleObj.AccessCode,
+              AccessCode: data.district || data.division || selectedRoleObj.AccessCode,
+              Department: department,
               Validate: true
             };
             _context2.prev = 2;
-            formData = new FormData(); // Append basic fields
+            formData = new FormData();
             formData.append("name", data.name);
             formData.append("username", data.username);
             formData.append("email", data.email);
@@ -366643,27 +362172,23 @@ function AddAdmin() {
             formData.append("role", data.role);
             formData.append("division", data.division);
             formData.append("district", data.district);
-
-            // Append AdditionalDetails as JSON string
             formData.append("AdditionalDetails", JSON.stringify(additionalDetails));
             _context2.next = 3;
-            return _axiosConfig__WEBPACK_IMPORTED_MODULE_20__["default"].post("/Admin/AddAdmin", formData);
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].post("/Admin/AddAdmin", formData);
           case 3:
             response = _context2.sent;
             if (response.data.status) {
               setShowMessageModal(true);
+              setValue("name", "");
+              setValue("username", "");
+              setValue("email", "");
+              setValue("password", "");
+              setValue("mobileNumber", "");
+              setValue("role", "");
+              setValue("division", "");
+              setValue("district", "");
+              setErrorMessage("");
             }
-
-            // Reset form
-            setValue("name", "");
-            setValue("username", "");
-            setValue("email", "");
-            setValue("password", "");
-            setValue("mobileNumber", "");
-            setValue("role", "");
-            setValue("division", "");
-            setValue("district", "");
-            setErrorMessage("");
             _context2.next = 5;
             break;
           case 4:
@@ -366681,49 +362206,86 @@ function AddAdmin() {
     };
   }();
   if (isLoading) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      className: classes.loadingContainer
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], null));
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      sx: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        bgcolor: "grey.100"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      size: 60
+    }));
   }
   if (errorMessage) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_6__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
-      variant: "h5",
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      maxWidth: "md",
+      sx: {
+        py: 8
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+      variant: "h4",
+      fontWeight: "bold",
+      align: "center",
       gutterBottom: true
-    }, "Add New Admin"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
-      severity: "error"
+    }, "Add New Admin"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+      severity: "error",
+      sx: {
+        mb: 4
+      }
     }, errorMessage));
   }
   if (currentAdminLevel === "District") {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_6__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
-      variant: "h5",
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      maxWidth: "md",
+      sx: {
+        py: 8
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+      variant: "h4",
+      fontWeight: "bold",
+      align: "center",
       gutterBottom: true
-    }, "Add New Admin"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
-      severity: "warning"
+    }, "Add New Admin"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+      severity: "warning",
+      sx: {
+        mb: 4
+      }
     }, "District Admins are not authorized to create new admins."));
   }
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    maxWidth: "md",
     sx: {
-      width: "100%",
-      minHeight: "100vh",
-      bgcolor: "#f8f9fa",
-      py: 10,
-      display: "flex",
-      justifyContent: "center"
+      py: 8
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_6__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
-    variant: "h5",
-    textAlign: "center",
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    variant: "h4",
     fontWeight: "bold",
+    align: "center",
     gutterBottom: true
-  }, "Add New Admin"), errorMessage && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
-    severity: "error"
-  }, errorMessage), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
-    className: classes.formContainer
+  }, "Add New Admin"), errorMessage && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    severity: "error",
+    sx: {
+      mb: 4
+    }
+  }, errorMessage), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    sx: {
+      bgcolor: "white",
+      p: 4,
+      borderRadius: 2,
+      boxShadow: 3
+    }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("form", {
     onSubmit: handleSubmit(onSubmit)
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_7__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    md: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_19__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    container: true,
+    spacing: 3
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "name",
     control: control,
     rules: {
@@ -366732,17 +362294,23 @@ function AddAdmin() {
     render: function render(_ref3) {
       var _errors$name;
       var field = _ref3.field;
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
         label: "Name",
+        variant: "outlined",
         error: !!errors.name,
         helperText: (_errors$name = errors.name) === null || _errors$name === void 0 ? void 0 : _errors$name.message,
-        margin: "normal"
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.name ? "true" : "false"
       }));
     }
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    md: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_19__.Controller, {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "username",
     control: control,
     rules: {
@@ -366751,17 +362319,23 @@ function AddAdmin() {
     render: function render(_ref4) {
       var _errors$username;
       var field = _ref4.field;
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
         label: "Username",
+        variant: "outlined",
         error: !!errors.username,
         helperText: (_errors$username = errors.username) === null || _errors$username === void 0 ? void 0 : _errors$username.message,
-        margin: "normal"
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.username ? "true" : "false"
       }));
     }
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_7__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    md: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_19__.Controller, {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "email",
     control: control,
     rules: {
@@ -366774,18 +362348,24 @@ function AddAdmin() {
     render: function render(_ref5) {
       var _errors$email;
       var field = _ref5.field;
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
         label: "Email",
         type: "email",
+        variant: "outlined",
         error: !!errors.email,
         helperText: (_errors$email = errors.email) === null || _errors$email === void 0 ? void 0 : _errors$email.message,
-        margin: "normal"
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.email ? "true" : "false"
       }));
     }
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    md: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_19__.Controller, {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "password",
     control: control,
     rules: {
@@ -366794,18 +362374,24 @@ function AddAdmin() {
     render: function render(_ref6) {
       var _errors$password;
       var field = _ref6.field;
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
         label: "Password",
         type: "password",
+        variant: "outlined",
         error: !!errors.password,
         helperText: (_errors$password = errors.password) === null || _errors$password === void 0 ? void 0 : _errors$password.message,
-        margin: "normal"
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.password ? "true" : "false"
       }));
     }
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_7__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    md: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_19__.Controller, {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "mobileNumber",
     control: control,
     rules: {
@@ -366814,17 +362400,23 @@ function AddAdmin() {
     render: function render(_ref7) {
       var _errors$mobileNumber;
       var field = _ref7.field;
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
         label: "Mobile Number",
+        variant: "outlined",
         error: !!errors.mobileNumber,
         helperText: (_errors$mobileNumber = errors.mobileNumber) === null || _errors$mobileNumber === void 0 ? void 0 : _errors$mobileNumber.message,
-        margin: "normal"
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.mobileNumber ? "true" : "false"
       }));
     }
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    md: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_19__.Controller, {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "role",
     control: control,
     rules: {
@@ -366832,24 +362424,31 @@ function AddAdmin() {
     },
     render: function render(_ref8) {
       var field = _ref8.field;
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
         fullWidth: true,
-        margin: "normal",
+        variant: "outlined",
         error: !!errors.role
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], null, "Role"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], field, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+        shrink: true
+      }, "Role"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: "Role"
+      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
         value: ""
       }, "Select Role"), availableRoles.map(function (role) {
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
           key: role.RoleShort,
           value: role.Role
         }, role.Role);
-      })), errors.role && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
-        color: "error"
+      })), errors.role && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        color: "error",
+        variant: "caption"
       }, errors.role.message));
     }
-  }))), selectedRole === "Division Admin" && currentAdminLevel === "State" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_7__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    md: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_19__.Controller, {
+  })), selectedRole === "Division Admin" && currentAdminLevel === "State" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "division",
     control: control,
     rules: {
@@ -366857,24 +362456,31 @@ function AddAdmin() {
     },
     render: function render(_ref9) {
       var field = _ref9.field;
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
         fullWidth: true,
-        margin: "normal",
+        variant: "outlined",
         error: !!errors.division
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], null, "Division"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], field, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+        shrink: true
+      }, "Division"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: "Division"
+      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
         value: ""
       }, "Select Division"), divisions.map(function (division) {
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
           key: division.id,
           value: division.id
         }, division.name);
-      })), errors.division && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
-        color: "error"
+      })), errors.division && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        color: "error",
+        variant: "caption"
       }, errors.division.message));
     }
-  }))), selectedRole === "District Admin" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_7__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    md: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_19__.Controller, {
+  })), selectedRole === "District Admin" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "district",
     control: control,
     rules: {
@@ -366882,34 +362488,387 @@ function AddAdmin() {
     },
     render: function render(_ref0) {
       var field = _ref0.field;
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
         fullWidth: true,
-        margin: "normal",
+        variant: "outlined",
         error: !!errors.district
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], null, "District"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], field, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+        shrink: true
+      }, "District"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: "District"
+      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
         value: ""
       }, "Select District"), filteredDistricts.map(function (district) {
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
-          key: district.districtId,
-          value: district.districtId
-        }, district.districtName);
-      })), errors.district && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
-        color: "error"
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+          key: district.id,
+          value: district.id
+        }, district.name);
+      })), errors.district && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        color: "error",
+        variant: "caption"
       }, errors.district.message));
     }
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
     type: "submit",
     variant: "contained",
     color: "primary",
+    fullWidth: true,
     sx: {
-      margin: "0 auto"
-    },
-    className: classes.submitButton
-  }, "Create Admin")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_MessageModal__WEBPACK_IMPORTED_MODULE_21__["default"], {
+      mt: 3,
+      py: 1.5,
+      fontSize: "1.1rem"
+    }
+  }, "Create Admin"))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_MessageModal__WEBPACK_IMPORTED_MODULE_19__["default"], {
     title: "Add Admin",
     message: "Admin Added Successfully.",
     type: "success",
     key: "addadmin",
+    open: showMessageModal,
+    onClose: function onClose() {
+      return setShowMessageModal(false);
+    }
+  }));
+}
+
+/***/ }),
+
+/***/ "./src/screens/admin/AddDesignations.jsx":
+/*!***********************************************!*\
+  !*** ./src/screens/admin/AddDesignations.jsx ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ AddDesignations)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Container/Container.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Alert/Alert.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Grid/Grid.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControl/FormControl.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/InputLabel/InputLabel.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Select/Select.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
+/* harmony import */ var react_hook_form__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! react-hook-form */ "./node_modules/react-hook-form/dist/index.esm.mjs");
+/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
+/* harmony import */ var _components_MessageModal__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../../components/MessageModal */ "./src/components/MessageModal.jsx");
+/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
+
+
+
+
+
+
+
+
+
+
+function AddDesignations() {
+  var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_17__.useForm)({
+      defaultValues: {
+        designation: "",
+        designationShort: "",
+        accessLevel: ""
+      }
+    }),
+    control = _useForm.control,
+    handleSubmit = _useForm.handleSubmit,
+    reset = _useForm.reset,
+    errors = _useForm.formState.errors;
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
+    _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState, 2),
+    departmentId = _useState2[0],
+    setDepartmentId = _useState2[1];
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
+    _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState3, 2),
+    errorMessage = _useState4[0],
+    setErrorMessage = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(true),
+    _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState5, 2),
+    isLoading = _useState6[0],
+    setIsLoading = _useState6[1];
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState7, 2),
+    showMessageModal = _useState8[0],
+    setShowMessageModal = _useState8[1];
+
+  // Fetch current officer's details to get DepartmentId
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    var fetchOfficerDetails = /*#__PURE__*/function () {
+      var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee() {
+        var response, details, _t;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              setIsLoading(true);
+              _context.prev = 1;
+              _context.next = 2;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Admin/GetCurrentAdminDetails");
+            case 2:
+              response = _context.sent;
+              if (!(!response.data || !response.data.additionalDetails)) {
+                _context.next = 3;
+                break;
+              }
+              throw new Error("Officer data is missing");
+            case 3:
+              details = JSON.parse(response.data.additionalDetails);
+              if (!(!details || !details.Department)) {
+                _context.next = 4;
+                break;
+              }
+              throw new Error("Invalid officer details");
+            case 4:
+              setDepartmentId(details.Department);
+              _context.next = 6;
+              break;
+            case 5:
+              _context.prev = 5;
+              _t = _context["catch"](1);
+              setErrorMessage("Error loading officer data: ".concat(_t.message));
+            case 6:
+              _context.prev = 6;
+              setIsLoading(false);
+              return _context.finish(6);
+            case 7:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee, null, [[1, 5, 6, 7]]);
+      }));
+      return function fetchOfficerDetails() {
+        return _ref.apply(this, arguments);
+      };
+    }();
+    fetchOfficerDetails();
+  }, []);
+  var onSubmit = /*#__PURE__*/function () {
+    var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2(data) {
+      var formData, response, _t2;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context2) {
+        while (1) switch (_context2.prev = _context2.next) {
+          case 0:
+            _context2.prev = 0;
+            formData = new FormData();
+            formData.append("Designation", data.designation);
+            formData.append("DesignationShort", data.designationShort);
+            formData.append("AccessLevel", data.accessLevel);
+            formData.append("DepartmentId", departmentId.toString());
+            _context2.next = 1;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].post("/Admin/AddDesignation", formData);
+          case 1:
+            response = _context2.sent;
+            if (response.data.status) {
+              setShowMessageModal(true);
+              reset();
+              setErrorMessage("");
+            }
+            _context2.next = 3;
+            break;
+          case 2:
+            _context2.prev = 2;
+            _t2 = _context2["catch"](0);
+            setErrorMessage("Error creating designation: ".concat(_t2.message));
+          case 3:
+          case "end":
+            return _context2.stop();
+        }
+      }, _callee2, null, [[0, 2]]);
+    }));
+    return function onSubmit(_x) {
+      return _ref2.apply(this, arguments);
+    };
+  }();
+  if (isLoading) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      sx: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        bgcolor: "grey.100"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      size: 60
+    }));
+  }
+  if (errorMessage) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      maxWidth: "md",
+      sx: {
+        py: 8
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+      variant: "h4",
+      fontWeight: "bold",
+      align: "center",
+      gutterBottom: true
+    }, "Add New Designation"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+      severity: "error",
+      sx: {
+        mb: 4
+      }
+    }, errorMessage));
+  }
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    maxWidth: "lg",
+    sx: {
+      py: 8
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    variant: "h4",
+    fontWeight: "bold",
+    align: "center",
+    gutterBottom: true
+  }, "Add New Designation"), errorMessage && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    severity: "error",
+    sx: {
+      mb: 4
+    }
+  }, errorMessage), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    sx: {
+      bgcolor: "white",
+      p: 4,
+      borderRadius: 2,
+      boxShadow: 3,
+      mb: 6
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("form", {
+    onSubmit: handleSubmit(onSubmit)
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    container: true,
+    spacing: 3
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 4
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
+    name: "designation",
+    control: control,
+    rules: {
+      required: "Designation is required"
+    },
+    render: function render(_ref3) {
+      var _errors$designation;
+      var field = _ref3.field;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        fullWidth: true,
+        label: "Designation",
+        variant: "outlined",
+        error: !!errors.designation,
+        helperText: (_errors$designation = errors.designation) === null || _errors$designation === void 0 ? void 0 : _errors$designation.message,
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.designation ? "true" : "false"
+      }));
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 4
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
+    name: "designationShort",
+    control: control,
+    rules: {
+      required: "Short name is required"
+    },
+    render: function render(_ref4) {
+      var _errors$designationSh;
+      var field = _ref4.field;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        fullWidth: true,
+        label: "Short Name",
+        variant: "outlined",
+        error: !!errors.designationShort,
+        helperText: (_errors$designationSh = errors.designationShort) === null || _errors$designationSh === void 0 ? void 0 : _errors$designationSh.message,
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.designationShort ? "true" : "false"
+      }));
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 4
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
+    name: "accessLevel",
+    control: control,
+    rules: {
+      required: "Access level is required"
+    },
+    render: function render(_ref5) {
+      var field = _ref5.field;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+        fullWidth: true,
+        variant: "outlined",
+        error: !!errors.accessLevel
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+        shrink: true
+      }, "Access Level"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: "Access Level"
+      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: ""
+      }, "Select Access Level"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: "State"
+      }, "State"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: "Division"
+      }, "Division"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: "District"
+      }, "District"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: "Tehsil"
+      }, "Tehsil")), errors.accessLevel && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        color: "error",
+        variant: "caption"
+      }, errors.accessLevel.message));
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+    type: "submit",
+    variant: "contained",
+    color: "primary",
+    fullWidth: true,
+    sx: {
+      mt: 3,
+      py: 1.5,
+      fontSize: "1.1rem"
+    }
+  }, "Add Designation"))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    variant: "h5",
+    fontWeight: "bold",
+    align: "center",
+    gutterBottom: true
+  }, "Existing Designations"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_20__["default"], {
+    url: "/Admin/GetDesignations",
+    Title: "Designations",
+    extraParams: {},
+    canSanction: false,
+    canHavePool: false,
+    pendingApplications: false
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_MessageModal__WEBPACK_IMPORTED_MODULE_19__["default"], {
+    title: "Add Designation",
+    message: "Designation Added Successfully.",
+    type: "success",
+    key: "addDesignation",
     open: showMessageModal,
     onClose: function onClose() {
       return setShowMessageModal(false);
@@ -366930,40 +362889,36 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ AdminHome)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
-/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
-/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Container/Container.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Fade/Fade.js");
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/esm/possibleConstructorReturn.js");
+/* harmony import */ var _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js");
+/* harmony import */ var _babel_runtime_helpers_inherits__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/esm/inherits.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_8__);
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Card/Card.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CardContent/CardContent.js");
-/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Col.js");
-/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Row.js");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_13__);
-/* harmony import */ var _mui_icons_material_People__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/icons-material/People */ "./node_modules/@mui/icons-material/esm/People.js");
-/* harmony import */ var _mui_icons_material_PersonAdd__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/icons-material/PersonAdd */ "./node_modules/@mui/icons-material/esm/PersonAdd.js");
-/* harmony import */ var _mui_icons_material_Assignment__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/icons-material/Assignment */ "./node_modules/@mui/icons-material/esm/Assignment.js");
-/* harmony import */ var _mui_icons_material_MiscellaneousServices__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/icons-material/MiscellaneousServices */ "./node_modules/@mui/icons-material/esm/MiscellaneousServices.js");
-/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! react-toastify */ "./node_modules/react-toastify/dist/index.mjs");
-/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! react-toastify/dist/ReactToastify.css */ "./node_modules/react-toastify/dist/ReactToastify.css");
-/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
-/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
-/* harmony import */ var chart_js_auto__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! chart.js/auto */ "./node_modules/chart.js/auto/auto.js");
-
-
-
-function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-
-
-
-
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Container/Container.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CardContent/CardContent.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_15__);
+/* harmony import */ var _mui_icons_material_People__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/icons-material/People */ "./node_modules/@mui/icons-material/esm/People.js");
+/* harmony import */ var _mui_icons_material_PersonAdd__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/icons-material/PersonAdd */ "./node_modules/@mui/icons-material/esm/PersonAdd.js");
+/* harmony import */ var _mui_icons_material_Assignment__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/icons-material/Assignment */ "./node_modules/@mui/icons-material/esm/Assignment.js");
+/* harmony import */ var _mui_icons_material_MiscellaneousServices__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/icons-material/MiscellaneousServices */ "./node_modules/@mui/icons-material/esm/MiscellaneousServices.js");
+/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! react-toastify */ "./node_modules/react-toastify/dist/index.mjs");
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! react-toastify/dist/ReactToastify.css */ "./node_modules/react-toastify/dist/ReactToastify.css");
+/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
+/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
+/* harmony import */ var chart_js_auto__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! chart.js/auto */ "./node_modules/chart.js/auto/auto.js");
+/* harmony import */ var _emotion_styled__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @emotion/styled */ "./node_modules/@emotion/styled/dist/emotion-styled.browser.development.esm.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/ArrowRightAlt.js");
+/* harmony import */ var _UserContext__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ../../UserContext */ "./src/UserContext.js");
 
 
 
@@ -366973,42 +362928,166 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 
 
 
+function _callSuper(t, o, e) { return o = (0,_babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_5__["default"])(o), (0,_babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_4__["default"])(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], (0,_babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_5__["default"])(t).constructor) : o.apply(t, e)); }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Styled components
+var StatCard = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_25__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"])(function (_ref) {
+  var theme = _ref.theme;
+  return (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__["default"])({
+    borderRadius: "16px",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    border: "1px solid rgba(0,0,0,0.08)",
+    cursor: "pointer",
+    overflow: "hidden",
+    "&:hover": {
+      transform: "translateY(-8px) scale(1.02)",
+      boxShadow: "0 16px 40px rgba(0,0,0,0.15)",
+      borderColor: "rgba(0,0,0,0.12)"
+    },
+    "&:active": {
+      transform: "translateY(-4px) scale(1.01)"
+    }
+  }, theme.breakpoints.down("sm"), {
+    "&:hover": {
+      transform: "translateY(-4px) scale(1.01)"
+    }
+  });
+});
+var StyledCard = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_25__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"])(function (_ref3) {
+  var theme = _ref3.theme;
+  return {
+    background: "linear-gradient(135deg, #ffffff, #f8f9fa)",
+    border: "1px solid #e0e0e0",
+    borderRadius: "16px",
+    boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
+    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+    marginBottom: "24px",
+    "&:hover": {
+      transform: "translateY(-3px) scale(1.005)",
+      boxShadow: "0 12px 36px rgba(0,0,0,0.12)"
+    }
+  };
+});
+var SectionContainer = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_25__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"])(function (_ref4) {
+  var theme = _ref4.theme;
+  return (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__["default"])({
+    maxWidth: "1400px",
+    margin: "0 auto",
+    padding: theme.spacing(0, 2)
+  }, theme.breakpoints.up("md"), {
+    padding: theme.spacing(0, 4)
+  });
+});
+var CardGrid = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_25__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"])(function (_ref6) {
+  var theme = _ref6.theme;
+  return (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__["default"])({
+    display: "grid",
+    gap: theme.spacing(3),
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 320px))",
+    justifyContent: "center",
+    marginBottom: theme.spacing(4)
+  }, theme.breakpoints.down("sm"), {
+    gridTemplateColumns: "1fr",
+    gap: theme.spacing(2)
+  });
+});
 
 // Define card data with colors and types
 var cardData = [{
   title: "Total Registered Officers",
-  icon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_icons_material_People__WEBPACK_IMPORTED_MODULE_14__["default"], null),
+  icon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_icons_material_People__WEBPACK_IMPORTED_MODULE_16__["default"], null),
   color: "#1976d2",
   dataKey: "totalOfficers",
   type: "Officer"
 }, {
   title: "Total Registered Citizens",
-  icon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_icons_material_PersonAdd__WEBPACK_IMPORTED_MODULE_15__["default"], null),
+  icon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_icons_material_PersonAdd__WEBPACK_IMPORTED_MODULE_17__["default"], null),
   color: "#dc004e",
   dataKey: "totalRegisteredUsers",
   type: "Citizen"
 }, {
   title: "Total Applications Received",
-  icon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_icons_material_Assignment__WEBPACK_IMPORTED_MODULE_16__["default"], null),
+  icon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_icons_material_Assignment__WEBPACK_IMPORTED_MODULE_18__["default"], null),
   color: "#f57c00",
   dataKey: "totalApplicationsSubmitted",
   type: "Applications"
 }, {
   title: "Total Services",
-  icon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_icons_material_MiscellaneousServices__WEBPACK_IMPORTED_MODULE_17__["default"], null),
+  icon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_icons_material_MiscellaneousServices__WEBPACK_IMPORTED_MODULE_19__["default"], null),
   color: "#388e3c",
   dataKey: "totalServices",
   type: "Services"
 }];
 
-// DashboardChart component
-var DashboardChart = function DashboardChart(_ref) {
-  var data = _ref.data;
-  var canvasRef = (0,react__WEBPACK_IMPORTED_MODULE_13__.useRef)(null);
-  (0,react__WEBPACK_IMPORTED_MODULE_13__.useEffect)(function () {
+// Error Boundary Component
+var ErrorBoundary = /*#__PURE__*/function (_React$Component) {
+  function ErrorBoundary() {
+    var _this;
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_2__["default"])(this, ErrorBoundary);
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+    _this = _callSuper(this, ErrorBoundary, [].concat(args));
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__["default"])(_this, "state", {
+      hasError: false
+    });
+    return _this;
+  }
+  (0,_babel_runtime_helpers_inherits__WEBPACK_IMPORTED_MODULE_6__["default"])(ErrorBoundary, _React$Component);
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_3__["default"])(ErrorBoundary, [{
+    key: "componentDidCatch",
+    value: function componentDidCatch(error, errorInfo) {
+      console.error("ErrorBoundary caught an error:", error, errorInfo);
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      if (this.state.hasError) {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+          sx: {
+            p: 4,
+            textAlign: "center"
+          }
+        }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+          variant: "h6",
+          color: "error"
+        }, "Something went wrong. Please try refreshing the page."));
+      }
+      return this.props.children;
+    }
+  }], [{
+    key: "getDerivedStateFromError",
+    value: function getDerivedStateFromError(error) {
+      return {
+        hasError: true
+      };
+    }
+  }]);
+}((react__WEBPACK_IMPORTED_MODULE_15___default().Component)); // DashboardChart component with forwardRef
+var DashboardChart = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_15__.forwardRef)(function (_ref8, ref) {
+  var data = _ref8.data;
+  var canvasRef = (0,react__WEBPACK_IMPORTED_MODULE_15__.useRef)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_15__.useEffect)(function () {
     if (canvasRef.current) {
       var ctx = canvasRef.current.getContext("2d");
-      var chart = new chart_js_auto__WEBPACK_IMPORTED_MODULE_22__["default"](ctx, {
+      var chart = new chart_js_auto__WEBPACK_IMPORTED_MODULE_24__["default"](ctx, {
         type: "bar",
         data: {
           labels: ["Officers", "Citizens", "Applications", "Services"],
@@ -367025,6 +363104,18 @@ var DashboardChart = function DashboardChart(_ref) {
             y: {
               beginAtZero: true
             }
+          },
+          plugins: {
+            legend: {
+              position: "top",
+              labels: {
+                font: {
+                  family: "'Inter', sans-serif",
+                  size: 14
+                },
+                color: "#333333"
+              }
+            }
           }
         }
       });
@@ -367033,49 +363124,55 @@ var DashboardChart = function DashboardChart(_ref) {
       };
     }
   }, [data]);
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement("canvas", {
-    ref: canvasRef,
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement("canvas", {
+    ref: ref,
     style: {
-      maxWidth: "100%"
+      maxWidth: "100%",
+      height: "400px"
     }
   });
-};
+});
+
+// Ensure DashboardChart has a display name for debugging
+DashboardChart.displayName = "DashboardChart";
 function AdminHome() {
-  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_13__.useState)({
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_15__.useState)({
       totalOfficers: 0,
       totalRegisteredUsers: 0,
       totalApplicationsSubmitted: 0,
       totalServices: 0
     }),
-    _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState, 2),
+    _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState, 2),
     dashboardData = _useState2[0],
     setDashboardData = _useState2[1];
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_13__.useState)(true),
-    _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState3, 2),
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_15__.useState)(true),
+    _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState3, 2),
     loading = _useState4[0],
     setLoading = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_13__.useState)(null),
-    _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState5, 2),
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_15__.useState)(null),
+    _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState5, 2),
     error = _useState6[0],
     setError = _useState6[1];
-  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_13__.useState)(false),
-    _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState7, 2),
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_15__.useState)(false),
+    _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState7, 2),
     showTable = _useState8[0],
     setShowTable = _useState8[1];
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_13__.useState)(""),
-    _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState9, 2),
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_15__.useState)(""),
+    _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState9, 2),
     url = _useState0[0],
     setUrl = _useState0[1];
-  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_13__.useState)(""),
-    _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState1, 2),
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_15__.useState)(""),
+    _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState1, 2),
     listType = _useState10[0],
     setListType = _useState10[1];
-  var tableRef = (0,react__WEBPACK_IMPORTED_MODULE_13__.useRef)(null);
+  var tableRef = (0,react__WEBPACK_IMPORTED_MODULE_15__.useRef)(null);
+  var _useContext = (0,react__WEBPACK_IMPORTED_MODULE_15__.useContext)(_UserContext__WEBPACK_IMPORTED_MODULE_27__.UserContext),
+    department = _useContext.department;
   var actionFunctions = {
     ValidateOfficer: function () {
-      var _ValidateOfficer = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee(row) {
+      var _ValidateOfficer = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_8___default().mark(function _callee(row) {
         var userdata, formdata, response, _t;
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context) {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_8___default().wrap(function (_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
               userdata = row.original;
@@ -367084,14 +363181,21 @@ function AdminHome() {
               formdata.append("username", userdata.username);
               _context.prev = 1;
               _context.next = 2;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_20__["default"].post("/Admin/ValidateOfficer", formdata);
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_22__["default"].post("/Admin/ValidateOfficer", formdata);
             case 2:
               response = _context.sent;
               if (response.data.status) {
-                setModalOpen(true);
-                // Optionally reload table
+                react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.success("Officer validated successfully!", {
+                  position: "top-right",
+                  autoClose: 2000,
+                  theme: "colored"
+                });
               } else {
-                alert("Validation failed.");
+                react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Validation failed.", {
+                  position: "top-right",
+                  autoClose: 3000,
+                  theme: "colored"
+                });
               }
               _context.next = 4;
               break;
@@ -367099,7 +363203,11 @@ function AdminHome() {
               _context.prev = 3;
               _t = _context["catch"](1);
               console.error("Error validating officer:", _t);
-              alert("An error occurred while validating officer.");
+              react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("An error occurred while validating officer.", {
+                position: "top-right",
+                autoClose: 3000,
+                theme: "colored"
+              });
             case 4:
             case "end":
               return _context.stop();
@@ -367112,17 +363220,17 @@ function AdminHome() {
       return ValidateOfficer;
     }()
   };
-  (0,react__WEBPACK_IMPORTED_MODULE_13__.useEffect)(function () {
+  (0,react__WEBPACK_IMPORTED_MODULE_15__.useEffect)(function () {
     var fetchDashboardData = /*#__PURE__*/function () {
-      var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2() {
+      var _ref9 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_8___default().mark(function _callee2() {
         var response, _t2;
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context2) {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_8___default().wrap(function (_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
               _context2.prev = 0;
               setLoading(true);
               _context2.next = 1;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_20__["default"].get("/Admin/GetDetailsForDashboard");
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_22__["default"].get("/Admin/GetDetailsForDashboard");
             case 1:
               response = _context2.sent;
               setDashboardData(response.data);
@@ -367134,8 +363242,8 @@ function AdminHome() {
               _t2 = _context2["catch"](0);
               console.error("Error fetching dashboard data:", _t2);
               setError("Failed to load dashboard data");
-              react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Failed to load dashboard data", {
-                position: "top-center",
+              react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Failed to load dashboard data", {
+                position: "top-right",
                 autoClose: 3000,
                 theme: "colored"
               });
@@ -367150,7 +363258,7 @@ function AdminHome() {
         }, _callee2, null, [[0, 2, 3, 4]]);
       }));
       return function fetchDashboardData() {
-        return _ref2.apply(this, arguments);
+        return _ref9.apply(this, arguments);
       };
     }();
     fetchDashboardData();
@@ -367167,121 +363275,262 @@ function AdminHome() {
     }
     setListType(type);
     setShowTable(true);
-    // Scroll to table
-    setTimeout(function () {
+    requestAnimationFrame(function () {
       if (tableRef.current) {
         tableRef.current.scrollIntoView({
-          behavior: "smooth"
+          behavior: "smooth",
+          block: "start"
         });
+      } else {
+        console.warn("tableRef.current is null, table may not be rendered yet.");
+        setTimeout(function () {
+          if (tableRef.current) {
+            tableRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
+          } else {
+            console.error("tableRef.current is still null after retry.");
+          }
+        }, 500);
       }
-    }, 100); // Small delay to ensure table is rendered
+    });
   };
-  var cardStyles = {
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    textAlign: "center",
-    boxShadow: 3,
-    borderRadius: 2,
-    cursor: "pointer"
-  };
-  var iconStyles = {
-    fontSize: 40,
-    mb: 1
-  };
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
-    sx: {
-      width: "100%",
-      minHeight: "100vh",
-      py: 4
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
-    variant: "h4",
-    align: "center",
-    gutterBottom: true,
-    sx: {
-      mb: 4
-    }
-  }, "Admin Dashboard"), loading ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
-    sx: {
-      display: "flex",
-      justifyContent: "center",
-      py: 4
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], null)) : error ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
-    color: "error",
-    align: "center"
-  }, error) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
-    "in": !loading
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_12__["default"], {
-    xs: 1,
-    md: 2,
-    lg: 4,
-    className: "g-4"
-  }, cardData.map(function (card, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_11__["default"], {
-      key: index
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
-      sx: _objectSpread(_objectSpread({}, cardStyles), {}, {
-        transition: "transform 0.2s",
-        "&:hover": {
-          transform: "scale(1.05)",
-          boxShadow: 6
+  var renderStatCard = function renderStatCard(card, index) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(StatCard, {
+      key: index,
+      sx: {
+        backgroundColor: card.color,
+        padding: "24px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        height: "200px",
+        minHeight: "200px",
+        position: "relative",
+        overflow: "visible",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "linear-gradient(135deg, ".concat(card.color, ", ").concat(card.color.replace(")", ", 0.8)").replace("rgb", "rgba"), ")"),
+          borderRadius: "inherit"
+        },
+        "& > *": {
+          position: "relative",
+          zIndex: 1
         }
-      }),
+      },
       onClick: function onClick() {
         return handleCardClick(card.type);
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().cloneElement(card.icon, {
-      sx: _objectSpread(_objectSpread({}, iconStyles), {}, {
-        color: card.color
-      })
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      variant: "h6",
-      color: "text.secondary"
-    }, card.title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      variant: "h4",
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
       sx: {
-        color: card.color
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        mb: 2
       }
-    }, dashboardData[card.dataKey]))));
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+      variant: "subtitle1",
+      sx: {
+        fontWeight: "700",
+        color: "#FFFFFF",
+        fontSize: "0.95rem",
+        lineHeight: 1.3,
+        flex: 1,
+        pr: 1,
+        fontFamily: "'Inter', sans-serif"
+      }
+    }, card.title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      sx: {
+        width: 48,
+        height: 48,
+        borderRadius: "50%",
+        backgroundColor: "rgba(255, 255, 255, 0.2)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backdropFilter: "blur(10px)"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().cloneElement(card.icon, {
+      sx: {
+        fontSize: 24,
+        color: "#FFFFFF"
+      }
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+      variant: "h2",
+      sx: {
+        fontWeight: "800",
+        color: "#FFFFFF",
+        textAlign: "center",
+        fontSize: "3.5rem",
+        lineHeight: 1,
+        fontFamily: "'Inter', sans-serif",
+        textShadow: "0 2px 4px rgba(0,0,0,0.1)"
+      }
+    }, dashboardData[card.dataKey]), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      sx: {
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        mt: "auto"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+      variant: "body2",
+      sx: {
+        color: "#FFFFFF",
+        fontSize: "0.8rem",
+        display: "inline-flex",
+        alignItems: "center",
+        fontWeight: "600",
+        fontFamily: "'Inter', sans-serif",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          transform: "translateX(4px)"
+        }
+      }
+    }, "View All ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_26__["default"], {
+      sx: {
+        fontSize: 18,
+        ml: 0.5
+      }
+    }))));
+  };
+  if (loading) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      sx: {
+        width: "100%",
+        height: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        bgcolor: "#f9fafb"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+      size: 60,
+      sx: {
+        color: "#1976d2"
+      }
+    }));
+  }
+  if (error) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      sx: {
+        width: "100%",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        bgcolor: "#f9fafb"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+      color: "error",
+      variant: "h6",
+      sx: {
+        mb: 2
+      }
+    }, error), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(Button, {
+      variant: "contained",
+      sx: {
+        background: "linear-gradient(45deg, #1976d2, #2196f3)",
+        padding: "12px 24px",
+        fontWeight: 600,
+        borderRadius: "8px",
+        textTransform: "none",
+        color: "#ffffff",
+        "&:hover": {
+          background: "linear-gradient(45deg, #1565c0, #1976d2)",
+          transform: "scale(1.05)"
+        }
+      },
+      onClick: function onClick() {
+        return window.location.reload();
+      }
+    }, "Retry"));
+  }
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(ErrorBoundary, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     sx: {
-      my: 4
+      width: "100%",
+      minHeight: "100vh",
+      backgroundColor: "#f9fafb",
+      pb: 6
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     sx: {
-      p: 2
+      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      py: 6,
+      mb: 6
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
-    variant: "h6",
-    align: "center",
-    gutterBottom: true
-  }, "Dashboard Overview"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(DashboardChart, {
-    data: dashboardData
-  }))))), showTable && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
-    "in": showTable,
-    style: {
-      width: "100%"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    variant: "h4",
+    sx: {
+      fontWeight: 700,
+      color: "#FFFFFF",
+      textAlign: "center",
+      fontFamily: "'Inter', sans-serif",
+      textShadow: "0 2px 4px rgba(0,0,0,0.1)"
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
+  }, department), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    variant: "h3",
+    sx: {
+      fontWeight: 700,
+      color: "#FFFFFF",
+      textAlign: "center",
+      fontFamily: "'Inter', sans-serif",
+      textShadow: "0 2px 4px rgba(0,0,0,0.1)"
+    }
+  }, "Admin Dashboard"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(SectionContainer, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    variant: "h4",
+    sx: {
+      mb: 4,
+      fontWeight: 600,
+      color: "#2d3748",
+      textAlign: "center",
+      fontFamily: "'Inter', sans-serif"
+    }
+  }, "Dashboard Overview"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(CardGrid, null, cardData.map(function (card, index) {
+    return renderStatCard(card, index);
+  })), showTable && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     ref: tableRef,
     sx: {
-      padding: 2,
-      marginTop: 4,
-      width: "100%"
+      mt: 6
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(StyledCard, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
+    sx: {
+      p: 4
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
     variant: "h5",
-    gutterBottom: true
-  }, "List of ", listType), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_21__["default"], {
+    sx: {
+      mb: 4,
+      fontWeight: 600,
+      color: "#2d3748",
+      fontFamily: "'Inter', sans-serif"
+    }
+  }, "List of ", listType), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_23__["default"], {
     key: listType,
     url: url,
     extraParams: {},
-    actionFunctions: {},
-    Title: listType
-  })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_13___default().createElement(react_toastify__WEBPACK_IMPORTED_MODULE_18__.ToastContainer, null));
+    actionFunctions: actionFunctions,
+    Title: listType,
+    sx: {
+      "& .MuiTable-root": {
+        background: "#ffffff"
+      },
+      "& .MuiTableCell-root": {
+        color: "#2d3748",
+        borderColor: "#e0e0e0"
+      },
+      "& .MuiButton-root": {
+        color: "#1976d2"
+      }
+    }
+  }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_15___default().createElement(react_toastify__WEBPACK_IMPORTED_MODULE_20__.ToastContainer, null)));
 }
 
 /***/ }),
@@ -375333,8 +371582,8 @@ function LoginScreen() {
     setToken = _useContext.setToken,
     setProfile = _useContext.setProfile,
     setUsername = _useContext.setUsername,
-    setVerified = _useContext.setVerified,
-    setDesignation = _useContext.setDesignation;
+    setDesignation = _useContext.setDesignation,
+    setDepartment = _useContext.setDepartment;
   var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_21__.useNavigate)();
   var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
     _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState3, 2),
@@ -375396,6 +371645,7 @@ function LoginScreen() {
             setProfile(response.profile);
             setUsername(response.username);
             setDesignation(response.designation);
+            if (response.department && response.department != "") setDepartment(response.department);
             navigate("/verification");
             _context.next = 7;
             break;
@@ -375873,7 +372123,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-// Function to generate a random CAPTCHA (6 alphanumeric characters)
+// Function to generate a random CAPTCHA
 var generateCaptcha = function generateCaptcha() {
   var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   var captcha = "";
@@ -376000,6 +372250,7 @@ var schema = yup__WEBPACK_IMPORTED_MODULE_13__.object().shape({
   confirmPassword: yup__WEBPACK_IMPORTED_MODULE_13__.string().required("Confirm your password").test("passwords-match", "Passwords do not match", function (value) {
     return value === this.parent.password;
   }),
+  department: yup__WEBPACK_IMPORTED_MODULE_13__.string().required("Department is required"),
   designation: yup__WEBPACK_IMPORTED_MODULE_13__.string().required("Designation is required"),
   District: yup__WEBPACK_IMPORTED_MODULE_13__.string().when("designation", {
     is: function is(designation) {
@@ -376027,55 +372278,150 @@ function OfficerRegisterScreen() {
   var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_11__.useForm)({
       mode: "onChange",
       reValidateMode: "onChange",
-      resolver: (0,_hookform_resolvers_yup__WEBPACK_IMPORTED_MODULE_12__.yupResolver)(schema)
+      resolver: (0,_hookform_resolvers_yup__WEBPACK_IMPORTED_MODULE_12__.yupResolver)(schema),
+      context: {
+        captcha: captcha
+      }
     }),
     handleSubmit = _useForm.handleSubmit,
     getValues = _useForm.getValues,
     control = _useForm.control,
     errors = _useForm.formState.errors,
-    watch = _useForm.watch;
+    watch = _useForm.watch,
+    trigger = _useForm.trigger;
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(generateCaptcha()),
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState, 2),
     captcha = _useState2[0],
     setCaptcha = _useState2[1];
   var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)([]),
     _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState3, 2),
-    designations = _useState4[0],
-    setDesignations = _useState4[1];
+    departments = _useState4[0],
+    setDepartments = _useState4[1];
   var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)([]),
     _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState5, 2),
-    districtOptions = _useState6[0],
-    setDistrictOptions = _useState6[1];
+    designations = _useState6[0],
+    setDesignations = _useState6[1];
   var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)([]),
     _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState7, 2),
-    tehsilOptions = _useState8[0],
-    setTehsilOptions = _useState8[1];
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)({}),
+    districtOptions = _useState8[0],
+    setDistrictOptions = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)([]),
     _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState9, 2),
-    accessLevelMap = _useState0[0],
-    setAccessLevelMap = _useState0[1];
+    tehsilOptions = _useState0[0],
+    setTehsilOptions = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)({}),
+    _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState1, 2),
+    accessLevelMap = _useState10[0],
+    setAccessLevelMap = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
+    _useState12 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState11, 2),
+    isOtpModalOpen = _useState12[0],
+    setIsOtpModalOpen = _useState12[1];
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(null),
+    _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState13, 2),
+    otpType = _useState14[0],
+    setOtpType = _useState14[1]; // 'email' or 'mobile'
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(0),
+    _useState16 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState15, 2),
+    userId = _useState16[0],
+    setUserId = _useState16[1];
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
+    _useState18 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState17, 2),
+    loading = _useState18[0],
+    setLoading = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
+    _useState20 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState19, 2),
+    isEmailOtpSent = _useState20[0],
+    setIsEmailOtpSent = _useState20[1];
+  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
+    _useState22 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState21, 2),
+    isEmailOtpVerified = _useState22[0],
+    setIsEmailOtpVerified = _useState22[1];
+  var _useState23 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
+    _useState24 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState23, 2),
+    isMobileOtpSent = _useState24[0],
+    setIsMobileOtpSent = _useState24[1];
+  var _useState25 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
+    _useState26 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState25, 2),
+    isMobileOtpVerified = _useState26[0],
+    setIsMobileOtpVerified = _useState26[1];
+  var selectedDepartment = watch("department");
   var selectedDesignation = watch("designation");
   var selectedDistrict = watch("District");
-  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
-    _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState1, 2),
-    isOtpModalOpen = _useState10[0],
-    setIsOtpModalOpen = _useState10[1];
-  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(0),
-    _useState12 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState11, 2),
-    userId = _useState12[0],
-    setUserId = _useState12[1];
-  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(false),
-    _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState13, 2),
-    loading = _useState14[0],
-    setLoading = _useState14[1];
+  var emailValue = watch("email");
+  var mobileValue = watch("mobileNumber");
   var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_20__.useNavigate)();
 
-  // Fetch designations and districts on mount
+  // Fetch departments and districts on mount
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
-    (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_17__.fetchDesignation)(setDesignations, setAccessLevelMap);
+    // Fetch departments
+    axios__WEBPACK_IMPORTED_MODULE_19__["default"].get("/Home/GetDepartments").then(function (response) {
+      if (response.data.status) {
+        var departmentOptions = response.data.departments.map(function (dept) {
+          return {
+            label: dept.departmentName,
+            value: dept.departmentId
+          };
+        });
+        setDepartments(departmentOptions);
+      } else {
+        react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Failed to fetch departments", {
+          position: "top-center",
+          autoClose: 3000,
+          theme: "colored"
+        });
+      }
+    })["catch"](function (error) {
+      console.error("Error fetching departments", error);
+      react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Error fetching departments", {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "colored"
+      });
+    });
     (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_17__.fetchDistricts)(setDistrictOptions);
     setCaptcha(generateCaptcha());
   }, []);
+
+  // Fetch designations when department changes
+  (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
+    if (selectedDepartment) {
+      axios__WEBPACK_IMPORTED_MODULE_19__["default"].get("/Home/GetDesignations?deparmentId=".concat(selectedDepartment)).then(function (response) {
+        if (response.data.status) {
+          var designationOptions = response.data.designations.map(function (des) {
+            return {
+              label: des.designation,
+              value: des.designation,
+              accessLevel: des.accessLevel // Assuming accessLevel is returned
+            };
+          });
+          setDesignations(designationOptions);
+          // Update accessLevelMap
+          var newAccessLevelMap = {};
+          designationOptions.forEach(function (des) {
+            newAccessLevelMap[des.value] = des.accessLevel;
+          });
+          setAccessLevelMap(newAccessLevelMap);
+        } else {
+          react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Failed to fetch designations", {
+            position: "top-center",
+            autoClose: 3000,
+            theme: "colored"
+          });
+        }
+      })["catch"](function (error) {
+        console.error("Error fetching designations", error);
+        react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Error fetching designations", {
+          position: "top-center",
+          autoClose: 3000,
+          theme: "colored"
+        });
+      });
+    } else {
+      setDesignations([]);
+      setAccessLevelMap({});
+    }
+  }, [selectedDepartment]);
 
   // Fetch tehsils when district changes
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
@@ -376110,121 +372456,292 @@ function OfficerRegisterScreen() {
     setCaptcha(generateCaptcha());
   };
 
-  // Handle form submission
-  var onSubmit = /*#__PURE__*/function () {
-    var _ref4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee4(data) {
-      var formData, response, _response$data, status, _userId, _t4;
+  // Handle email validation button click
+  var handleEmailValidate = /*#__PURE__*/function () {
+    var _ref4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee4() {
+      var isValid, email, response, _t4;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context4) {
         while (1) switch (_context4.prev = _context4.next) {
           case 0:
+            _context4.next = 1;
+            return trigger("email");
+          case 1:
+            isValid = _context4.sent;
+            if (!(isValid && !errors.email)) {
+              _context4.next = 6;
+              break;
+            }
             setLoading(true);
-            formData = new FormData();
-            Object.entries(data).forEach(function (_ref5) {
-              var _ref6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_ref5, 2),
-                key = _ref6[0],
-                value = _ref6[1];
-              formData.append(key, value);
+            _context4.prev = 2;
+            email = getValues("email");
+            _context4.next = 3;
+            return axios__WEBPACK_IMPORTED_MODULE_19__["default"].get("/Home/SendOtp", {
+              params: {
+                email: email
+              }
             });
-            formData.append("accessLevel", accessLevelMap[selectedDesignation]);
-            formData.append("accessCode", accessLevelMap[selectedDesignation] !== "State" ? accessLevelMap[selectedDesignation].includes("Tehsil") ? data["Tehsil"] : accessLevelMap[selectedDesignation].includes("District") ? data["District"] : data["Division"] : 0);
-            _context4.prev = 1;
-            _context4.next = 2;
-            return axios__WEBPACK_IMPORTED_MODULE_19__["default"].post("/Home/OfficerRegistration", formData);
-          case 2:
+          case 3:
             response = _context4.sent;
-            _response$data = response.data, status = _response$data.status, _userId = _response$data.userId;
-            if (status) {
+            if (response.data.status) {
+              setIsEmailOtpSent(true);
               setIsOtpModalOpen(true);
-              setUserId(_userId);
-            } else {
-              react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Registration failed. Please try again.", {
+              setOtpType("email");
+              setUserId(response.data.userId);
+              react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.success("OTP sent to your email!", {
                 position: "top-center",
-                autoClose: 3000,
-                theme: "colored"
+                autoClose: 3000
+              });
+            } else {
+              react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Failed to send OTP. Please try again.", {
+                position: "top-center",
+                autoClose: 3000
               });
             }
-            _context4.next = 4;
+            _context4.next = 5;
             break;
-          case 3:
-            _context4.prev = 3;
-            _t4 = _context4["catch"](1);
-            console.error("Registration error", _t4);
-            react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("An error occurred. Please try again.", {
-              position: "top-center",
-              autoClose: 3000,
-              theme: "colored"
-            });
           case 4:
             _context4.prev = 4;
-            setLoading(false);
-            setCaptcha(generateCaptcha());
-            return _context4.finish(4);
+            _t4 = _context4["catch"](2);
+            console.error("Error sending OTP to email", _t4);
+            react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Error sending OTP to email.", {
+              position: "top-center",
+              autoClose: 3000
+            });
           case 5:
+            _context4.prev = 5;
+            setLoading(false);
+            return _context4.finish(5);
+          case 6:
           case "end":
             return _context4.stop();
         }
-      }, _callee4, null, [[1, 3, 4, 5]]);
+      }, _callee4, null, [[2, 4, 5, 6]]);
     }));
-    return function onSubmit(_x4) {
+    return function handleEmailValidate() {
       return _ref4.apply(this, arguments);
     };
   }();
 
-  // Handle OTP submission
-  var handleOtpSubmit = /*#__PURE__*/function () {
-    var _ref7 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee5(otp) {
-      var formData, response, _t5;
+  // Handle mobile validation button click
+  var handleMobileValidate = /*#__PURE__*/function () {
+    var _ref5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee5() {
+      var isValid, mobile, response, _t5;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context5) {
         while (1) switch (_context5.prev = _context5.next) {
           case 0:
+            _context5.next = 1;
+            return trigger("mobileNumber");
+          case 1:
+            isValid = _context5.sent;
+            if (!(isValid && !errors.mobileNumber)) {
+              _context5.next = 6;
+              break;
+            }
             setLoading(true);
-            formData = new FormData();
-            formData.append("otp", otp);
-            formData.append("UserId", userId);
-            _context5.prev = 1;
-            _context5.next = 2;
-            return axios__WEBPACK_IMPORTED_MODULE_19__["default"].post("/Home/OTPValidation", formData);
-          case 2:
+            _context5.prev = 2;
+            mobile = getValues("mobileNumber");
+            _context5.next = 3;
+            return axios__WEBPACK_IMPORTED_MODULE_19__["default"].get("/Home/SendMobileOtp", {
+              params: {
+                mobileNumber: mobile
+              }
+            });
+          case 3:
             response = _context5.sent;
             if (response.data.status) {
+              setIsMobileOtpSent(true);
+              setIsOtpModalOpen(true);
+              setOtpType("mobile");
+              setUserId(response.data.userId);
+              react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.success("OTP sent to your mobile number!", {
+                position: "top-center",
+                autoClose: 3000
+              });
+            } else {
+              react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Failed to send OTP. Please try again.", {
+                position: "top-center",
+                autoClose: 3000
+              });
+            }
+            _context5.next = 5;
+            break;
+          case 4:
+            _context5.prev = 4;
+            _t5 = _context5["catch"](2);
+            console.error("Error sending OTP to mobile", _t5);
+            react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Error sending OTP to mobile.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+          case 5:
+            _context5.prev = 5;
+            setLoading(false);
+            return _context5.finish(5);
+          case 6:
+          case "end":
+            return _context5.stop();
+        }
+      }, _callee5, null, [[2, 4, 5, 6]]);
+    }));
+    return function handleMobileValidate() {
+      return _ref5.apply(this, arguments);
+    };
+  }();
+
+  // Handle form submission
+  var onSubmit = /*#__PURE__*/function () {
+    var _ref6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee6(data) {
+      var formData, response, status, _t6;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context6) {
+        while (1) switch (_context6.prev = _context6.next) {
+          case 0:
+            if (isEmailOtpVerified) {
+              _context6.next = 1;
+              break;
+            }
+            react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Please verify email OTP before registering.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+            return _context6.abrupt("return");
+          case 1:
+            if (isMobileOtpVerified) {
+              _context6.next = 2;
+              break;
+            }
+            react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Please verify mobile OTP before registering.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+            return _context6.abrupt("return");
+          case 2:
+            setLoading(true);
+            formData = new FormData();
+            Object.entries(data).forEach(function (_ref7) {
+              var _ref8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_ref7, 2),
+                key = _ref8[0],
+                value = _ref8[1];
+              formData.append(key, value);
+            });
+            formData.append("accessLevel", accessLevelMap[selectedDesignation]);
+            formData.append("accessCode", accessLevelMap[selectedDesignation] !== "State" ? accessLevelMap[selectedDesignation].includes("Tehsil") ? data["Tehsil"] : accessLevelMap[selectedDesignation].includes("District") ? data["District"] : data["Division"] : 0);
+            _context6.prev = 3;
+            _context6.next = 4;
+            return axios__WEBPACK_IMPORTED_MODULE_19__["default"].post("/Home/OfficerRegistration", formData);
+          case 4:
+            response = _context6.sent;
+            status = response.data.status;
+            if (status) {
               react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.success("Registration successful! Redirecting to login...", {
                 position: "top-center",
-                autoClose: 2000,
-                theme: "colored"
+                autoClose: 2000
               });
               setTimeout(function () {
                 return navigate("/login");
               }, 2000);
             } else {
-              react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Invalid OTP. Please try again.", {
+              react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Registration failed. Please try again.", {
                 position: "top-center",
-                autoClose: 3000,
-                theme: "colored"
+                autoClose: 3000
               });
             }
-            _context5.next = 4;
+            _context6.next = 6;
             break;
-          case 3:
-            _context5.prev = 3;
-            _t5 = _context5["catch"](1);
-            console.error("OTP validation error", _t5);
-            react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Error validating OTP. Please try again.", {
-              position: "top-center",
-              autoClose: 3000,
-              theme: "colored"
-            });
-          case 4:
-            _context5.prev = 4;
-            setLoading(false);
-            return _context5.finish(4);
           case 5:
+            _context6.prev = 5;
+            _t6 = _context6["catch"](3);
+            console.error("Registration error", _t6);
+            react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("An error occurred. Please try again.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+          case 6:
+            _context6.prev = 6;
+            setLoading(false);
+            setCaptcha(generateCaptcha());
+            return _context6.finish(6);
+          case 7:
           case "end":
-            return _context5.stop();
+            return _context6.stop();
         }
-      }, _callee5, null, [[1, 3, 4, 5]]);
+      }, _callee6, null, [[3, 5, 6, 7]]);
+    }));
+    return function onSubmit(_x4) {
+      return _ref6.apply(this, arguments);
+    };
+  }();
+
+  // Handle OTP submission
+  var handleOtpSubmit = /*#__PURE__*/function () {
+    var _ref9 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee7(otp) {
+      var formData, response, _t7;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context7) {
+        while (1) switch (_context7.prev = _context7.next) {
+          case 0:
+            console.log("handleOtpSubmit called with OTP:", otp, "Type:", otpType);
+            if (otp) {
+              _context7.next = 1;
+              break;
+            }
+            react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Please enter an OTP.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+            return _context7.abrupt("return");
+          case 1:
+            setLoading(true);
+            formData = new FormData();
+            formData.append("otp", otp);
+            if (otpType === "email") {
+              formData.append("email", getValues("email"));
+            } else if (otpType === "mobile") {
+              formData.append("mobileNumber", getValues("mobileNumber"));
+            }
+            _context7.prev = 2;
+            _context7.next = 3;
+            return axios__WEBPACK_IMPORTED_MODULE_19__["default"].post(otpType === "email" ? "/Home/OTPValidation" : "/Home/MobileOTPValidation", formData);
+          case 3:
+            response = _context7.sent;
+            if (response.data.status) {
+              if (otpType === "email") {
+                setIsEmailOtpVerified(true);
+              } else if (otpType === "mobile") {
+                setIsMobileOtpVerified(true);
+              }
+              setIsOtpModalOpen(false);
+              setOtpType(null);
+              react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.success("".concat(otpType === "email" ? "Email" : "Mobile", " OTP verified successfully!"), {
+                position: "top-center",
+                autoClose: 2000
+              });
+            } else {
+              react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Invalid OTP. Please try again.", {
+                position: "top-center",
+                autoClose: 3000
+              });
+            }
+            _context7.next = 5;
+            break;
+          case 4:
+            _context7.prev = 4;
+            _t7 = _context7["catch"](2);
+            console.error("".concat(otpType === "email" ? "Email" : "Mobile", " OTP validation error"), _t7);
+            react_toastify__WEBPACK_IMPORTED_MODULE_21__.toast.error("Error validating ".concat(otpType === "email" ? "email" : "mobile", " OTP."), {
+              position: "top-center",
+              autoClose: 3000
+            });
+          case 5:
+            _context7.prev = 5;
+            setLoading(false);
+            return _context7.finish(5);
+          case 6:
+          case "end":
+            return _context7.stop();
+        }
+      }, _callee7, null, [[2, 4, 5, 6]]);
     }));
     return function handleOtpSubmit(_x5) {
-      return _ref7.apply(this, arguments);
+      return _ref9.apply(this, arguments);
     };
   }();
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
@@ -376289,7 +372806,13 @@ function OfficerRegisterScreen() {
     xs: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomInputField__WEBPACK_IMPORTED_MODULE_14__["default"], {
     name: "fullName",
-    label: "Full Name",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Full Name ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     control: control,
     errors: errors,
     disabled: loading
@@ -376297,7 +372820,13 @@ function OfficerRegisterScreen() {
     xs: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomInputField__WEBPACK_IMPORTED_MODULE_14__["default"], {
     name: "username",
-    label: "Username",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Username ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     control: control,
     errors: errors,
     disabled: loading
@@ -376305,26 +372834,78 @@ function OfficerRegisterScreen() {
     xs: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomInputField__WEBPACK_IMPORTED_MODULE_14__["default"], {
     name: "email",
-    label: "Email",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Email ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     type: "email",
     control: control,
     errors: errors,
-    disabled: loading
+    disabled: loading || isEmailOtpVerified
+  }), isEmailOtpVerified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    variant: "subtitle2",
+    color: "success",
+    fontWeight: "bold",
+    sx: {
+      mt: 1
+    }
+  }, "Verified"), !isEmailOtpVerified && emailValue && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_CustomButton__WEBPACK_IMPORTED_MODULE_16__["default"], {
+    text: "Validate Email",
+    bgColor: "primary.main",
+    color: "white",
+    width: "100%",
+    disabled: loading,
+    onClick: handleEmailValidate,
+    sx: {
+      mt: 1
+    }
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_23__["default"], {
     xs: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomInputField__WEBPACK_IMPORTED_MODULE_14__["default"], {
     name: "mobileNumber",
-    label: "Mobile Number",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Mobile Number ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     type: "tel",
     control: control,
     errors: errors,
     maxLength: 10,
-    disabled: loading
+    disabled: loading || isMobileOtpVerified
+  }), isMobileOtpVerified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    variant: "subtitle2",
+    color: "success",
+    fontWeight: "bold",
+    sx: {
+      mt: 1
+    }
+  }, "Verified"), !isMobileOtpVerified && mobileValue && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_CustomButton__WEBPACK_IMPORTED_MODULE_16__["default"], {
+    text: "Validate Mobile",
+    bgColor: "primary.main",
+    color: "white",
+    width: "100%",
+    disabled: loading,
+    onClick: handleMobileValidate,
+    sx: {
+      mt: 1
+    }
   }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_23__["default"], {
     xs: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomInputField__WEBPACK_IMPORTED_MODULE_14__["default"], {
     name: "password",
-    label: "Password",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Password ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     type: "password",
     control: control,
     errors: errors,
@@ -376333,7 +372914,13 @@ function OfficerRegisterScreen() {
     xs: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomInputField__WEBPACK_IMPORTED_MODULE_14__["default"], {
     name: "confirmPassword",
-    label: "Confirm Password",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Confirm Password ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     type: "password",
     control: control,
     errors: errors,
@@ -376341,17 +372928,45 @@ function OfficerRegisterScreen() {
   }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_23__["default"], {
     xs: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomSelectField__WEBPACK_IMPORTED_MODULE_15__["default"], {
-    label: "Designation",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Department ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
+    name: "department",
+    control: control,
+    placeholder: "Select Department",
+    options: departments,
+    errors: errors,
+    disabled: loading
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_23__["default"], {
+    xs: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomSelectField__WEBPACK_IMPORTED_MODULE_15__["default"], {
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Designation ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     name: "designation",
     control: control,
     placeholder: "Select Designation",
     options: designations,
     errors: errors,
-    disabled: loading
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_23__["default"], {
+    disabled: loading || !selectedDepartment
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_23__["default"], {
     xs: 6
   }, (accessLevelMap[selectedDesignation] === "District" || accessLevelMap[selectedDesignation] === "Tehsil") && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomSelectField__WEBPACK_IMPORTED_MODULE_15__["default"], {
-    label: "District",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "District ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     name: "District",
     control: control,
     placeholder: "Select District",
@@ -376359,7 +372974,13 @@ function OfficerRegisterScreen() {
     errors: errors,
     disabled: loading
   }), accessLevelMap[selectedDesignation] === "Division" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomSelectField__WEBPACK_IMPORTED_MODULE_15__["default"], {
-    label: "Division",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Division ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     name: "Division",
     control: control,
     placeholder: "Select Division",
@@ -376375,7 +372996,13 @@ function OfficerRegisterScreen() {
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_23__["default"], {
     xs: 6
   }, accessLevelMap[selectedDesignation] === "Tehsil" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomSelectField__WEBPACK_IMPORTED_MODULE_15__["default"], {
-    label: "TSWO Office",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "TSWO Office ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     name: "Tehsil",
     control: control,
     placeholder: "Select Tehsil",
@@ -376457,7 +373084,13 @@ function OfficerRegisterScreen() {
     },
     "aria-label": "Refresh CAPTCHA"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_icons_material_Refresh__WEBPACK_IMPORTED_MODULE_10__["default"], null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_form_CustomInputField__WEBPACK_IMPORTED_MODULE_14__["default"], {
-    label: "Enter CAPTCHA",
+    label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      component: "span"
+    }, "Enter CAPTCHA ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement("span", {
+      style: {
+        color: "red"
+      }
+    }, "*")),
     name: "captcha",
     control: control,
     placeholder: "Enter the CAPTCHA code",
@@ -376470,7 +373103,7 @@ function OfficerRegisterScreen() {
     color: "background.default",
     type: "submit",
     width: "50%",
-    disabled: loading,
+    disabled: loading || !isEmailOtpVerified || !isMobileOtpVerified,
     startIcon: loading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
       size: 20,
       color: "inherit"
@@ -376508,9 +373141,11 @@ function OfficerRegisterScreen() {
   }, "Sign In"))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3___default().createElement(_components_OtpModal__WEBPACK_IMPORTED_MODULE_18__["default"], {
     open: isOtpModalOpen,
     onClose: function onClose() {
-      return setIsOtpModalOpen(false);
+      setIsOtpModalOpen(false);
+      setOtpType(null);
     },
     onSubmit: handleOtpSubmit,
+    title: "Enter ".concat(otpType === "email" ? "Email" : "Mobile", " OTP"),
     "aria-labelledby": "otp-modal-title",
     sx: {
       maxWidth: 400,
@@ -376546,20 +373181,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Container/Container.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/IconButton/IconButton.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Link/Link.js");
-/* harmony import */ var _mui_icons_material_Refresh__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/icons-material/Refresh */ "./node_modules/@mui/icons-material/esm/Refresh.js");
-/* harmony import */ var react_hook_form__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! react-hook-form */ "./node_modules/react-hook-form/dist/index.esm.mjs");
-/* harmony import */ var _components_CustomButton__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../../components/CustomButton */ "./src/components/CustomButton.jsx");
-/* harmony import */ var _components_OtpModal__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../../components/OtpModal */ "./src/components/OtpModal.jsx");
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
-/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router/dist/index.js");
-/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! react-toastify */ "./node_modules/react-toastify/dist/index.mjs");
-/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! react-toastify/dist/ReactToastify.css */ "./node_modules/react-toastify/dist/ReactToastify.css");
-/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Col.js");
-/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Row.js");
-/* harmony import */ var _assets_fetch__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../../assets/fetch */ "./src/assets/fetch.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControl/FormControl.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/InputLabel/InputLabel.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Select/Select.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/IconButton/IconButton.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Link/Link.js");
+/* harmony import */ var _mui_icons_material_Refresh__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/icons-material/Refresh */ "./node_modules/@mui/icons-material/esm/Refresh.js");
+/* harmony import */ var react_hook_form__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! react-hook-form */ "./node_modules/react-hook-form/dist/index.esm.mjs");
+/* harmony import */ var _components_CustomButton__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../../components/CustomButton */ "./src/components/CustomButton.jsx");
+/* harmony import */ var _components_OtpModal__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../../components/OtpModal */ "./src/components/OtpModal.jsx");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router/dist/index.js");
+/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! react-toastify */ "./node_modules/react-toastify/dist/index.mjs");
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! react-toastify/dist/ReactToastify.css */ "./node_modules/react-toastify/dist/ReactToastify.css");
+/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Col.js");
+/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Row.js");
+/* harmony import */ var _assets_fetch__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ../../assets/fetch */ "./src/assets/fetch.js");
 
 
 
@@ -376592,7 +373231,7 @@ function RegisterScreen() {
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState, 2),
     captcha = _useState2[0],
     setCaptcha = _useState2[1];
-  var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_13__.useForm)({
+  var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_17__.useForm)({
       mode: "onChange",
       reValidateMode: "onChange",
       defaultValues: {
@@ -376620,39 +373259,51 @@ function RegisterScreen() {
     _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState3, 2),
     isOtpModalOpen = _useState4[0],
     setIsOtpModalOpen = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(0),
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
     _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState5, 2),
-    userId = _useState6[0],
-    setUserId = _useState6[1];
-  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    otpType = _useState6[0],
+    setOtpType = _useState6[1]; // 'email' or 'mobile'
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(0),
     _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState7, 2),
-    loading = _useState8[0],
-    setLoading = _useState8[1];
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
+    userId = _useState8[0],
+    setUserId = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
     _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState9, 2),
-    districtOptions = _useState0[0],
-    setDistrictOptions = _useState0[1];
+    loading = _useState0[0],
+    setLoading = _useState0[1];
   var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
     _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState1, 2),
-    tehsilOptions = _useState10[0],
-    setTehsilOptions = _useState10[1];
-  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    districtOptions = _useState10[0],
+    setDistrictOptions = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
     _useState12 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState11, 2),
-    isOtpSent = _useState12[0],
-    setIsOtpSent = _useState12[1];
+    tehsilOptions = _useState12[0],
+    setTehsilOptions = _useState12[1];
   var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
     _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState13, 2),
-    isOtpVerified = _useState14[0],
-    setIsOtpVerified = _useState14[1];
+    isEmailOtpSent = _useState14[0],
+    setIsEmailOtpSent = _useState14[1];
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState16 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState15, 2),
+    isEmailOtpVerified = _useState16[0],
+    setIsEmailOtpVerified = _useState16[1];
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState18 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState17, 2),
+    isMobileOtpSent = _useState18[0],
+    setIsMobileOtpSent = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState20 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState19, 2),
+    isMobileOtpVerified = _useState20[0],
+    setIsMobileOtpVerified = _useState20[1];
   var selectedDistrict = watch("District");
-  var emailValue = watch("email"); // Watch email field for conditional rendering
-
-  var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_17__.useNavigate)();
+  var emailValue = watch("email");
+  var mobileValue = watch("mobileNumber");
+  var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_21__.useNavigate)();
 
   // Debug OtpModal state
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
-    console.log("OtpModal open state:", isOtpModalOpen);
-  }, [isOtpModalOpen]);
+    console.log("OtpModal open state:", isOtpModalOpen, "OTP Type:", otpType);
+  }, [isOtpModalOpen, otpType]);
 
   // Reset captcha field when captcha state changes
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
@@ -376662,13 +373313,13 @@ function RegisterScreen() {
 
   // Fetch districts on mount
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
-    (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_22__.fetchDistricts)(setDistrictOptions);
+    (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_26__.fetchDistricts)(setDistrictOptions);
   }, []);
 
   // Fetch tehsils when district changes
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
     if (selectedDistrict) {
-      axios__WEBPACK_IMPORTED_MODULE_16__["default"].get("/Base/GetTeshilForDistrict?districtId=".concat(selectedDistrict)).then(function (response) {
+      axios__WEBPACK_IMPORTED_MODULE_20__["default"].get("/Base/GetTeshilForDistrict?districtId=".concat(selectedDistrict)).then(function (response) {
         if (response.data.status) {
           var tehsilOptionsFormatted = response.data.tehsils.map(function (tehsil) {
             return {
@@ -376678,7 +373329,7 @@ function RegisterScreen() {
           });
           setTehsilOptions(tehsilOptionsFormatted);
         } else {
-          react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Failed to fetch tehsils", {
+          react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Failed to fetch tehsils", {
             position: "top-center",
             autoClose: 3000,
             theme: "colored"
@@ -376686,7 +373337,7 @@ function RegisterScreen() {
         }
       })["catch"](function (error) {
         console.error("Error fetching tehsils", error);
-        react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Error fetching tehsils", {
+        react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Error fetching tehsils", {
           position: "top-center",
           autoClose: 3000,
           theme: "colored"
@@ -376706,103 +373357,109 @@ function RegisterScreen() {
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context) {
         while (1) switch (_context.prev = _context.next) {
           case 0:
-            _context.next = 1;
-            return trigger("email");
+            if (emailValue) {
+              _context.next = 1;
+              break;
+            }
+            setIsEmailOtpVerified(true); // Skip OTP if email is empty
+            return _context.abrupt("return");
           case 1:
+            _context.next = 2;
+            return trigger("email");
+          case 2:
             isValid = _context.sent;
             if (!(isValid && !errors.email)) {
-              _context.next = 6;
+              _context.next = 7;
               break;
             }
             setLoading(true);
-            _context.prev = 2;
+            _context.prev = 3;
             email = getValues("email");
-            _context.next = 3;
-            return axios__WEBPACK_IMPORTED_MODULE_16__["default"].get("/Home/SendOtp", {
+            _context.next = 4;
+            return axios__WEBPACK_IMPORTED_MODULE_20__["default"].get("/Home/SendOtp", {
               params: {
                 email: email
               }
             });
-          case 3:
+          case 4:
             response = _context.sent;
             if (response.data.status) {
-              setIsOtpSent(true);
+              setIsEmailOtpSent(true);
               setIsOtpModalOpen(true);
+              setOtpType("email");
               setUserId(response.data.userId);
-              react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.success("OTP sent to your email!", {
+              react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.success("OTP sent to your email!", {
                 position: "top-center",
                 autoClose: 3000
               });
             } else {
-              react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Failed to send OTP. Please try again.", {
+              react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Failed to send OTP. Please try again.", {
                 position: "top-center",
                 autoClose: 3000
               });
             }
-            _context.next = 5;
+            _context.next = 6;
             break;
-          case 4:
-            _context.prev = 4;
-            _t = _context["catch"](2);
-            console.error("Error sending OTP", _t);
-            react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Error sending OTP.", {
+          case 5:
+            _context.prev = 5;
+            _t = _context["catch"](3);
+            console.error("Error sending OTP to email", _t);
+            react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Error sending OTP to email.", {
               position: "top-center",
               autoClose: 3000
             });
-          case 5:
-            _context.prev = 5;
-            setLoading(false);
-            return _context.finish(5);
           case 6:
+            _context.prev = 6;
+            setLoading(false);
+            return _context.finish(6);
+          case 7:
           case "end":
             return _context.stop();
         }
-      }, _callee, null, [[2, 4, 5, 6]]);
+      }, _callee, null, [[3, 5, 6, 7]]);
     }));
     return function handleEmailValidate() {
       return _ref.apply(this, arguments);
     };
   }();
-  var onSubmit = /*#__PURE__*/function () {
-    var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2(data) {
-      var formData, response, status, _t2;
+
+  // Handle mobile validation button click
+  var handleMobileValidate = /*#__PURE__*/function () {
+    var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2() {
+      var isValid, mobile, response, _t2;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            if (isOtpVerified) {
-              _context2.next = 1;
+            _context2.next = 1;
+            return trigger("mobileNumber");
+          case 1:
+            isValid = _context2.sent;
+            if (!(isValid && !errors.mobileNumber)) {
+              _context2.next = 6;
               break;
             }
-            react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Please verify OTP before registering.", {
-              position: "top-center",
-              autoClose: 3000
-            });
-            return _context2.abrupt("return");
-          case 1:
             setLoading(true);
-            formData = new FormData();
-            Object.entries(data).forEach(function (_ref3) {
-              var _ref4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_ref3, 2),
-                key = _ref4[0],
-                value = _ref4[1];
-              return formData.append(key, value);
-            });
             _context2.prev = 2;
+            mobile = getValues("email");
             _context2.next = 3;
-            return axios__WEBPACK_IMPORTED_MODULE_16__["default"].post("/Home/Register", formData);
+            return axios__WEBPACK_IMPORTED_MODULE_20__["default"].get("/Home/SendOtp", {
+              params: {
+                email: mobile
+              }
+            });
           case 3:
             response = _context2.sent;
-            status = response.data.status;
-            if (status) {
-              react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.success("Registration successful! Redirecting to login...", {
+            if (response.data.status) {
+              setIsMobileOtpSent(true);
+              setIsOtpModalOpen(true);
+              setOtpType("mobile");
+              setUserId(response.data.userId);
+              react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.success("OTP sent to your mobile number!", {
                 position: "top-center",
-                autoClose: 2000
+                autoClose: 3000
               });
-              setTimeout(function () {
-                return navigate("/login");
-              }, 2000);
             } else {
-              react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Registration failed. Please try again.", {
+              react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Failed to send OTP. Please try again.", {
                 position: "top-center",
                 autoClose: 3000
               });
@@ -376812,15 +373469,14 @@ function RegisterScreen() {
           case 4:
             _context2.prev = 4;
             _t2 = _context2["catch"](2);
-            console.error("Registration error", _t2);
-            react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("An error occurred during registration.", {
+            console.error("Error sending OTP to mobile", _t2);
+            react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Error sending OTP to mobile.", {
               position: "top-center",
               autoClose: 3000
             });
           case 5:
             _context2.prev = 5;
             setLoading(false);
-            handleRefreshCaptcha();
             return _context2.finish(5);
           case 6:
           case "end":
@@ -376828,72 +373484,159 @@ function RegisterScreen() {
         }
       }, _callee2, null, [[2, 4, 5, 6]]);
     }));
-    return function onSubmit(_x) {
+    return function handleMobileValidate() {
       return _ref2.apply(this, arguments);
     };
   }();
-  var handleOtpSubmit = /*#__PURE__*/function () {
-    var _ref5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee3(otp) {
-      var formData, email, response, _t3;
+  var onSubmit = /*#__PURE__*/function () {
+    var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee3(data) {
+      var formData, response, status, _t3;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context3) {
         while (1) switch (_context3.prev = _context3.next) {
           case 0:
-            console.log("handleOtpSubmit called with OTP:", otp);
-            if (otp) {
+            if (!(emailValue && !isEmailOtpVerified)) {
               _context3.next = 1;
               break;
             }
-            react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Please enter an OTP.", {
+            react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Please verify email OTP before registering.", {
               position: "top-center",
               autoClose: 3000
             });
             return _context3.abrupt("return");
           case 1:
+            if (isMobileOtpVerified) {
+              _context3.next = 2;
+              break;
+            }
+            react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Please verify mobile OTP before registering.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+            return _context3.abrupt("return");
+          case 2:
             setLoading(true);
             formData = new FormData();
-            email = getValues("email");
-            formData.append("otp", otp);
-            formData.append("email", email);
-            _context3.prev = 2;
-            _context3.next = 3;
-            return axios__WEBPACK_IMPORTED_MODULE_16__["default"].post("/Home/OTPValidation", formData);
-          case 3:
+            Object.entries(data).forEach(function (_ref4) {
+              var _ref5 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_ref4, 2),
+                key = _ref5[0],
+                value = _ref5[1];
+              return formData.append(key, value);
+            });
+            _context3.prev = 3;
+            _context3.next = 4;
+            return axios__WEBPACK_IMPORTED_MODULE_20__["default"].post("/Home/Register", formData);
+          case 4:
             response = _context3.sent;
-            if (response.data.status) {
-              setIsOtpVerified(true);
-              setIsOtpModalOpen(false);
-              react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.success("OTP verified successfully!", {
+            status = response.data.status;
+            if (status) {
+              react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.success("Registration successful! Redirecting to login...", {
                 position: "top-center",
                 autoClose: 2000
               });
+              setTimeout(function () {
+                return navigate("/login");
+              }, 2000);
             } else {
-              react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Invalid OTP. Please try again.", {
+              react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Registration failed. Please try again.", {
                 position: "top-center",
                 autoClose: 3000
               });
             }
-            _context3.next = 5;
+            _context3.next = 6;
+            break;
+          case 5:
+            _context3.prev = 5;
+            _t3 = _context3["catch"](3);
+            console.error("Registration error", _t3);
+            react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("An error occurred during registration.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+          case 6:
+            _context3.prev = 6;
+            setLoading(false);
+            handleRefreshCaptcha();
+            return _context3.finish(6);
+          case 7:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3, null, [[3, 5, 6, 7]]);
+    }));
+    return function onSubmit(_x) {
+      return _ref3.apply(this, arguments);
+    };
+  }();
+  var handleOtpSubmit = /*#__PURE__*/function () {
+    var _ref6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee4(otp) {
+      var formData, response, _t4;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            console.log("handleOtpSubmit called with OTP:", otp, "Type:", otpType);
+            if (otp) {
+              _context4.next = 1;
+              break;
+            }
+            react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Please enter an OTP.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+            return _context4.abrupt("return");
+          case 1:
+            setLoading(true);
+            formData = new FormData();
+            formData.append("otp", otp);
+            if (otpType === "email") {
+              formData.append("email", getValues("email"));
+            } else if (otpType === "mobile") {
+              formData.append("email", getValues("email"));
+            }
+            _context4.prev = 2;
+            _context4.next = 3;
+            return axios__WEBPACK_IMPORTED_MODULE_20__["default"].post(otpType === "email" ? "/Home/OTPValidation" : "/Home/OTPValidation", formData);
+          case 3:
+            response = _context4.sent;
+            if (response.data.status) {
+              if (otpType === "email") {
+                setIsEmailOtpVerified(true);
+              } else if (otpType === "mobile") {
+                setIsMobileOtpVerified(true);
+              }
+              setIsOtpModalOpen(false);
+              setOtpType(null);
+              react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.success("".concat(otpType === "email" ? "Email" : "Mobile", " OTP verified successfully!"), {
+                position: "top-center",
+                autoClose: 2000
+              });
+            } else {
+              react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Invalid OTP. Please try again.", {
+                position: "top-center",
+                autoClose: 3000
+              });
+            }
+            _context4.next = 5;
             break;
           case 4:
-            _context3.prev = 4;
-            _t3 = _context3["catch"](2);
-            console.error("OTP validation error", _t3);
-            react_toastify__WEBPACK_IMPORTED_MODULE_18__.toast.error("Error validating OTP.", {
+            _context4.prev = 4;
+            _t4 = _context4["catch"](2);
+            console.error("".concat(otpType === "email" ? "Email" : "Mobile", " OTP validation error"), _t4);
+            react_toastify__WEBPACK_IMPORTED_MODULE_22__.toast.error("Error validating ".concat(otpType === "email" ? "email" : "mobile", " OTP."), {
               position: "top-center",
               autoClose: 3000
             });
           case 5:
-            _context3.prev = 5;
+            _context4.prev = 5;
             setLoading(false);
-            return _context3.finish(5);
+            return _context4.finish(5);
           case 6:
           case "end":
-            return _context3.stop();
+            return _context4.stop();
         }
-      }, _callee3, null, [[2, 4, 5, 6]]);
+      }, _callee4, null, [[2, 4, 5, 6]]);
     }));
     return function handleOtpSubmit(_x2) {
-      return _ref5.apply(this, arguments);
+      return _ref6.apply(this, arguments);
     };
   }();
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement((react__WEBPACK_IMPORTED_MODULE_4___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
@@ -376939,9 +373682,9 @@ function RegisterScreen() {
       flexDirection: "column",
       gap: 2
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_21__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_20__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_25__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
     xs: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_13__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "fullName",
     control: control,
     rules: {
@@ -376951,11 +373694,17 @@ function RegisterScreen() {
         message: "Full Name must be at least 5 characters"
       }
     },
-    render: function render(_ref6) {
-      var field = _ref6.field,
-        error = _ref6.fieldState.error;
+    render: function render(_ref7) {
+      var field = _ref7.field,
+        error = _ref7.fieldState.error;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "Full Name",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          component: "span"
+        }, "Full Name ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         variant: "outlined",
         fullWidth: true,
         disabled: loading,
@@ -376967,9 +373716,9 @@ function RegisterScreen() {
         "aria-label": "Full Name"
       }));
     }
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_20__["default"], {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
     xs: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_13__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "username",
     control: control,
     rules: {
@@ -376979,36 +373728,36 @@ function RegisterScreen() {
         message: "Username must be at least 5 characters"
       },
       validate: function () {
-        var _validate = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee4(value) {
-          var _res$data, res, _t4;
-          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context4) {
-            while (1) switch (_context4.prev = _context4.next) {
+        var _validate = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee5(value) {
+          var _res$data, res, _t5;
+          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context5) {
+            while (1) switch (_context5.prev = _context5.next) {
               case 0:
                 if (value) {
-                  _context4.next = 1;
+                  _context5.next = 1;
                   break;
                 }
-                return _context4.abrupt("return", "Username is required");
+                return _context5.abrupt("return", "Username is required");
               case 1:
-                _context4.prev = 1;
-                _context4.next = 2;
-                return axios__WEBPACK_IMPORTED_MODULE_16__["default"].get("/Home/CheckUsername", {
+                _context5.prev = 1;
+                _context5.next = 2;
+                return axios__WEBPACK_IMPORTED_MODULE_20__["default"].get("/Home/CheckUsername", {
                   params: {
                     username: value
                   }
                 });
               case 2:
-                res = _context4.sent;
-                return _context4.abrupt("return", ((_res$data = res.data) === null || _res$data === void 0 ? void 0 : _res$data.isUnique) || "Username already exists");
+                res = _context5.sent;
+                return _context5.abrupt("return", ((_res$data = res.data) === null || _res$data === void 0 ? void 0 : _res$data.isUnique) || "Username already exists");
               case 3:
-                _context4.prev = 3;
-                _t4 = _context4["catch"](1);
-                return _context4.abrupt("return", "Error checking username");
+                _context5.prev = 3;
+                _t5 = _context5["catch"](1);
+                return _context5.abrupt("return", "Error checking username");
               case 4:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
-          }, _callee4, null, [[1, 3]]);
+          }, _callee5, null, [[1, 3]]);
         }));
         function validate(_x3) {
           return _validate.apply(this, arguments);
@@ -377016,11 +373765,17 @@ function RegisterScreen() {
         return validate;
       }()
     },
-    render: function render(_ref7) {
-      var field = _ref7.field,
-        error = _ref7.fieldState.error;
+    render: function render(_ref8) {
+      var field = _ref8.field,
+        error = _ref8.fieldState.error;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "Username",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          component: "span"
+        }, "Username ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         variant: "outlined",
         fullWidth: true,
         disabled: loading,
@@ -377032,7 +373787,7 @@ function RegisterScreen() {
         "aria-label": "Username"
       }));
     }
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_21__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_20__["default"], {
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_25__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
     xs: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
     sx: {
@@ -377040,47 +373795,46 @@ function RegisterScreen() {
       alignItems: "center",
       gap: 1
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_13__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "email",
     control: control,
     rules: {
-      required: "Email is required",
       pattern: {
         value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         message: "Invalid email format"
       },
       validate: function () {
-        var _validate2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee5(value) {
-          var _res$data2, res, _t5;
-          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context5) {
-            while (1) switch (_context5.prev = _context5.next) {
+        var _validate2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee6(value) {
+          var _res$data2, res, _t6;
+          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context6) {
+            while (1) switch (_context6.prev = _context6.next) {
               case 0:
                 if (value) {
-                  _context5.next = 1;
+                  _context6.next = 1;
                   break;
                 }
-                return _context5.abrupt("return", "Email is required");
+                return _context6.abrupt("return", true);
               case 1:
-                _context5.prev = 1;
-                _context5.next = 2;
-                return axios__WEBPACK_IMPORTED_MODULE_16__["default"].get("/Home/CheckEmail", {
+                _context6.prev = 1;
+                _context6.next = 2;
+                return axios__WEBPACK_IMPORTED_MODULE_20__["default"].get("/Home/CheckEmail", {
                   params: {
                     email: value,
                     UserType: "Citizen"
                   }
                 });
               case 2:
-                res = _context5.sent;
-                return _context5.abrupt("return", ((_res$data2 = res.data) === null || _res$data2 === void 0 ? void 0 : _res$data2.isUnique) || "Email already exists");
+                res = _context6.sent;
+                return _context6.abrupt("return", ((_res$data2 = res.data) === null || _res$data2 === void 0 ? void 0 : _res$data2.isUnique) || "Email already exists");
               case 3:
-                _context5.prev = 3;
-                _t5 = _context5["catch"](1);
-                return _context5.abrupt("return", "Error checking email");
+                _context6.prev = 3;
+                _t6 = _context6["catch"](1);
+                return _context6.abrupt("return", "Error checking email");
               case 4:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
-          }, _callee5, null, [[1, 3]]);
+          }, _callee6, null, [[1, 3]]);
         }));
         function validate(_x4) {
           return _validate2.apply(this, arguments);
@@ -377088,15 +373842,15 @@ function RegisterScreen() {
         return validate;
       }()
     },
-    render: function render(_ref8) {
-      var field = _ref8.field,
-        error = _ref8.fieldState.error;
+    render: function render(_ref9) {
+      var field = _ref9.field,
+        error = _ref9.fieldState.error;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         label: "Email",
         type: "email",
         variant: "outlined",
         fullWidth: true,
-        disabled: loading || isOtpVerified,
+        disabled: loading || isEmailOtpVerified,
         error: !!error,
         helperText: error ? error.message : "",
         sx: {
@@ -377106,11 +373860,11 @@ function RegisterScreen() {
         "aria-label": "Email"
       }));
     }
-  }), isOtpVerified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+  }), isEmailOtpVerified && emailValue && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     variant: "subtitle2",
     color: "success",
     fontWeight: "bold"
-  }, "Verified")), !isOtpVerified && !errors.email && emailValue && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_CustomButton__WEBPACK_IMPORTED_MODULE_14__["default"], {
+  }, "Verified")), !isEmailOtpVerified && emailValue && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_CustomButton__WEBPACK_IMPORTED_MODULE_18__["default"], {
     text: "Validate Email",
     bgColor: "primary.main",
     color: "white",
@@ -377120,9 +373874,15 @@ function RegisterScreen() {
     sx: {
       mb: 2
     }
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_20__["default"], {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
     xs: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_13__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    sx: {
+      display: "flex",
+      alignItems: "center",
+      gap: 1
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "mobileNumber",
     control: control,
     rules: {
@@ -377132,37 +373892,37 @@ function RegisterScreen() {
         message: "Enter 10 digit number"
       },
       validate: function () {
-        var _validate3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee6(value) {
-          var _res$data3, res, _t6;
-          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context6) {
-            while (1) switch (_context6.prev = _context6.next) {
+        var _validate3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee7(value) {
+          var _res$data3, res, _t7;
+          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context7) {
+            while (1) switch (_context7.prev = _context7.next) {
               case 0:
                 if (value) {
-                  _context6.next = 1;
+                  _context7.next = 1;
                   break;
                 }
-                return _context6.abrupt("return", "Mobile Number is required");
+                return _context7.abrupt("return", "Mobile Number is required");
               case 1:
-                _context6.prev = 1;
-                _context6.next = 2;
-                return axios__WEBPACK_IMPORTED_MODULE_16__["default"].get("/Home/CheckMobileNumber", {
+                _context7.prev = 1;
+                _context7.next = 2;
+                return axios__WEBPACK_IMPORTED_MODULE_20__["default"].get("/Home/CheckMobileNumber", {
                   params: {
                     number: value,
                     UserType: "Citizen"
                   }
                 });
               case 2:
-                res = _context6.sent;
-                return _context6.abrupt("return", ((_res$data3 = res.data) === null || _res$data3 === void 0 ? void 0 : _res$data3.isUnique) || "Mobile Number already exists");
+                res = _context7.sent;
+                return _context7.abrupt("return", ((_res$data3 = res.data) === null || _res$data3 === void 0 ? void 0 : _res$data3.isUnique) || "Mobile Number already exists");
               case 3:
-                _context6.prev = 3;
-                _t6 = _context6["catch"](1);
-                return _context6.abrupt("return", "Error checking mobile number");
+                _context7.prev = 3;
+                _t7 = _context7["catch"](1);
+                return _context7.abrupt("return", "Error checking mobile number");
               case 4:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
-          }, _callee6, null, [[1, 3]]);
+          }, _callee7, null, [[1, 3]]);
         }));
         function validate(_x5) {
           return _validate3.apply(this, arguments);
@@ -377170,29 +373930,50 @@ function RegisterScreen() {
         return validate;
       }()
     },
-    render: function render(_ref9) {
-      var field = _ref9.field,
-        error = _ref9.fieldState.error;
+    render: function render(_ref0) {
+      var field = _ref0.field,
+        error = _ref0.fieldState.error;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "Mobile Number",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          component: "span"
+        }, "Mobile Number", " ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         type: "tel",
         variant: "outlined",
         fullWidth: true,
-        disabled: loading,
+        disabled: loading || isMobileOtpVerified,
         error: !!error,
         helperText: error ? error.message : "",
         inputProps: {
           maxLength: 10
         },
         sx: {
-          mb: 2
+          mb: 2,
+          flex: 1
         },
         "aria-label": "Mobile Number"
       }));
     }
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_21__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_20__["default"], {
+  }), isMobileOtpVerified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    variant: "subtitle2",
+    color: "success",
+    fontWeight: "bold"
+  }, "Verified")), !isMobileOtpVerified && mobileValue && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_CustomButton__WEBPACK_IMPORTED_MODULE_18__["default"], {
+    text: "Validate Mobile",
+    bgColor: "primary.main",
+    color: "white",
+    width: "100%",
+    disabled: loading,
+    onClick: handleMobileValidate,
+    sx: {
+      mb: 2
+    }
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_25__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
     xs: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_13__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "password",
     control: control,
     rules: {
@@ -377210,11 +373991,17 @@ function RegisterScreen() {
         message: "Password must include uppercase, lowercase, number, and special character"
       }
     },
-    render: function render(_ref0) {
-      var field = _ref0.field,
-        error = _ref0.fieldState.error;
+    render: function render(_ref1) {
+      var field = _ref1.field,
+        error = _ref1.fieldState.error;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "Password",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          component: "span"
+        }, "Password ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         type: "password",
         variant: "outlined",
         fullWidth: true,
@@ -377227,9 +374014,9 @@ function RegisterScreen() {
         "aria-label": "Password"
       }));
     }
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_20__["default"], {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
     xs: 6
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_13__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "confirmPassword",
     control: control,
     rules: {
@@ -377238,11 +374025,17 @@ function RegisterScreen() {
         return value === getValues("password") || "Passwords do not match";
       }
     },
-    render: function render(_ref1) {
-      var field = _ref1.field,
-        error = _ref1.fieldState.error;
+    render: function render(_ref10) {
+      var field = _ref10.field,
+        error = _ref10.fieldState.error;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "Confirm Password",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          component: "span"
+        }, "Confirm Password", " ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         type: "password",
         variant: "outlined",
         fullWidth: true,
@@ -377255,7 +374048,89 @@ function RegisterScreen() {
         "aria-label": "Confirm Password"
       }));
     }
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_21__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_20__["default"], {
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_25__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
+    xs: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
+    name: "District",
+    control: control,
+    rules: {
+      required: "District is required"
+    },
+    render: function render(_ref11) {
+      var field = _ref11.field,
+        error = _ref11.fieldState.error;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+        fullWidth: true,
+        sx: {
+          mb: 2
+        },
+        error: !!error
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], null, "District ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+        style: {
+          color: "red"
+        }
+      }, "*")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          component: "span"
+        }, "District ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
+        disabled: loading,
+        "aria-label": "District"
+      }), districtOptions.map(function (option) {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+          key: option.value,
+          value: option.value
+        }, option.label);
+      })), error && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+        color: "error",
+        variant: "caption"
+      }, error.message));
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
+    xs: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
+    name: "Tehsil",
+    control: control,
+    rules: {
+      required: "Tehsil is required"
+    },
+    render: function render(_ref12) {
+      var field = _ref12.field,
+        error = _ref12.fieldState.error;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+        fullWidth: true,
+        sx: {
+          mb: 2
+        },
+        error: !!error
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], null, "Tehsil ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+        style: {
+          color: "red"
+        }
+      }, "*")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          component: "span"
+        }, "Tehsil ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
+        disabled: loading || !selectedDistrict,
+        "aria-label": "Tehsil"
+      }), tehsilOptions.map(function (option) {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+          key: option.value,
+          value: option.value
+        }, option.label);
+      })), error && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+        color: "error",
+        variant: "caption"
+      }, error.message));
+    }
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_25__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_24__["default"], {
     xs: 12
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
     sx: {
@@ -377314,7 +374189,7 @@ function RegisterScreen() {
         userSelect: "none"
       }
     }, _char);
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
     onClick: handleRefreshCaptcha,
     disabled: loading,
     sx: {
@@ -377330,7 +374205,7 @@ function RegisterScreen() {
       }
     },
     "aria-label": "Refresh CAPTCHA"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material_Refresh__WEBPACK_IMPORTED_MODULE_12__["default"], null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_13__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material_Refresh__WEBPACK_IMPORTED_MODULE_16__["default"], null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "captcha",
     control: control,
     rules: {
@@ -377343,11 +374218,17 @@ function RegisterScreen() {
         return !captcha || value === captcha || "CAPTCHA is incorrect";
       }
     },
-    render: function render(_ref10) {
-      var field = _ref10.field,
-        error = _ref10.fieldState.error;
+    render: function render(_ref13) {
+      var field = _ref13.field,
+        error = _ref13.fieldState.error;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "Enter CAPTCHA",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          component: "span"
+        }, "Enter CAPTCHA", " ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         variant: "outlined",
         fullWidth: true,
         disabled: loading,
@@ -377364,14 +374245,14 @@ function RegisterScreen() {
       display: "flex",
       justifyContent: "center"
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_CustomButton__WEBPACK_IMPORTED_MODULE_14__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_CustomButton__WEBPACK_IMPORTED_MODULE_18__["default"], {
     type: "submit",
     text: loading ? "Registering..." : "Register",
     bgColor: "primary.main",
     color: "white",
     width: "50%",
-    disabled: loading || !isOtpVerified,
-    startIcon: loading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    disabled: loading || !isMobileOtpVerified || emailValue && !isEmailOtpVerified,
+    startIcon: loading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
       size: 20,
       color: "inherit"
     }),
@@ -377383,7 +374264,7 @@ function RegisterScreen() {
     mt: 2
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     variant: "body2"
-  }, "Already have an account?", " ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  }, "Already have an account?", " ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
     href: "/login",
     onClick: function onClick(e) {
       e.preventDefault();
@@ -377397,7 +374278,7 @@ function RegisterScreen() {
     mt: 2
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     variant: "body2"
-  }, "Department Officer ?", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  }, "Department Officer?", " ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
     href: "/officerRegistration",
     onClick: function onClick(e) {
       e.preventDefault();
@@ -377406,14 +374287,17 @@ function RegisterScreen() {
     sx: {
       fontWeight: 600
     }
-  }, "Sign Up")))), _components_OtpModal__WEBPACK_IMPORTED_MODULE_15__["default"] && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_OtpModal__WEBPACK_IMPORTED_MODULE_15__["default"], {
+  }, "Sign Up")))), _components_OtpModal__WEBPACK_IMPORTED_MODULE_19__["default"] && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_OtpModal__WEBPACK_IMPORTED_MODULE_19__["default"], {
     open: isOtpModalOpen,
     onClose: function onClose() {
       console.log("OtpModal onClose triggered");
       setIsOtpModalOpen(false);
+      setOtpType(null);
     },
-    onSubmit: handleOtpSubmit
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_toastify__WEBPACK_IMPORTED_MODULE_18__.ToastContainer, null)), loading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    onSubmit: handleOtpSubmit,
+    registeredAt: otpType,
+    title: "Enter ".concat(otpType === "email" ? "Email" : "Mobile", " OTP")
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_toastify__WEBPACK_IMPORTED_MODULE_22__.ToastContainer, null)), loading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
     sx: {
       position: "fixed",
       top: 0,
@@ -377426,7 +374310,7 @@ function RegisterScreen() {
       backgroundColor: "rgba(0, 0, 0, 0.5)",
       zIndex: 9999
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
     size: 60,
     color: "primary"
   })));
@@ -377618,7 +374502,7 @@ function Verification() {
       boxShadow: 3
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_components_form_CustomInputField__WEBPACK_IMPORTED_MODULE_7__["default"], {
-    label: selectedOption === "otp" ? "Enter OTP sent to your email." : "Enter your backup code.",
+    label: selectedOption === "otp" ? "Enter OTP sent to your Email and Mobile Number." : "Enter your backup code.",
     name: selectedOption === "otp" ? "otp" : "backupCode",
     placeholder: selectedOption === "otp" ? "OTP" : "Backup Code",
     type: "text",
@@ -390826,7 +387710,7 @@ function Form() {
     "Bank Details": [{
       label: "Bank",
       name: "BankName",
-      value: "JAMMU AND KASHMIR BANK LIMITED"
+      value: ""
     }, {
       label: "Branch Name",
       name: "BranchName",
@@ -390834,7 +387718,7 @@ function Form() {
     }, {
       label: "IFSC Code",
       name: "IfscCode",
-      value: "JAKA0KEEPER"
+      value: ""
     }, {
       label: "Account Number",
       name: "AccountNumber",
@@ -390997,7 +387881,7 @@ function Form() {
     "Bank Details": [{
       label: "Bank",
       name: "BankName",
-      value: "JAMMU AND KASHMIR BANK LIMITED"
+      value: ""
     }, {
       label: "Branch Name",
       name: "BranchName",
@@ -391005,7 +387889,7 @@ function Form() {
     }, {
       label: "IFSC Code",
       name: "IfscCode",
-      value: "JAKA0KEEPER"
+      value: ""
     }, {
       label: "Account Number",
       name: "AccountNumber",
@@ -391151,7 +388035,7 @@ function Form() {
     "Bank Details": [{
       label: "Bank",
       name: "BankName",
-      value: "JAMMU AND KASHMIR BANK LIMITED"
+      value: ""
     }, {
       label: "Branch Name",
       name: "BranchName",
@@ -391159,7 +388043,7 @@ function Form() {
     }, {
       label: "IFSC Code",
       name: "IfscCode",
-      value: "JAKA0KEEPER"
+      value: ""
     }, {
       label: "Account Number",
       name: "AccountNumber",
@@ -391735,18 +388619,28 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/IconButton/IconButton.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormHelperText/FormHelperText.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
-/* harmony import */ var _mui_system__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/system */ "./node_modules/@mui/system/esm/styled/styled.js");
-/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Delete.js");
-/* harmony import */ var _assets_formvalidations__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../../assets/formvalidations */ "./src/assets/formvalidations.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControl/FormControl.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/InputLabel/InputLabel.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Select/Select.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormHelperText/FormHelperText.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/IconButton/IconButton.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
+/* harmony import */ var _mui_system__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @mui/system */ "./node_modules/@mui/system/esm/styled/styled.js");
+/* harmony import */ var _mui_icons_material__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/icons-material */ "./node_modules/@mui/icons-material/esm/Delete.js");
+/* harmony import */ var _assets_formvalidations__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../../assets/formvalidations */ "./src/assets/formvalidations.js");
+/* harmony import */ var _mui_x_date_pickers__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @mui/x-date-pickers */ "./node_modules/@mui/x-date-pickers/esm/LocalizationProvider/LocalizationProvider.js");
+/* harmony import */ var _mui_x_date_pickers__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/x-date-pickers */ "./node_modules/@mui/x-date-pickers/esm/DatePicker/DatePicker.js");
+/* harmony import */ var _mui_x_date_pickers_AdapterDateFns__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/x-date-pickers/AdapterDateFns */ "./node_modules/@mui/x-date-pickers/esm/AdapterDateFns/AdapterDateFns.js");
+/* harmony import */ var date_fns__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! date-fns */ "./node_modules/date-fns/format.js");
+/* harmony import */ var date_fns__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! date-fns */ "./node_modules/date-fns/parse.js");
 
 
 
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
@@ -391759,7 +388653,9 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
 
 
 
-var StyledContainer = (0,_mui_system__WEBPACK_IMPORTED_MODULE_16__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"])({
+
+
+var StyledContainer = (0,_mui_system__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"])({
   background: "linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%)",
   padding: "32px",
   borderRadius: "16px",
@@ -391767,7 +388663,7 @@ var StyledContainer = (0,_mui_system__WEBPACK_IMPORTED_MODULE_16__["default"])(_
   maxWidth: "600px",
   marginTop: "40px"
 });
-var StyledButton = (0,_mui_system__WEBPACK_IMPORTED_MODULE_16__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"])({
+var StyledButton = (0,_mui_system__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"])({
   background: "linear-gradient(45deg, #1976d2 30%, #2196f3 90%)",
   color: "#fff",
   fontWeight: "600",
@@ -391783,7 +388679,7 @@ var StyledButton = (0,_mui_system__WEBPACK_IMPORTED_MODULE_16__["default"])(_mui
     cursor: "not-allowed"
   }
 });
-var FileNameTypography = (0,_mui_system__WEBPACK_IMPORTED_MODULE_16__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"])({
+var FileNameTypography = (0,_mui_system__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"])({
   cursor: "pointer",
   color: "#1976d2",
   "&:hover": {
@@ -391795,7 +388691,8 @@ function UpdateExpiringDocument() {
   var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_5__.useNavigate)();
   var _ref = location.state || {},
     referenceNumber = _ref.referenceNumber,
-    ServiceId = _ref.ServiceId;
+    ServiceId = _ref.ServiceId,
+    applicationId = _ref.applicationId;
   var _React$useState = react__WEBPACK_IMPORTED_MODULE_4___default().useState([]),
     _React$useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_React$useState, 2),
     fields = _React$useState2[0],
@@ -391811,7 +388708,6 @@ function UpdateExpiringDocument() {
   var fileInputRef = (0,react__WEBPACK_IMPORTED_MODULE_4__.useRef)(null);
   var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_6__.useForm)({
       mode: "onBlur",
-      // Validate on change to catch errors early
       defaultValues: {}
     }),
     control = _useForm.control,
@@ -391819,19 +388715,96 @@ function UpdateExpiringDocument() {
     errors = _useForm.formState.errors,
     setValue = _useForm.setValue,
     getValues = _useForm.getValues,
-    watch = _useForm.watch;
-
-  // Debug form state
-  var formState = watch();
-  react__WEBPACK_IMPORTED_MODULE_4___default().useEffect(function () {
-    console.log("Form State:", formState);
-    console.log("Validation Errors:", errors);
-    console.log("Submit Button State:", {
-      fieldsLength: fields.length,
-      errors: Object.keys(errors)
-    });
-    console.log("Fields Configuration:", fields);
-  }, [formState, errors, fields]);
+    watch = _useForm.watch,
+    trigger = _useForm.trigger,
+    setError = _useForm.setError;
+  var kindOfDisability = watch("KindOfDisability");
+  var commonStyles = {
+    "& .MuiOutlinedInput-root": {
+      backgroundColor: "#FFFFFF",
+      borderRadius: "12px",
+      transition: "all 0.3s ease",
+      "& fieldset": {
+        borderColor: "#A5B4FC"
+      },
+      "&:hover fieldset": {
+        borderColor: "#6366F1"
+      },
+      "&.Mui-focused fieldset": {
+        borderColor: "#6366F1",
+        boxShadow: "0 0 0 3px rgba(99, 102, 241, 0.2)"
+      },
+      "&.Mui-error fieldset": {
+        borderColor: "#F43F5E"
+      }
+    },
+    "& .MuiInputLabel-root": {
+      color: "#6B7280",
+      fontWeight: "500",
+      fontSize: "0.9rem",
+      "&.Mui-focused": {
+        color: "#6366F1"
+      },
+      "&.Mui-error": {
+        color: "#F43F5E"
+      }
+    },
+    "& .MuiInputBase-input": {
+      fontSize: "1rem",
+      color: "#1F2937",
+      padding: "14px 16px"
+    },
+    "& .MuiFormHelperText-root": {
+      color: "#F43F5E",
+      fontSize: "0.85rem"
+    },
+    marginBottom: "1.5rem"
+  };
+  var buttonStyles = {
+    background: "linear-gradient(to right, #10B981, #059669)",
+    color: "#FFFFFF",
+    fontWeight: "600",
+    textTransform: "none",
+    borderRadius: "10px",
+    padding: "10px 20px",
+    "&:hover": {
+      background: "linear-gradient(to right, #059669, #047857)"
+    },
+    "&.Mui-disabled": {
+      background: "#D1D5DB",
+      color: "#9CA3AF"
+    },
+    marginBottom: "0.5rem"
+  };
+  var getLabelWithAsteriskJSX = function getLabelWithAsteriskJSX(field) {
+    var _field$validationFunc;
+    var isRequired = (_field$validationFunc = field.validationFunctions) === null || _field$validationFunc === void 0 ? void 0 : _field$validationFunc.includes("notEmpty");
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement((react__WEBPACK_IMPORTED_MODULE_4___default().Fragment), null, field.label, isRequired && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+      style: {
+        color: "#F43F5E",
+        fontSize: "1rem"
+      }
+    }, " *"));
+  };
+  var applyTransformations = function applyTransformations(value) {
+    var transformationFunctions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+    var transformedValue = value || "";
+    var _iterator = _createForOfIteratorHelper(transformationFunctions),
+      _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var transformFn = _step.value;
+        if (_assets_formvalidations__WEBPACK_IMPORTED_MODULE_22__.TransformationFunctionsList[transformFn]) {
+          transformedValue = _assets_formvalidations__WEBPACK_IMPORTED_MODULE_22__.TransformationFunctionsList[transformFn](transformedValue);
+        }
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    return transformedValue;
+  };
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
     if (!referenceNumber || !ServiceId) {
       setApiError("Missing reference number or service ID.");
@@ -391840,7 +388813,7 @@ function UpdateExpiringDocument() {
     }
     var fetchFields = /*#__PURE__*/function () {
       var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee() {
-        var response, data, _ref3, udidCardNumber, udidCardIssueDate, percentageOfDisability, ifTemporaryDisabilityUdidCardValidUpto, udidCard, requiredFields, _error$response, _t;
+        var response, data, _ref3, udidCardNumber, udidCardIssueDate, percentageOfDisability, kindOfDisabilityField, udidCard, requiredFields, _error$response, _t;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
@@ -391855,13 +388828,12 @@ function UpdateExpiringDocument() {
             case 1:
               response = _context.sent;
               data = response.data;
-              console.log("API Response:", data);
               if (!data.status) {
                 _context.next = 3;
                 break;
               }
-              _ref3 = data.data || {}, udidCardNumber = _ref3.udidCardNumber, udidCardIssueDate = _ref3.udidCardIssueDate, percentageOfDisability = _ref3.percentageOfDisability, ifTemporaryDisabilityUdidCardValidUpto = _ref3.ifTemporaryDisabilityUdidCardValidUpto, udidCard = _ref3.udidCard;
-              requiredFields = [udidCardNumber, udidCardIssueDate, percentageOfDisability, ifTemporaryDisabilityUdidCardValidUpto, udidCard].filter(function (field) {
+              _ref3 = data.data || {}, udidCardNumber = _ref3.udidCardNumber, udidCardIssueDate = _ref3.udidCardIssueDate, percentageOfDisability = _ref3.percentageOfDisability, kindOfDisabilityField = _ref3.kindOfDisabilityField, udidCard = _ref3.udidCard;
+              requiredFields = [udidCardNumber, udidCardIssueDate, percentageOfDisability, kindOfDisabilityField, udidCard].filter(function (field) {
                 return field && field.name && field.id;
               });
               if (!(requiredFields.length === 0)) {
@@ -391873,8 +388845,6 @@ function UpdateExpiringDocument() {
               return _context.abrupt("return");
             case 2:
               setFields(requiredFields);
-
-              // Initialize form values
               requiredFields.forEach(function (field) {
                 setValue(field.name, field.type === "enclosure" ? null : "");
               });
@@ -391906,8 +388876,6 @@ function UpdateExpiringDocument() {
     }();
     fetchFields();
   }, [referenceNumber, ServiceId, setValue]);
-
-  // Cleanup URL.createObjectURL to prevent memory leaks
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
     return function () {
       fields.filter(function (field) {
@@ -391920,25 +388888,6 @@ function UpdateExpiringDocument() {
       });
     };
   }, [fields, getValues]);
-  var applyTransformations = function applyTransformations(value) {
-    var transformationFunctions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-    var transformedValue = value || "";
-    var _iterator = _createForOfIteratorHelper(transformationFunctions),
-      _step;
-    try {
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
-        var transformFn = _step.value;
-        if (_assets_formvalidations__WEBPACK_IMPORTED_MODULE_18__.TransformationFunctionsList[transformFn]) {
-          transformedValue = _assets_formvalidations__WEBPACK_IMPORTED_MODULE_18__.TransformationFunctionsList[transformFn](transformedValue);
-        }
-      }
-    } catch (err) {
-      _iterator.e(err);
-    } finally {
-      _iterator.f();
-    }
-    return transformedValue;
-  };
   var validateUdidNumber = /*#__PURE__*/function () {
     var _ref4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2(udidNumber, referenceNumber) {
       var response, data, _error$response2, _t2;
@@ -391946,7 +388895,6 @@ function UpdateExpiringDocument() {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
             _context2.prev = 0;
-            console.log("Validating UDID Number:", udidNumber, "for Reference Number:", referenceNumber);
             _context2.next = 1;
             return _axiosConfig__WEBPACK_IMPORTED_MODULE_7__["default"].get("/User/GetIfSameUdidNumber", {
               params: {
@@ -391957,27 +388905,17 @@ function UpdateExpiringDocument() {
           case 1:
             response = _context2.sent;
             data = response.data;
-            console.log("UDID Validation Response:", data);
-            if (!data.status) {
-              _context2.next = 2;
-              break;
-            }
-            return _context2.abrupt("return", true);
+            return _context2.abrupt("return", data.status ? true : data.message || "UDID Number doesn't match the existing one in the record.");
           case 2:
-            return _context2.abrupt("return", data.message || "UDID Number doesn't match the existing one in the record.");
-          case 3:
-            _context2.next = 5;
-            break;
-          case 4:
-            _context2.prev = 4;
+            _context2.prev = 2;
             _t2 = _context2["catch"](0);
             console.error("Error validating UDID number:", _t2);
             return _context2.abrupt("return", ((_error$response2 = _t2.response) === null || _error$response2 === void 0 || (_error$response2 = _error$response2.data) === null || _error$response2 === void 0 ? void 0 : _error$response2.message) || "Error validating UDID number. Please try again.");
-          case 5:
+          case 3:
           case "end":
             return _context2.stop();
         }
-      }, _callee2, null, [[0, 4]]);
+      }, _callee2, null, [[0, 2]]);
     }));
     return function validateUdidNumber(_x, _x2) {
       return _ref4.apply(this, arguments);
@@ -391986,20 +388924,40 @@ function UpdateExpiringDocument() {
   var handleFileChange = function handleFileChange(fieldName, onChange, event) {
     var file = event.target.files[0];
     if (file) {
+      // Validate file size (100kb–200kb) and type (.pdf)
+      if (fieldName === "UdidCard") {
+        if (file.size < 100 * 1024 || file.size > 200 * 1024) {
+          setError(fieldName, {
+            type: "manual",
+            message: "File size must be between 100kb and 200kb."
+          });
+          return;
+        }
+        if (!file.name.toLowerCase().endsWith(".pdf")) {
+          setError(fieldName, {
+            type: "manual",
+            message: "File must be a PDF."
+          });
+          return;
+        }
+      }
       onChange(file);
+      trigger(fieldName);
     }
     event.target.value = "";
   };
   var handleRemoveFile = function handleRemoveFile(fieldName, onChange) {
     onChange(null);
+    trigger(fieldName);
   };
   var handleAddFileClick = function handleAddFileClick() {
-    var _fileInputRef$current;
-    (_fileInputRef$current = fileInputRef.current) === null || _fileInputRef$current === void 0 || _fileInputRef$current.click();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
   var onSubmit = /*#__PURE__*/function () {
     var _ref5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee3(data) {
-      var formDataToSend, response, responseData, _error$response3, _t3;
+      var formDataToSend, fieldsToCorrect, _fields$find, tempField, response, responseData, _error$response3, _t3;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context3) {
         while (1) switch (_context3.prev = _context3.next) {
           case 0:
@@ -392008,16 +388966,37 @@ function UpdateExpiringDocument() {
             formDataToSend = new FormData();
             formDataToSend.append("referenceNumber", referenceNumber);
             formDataToSend.append("ServiceId", ServiceId);
+
+            // Include optional fields
+            formDataToSend.append("remarks", data.remarks || "");
+            if (applicationId) {
+              formDataToSend.append("applicationId", applicationId);
+            }
+
+            // Define fields to include based on backend expectation, excluding UdidCardNumber
+            fieldsToCorrect = ["UdidCardIssueDate", "PercentageOfDisability", "KindOfDisability", "UdidCard"]; // Append fields to FormData, respecting KindOfDisability for IfTemporaryDisabilityUdidCardValidUpto
             Object.entries(data).forEach(function (_ref6) {
               var _ref7 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_ref6, 2),
                 key = _ref7[0],
                 value = _ref7[1];
-              if (value instanceof File) {
-                formDataToSend.append(key, value);
-              } else if (value !== null && value !== "") {
-                formDataToSend.append(key, value);
+              if (fieldsToCorrect.includes(key)) {
+                if (key === "UdidCard" && value instanceof File) {
+                  formDataToSend.append(key, value);
+                } else if (value !== null && value !== "" && value !== "Please Select") {
+                  formDataToSend.append(key, value);
+                }
               }
             });
+
+            // Conditionally append IfTemporaryDisabilityUdidCardValidUpto only if KindOfDisability is TEMPORARY
+            if (kindOfDisability === "TEMPORARY") {
+              tempField = (_fields$find = fields.find(function (f) {
+                return f.name === "KindOfDisability";
+              })) === null || _fields$find === void 0 || (_fields$find = _fields$find.additionalFields) === null || _fields$find === void 0 || (_fields$find = _fields$find.TEMPORARY) === null || _fields$find === void 0 ? void 0 : _fields$find[0];
+              if (tempField && data[tempField.name]) {
+                formDataToSend.append(tempField.name, data[tempField.name]);
+              }
+            }
             _context3.next = 2;
             return _axiosConfig__WEBPACK_IMPORTED_MODULE_7__["default"].post("/User/UpdateExpiringDocumentDetails", formDataToSend);
           case 2:
@@ -392046,8 +389025,8 @@ function UpdateExpiringDocument() {
       return _ref5.apply(this, arguments);
     };
   }();
-  var renderInputField = function renderInputField(field) {
-    var _field$validationFunc;
+  var renderField = function renderField(field) {
+    var _field$validationFunc2;
     if (!(field !== null && field !== void 0 && field.name) || !(field !== null && field !== void 0 && field.id)) return null;
     var validationRules = {
       validate: function () {
@@ -392057,18 +389036,13 @@ function UpdateExpiringDocument() {
             while (1) switch (_context4.prev = _context4.next) {
               case 0:
                 transformedValue = field.type !== "enclosure" ? applyTransformations(value, field.transformationFunctions || []) : value;
-                formValues = getValues(); // Get current form state
+                formValues = getValues();
                 _context4.next = 1;
-                return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_18__.runValidations)(_objectSpread(_objectSpread({}, field), {}, {
+                return (0,_assets_formvalidations__WEBPACK_IMPORTED_MODULE_22__.runValidations)(_objectSpread(_objectSpread({}, field), {}, {
                   validationFunctions: field.validationFunctions || []
                 }), transformedValue, formValues, referenceNumber);
               case 1:
                 validationResult = _context4.sent;
-                console.log("Validation for ".concat(field.name, ":"), {
-                  value: value,
-                  transformedValue: transformedValue,
-                  validationResult: validationResult
-                });
                 if (!(validationResult !== true)) {
                   _context4.next = 2;
                   break;
@@ -392083,10 +389057,6 @@ function UpdateExpiringDocument() {
                 return validateUdidNumber(transformedValue, referenceNumber);
               case 3:
                 udidValidationResult = _context4.sent;
-                if (!(udidValidationResult !== true)) {
-                  _context4.next = 4;
-                  break;
-                }
                 return _context4.abrupt("return", udidValidationResult);
               case 4:
                 return _context4.abrupt("return", true);
@@ -392102,134 +389072,202 @@ function UpdateExpiringDocument() {
         return validate;
       }()
     };
-
-    // Make Percentage field optional by not applying "notEmpty" validation
-    if ((_field$validationFunc = field.validationFunctions) !== null && _field$validationFunc !== void 0 && _field$validationFunc.includes("notEmpty") && field.name !== "percentageOfDisability") {
+    if ((_field$validationFunc2 = field.validationFunctions) !== null && _field$validationFunc2 !== void 0 && _field$validationFunc2.includes("notEmpty") && field.name !== "PercentageOfDisability") {
       validationRules.required = "This field is required";
     }
-    if (field.type === "enclosure") {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_6__.Controller, {
-        key: field.id,
-        name: field.name,
-        control: control,
-        defaultValue: null,
-        rules: validationRules,
-        render: function render(_ref8) {
-          var _errors$field$name;
-          var _ref8$field = _ref8.field,
-            _onChange = _ref8$field.onChange,
-            onBlur = _ref8$field.onBlur,
-            value = _ref8$field.value;
-          return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
-            sx: {
-              mt: 2
-            }
-          }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
-            variant: "subtitle1",
-            sx: {
-              mb: 1,
-              color: "#333"
-            }
-          }, field.label), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(StyledButton, {
-            variant: "outlined",
-            onClick: handleAddFileClick,
-            sx: {
-              mb: 2
-            }
-          }, "Upload ", field.label), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("input", {
-            type: "file",
-            accept: field.accept || ".pdf",
-            onChange: function onChange(e) {
-              return handleFileChange(field.name, _onChange, e);
-            },
-            onBlur: onBlur,
-            style: {
-              display: "none"
-            },
-            ref: fileInputRef
-          }), value && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
-            sx: {
-              display: "flex",
-              alignItems: "center",
-              width: "max-content",
-              backgroundColor: "#f9f9f9",
-              padding: "8px 12px",
-              border: "1px solid #000",
-              borderRadius: "8px",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)"
-            }
-          }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(FileNameTypography, {
-            variant: "caption",
-            sx: {
-              pr: 2
-            },
-            onClick: function onClick() {
-              return window.open(URL.createObjectURL(value));
-            }
-          }, value.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
-            color: "error",
-            onClick: function onClick() {
-              return handleRemoveFile(field.name, _onChange);
-            },
-            sx: {
-              "&:hover": {
-                backgroundColor: "rgba(211, 47, 47, 0.1)"
+    switch (field.type) {
+      case "text":
+      case "date":
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_6__.Controller, {
+          name: field.name,
+          control: control,
+          defaultValue: "",
+          rules: validationRules,
+          render: function render(_ref8) {
+            var _errors$field$name, _errors$field$name2;
+            var _ref8$field = _ref8.field,
+              _onChange = _ref8$field.onChange,
+              value = _ref8$field.value,
+              ref = _ref8$field.ref;
+            return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+              sx: {
+                display: "flex",
+                alignItems: "center",
+                gap: 2
               }
-            }
-          }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
-            fontSize: "small"
-          }))), errors[field.name] && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
-            error: true,
-            sx: {
-              mt: 1
-            }
-          }, (_errors$field$name = errors[field.name]) === null || _errors$field$name === void 0 ? void 0 : _errors$field$name.message));
-        }
-      });
-    }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_6__.Controller, {
-      key: field.id,
-      name: field.name,
-      control: control,
-      defaultValue: "",
-      rules: validationRules,
-      render: function render(_ref9) {
-        var _errors$field$name2;
-        var _ref9$field = _ref9.field,
-          _onChange2 = _ref9$field.onChange,
-          onBlur = _ref9$field.onBlur,
-          value = _ref9$field.value;
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
-          type: field.type === "date" ? "date" : "text",
-          label: field.label,
-          value: value || "",
-          onChange: function onChange(e) {
-            var transformedValue = applyTransformations(e.target.value, field.transformationFunctions || []);
-            _onChange2(transformedValue);
-          },
-          onBlur: onBlur,
-          InputLabelProps: field.type === "date" ? {
-            shrink: true
-          } : undefined,
-          error: !!errors[field.name],
-          helperText: ((_errors$field$name2 = errors[field.name]) === null || _errors$field$name2 === void 0 ? void 0 : _errors$field$name2.message) || "",
-          fullWidth: true,
-          sx: {
-            "& .MuiInputBase-root": {
-              borderRadius: "8px",
-              backgroundColor: "#fff",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
-            }
-          },
-          inputProps: {
-            maxLength: field.maxLength,
-            minLength: field.minLength,
-            "aria-invalid": !!errors[field.name] ? "true" : "false",
-            "aria-describedby": "".concat(field.name, "-error")
+            }, field.type === "date" ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_x_date_pickers__WEBPACK_IMPORTED_MODULE_23__.LocalizationProvider, {
+              dateAdapter: _mui_x_date_pickers_AdapterDateFns__WEBPACK_IMPORTED_MODULE_25__.AdapterDateFns
+            }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_x_date_pickers__WEBPACK_IMPORTED_MODULE_24__.DatePicker, {
+              label: getLabelWithAsteriskJSX(field),
+              value: value ? (0,date_fns__WEBPACK_IMPORTED_MODULE_27__.parse)(value, "dd/MM/yyyy", new Date()) : null,
+              onChange: function onChange(newValue) {
+                var formatted = newValue instanceof Date && !isNaN(newValue.getTime()) ? (0,date_fns__WEBPACK_IMPORTED_MODULE_26__.format)(newValue, "dd/MM/yyyy") : "";
+                _onChange(formatted);
+                trigger(field.name);
+              },
+              format: "dd/MM/yyyy",
+              slotProps: {
+                textField: {
+                  fullWidth: true,
+                  margin: "normal",
+                  error: Boolean(errors[field.name]),
+                  helperText: ((_errors$field$name = errors[field.name]) === null || _errors$field$name === void 0 ? void 0 : _errors$field$name.message) || "",
+                  inputRef: ref,
+                  InputLabelProps: {
+                    shrink: true,
+                    style: {
+                      fontSize: "1rem",
+                      color: "#000000"
+                    }
+                  },
+                  placeholder: "dd MMM yyyy",
+                  sx: commonStyles
+                }
+              }
+            })) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+              type: field.type,
+              id: "".concat(field.id),
+              label: getLabelWithAsteriskJSX(field),
+              value: value || "",
+              onChange: function onChange(e) {
+                var transformedVal = applyTransformations(e.target.value, field.transformationFunctions || []);
+                _onChange(transformedVal);
+                trigger(field.name);
+              },
+              inputRef: ref,
+              error: Boolean(errors[field.name]),
+              helperText: ((_errors$field$name2 = errors[field.name]) === null || _errors$field$name2 === void 0 ? void 0 : _errors$field$name2.message) || "",
+              fullWidth: true,
+              margin: "normal",
+              InputLabelProps: {
+                shrink: true,
+                style: {
+                  fontSize: "1rem",
+                  color: "#000000"
+                }
+              },
+              inputProps: {
+                maxLength: field.maxLength
+              },
+              sx: commonStyles
+            }));
           }
         });
+      case "select":
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_6__.Controller, {
+          key: field.id,
+          name: field.name,
+          control: control,
+          defaultValue: "",
+          rules: validationRules,
+          render: function render(_ref9) {
+            var _errors$field$name3;
+            var _ref9$field = _ref9.field,
+              _onChange2 = _ref9$field.onChange,
+              onBlur = _ref9$field.onBlur,
+              value = _ref9$field.value;
+            return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+              fullWidth: true,
+              error: !!errors[field.name],
+              sx: commonStyles
+            }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
+              id: "".concat(field.name, "-label")
+            }, getLabelWithAsteriskJSX(field)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+              labelId: "".concat(field.name, "-label"),
+              value: value || "",
+              onChange: function onChange(e) {
+                var transformedValue = applyTransformations(e.target.value, field.transformationFunctions || []);
+                _onChange2(transformedValue);
+                trigger(field.name);
+              },
+              onBlur: onBlur,
+              label: getLabelWithAsteriskJSX(field)
+            }, field.options.map(function (option) {
+              return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+                key: option.value,
+                value: option.value
+              }, option.label);
+            })), errors[field.name] && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], null, (_errors$field$name3 = errors[field.name]) === null || _errors$field$name3 === void 0 ? void 0 : _errors$field$name3.message));
+          }
+        });
+      case "enclosure":
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_6__.Controller, {
+          key: field.id,
+          name: field.name,
+          control: control,
+          defaultValue: null,
+          rules: validationRules,
+          render: function render(_ref0) {
+            var _errors$field$name4;
+            var _ref0$field = _ref0.field,
+              _onChange3 = _ref0$field.onChange,
+              onBlur = _ref0$field.onBlur,
+              value = _ref0$field.value;
+            return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+              sx: {
+                mb: 2
+              }
+            }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+              variant: "contained",
+              onClick: handleAddFileClick,
+              sx: buttonStyles
+            }, getLabelWithAsteriskJSX(field)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("input", {
+              type: "file",
+              hidden: true,
+              accept: field.accept || ".pdf",
+              onChange: function onChange(e) {
+                return handleFileChange(field.name, _onChange3, e);
+              },
+              onBlur: onBlur,
+              ref: fileInputRef
+            }), value && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+              sx: {
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mt: 1
+              }
+            }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(FileNameTypography, {
+              variant: "body2",
+              onClick: function onClick() {
+                return window.open(URL.createObjectURL(value));
+              }
+            }, value.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], {
+              size: "small",
+              onClick: function onClick() {
+                return handleRemoveFile(field.name, _onChange3);
+              }
+            }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_21__["default"], null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+              sx: {
+                fontSize: "0.85rem",
+                color: "#6B7280",
+                mt: 1
+              }
+            }, "Accepted File Types: ", field.accept || ".pdf", " Size: 100kb\u2013200kb"), errors[field.name] && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], null, (_errors$field$name4 = errors[field.name]) === null || _errors$field$name4 === void 0 ? void 0 : _errors$field$name4.message));
+          }
+        });
+      default:
+        return null;
+    }
+  };
+  var renderInputField = function renderInputField(field) {
+    var _field$additionalFiel;
+    if (!(field !== null && field !== void 0 && field.name) || !(field !== null && field !== void 0 && field.id)) return null;
+    if (field.name === "KindOfDisability" && (_field$additionalFiel = field.additionalFields) !== null && _field$additionalFiel !== void 0 && (_field$additionalFiel = _field$additionalFiel.TEMPORARY) !== null && _field$additionalFiel !== void 0 && _field$additionalFiel[0]) {
+      var tempField = field.additionalFields.TEMPORARY[0];
+      if (kindOfDisability === "TEMPORARY") {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+          sx: {
+            mb: 3
+          }
+        }, renderField(field), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+          sx: {
+            height: 24
+          }
+        }), renderField(tempField));
       }
-    });
+    }
+    return renderField(field);
   };
   if (isLoading) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
@@ -392241,7 +389279,7 @@ function UpdateExpiringDocument() {
         alignItems: "center",
         bgcolor: "#f0f4f8"
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
       size: 60,
       sx: {
         color: "#1976d2"
@@ -392439,23 +389477,26 @@ function UserHome() {
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
     GetUserDetails();
   }, []);
-
-  // Mask email (e.g., johndoe@example.com -> ****@****.com)
   var maskEmail = function maskEmail(email) {
     if (!email) return "N/A";
     var _email$split = email.split("@"),
       _email$split2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_email$split, 2),
       localPart = _email$split2[0],
       domain = _email$split2[1];
-    var maskedLocal = localPart.replace(/.*/g, "****");
-    var maskedDomain = domain.replace(/^[^.]+/, "****");
+    var maskedLocal = localPart.length > 1 ? localPart[0] + "*".repeat(localPart.length - 1) : localPart[0] + "*";
+    var domainParts = domain.split(".");
+    var maskedDomain = domainParts.map(function (part, index) {
+      return index === 0 ? part[0] + "*".repeat(Math.max(part.length - 1, 1)) : part;
+    }).join(".");
     return "".concat(maskedLocal, "@").concat(maskedDomain);
   };
 
-  // Mask mobile number (e.g., 1234567890 -> *******890)
+  // Mask mobile number (e.g., 1234567890 -> ******7890)
   var maskMobileNumber = function maskMobileNumber(mobileNumber) {
     if (!mobileNumber) return "N/A";
-    return "*******".concat(mobileNumber.slice(-3));
+    var visibleDigits = 4;
+    var maskedLength = mobileNumber.length - visibleDigits;
+    return "*".repeat(maskedLength) + mobileNumber.slice(-visibleDigits);
   };
 
   // Toggle email visibility

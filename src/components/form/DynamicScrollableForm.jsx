@@ -23,6 +23,7 @@ import {
   FormGroup,
   CircularProgress,
   Grid2 as Grid,
+  Autocomplete,
 } from "@mui/material";
 import { Col, Row } from "react-bootstrap";
 import { fetchFormDetails, GetServiceContent } from "../../assets/fetch";
@@ -223,6 +224,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   );
   const [aadhaarValid, setAadhaarValid] = useState(false);
   const [otpModal, setOtpModal] = useState(false);
+  const [emailAlertModalOpen, setEmailAlertModalOpen] = useState(false);
+  const [ifscPrefix, setIfscPrefix] = useState("");
 
   const [DependableFields, setDependableFields] = useState([]);
   const navigate = useNavigate();
@@ -1269,7 +1272,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       if (response.data.status) {
         const banks = response.data.data.map((bank) => ({
           value: bank.id.toString(),
-          label: bank.name,
+          label: bank.bankName,
         }));
         return [{ label: "Please Select", value: "Please Select" }, ...banks];
       } else {
@@ -1282,161 +1285,16 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     }
   };
 
-  // const handleBankChange = async (sectionIndex, field, value) => {
-  //   try {
-  //     const pleaseSelectOption = [
-  //       { label: "Please Select", value: "Please Select" },
-  //     ];
-
-  //     if (value === "Please Select") {
-  //       const childField =
-  //         field.name === "BankName" ? "BranchName" : "IfscCode";
-  //       const nextChild = field.name === "BankName" ? "IfscCode" : null;
-
-  //       // Only reset child fields, don't force set them
-  //       const currentChildValue = getValues(childField);
-  //       if (currentChildValue && currentChildValue !== "Please Select") {
-  //         setValue(childField, "Please Select", { shouldValidate: true });
-  //       }
-
-  //       setFormSections((prevSections) => {
-  //         const newSections = [...prevSections];
-  //         newSections[sectionIndex].fields = newSections[
-  //           sectionIndex
-  //         ].fields.map((f) =>
-  //           f.name === childField ? { ...f, options: pleaseSelectOption } : f,
-  //         );
-  //         return newSections;
-  //       });
-
-  //       if (nextChild) {
-  //         const currentNextValue = getValues(nextChild);
-  //         if (currentNextValue && currentNextValue !== "Please Select") {
-  //           setValue(nextChild, "Please Select", { shouldValidate: true });
-  //         }
-
-  //         setFormSections((prevSections) => {
-  //           const newSections = [...prevSections];
-  //           newSections[sectionIndex].fields = newSections[
-  //             sectionIndex
-  //           ].fields.map((f) =>
-  //             f.name === nextChild ? { ...f, options: pleaseSelectOption } : f,
-  //           );
-  //           return newSections;
-  //         });
-  //       }
-  //       return;
-  //     }
-
-  //     const fieldNames = [
-  //       {
-  //         name: "BankName",
-  //         childname: "BranchName",
-  //         respectiveTable: "Branches",
-  //       },
-  //       {
-  //         name: "BranchName",
-  //         childname: "IfscCode",
-  //         respectiveTable: "IfscCodes",
-  //       },
-  //     ];
-
-  //     const match = fieldNames.find((f) => f.name === field.name);
-  //     if (!match) {
-  //       console.warn(`Field "${field.name}" not found in bank fieldNames.`);
-  //       return;
-  //     }
-
-  //     const childFieldName = match.childname;
-  //     let endpoint;
-  //     if (field.name === "BankName") {
-  //       endpoint = `/Base/GetBranches?bankId=${value}`;
-  //     } else if (field.name === "BranchName") {
-  //       endpoint = `/Base/GetIfscCodes?branchId=${value}`;
-  //     }
-
-  //     const response = await axiosInstance.get(endpoint);
-  //     const data = response.data?.data || [];
-
-  //     // Deduplicate options
-  //     const uniqueOptions = [];
-  //     const seenValues = new Set();
-  //     data.forEach((item) => {
-  //       const optionValue = item.id ?? item.value;
-  //       if (!seenValues.has(optionValue)) {
-  //         seenValues.add(optionValue);
-  //         uniqueOptions.push({
-  //           value: optionValue,
-  //           label: item.name ?? item.label,
-  //         });
-  //       }
-  //     });
-
-  //     const newOptions = [
-  //       { label: "Please Select", value: "Please Select" },
-  //       ...uniqueOptions,
-  //     ];
-
-  //     // Update child field options
-  //     setFormSections((prevSections) => {
-  //       const newSections = [...prevSections];
-  //       const section = newSections[sectionIndex];
-
-  //       section.fields = section.fields.map((f) =>
-  //         f.name === childFieldName ? { ...f, options: newOptions } : f,
-  //       );
-
-  //       return newSections;
-  //     });
-
-  //     // CRITICAL: Only reset if the current value is NOT in the new options
-  //     const currentValue = getValues(childFieldName);
-  //     const isValueValid = newOptions.some(
-  //       (option) => option.value.toString() === currentValue?.toString(),
-  //     );
-
-  //     // Only reset if current value is invalid (not in new options)
-  //     if (currentValue && !isValueValid && currentValue !== "Please Select") {
-  //       setValue(childFieldName, "Please Select", { shouldValidate: true });
-  //     }
-
-  //     // Reset IfscCode when BankName changes (but only if it's not valid)
-  //     if (field.name === "BankName") {
-  //       const currentIfscValue = getValues("IfscCode");
-  //       // Always reset IFSC when bank changes since it depends on branch
-  //       setValue("IfscCode", "Please Select", { shouldValidate: true });
-  //       setFormSections((prevSections) => {
-  //         const newSections = [...prevSections];
-  //         newSections[sectionIndex].fields = newSections[
-  //           sectionIndex
-  //         ].fields.map((f) =>
-  //           f.name === "IfscCode" ? { ...f, options: pleaseSelectOption } : f,
-  //         );
-  //         return newSections;
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error(`Error fetching options for ${field.name}:`, error);
-  //     toast.error(
-  //       `Failed to load options for ${field.label}. Please try again.`,
-  //     );
-
-  //     const pleaseSelectOption = [
-  //       { label: "Please Select", value: "Please Select" },
-  //     ];
-  //     const childField = field.name === "BankName" ? "BranchName" : "IfscCode";
-
-  //     setValue(childField, "Please Select", { shouldValidate: true });
-  //     setFormSections((prevSections) => {
-  //       const newSections = [...prevSections];
-  //       newSections[sectionIndex].fields = newSections[sectionIndex].fields.map(
-  //         (f) =>
-  //           f.name === childField ? { ...f, options: pleaseSelectOption } : f,
-  //       );
-  //       return newSections;
-  //     });
-  //   }
-  // };
+  const handleBankChange = async (value) => {
+    try {
+      const response = await axiosInstance.get(
+        `/Base/GetBankCode?bankId=${value}`,
+      );
+      const bankCode = response.data?.bankCode || "";
+      setIfscPrefix(bankCode);
+      setValue("IfscCode", bankCode, { shouldValidate: true });
+    } catch (error) {}
+  };
 
   const processField = (field, formData, initialData) => {
     if (field.type === "enclosure" && field.isDependentEnclosure) {
@@ -1501,6 +1359,19 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     return sectionFormData;
   };
 
+  const handleEmailAlertSubmit = () => {
+    setEmailAlertModalOpen(false);
+
+    // Continue submission with current form values
+    const data = getValues();
+    onSubmit(data, "submit"); // will not block even if email is empty
+  };
+
+  const handleEmailAlertCancel = () => {
+    setEmailAlertModalOpen(false);
+    // Do nothing, abort submission
+  };
+
   const onSubmit = async (data, operationType) => {
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
@@ -1509,6 +1380,27 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     if (!aadhaarValid && operationType !== "save") {
       alert("Aadhaar Number is not validated.");
       return;
+    }
+
+    // Find the email field dynamically
+    // Find email field dynamically
+    let emailFieldValue = "";
+    formSections.forEach((section) => {
+      section.fields.forEach((field) => {
+        if (field.type === "email") {
+          emailFieldValue = getValues(field.name) || "";
+        }
+      });
+    });
+
+    // Show warning modal if email is empty, **but continue submission if user clicks Submit in modal**
+    if (
+      operationType === "submit" &&
+      !emailFieldValue &&
+      !emailAlertModalOpen
+    ) {
+      setEmailAlertModalOpen(true);
+      return; // stop for now, user has to click Submit in modal to continue
     }
 
     setLoading(true);
@@ -1524,7 +1416,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       section.fields.forEach((field) => {
         const sectionData = processField(field, data, initialData || {});
         if (sectionData !== null) {
-          // Override AadharNumber value based on operationType
           if (field.name === "AadharNumber") {
             sectionData.value = operationType === "submit" ? aadhaarNumber : "";
           }
@@ -1795,7 +1686,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                         onChange(formatted);
                         trigger(field.name);
                       }}
-                      format="dd MMM yyyy" // Display format
+                      format="dd/MM/yyyy" // Display format
                       slotProps={{
                         textField: {
                           fullWidth: true,
@@ -1817,7 +1708,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                 ) : (
                   <TextField
                     type={field.type}
-                    id={`field-${field.id}`}
+                    id={`${field.id}`}
                     label={getLabelWithAsteriskJSX(field)}
                     value={value || ""}
                     onKeyDown={(e) => {
@@ -1831,7 +1722,22 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       const fieldName = field.name;
                       let transformedVal = val;
 
-                      // Aadhaar-specific logic
+                      // 🔒 IFSC-specific logic
+                      if (fieldName === "IfscCode" && ifscPrefix) {
+                        // Always enforce prefix
+                        if (!val.startsWith(ifscPrefix)) {
+                          val = ifscPrefix + val.slice(ifscPrefix.length);
+                        }
+
+                        // Limit length to 11 characters
+                        if (val.length > 11) {
+                          val = val.slice(0, 11);
+                        }
+
+                        transformedVal = val; // ensure prefix stays in final value
+                      }
+
+                      // 🔑 Aadhaar-specific logic (unchanged)
                       if (fieldName === "AadharNumber") {
                         setAadhaarValid(false);
                         const lastChar = val.toString().charAt(val.length - 1);
@@ -1848,7 +1754,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                         val = updatedAadhaar;
                       }
 
-                      // Generic transformation logic
+                      // 🔧 Generic transformation logic (unchanged)
                       if (field.transformationFunctions?.length > 0) {
                         field.transformationFunctions.forEach((fnName) => {
                           const transformFn =
@@ -2127,69 +2033,64 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
               return (
                 <>
-                  <TextField
-                    select
-                    fullWidth
-                    variant="outlined"
-                    label={getLabelWithAsteriskJSX(field)}
-                    value={value || "Please Select"}
-                    id={`field-${field.id}`}
-                    onChange={(e) => {
-                      onChange(e);
-                      const newValue = e.target.value;
-                      // Call handleAreaChange only for area parent fields
-                      if (
-                        /district|muncipality|block|halqapanchayat/i.test(
-                          field.name,
-                        )
-                      ) {
-                        handleAreaChange(sectionIndex, field, newValue);
-                      }
-                      // Unregister additional fields that do not belong to the current value
-                      if (field.additionalFields) {
-                        Object.entries(field.additionalFields).forEach(
-                          ([key, additionalFields]) => {
-                            if (key !== newValue) {
-                              additionalFields.forEach((additionalField) => {
-                                const nestedFieldName =
-                                  additionalField.name ||
-                                  `${field.name}_${additionalField.id}`;
-                                unregister(nestedFieldName, {
-                                  keepValue: false,
+                  <FormControl fullWidth>
+                    <Autocomplete
+                      fullWidth
+                      options={options}
+                      value={options.find((opt) => opt.value === value) || null}
+                      getOptionLabel={(option) => option.label || ""}
+                      onChange={(event, newOption) => {
+                        const newValue = newOption?.value || "";
+                        onChange({ target: { value: newValue } }); // mimic event for RHF
+
+                        if (
+                          /district|muncipality|block|halqapanchayat/i.test(
+                            field.name,
+                          )
+                        ) {
+                          handleAreaChange(sectionIndex, field, newValue);
+                        }
+                        if (field.name === "BankName") {
+                          handleBankChange(newValue);
+                        }
+
+                        if (field.additionalFields) {
+                          Object.entries(field.additionalFields).forEach(
+                            ([key, additionalFields]) => {
+                              if (key !== newValue) {
+                                additionalFields.forEach((additionalField) => {
+                                  const nestedFieldName =
+                                    additionalField.name ||
+                                    `${field.name}_${additionalField.id}`;
+                                  unregister(nestedFieldName, {
+                                    keepValue: false,
+                                  });
                                 });
-                              });
-                            }
-                          },
-                        );
-                      }
-                    }}
-                    error={Boolean(errors[field.name])}
-                    helperText={errors[field.name]?.message || ""}
-                    InputLabelProps={{
-                      shrink: true,
-                      style: { fontSize: "1.2rem", color: "#000000" },
-                    }}
-                    inputRef={ref}
-                    sx={commonStyles}
-                    disabled={isFieldDisabled(field.name)}
-                  >
-                    {options.map((option, index) => (
-                      <MenuItem
-                        key={`${option.value}-${index}`}
-                        value={option.value}
-                        sx={{
-                          color: "#1F2937", // Gray-900
-                          "&:hover": { backgroundColor: "#DBEAFE" }, // Blue-100
-                          "&.Mui-selected": {
-                            backgroundColor: "#6366F1", // Indigo-500
-                            color: "#FFFFFF",
-                          },
-                        }}
-                      >
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                              }
+                            },
+                          );
+                        }
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          variant="outlined"
+                          label={getLabelWithAsteriskJSX(field)}
+                          error={Boolean(errors[field.name])}
+                          helperText={errors[field.name]?.message || ""}
+                          InputLabelProps={{
+                            shrink: true,
+                            style: { fontSize: "1.2rem", color: "#000000" },
+                          }}
+                          inputRef={ref}
+                          sx={commonStyles}
+                          disabled={isFieldDisabled(field.name)}
+                        />
+                      )}
+                      disableClearable
+                    />
+                  </FormControl>
+
                   {field.additionalFields &&
                     field.additionalFields[value] &&
                     field.additionalFields[value].map((additionalField) => {
@@ -2685,6 +2586,21 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         type="error" // can be: "error", "success", "warning", "info"
       />
 
+      <MessageModal
+        open={emailAlertModalOpen}
+        title="Email Required"
+        message="Documents like Acknowledgement and Sanction Letters are sent via email. Please provide an email address to proceed."
+        primaryButton={{
+          text: "Submit",
+          action: handleEmailAlertSubmit,
+        }}
+        secondaryButton={{
+          text: "Cancel",
+          action: handleEmailAlertCancel,
+        }}
+        onClose={handleEmailAlertCancel}
+      />
+
       {otpModal && (
         <OtpModal
           open={otpModal}
@@ -2692,6 +2608,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             setOtpModal(false);
           }}
           onSubmit={handleOtpSubmit}
+          registeredAt="Mobile Number"
         />
       )}
 

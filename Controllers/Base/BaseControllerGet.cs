@@ -87,7 +87,7 @@ namespace SahayataNidhi.Controllers
 
             var parameter = new SqlParameter("@UserId", userId);
             var officer = dbcontext.Database
-                .SqlQuery<OfficerDetailsModal>($"EXEC GetOfficerDetails @UserId = {parameter}")
+            .SqlQuery<OfficerDetailsModal>($"EXEC GetOfficerDetails @UserId = {parameter}")
                 .AsEnumerable()
                 .FirstOrDefault();
 
@@ -270,10 +270,17 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetDesignations()
+        public IActionResult GetDepartments()
+        {
+            var departments = dbcontext.Departments.ToList();
+            return Json(new { status = true, departments });
+        }
+
+        [HttpGet]
+        public IActionResult GetDesignations(string deparmentId)
         {
             // JsonConvert.DeserializeObject
-            var designations = dbcontext.OfficersDesignations.Where(des => !des.Designation!.Contains("Admin")).ToList();
+            var designations = dbcontext.OfficersDesignations.Where(des => des.DepartmentId == Convert.ToInt32(deparmentId)).ToList();
             return Json(new { status = true, designations });
         }
 
@@ -564,11 +571,7 @@ namespace SahayataNidhi.Controllers
         {
             try
             {
-                var banks = await dbcontext.BankDetails
-                    .Where(b => EF.Functions.Like(b.State, "%JAMMU%"))
-                    .OrderBy(b => b.Bank)
-                    .Select(b => new { id = b.Bank, name = b.Bank })
-                    .Distinct()
+                var banks = await dbcontext.Banks
                     .ToListAsync();
                 return Ok(new { status = true, data = banks });
             }
@@ -579,16 +582,22 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetBranches(int bankId)
+        public IActionResult GetBankCode(string bankId)
         {
             try
             {
-                var branches = await dbcontext.Branches
-                    .Where(b => b.BankId == bankId)
-                    .OrderBy(b => b.BranchName)
-                    .Select(b => new { id = b.BranchId, name = b.BranchName })
-                    .ToListAsync();
-                return Ok(new { status = true, data = branches });
+                int BankId = Convert.ToInt32(bankId);
+                var bank = dbcontext.Banks
+                    .FirstOrDefault(b => b.Id == BankId);
+
+                if (bank != null)
+                {
+                    return Ok(new { status = true, bankCode = bank.BankCode });
+                }
+                else
+                {
+                    return NotFound(new { status = false, message = "Bank not found." });
+                }
             }
             catch (Exception ex)
             {
@@ -597,16 +606,21 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetIfscCodes(int branchId)
+        public IActionResult GetBankDetails(string IfscCode)
         {
             try
             {
-                var ifscCodes = await dbcontext.IfscCodes
-                    .Where(i => i.BranchId == branchId)
-                    .OrderBy(i => i.IfscCode1)
-                    .Select(i => new { id = i.IfscId, name = i.IfscCode1 })
-                    .ToListAsync();
-                return Ok(new { status = true, data = ifscCodes });
+                var bankDetails = dbcontext.BankDetails
+                    .FirstOrDefault(b => b.Ifsc == IfscCode);
+
+                if (bankDetails != null)
+                {
+                    return Ok(new { status = true, bankDetails });
+                }
+                else
+                {
+                    return NotFound(new { status = false, message = "Bank details not found." });
+                }
             }
             catch (Exception ex)
             {

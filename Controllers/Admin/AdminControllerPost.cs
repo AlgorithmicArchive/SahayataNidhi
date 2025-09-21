@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SahayataNidhi.Models.Entities;
 
 namespace SahayataNidhi.Controllers.Admin
 {
@@ -100,6 +101,43 @@ namespace SahayataNidhi.Controllers.Admin
             }
         }
 
+        [HttpPost]
+        public IActionResult AddDesignation()
+        {
+            try
+            {
+                var designation = Request.Form["Designation"].ToString();
+                var designationShort = Request.Form["DesignationShort"].ToString();
+                var accessLevel = Request.Form["AccessLevel"].ToString();
+                var departmentId = int.Parse(Request.Form["DepartmentId"]!);
 
+                if (string.IsNullOrWhiteSpace(designation) || string.IsNullOrWhiteSpace(designationShort) || string.IsNullOrWhiteSpace(accessLevel))
+                {
+                    return BadRequest(new { error = "All fields are required" });
+                }
+
+                var newDesignation = new OfficersDesignation
+                {
+                    Designation = designation,
+                    DesignationShort = designationShort,
+                    AccessLevel = accessLevel,
+                    DepartmentId = departmentId
+                };
+
+                dbcontext.OfficersDesignations.Add(newDesignation);
+                dbcontext.SaveChanges();
+
+                return Json(new { status = true });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (use your logging framework, e.g., Serilog, NLog)
+                return StatusCode(500, new
+                {
+                    error = "An error occurred while adding designation",
+                    details = ex.Message
+                });
+            }
+        }
     }
 }

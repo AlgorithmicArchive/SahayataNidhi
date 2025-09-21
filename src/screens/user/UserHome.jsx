@@ -152,19 +152,31 @@ export default function UserHome() {
     GetUserDetails();
   }, []);
 
-  // Mask email (e.g., johndoe@example.com -> ****@****.com)
   const maskEmail = (email) => {
     if (!email) return "N/A";
     const [localPart, domain] = email.split("@");
-    const maskedLocal = localPart.replace(/.*/g, "****");
-    const maskedDomain = domain.replace(/^[^.]+/, "****");
+
+    const maskedLocal =
+      localPart.length > 1
+        ? localPart[0] + "*".repeat(localPart.length - 1)
+        : localPart[0] + "*";
+
+    const domainParts = domain.split(".");
+    const maskedDomain = domainParts
+      .map((part, index) =>
+        index === 0 ? part[0] + "*".repeat(Math.max(part.length - 1, 1)) : part,
+      )
+      .join(".");
+
     return `${maskedLocal}@${maskedDomain}`;
   };
 
-  // Mask mobile number (e.g., 1234567890 -> *******890)
+  // Mask mobile number (e.g., 1234567890 -> ******7890)
   const maskMobileNumber = (mobileNumber) => {
     if (!mobileNumber) return "N/A";
-    return `*******${mobileNumber.slice(-3)}`;
+    const visibleDigits = 4;
+    const maskedLength = mobileNumber.length - visibleDigits;
+    return "*".repeat(maskedLength) + mobileNumber.slice(-visibleDigits);
   };
 
   // Toggle email visibility

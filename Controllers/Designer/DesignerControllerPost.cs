@@ -213,7 +213,7 @@ namespace SahayataNidhi.Controllers
             string serviceIdString = form["serviceId"].ToString();
             string serviceName = form["serviceName"].ToString();
             string serviceNameShort = form["serviceNameShort"].ToString();
-            string departmentName = form["departmentName"].ToString();
+            int departmentId = Convert.ToInt32(form["deparmentId"].ToString());
 
             var formElement = form["formElement"].ToString();
 
@@ -221,6 +221,7 @@ namespace SahayataNidhi.Controllers
             {
                 int serviceId = Convert.ToInt32(serviceIdString);
                 var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
+
 
                 if (service != null)
                 {
@@ -233,8 +234,8 @@ namespace SahayataNidhi.Controllers
                     if (service.NameShort != serviceNameShort)
                         service.NameShort = serviceNameShort;
 
-                    if (service.Department != departmentName)
-                        service.Department = departmentName;
+                    if (service.DepartmentId != departmentId)
+                        service.DepartmentId = departmentId;
                 }
             }
             else
@@ -244,7 +245,7 @@ namespace SahayataNidhi.Controllers
                     FormElement = formElement,
                     ServiceName = serviceName,
                     NameShort = serviceNameShort,
-                    Department = departmentName
+                    DepartmentId = departmentId
                 };
 
                 dbcontext.Services.Add(newService);

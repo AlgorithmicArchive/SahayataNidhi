@@ -66,8 +66,8 @@ export default function LoginScreen() {
     setToken,
     setProfile,
     setUsername,
-    setVerified,
     setDesignation,
+    setDepartment,
   } = useContext(UserContext);
 
   const navigate = useNavigate();
@@ -108,6 +108,8 @@ export default function LoginScreen() {
         setProfile(response.profile);
         setUsername(response.username);
         setDesignation(response.designation);
+        if (response.department && response.department != "")
+          setDepartment(response.department);
         navigate("/verification");
       } else if (response.isEmailVerified === false) {
         const formDataEmail = new FormData();
@@ -324,7 +326,7 @@ export default function LoginScreen() {
                     fontWeight: Math.random() > 0.5 ? 700 : 400,
                     color: Math.random() > 0.5 ? "primary.main" : "#2d3748",
                     transform: `rotate(${Math.floor(
-                      Math.random() * 31 - 15
+                      Math.random() * 31 - 15,
                     )}deg) translateY(${Math.floor(Math.random() * 6 - 3)}px)`,
                     margin: "0 2px",
                     userSelect: "none",

@@ -66,53 +66,63 @@ namespace SahayataNidhi.Controllers
         [HttpPost]
         public async Task<IActionResult> OfficerRegistration([FromForm] IFormCollection form)
         {
+            // Extract form fields
             var fullName = new SqlParameter("@Name", form["fullName"].ToString());
-            var username = new SqlParameter("@Username", form["Username"].ToString());
-            var password = new SqlParameter("@Password", form["Password"].ToString());
-            var email = new SqlParameter("@Email", form["Email"].ToString());
-            var mobileNumber = new SqlParameter("@MobileNumber", form["MobileNumber"].ToString());
+            var username = new SqlParameter("@Username", form["username"].ToString()); // Match form field name
+            var password = new SqlParameter("@Password", form["password"].ToString()); // Match form field name
+            var email = new SqlParameter("@Email", form["email"].ToString()); // Match form field name
+            var mobileNumber = new SqlParameter("@MobileNumber", form["mobileNumber"].ToString()); // Match form field name
+            var department = new SqlParameter("@Department", form["department"].ToString()); // New field for department
+            var designation = new SqlParameter("@Designation", form["designation"].ToString()); // Match form field name
             var profile = new SqlParameter("@Profile", "/assets/images/profile.jpg");
 
+            // Determine UserType based on designation
             var UserType = new SqlParameter("@UserType", form["designation"].ToString().Contains("Admin") ? "Admin" : "Officer");
 
+            // Handle backup codes
             var backupCodes = new
             {
                 unused = _helper.GenerateUniqueRandomCodes(10, 8),
-                used = Array.Empty<string>(),
+                used = Array.Empty<string>()
             };
-            var addtionalDetails = new
+            var backupCodesParam = new SqlParameter("@BackupCodes", JsonConvert.SerializeObject(backupCodes));
+
+            // Construct additional details including new fields
+            var additionalDetails = new
             {
                 Role = form["designation"].ToString(),
                 RoleShort = GetShortTitleFromRole(form["designation"].ToString()),
                 AccessLevel = form["accessLevel"].ToString(),
                 AccessCode = Convert.ToInt32(form["accessCode"].ToString()),
+                Department = form["department"].ToString(), // Include department
+                District = form.ContainsKey("District") ? form["District"].ToString() : null, // Include District if present
+                Division = form.ContainsKey("Division") ? form["Division"].ToString() : null, // Include Division if present
+                Tehsil = form.ContainsKey("Tehsil") ? form["Tehsil"].ToString() : null, // Include Tehsil if present
                 Validate = false
             };
-            var AddtionalDetails = new SqlParameter("@AdditionalDetails", JsonConvert.SerializeObject(addtionalDetails));
-
-            var backupCodesParam = new SqlParameter("@BackupCodes", JsonConvert.SerializeObject(backupCodes));
+            var additionalDetailsParam = new SqlParameter("@AdditionalDetails", JsonConvert.SerializeObject(additionalDetails));
 
             var registeredDate = new SqlParameter("@RegisteredDate", DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt"));
 
+            // Execute stored procedure with updated parameters
             var result = _dbContext.Users.FromSqlRaw(
-                "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber,@Profile, @UserType, @BackupCodes,@AdditionalDetails, @RegisteredDate",
-                fullName, username, password, email, mobileNumber, profile, UserType, backupCodesParam, AddtionalDetails, registeredDate
+                "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber, @Department, @Designation, @Profile, @UserType, @BackupCodes, @AdditionalDetails, @RegisteredDate",
+                fullName, username, password, email, mobileNumber, department, designation, profile, UserType, backupCodesParam, additionalDetailsParam, registeredDate
             ).ToList();
 
             if (result.Count > 0)
             {
-                var userId = new SqlParameter("@OfficerId", result[0].UserId);
-                // await _dbContext.Database.ExecuteSqlRawAsync("EXEC UpdateNullOfficer @NewOfficerId, @AccessLevel, @AccessCode, @Role", new SqlParameter("@NewOfficerId", result[0].UserId), designation, accessLevel, accessCode);
                 string otp = GenerateOTP(7);
                 _otpStore.StoreOtp("registration", otp);
-                await _emailSender.SendEmail(form["Email"].ToString(), "OTP For Registration.", otp);
-                return Json(new { status = true, result[0].UserId });
+                await _emailSender.SendEmail(form["email"].ToString(), "OTP For Registration", otp);
+                return Json(new { status = true, userId = result[0].UserId });
             }
             else
             {
                 return Json(new { status = false, response = "Registration failed." });
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> SendLoginOtp(string? username)
         {
@@ -347,6 +357,7 @@ namespace SahayataNidhi.Controllers
 
             var user = _dbContext.Users.FromSqlRaw("EXEC UserLogin @Username,@Password", username, password).AsEnumerable().FirstOrDefault();
             string? designation = "";
+            string? department = "";
             if (user != null)
             {
                 if (!user.IsEmailValid)
@@ -362,7 +373,7 @@ namespace SahayataNidhi.Controllers
                 };
 
                 // Include designation if applicable
-                if (user.UserType == "Officer" && !string.IsNullOrWhiteSpace(user.AdditionalDetails))
+                if (user.UserType == "Officer" || user.UserType == "Admin" && !string.IsNullOrWhiteSpace(user.AdditionalDetails))
                 {
                     try
                     {
@@ -406,6 +417,13 @@ namespace SahayataNidhi.Controllers
                                     claims.Add(new Claim("Designation", designation));
                                 }
                             }
+                            _logger.LogInformation($"------------------ UserType: {user.UserType} -------------------------------");
+                            if (user.UserType == "Admin")
+                            {
+                                int departmentId = Convert.ToInt32(officerDetails["Department"]);
+                                _logger.LogInformation($"------------------ DepartmentId: {departmentId} -------------------------------");
+                                department = _dbContext.Departments.FirstOrDefault(d => d.DepartmentId == departmentId)!.DepartmentName;
+                            }
                         }
                     }
                     catch
@@ -436,7 +454,7 @@ namespace SahayataNidhi.Controllers
 
                 _auditService.InsertLog(HttpContext, "Login", "User logged in to the account.", user.UserId, "Success");
                 // Return the token and other required details to the client
-                return Json(new { status = true, token = tokenString, userType = user.UserType, profile = user.Profile, username = form["username"], designation });
+                return Json(new { status = true, token = tokenString, userType = user.UserType, profile = user.Profile, username = form["username"], designation, department });
             }
             else
             {
@@ -466,6 +484,46 @@ namespace SahayataNidhi.Controllers
                 Issuer = _configuration["JWT:Issuer"],
                 Audience = _configuration["JWT:Audience"],
                 Expires = DateTime.UtcNow.AddMinutes(30) // 30-minute expiration
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return Json(new
+            {
+                status = true,
+                token = tokenString,
+                userType = user.UserType,
+                profile = user.Profile,
+                username,
+                designation = User.FindFirst("Designation")?.Value ?? ""
+            });
+        }
+
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult KeepAlive()
+        {
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
+            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            if (user == null)
+                return Unauthorized(new { status = false, message = "User not found." });
+
+            // If server-side session tracking exists, update expiry here (e.g., user.LastActivity = DateTime.UtcNow; _dbContext.SaveChanges();)
+
+            var claims = User.Claims.Select(c => new Claim(c.Type, c.Value)).ToList();
+            var jwtSecretKey = _configuration["JWT:Secret"];
+            var key = Encoding.ASCII.GetBytes(jwtSecretKey!);
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _configuration["JWT:Issuer"],
+                Audience = _configuration["JWT:Audience"],
+                Expires = DateTime.UtcNow.AddHours(24) // Or longer/no expiry for "removed" state
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -700,11 +758,20 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetDesignations()
+        public IActionResult GetDepartments()
         {
-            var designations = _dbContext.OfficersDesignations.ToList();
+            var departments = _dbContext.Departments.ToList();
+            return Json(new { status = true, departments });
+        }
+
+        [HttpGet]
+        public IActionResult GetDesignations(string deparmentId)
+        {
+            // JsonConvert.DeserializeObject
+            var designations = _dbContext.OfficersDesignations.Where(des => des.DepartmentId == Convert.ToInt32(deparmentId)).ToList();
             return Json(new { status = true, designations });
         }
+
 
 
         [HttpGet]
