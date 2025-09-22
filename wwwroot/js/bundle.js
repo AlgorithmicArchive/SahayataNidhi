@@ -348202,9 +348202,20 @@ __webpack_require__.r(__webpack_exports__);
 var UserContext = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_1__.createContext)();
 var UserProvider = function UserProvider(_ref) {
   var children = _ref.children;
+  // Utility to safely parse JSON from localStorage
+  var safeParse = function safeParse(key, defaultValue) {
+    try {
+      var value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : defaultValue;
+    } catch (error) {
+      console.error("Failed to parse ".concat(key, " from localStorage:"), error);
+      return defaultValue;
+    }
+  };
+
+  // Initialize state with safe parsing
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(function () {
-      var savedUserType = localStorage.getItem("userType");
-      return savedUserType ? JSON.parse(savedUserType) : null;
+      return localStorage.getItem("userType") || null;
     }),
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState, 2),
     userType = _useState2[0],
@@ -348222,43 +348233,46 @@ var UserProvider = function UserProvider(_ref) {
     username = _useState6[0],
     setUsername = _useState6[1];
   var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(function () {
-      var savedProfile = localStorage.getItem("profile");
-      return savedProfile ? JSON.parse(savedProfile) : null;
+      return safeParse("profile", null);
     }),
     _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState7, 2),
     profile = _useState8[0],
     setProfile = _useState8[1];
   var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(function () {
-      var savedVerified = localStorage.getItem("verified");
-      return savedVerified ? JSON.parse(savedVerified) : false;
+      return safeParse("verified", false);
     }),
     _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState9, 2),
     verified = _useState0[0],
     setVerified = _useState0[1];
   var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(function () {
-      var savedDesignation = localStorage.getItem("designation");
-      return savedDesignation ? JSON.parse(savedDesignation) : null;
+      return localStorage.getItem("designation") || null;
     }),
     _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState1, 2),
     designation = _useState10[0],
     setDesignation = _useState10[1];
-  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)({}),
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(function () {
+      return safeParse("officerAuthorities", {});
+    }),
     _useState12 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState11, 2),
     officerAuthorities = _useState12[0],
     setOfficerAuthorities = _useState12[1];
-  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(function () {
+      return localStorage.getItem("department") || null;
+    }),
     _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState13, 2),
     department = _useState14[0],
-    setDepartment = _useState14[1]; // New state for department
-
-  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+    setDepartment = _useState14[1];
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(function () {
+      return safeParse("tokenExpiry", null);
+    }),
     _useState16 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState15, 2),
     tokenExpiry = _useState16[0],
-    setTokenExpiry = _useState16[1]; // New state for token expiry
+    setTokenExpiry = _useState16[1];
 
+  // Sync state with localStorage
   (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
     if (userType) {
-      localStorage.setItem("userType", JSON.stringify(userType));
+      localStorage.setItem("userType", userType);
     } else {
       localStorage.removeItem("userType");
     }
@@ -348289,11 +348303,32 @@ var UserProvider = function UserProvider(_ref) {
   }, [verified]);
   (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
     if (designation) {
-      localStorage.setItem("designation", JSON.stringify(designation));
+      localStorage.setItem("designation", designation);
     } else {
       localStorage.removeItem("designation");
     }
   }, [designation]);
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
+    if (officerAuthorities && Object.keys(officerAuthorities).length > 0) {
+      localStorage.setItem("officerAuthorities", JSON.stringify(officerAuthorities));
+    } else {
+      localStorage.removeItem("officerAuthorities");
+    }
+  }, [officerAuthorities]);
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
+    if (department) {
+      localStorage.setItem("department", department);
+    } else {
+      localStorage.removeItem("department");
+    }
+  }, [department]);
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
+    if (tokenExpiry) {
+      localStorage.setItem("tokenExpiry", JSON.stringify(tokenExpiry));
+    } else {
+      localStorage.removeItem("tokenExpiry");
+    }
+  }, [tokenExpiry]);
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(UserContext.Provider, {
     value: {
       userType: userType,
@@ -348308,13 +348343,12 @@ var UserProvider = function UserProvider(_ref) {
       setVerified: setVerified,
       designation: designation,
       setDesignation: setDesignation,
-      tokenExpiry: tokenExpiry,
-      setTokenExpiry: setTokenExpiry,
-      // Expose tokenExpiry and setter
       officerAuthorities: officerAuthorities,
       setOfficerAuthorities: setOfficerAuthorities,
       department: department,
-      setDepartment: setDepartment // Expose department and setter
+      setDepartment: setDepartment,
+      tokenExpiry: tokenExpiry,
+      setTokenExpiry: setTokenExpiry
     }
   }, children);
 };
@@ -349891,6 +349925,7 @@ function _fetchUserDetail() {
       setHaspending,
       setCanTakeAction,
       setPrivateFields,
+      setCurrentOfficerDetails,
       response,
       _args14 = arguments;
     return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context14) {
@@ -349900,6 +349935,7 @@ function _fetchUserDetail() {
           setHaspending = _args14.length > 3 ? _args14[3] : undefined;
           setCanTakeAction = _args14.length > 4 && _args14[4] !== undefined ? _args14[4] : null;
           setPrivateFields = _args14.length > 5 && _args14[5] !== undefined ? _args14[5] : null;
+          setCurrentOfficerDetails = _args14.length > 6 && _args14[6] !== undefined ? _args14[6] : null;
           _context14.next = 1;
           return _axiosConfig__WEBPACK_IMPORTED_MODULE_3__["default"].get("/Officer/GetUserDetails", {
             params: {
@@ -349914,6 +349950,7 @@ function _fetchUserDetail() {
           if (setActionForm != null) setActionForm(response.data.currentOfficerDetails.actionForm);
           if (setCanTakeAction != null) setCanTakeAction(!response.data.isSanctioned);
           if (setPrivateFields != null) setPrivateFields(response.data.privatedFields);
+          if (setCurrentOfficerDetails != null) setCurrentOfficerDetails(response.data.currentOfficerDetails);
         case 2:
         case "end":
           return _context14.stop();
@@ -354210,7 +354247,12 @@ __webpack_require__.r(__webpack_exports__);
 
 var TokenTimer = function TokenTimer() {
   var _useContext = (0,react__WEBPACK_IMPORTED_MODULE_3__.useContext)(_UserContext__WEBPACK_IMPORTED_MODULE_8__.UserContext),
-    setTokenExpiry = _useContext.setTokenExpiry;
+    setTokenExpiry = _useContext.setTokenExpiry,
+    setToken = _useContext.setToken,
+    setUserType = _useContext.setUserType,
+    setUsername = _useContext.setUsername,
+    setProfile = _useContext.setProfile,
+    setDesignation = _useContext.setDesignation;
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(null),
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState, 2),
     timeLeft = _useState2[0],
@@ -354227,14 +354269,14 @@ var TokenTimer = function TokenTimer() {
     _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState7, 2),
     isRefreshing = _useState8[0],
     setIsRefreshing = _useState8[1];
-  var lastActivityRef = (0,react__WEBPACK_IMPORTED_MODULE_3__.useRef)(Date.now()); // Use ref to avoid re-renders on updates
+  var lastActivityRef = (0,react__WEBPACK_IMPORTED_MODULE_3__.useRef)(Date.now()); // Track last activity
   var intervalRef = (0,react__WEBPACK_IMPORTED_MODULE_3__.useRef)(null); // Ref for countdown interval
 
   var inactivityThreshold = 5 * 60 * 1000; // 5 minutes
   var sessionDuration = 30 * 60 * 1000; // 30 minutes
   var popupThreshold = 2 * 60 * 1000; // 2 minutes
 
-  // Initialize lastActivity from localStorage for persistence across refreshes
+  // Initialize lastActivity from localStorage
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
     var savedActivity = localStorage.getItem("lastActivity");
     if (savedActivity) {
@@ -354243,20 +354285,20 @@ var TokenTimer = function TokenTimer() {
     setTokenExpiry(Date.now() + sessionDuration); // Initial expiry
   }, [setTokenExpiry]);
 
-  // Debounced activity handler: Updates lastActivity and handles resumption
+  // Debounced activity handler
   var handleActivity = (0,react__WEBPACK_IMPORTED_MODULE_3__.useCallback)((0,lodash__WEBPACK_IMPORTED_MODULE_10__.debounce)(function () {
     var now = Date.now();
     lastActivityRef.current = now;
     localStorage.setItem("lastActivity", now.toString());
 
-    // If countdown is active, stop it and send keep-alive request
+    // If countdown is active, stop it and send keep-alive
     if (countdownStartTime) {
       stopCountdown();
-      keepAlive(); // Send request to remove backend expiration
+      keepAlive();
     }
   }, 500), [countdownStartTime]);
 
-  // Attach/detach activity listeners
+  // Attach activity listeners
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
     var events = ["mousemove", "click", "keypress", "scroll"];
     events.forEach(function (event) {
@@ -354270,25 +354312,24 @@ var TokenTimer = function TokenTimer() {
     };
   }, [handleActivity]);
 
-  // Check for 5-min inactivity and start countdown (runs every 10 seconds to minimize checks)
+  // Check for inactivity every 10 seconds
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
     var checkInactivity = function checkInactivity() {
       var now = Date.now();
       var timeIdle = now - lastActivityRef.current;
       if (timeIdle >= inactivityThreshold && !countdownStartTime) {
-        // Start 30-min countdown from NOW (not from last activity)
         setCountdownStartTime(now);
-        refreshToken(); // Refresh backend token
+        refreshToken();
       }
     };
     checkInactivity();
-    var checkInterval = setInterval(checkInactivity, 10000); // Check every 10 seconds (low frequency)
+    var checkInterval = setInterval(checkInactivity, 10000);
     return function () {
       return clearInterval(checkInterval);
     };
-  }, [countdownStartTime]); // Only re-run if countdown starts/stops
+  }, [countdownStartTime]);
 
-  // Countdown logic: Once started, update timer every 1 second
+  // Countdown logic
   (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(function () {
     if (!countdownStartTime) return;
     var updateCountdown = function updateCountdown() {
@@ -354300,20 +354341,15 @@ var TokenTimer = function TokenTimer() {
         handleLogout();
         return;
       }
-
-      // Format and show timer
       var minutes = Math.floor(timeRemaining / 60000);
       var seconds = Math.floor(timeRemaining % 60000 / 1000);
       setTimeLeft("".concat(minutes.toString().padStart(2, "0"), ":").concat(seconds.toString().padStart(2, "0")));
-
-      // Show popup in last 2 min
       if (timeRemaining <= popupThreshold) {
         setIsPopupOpen(true);
       }
     };
     updateCountdown();
-    intervalRef.current = setInterval(updateCountdown, 1000); // Update every second for countdown
-
+    intervalRef.current = setInterval(updateCountdown, 1000);
     return function () {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -354321,7 +354357,7 @@ var TokenTimer = function TokenTimer() {
     };
   }, [countdownStartTime]);
 
-  // Stop countdown helper
+  // Stop countdown
   var stopCountdown = (0,react__WEBPACK_IMPORTED_MODULE_3__.useCallback)(function () {
     setCountdownStartTime(null);
     setTimeLeft(null);
@@ -354332,7 +354368,7 @@ var TokenTimer = function TokenTimer() {
     }
   }, []);
 
-  // Refresh token (called only on 5-min idle detection)
+  // Refresh token
   var refreshToken = /*#__PURE__*/function () {
     var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee() {
       var response, _response$data, token, userType, profile, username, designation, _t;
@@ -354356,12 +354392,17 @@ var TokenTimer = function TokenTimer() {
               _context.next = 4;
               break;
             }
-            _response$data = response.data, token = _response$data.token, userType = _response$data.userType, profile = _response$data.profile, username = _response$data.username, designation = _response$data.designation;
-            localStorage.setItem("authToken", token);
-            localStorage.setItem("userType", userType);
-            localStorage.setItem("profile", profile);
-            localStorage.setItem("username", username);
-            localStorage.setItem("designation", designation);
+            _response$data = response.data, token = _response$data.token, userType = _response$data.userType, profile = _response$data.profile, username = _response$data.username, designation = _response$data.designation; // Update localStorage and context
+            setToken(token || null);
+            setUserType(userType || null);
+            setUsername(username || null);
+            setProfile(profile || null);
+            setDesignation(designation || null);
+            localStorage.setItem("token", token || "");
+            localStorage.setItem("userType", userType || "");
+            localStorage.setItem("profile", profile ? JSON.stringify(profile) : "");
+            localStorage.setItem("username", username || "");
+            localStorage.setItem("designation", designation || "");
             setTokenExpiry(Date.now() + sessionDuration);
             _context.next = 5;
             break;
@@ -354390,7 +354431,7 @@ var TokenTimer = function TokenTimer() {
     };
   }();
 
-  // Keep alive (remove expiration - called on activity resumption)
+  // Keep alive
   var keepAlive = /*#__PURE__*/function () {
     var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee2() {
       var response, _response$data2, token, userType, profile, username, designation, _t2;
@@ -354414,13 +354455,18 @@ var TokenTimer = function TokenTimer() {
               _context2.next = 4;
               break;
             }
-            _response$data2 = response.data, token = _response$data2.token, userType = _response$data2.userType, profile = _response$data2.profile, username = _response$data2.username, designation = _response$data2.designation;
-            localStorage.setItem("authToken", token);
-            localStorage.setItem("userType", userType);
-            localStorage.setItem("profile", profile);
-            localStorage.setItem("username", username);
-            localStorage.setItem("designation", designation);
-            setTokenExpiry(Date.now() + 24 * 60 * 60 * 1000); // e.g., 24 hours
+            _response$data2 = response.data, token = _response$data2.token, userType = _response$data2.userType, profile = _response$data2.profile, username = _response$data2.username, designation = _response$data2.designation; // Update localStorage and context
+            setToken(token || null);
+            setUserType(userType || null);
+            setUsername(username || null);
+            setProfile(profile || null);
+            setDesignation(designation || null);
+            localStorage.setItem("token", token || "");
+            localStorage.setItem("userType", userType || "");
+            localStorage.setItem("profile", profile ? JSON.stringify(profile) : "");
+            localStorage.setItem("username", username || "");
+            localStorage.setItem("designation", designation || "");
+            setTokenExpiry(Date.now() + 24 * 60 * 60 * 1000);
             _context2.next = 5;
             break;
           case 4:
@@ -354432,7 +354478,8 @@ var TokenTimer = function TokenTimer() {
             _context2.prev = 6;
             _t2 = _context2["catch"](2);
             console.error("Keep-alive failed:", _t2);
-            // Optionally fallback to refreshToken() or ignore if non-critical
+            _context2.next = 7;
+            return refreshToken();
           case 7:
             _context2.prev = 7;
             setIsRefreshing(false);
@@ -354448,7 +354495,7 @@ var TokenTimer = function TokenTimer() {
     };
   }();
 
-  // Continue session (from popup - refreshes and stops countdown)
+  // Continue session
   var handleContinue = /*#__PURE__*/function () {
     var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().mark(function _callee3() {
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_2___default().wrap(function (_context3) {
@@ -354457,7 +354504,6 @@ var TokenTimer = function TokenTimer() {
             _context3.next = 1;
             return refreshToken();
           case 1:
-            // Extend the current countdown session
             stopCountdown();
           case 2:
           case "end":
@@ -354474,6 +354520,12 @@ var TokenTimer = function TokenTimer() {
   var handleLogout = function handleLogout() {
     stopCountdown();
     localStorage.clear();
+    setToken(null);
+    setUserType(null);
+    setUsername(null);
+    setProfile(null);
+    setDesignation(null);
+    setTokenExpiry(null);
     window.location.href = "/login";
   };
   if (!timeLeft) return null;
@@ -354486,7 +354538,6 @@ var TokenTimer = function TokenTimer() {
       px: 3,
       py: 1.5,
       bgcolor: timeLeft === "00:00" ? "error.main" : "#ff9800",
-      // Note: timeLeft won't be "00:00" exactly due to async
       color: "#fff",
       borderRadius: "8px",
       boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.3)",
@@ -359904,7 +359955,7 @@ var DynamicScrollableForm = function DynamicScrollableForm(_ref3) {
                   color: "#000000"
                 }
               },
-              InputProps: {
+              inputProps: {
                 maxLength: field.maxLength,
                 readOnly: field.name === "BranchName"
               },
@@ -362022,6 +362073,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_hook_form__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! react-hook-form */ "./node_modules/react-hook-form/dist/index.esm.mjs");
 /* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
 /* harmony import */ var _components_MessageModal__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../../components/MessageModal */ "./src/components/MessageModal.jsx");
+/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! react-toastify */ "./node_modules/react-toastify/dist/index.mjs");
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! react-toastify/dist/ReactToastify.css */ "./node_modules/react-toastify/dist/ReactToastify.css");
+/* harmony import */ var _components_CustomButton__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../../components/CustomButton */ "./src/components/CustomButton.jsx");
+/* harmony import */ var _components_OtpModal__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ../../components/OtpModal */ "./src/components/OtpModal.jsx");
+
+
+
+
 
 
 
@@ -362034,6 +362093,25 @@ __webpack_require__.r(__webpack_exports__);
 
 // Admin hierarchy configuration
 var adminHierarchy = {
+  System: {
+    allowedToCreate: ["State", "Division", "District"],
+    roles: [{
+      Role: "State Admin",
+      RoleShort: "SA",
+      AccessLevel: "State",
+      AccessCode: 0
+    }, {
+      Role: "Division Admin",
+      RoleShort: "DA",
+      AccessLevel: "Division",
+      AccessCode: 1
+    }, {
+      Role: "District Admin",
+      RoleShort: "DIA",
+      AccessLevel: "District",
+      AccessCode: 2
+    }]
+  },
   State: {
     allowedToCreate: ["Division", "District"],
     roles: [{
@@ -362063,7 +362141,7 @@ var adminHierarchy = {
   }
 };
 
-// Mock divisions and districts (replace with API data)
+// Mock divisions (replace with API data if available)
 var divisions = [{
   id: 1,
   name: "Jammu"
@@ -362071,7 +362149,9 @@ var divisions = [{
   id: 2,
   name: "Kashmir"
 }];
-var districts = [{
+
+// Mock districts as fallback
+var mockDistricts = [{
   id: 1,
   name: "District 1",
   divisionId: 1
@@ -362086,6 +362166,8 @@ var districts = [{
 }];
 function AddAdmin() {
   var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_17__.useForm)({
+      mode: "onChange",
+      reValidateMode: "onChange",
       defaultValues: {
         name: "",
         username: "",
@@ -362095,52 +362177,93 @@ function AddAdmin() {
         userType: "Admin",
         role: "",
         division: "",
-        district: ""
+        district: "",
+        department: ""
       }
     }),
     control = _useForm.control,
     handleSubmit = _useForm.handleSubmit,
     watch = _useForm.watch,
     setValue = _useForm.setValue,
+    getValues = _useForm.getValues,
+    trigger = _useForm.trigger,
     errors = _useForm.formState.errors;
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState, 2),
     currentAdminLevel = _useState2[0],
     setCurrentAdminLevel = _useState2[1];
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
     _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState3, 2),
-    currentAdminDivision = _useState4[0],
-    setCurrentAdminDivision = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
+    currentAdminRole = _useState4[0],
+    setCurrentAdminRole = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
     _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState5, 2),
-    availableRoles = _useState6[0],
-    setAvailableRoles = _useState6[1];
+    currentAdminDivision = _useState6[0],
+    setCurrentAdminDivision = _useState6[1];
   var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
     _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState7, 2),
-    filteredDistricts = _useState8[0],
-    setFilteredDistricts = _useState8[1];
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
+    availableRoles = _useState8[0],
+    setAvailableRoles = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
     _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState9, 2),
-    errorMessage = _useState0[0],
-    setErrorMessage = _useState0[1];
-  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(true),
+    allDistricts = _useState0[0],
+    setAllDistricts = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
     _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState1, 2),
-    isLoading = _useState10[0],
-    setIsLoading = _useState10[1];
-  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    filteredDistricts = _useState10[0],
+    setFilteredDistricts = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]),
     _useState12 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState11, 2),
-    showMessageModal = _useState12[0],
-    setShowMessageModal = _useState12[1];
-  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(0),
+    departments = _useState12[0],
+    setDepartments = _useState12[1];
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(""),
     _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState13, 2),
-    department = _useState14[0],
-    setDepartment = _useState14[1];
+    errorMessage = _useState14[0],
+    setErrorMessage = _useState14[1];
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(true),
+    _useState16 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState15, 2),
+    isLoading = _useState16[0],
+    setIsLoading = _useState16[1];
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState18 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState17, 2),
+    showMessageModal = _useState18[0],
+    setShowMessageModal = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState20 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState19, 2),
+    isOtpModalOpen = _useState20[0],
+    setIsOtpModalOpen = _useState20[1];
+  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
+    _useState22 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState21, 2),
+    otpType = _useState22[0],
+    setOtpType = _useState22[1]; // 'email' or 'mobile'
+  var _useState23 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(0),
+    _useState24 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState23, 2),
+    userId = _useState24[0],
+    setUserId = _useState24[1];
+  var _useState25 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState26 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState25, 2),
+    isEmailOtpSent = _useState26[0],
+    setIsEmailOtpSent = _useState26[1];
+  var _useState27 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState28 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState27, 2),
+    isEmailOtpVerified = _useState28[0],
+    setIsEmailOtpVerified = _useState28[1];
+  var _useState29 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState30 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState29, 2),
+    isMobileOtpSent = _useState30[0],
+    setIsMobileOtpSent = _useState30[1];
+  var _useState31 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState32 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState31, 2),
+    isMobileOtpVerified = _useState32[0],
+    setIsMobileOtpVerified = _useState32[1];
   var selectedRole = watch("role");
   var selectedDivision = watch("division");
+  var emailValue = watch("email");
+  var mobileValue = watch("mobileNumber");
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
     var fetchData = /*#__PURE__*/function () {
       var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee() {
-        var response, details, _t;
+        var adminResponse, details, roleLevel, fetchedDistricts, _deptResponse$data$de, deptResponse, _t;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
@@ -362149,44 +362272,80 @@ function AddAdmin() {
               _context.next = 2;
               return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Admin/GetCurrentAdminDetails");
             case 2:
-              response = _context.sent;
-              if (!(!response.data || !response.data.additionalDetails)) {
+              adminResponse = _context.sent;
+              if (!(!adminResponse.data || !adminResponse.data.additionalDetails)) {
                 _context.next = 3;
                 break;
               }
               throw new Error("Admin data is missing");
             case 3:
-              details = JSON.parse(response.data.additionalDetails);
+              details = JSON.parse(adminResponse.data.additionalDetails);
               if (!(!details || !details.AccessLevel)) {
                 _context.next = 4;
                 break;
               }
               throw new Error("Invalid admin details");
             case 4:
+              console.log("Current Admin Level:", details.AccessLevel); // Debug log
+              console.log("Current Admin Role:", details.Role); // Debug log
               setCurrentAdminLevel(details.AccessLevel);
+              setCurrentAdminRole(details.Role || "");
               if (details.DivisionId) {
                 setCurrentAdminDivision(details.DivisionId);
               }
-              if (adminHierarchy[details.AccessLevel]) {
-                setAvailableRoles(adminHierarchy[details.AccessLevel].roles);
+
+              // Set available roles based on AccessLevel or fallback to System if Role is System Admin
+              roleLevel = details.Role === "System Admin" ? "System" : details.AccessLevel;
+              if (!adminHierarchy[roleLevel]) {
+                _context.next = 5;
+                break;
               }
-              setDepartment(details.Department || 0);
-              setFilteredDistricts(response.data.districts || districts);
+              setAvailableRoles(adminHierarchy[roleLevel].roles);
+              console.log("Available Roles:", adminHierarchy[roleLevel].roles); // Debug log
               _context.next = 6;
               break;
             case 5:
-              _context.prev = 5;
-              _t = _context["catch"](1);
-              setErrorMessage("Error loading admin data: ".concat(_t.message));
+              throw new Error("No roles defined for AccessLevel: ".concat(roleLevel));
             case 6:
-              _context.prev = 6;
-              setIsLoading(false);
-              return _context.finish(6);
+              fetchedDistricts = adminResponse.data.districts || mockDistricts;
+              setAllDistricts(fetchedDistricts);
+              setFilteredDistricts(fetchedDistricts);
+
+              // Fetch departments for System Admin
+              if (!(details.Role === "System Admin")) {
+                _context.next = 9;
+                break;
+              }
+              _context.next = 7;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Base/GetDepartments");
             case 7:
+              deptResponse = _context.sent;
+              if (!(deptResponse.data.status && ((_deptResponse$data$de = deptResponse.data.departments) === null || _deptResponse$data$de === void 0 ? void 0 : _deptResponse$data$de.length) > 0)) {
+                _context.next = 8;
+                break;
+              }
+              console.log("Departments Loaded:", deptResponse.data.departments); // Debug log
+              setDepartments(deptResponse.data.departments);
+              _context.next = 9;
+              break;
+            case 8:
+              throw new Error("Failed to load departments or no departments available");
+            case 9:
+              _context.next = 11;
+              break;
+            case 10:
+              _context.prev = 10;
+              _t = _context["catch"](1);
+              setErrorMessage("Error loading data: ".concat(_t.message));
+            case 11:
+              _context.prev = 11;
+              setIsLoading(false);
+              return _context.finish(11);
+            case 12:
             case "end":
               return _context.stop();
           }
-        }, _callee, null, [[1, 5, 6, 7]]);
+        }, _callee, null, [[1, 10, 11, 12]]);
       }));
       return function fetchData() {
         return _ref.apply(this, arguments);
@@ -362195,38 +362354,270 @@ function AddAdmin() {
     fetchData();
   }, []);
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
-    if (selectedRole === "District Admin" && selectedDivision) {
-      setFilteredDistricts(districts.filter(function (d) {
+    if ((selectedRole === "District Admin" || selectedRole === "Division Admin") && selectedDivision) {
+      setFilteredDistricts(allDistricts.filter(function (d) {
         return d.divisionId === parseInt(selectedDivision);
       }));
       setValue("district", "");
     }
-  }, [selectedDivision, selectedRole, setValue]);
-  var onSubmit = /*#__PURE__*/function () {
-    var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2(data) {
-      var selectedRoleObj, additionalDetails, formData, response, _t2;
+  }, [selectedDivision, selectedRole, setValue, allDistricts]);
+
+  // Handle email validation button click
+  var handleEmailValidate = /*#__PURE__*/function () {
+    var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2() {
+      var isValid, email, response, _t2;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
+            _context2.next = 1;
+            return trigger("email");
+          case 1:
+            isValid = _context2.sent;
+            if (!(isValid && !errors.email)) {
+              _context2.next = 6;
+              break;
+            }
+            setIsLoading(true);
+            _context2.prev = 2;
+            email = getValues("email");
+            _context2.next = 3;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Home/SendOtp", {
+              params: {
+                email: email
+              }
+            });
+          case 3:
+            response = _context2.sent;
+            if (response.data.status) {
+              setIsEmailOtpSent(true);
+              setIsOtpModalOpen(true);
+              setOtpType("email");
+              setUserId(response.data.userId);
+              react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.success("OTP sent to your email!", {
+                position: "top-center",
+                autoClose: 3000
+              });
+            } else {
+              react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Failed to send OTP. Please try again.", {
+                position: "top-center",
+                autoClose: 3000
+              });
+            }
+            _context2.next = 5;
+            break;
+          case 4:
+            _context2.prev = 4;
+            _t2 = _context2["catch"](2);
+            console.error("Error sending OTP to email", _t2);
+            react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Error sending OTP to email.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+          case 5:
+            _context2.prev = 5;
+            setIsLoading(false);
+            return _context2.finish(5);
+          case 6:
+          case "end":
+            return _context2.stop();
+        }
+      }, _callee2, null, [[2, 4, 5, 6]]);
+    }));
+    return function handleEmailValidate() {
+      return _ref2.apply(this, arguments);
+    };
+  }();
+
+  // Handle mobile validation button click
+  var handleMobileValidate = /*#__PURE__*/function () {
+    var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee3() {
+      var isValid, mobile, response, _t3;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.next = 1;
+            return trigger("mobileNumber");
+          case 1:
+            isValid = _context3.sent;
+            if (!(isValid && !errors.mobileNumber)) {
+              _context3.next = 6;
+              break;
+            }
+            setIsLoading(true);
+            _context3.prev = 2;
+            mobile = getValues("mobileNumber");
+            _context3.next = 3;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Home/SendOtp", {
+              params: {
+                email: mobile
+              }
+            });
+          case 3:
+            response = _context3.sent;
+            if (response.data.status) {
+              setIsMobileOtpSent(true);
+              setIsOtpModalOpen(true);
+              setOtpType("mobile");
+              setUserId(response.data.userId);
+              react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.success("OTP sent to your mobile number!", {
+                position: "top-center",
+                autoClose: 3000
+              });
+            } else {
+              react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Failed to send OTP. Please try again.", {
+                position: "top-center",
+                autoClose: 3000
+              });
+            }
+            _context3.next = 5;
+            break;
+          case 4:
+            _context3.prev = 4;
+            _t3 = _context3["catch"](2);
+            console.error("Error sending OTP to mobile", _t3);
+            react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Error sending OTP to mobile.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+          case 5:
+            _context3.prev = 5;
+            setIsLoading(false);
+            return _context3.finish(5);
+          case 6:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3, null, [[2, 4, 5, 6]]);
+    }));
+    return function handleMobileValidate() {
+      return _ref3.apply(this, arguments);
+    };
+  }();
+
+  // Handle OTP submission
+  var handleOtpSubmit = /*#__PURE__*/function () {
+    var _ref4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee4(otp) {
+      var formData, response, _t4;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            if (otp) {
+              _context4.next = 1;
+              break;
+            }
+            react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Please enter an OTP.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+            return _context4.abrupt("return");
+          case 1:
+            setIsLoading(true);
+            formData = new FormData();
+            formData.append("otp", otp);
+            if (otpType === "email") {
+              formData.append("email", getValues("email"));
+            } else if (otpType === "mobile") {
+              formData.append("email", getValues("mobileNumber"));
+            }
+            _context4.prev = 2;
+            _context4.next = 3;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].post("/Home/OTPValidation", formData);
+          case 3:
+            response = _context4.sent;
+            if (response.data.status) {
+              if (otpType === "email") {
+                setIsEmailOtpVerified(true);
+              } else if (otpType === "mobile") {
+                setIsMobileOtpVerified(true);
+              }
+              setIsOtpModalOpen(false);
+              setOtpType(null);
+              react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.success("".concat(otpType === "email" ? "Email" : "Mobile", " OTP verified successfully!"), {
+                position: "top-center",
+                autoClose: 2000
+              });
+            } else {
+              react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Invalid OTP. Please try again.", {
+                position: "top-center",
+                autoClose: 3000
+              });
+            }
+            _context4.next = 5;
+            break;
+          case 4:
+            _context4.prev = 4;
+            _t4 = _context4["catch"](2);
+            console.error("".concat(otpType === "email" ? "Email" : "Mobile", " OTP validation error"), _t4);
+            react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Error validating ".concat(otpType === "email" ? "email" : "mobile", " OTP."), {
+              position: "top-center",
+              autoClose: 3000
+            });
+          case 5:
+            _context4.prev = 5;
+            setIsLoading(false);
+            return _context4.finish(5);
+          case 6:
+          case "end":
+            return _context4.stop();
+        }
+      }, _callee4, null, [[2, 4, 5, 6]]);
+    }));
+    return function handleOtpSubmit(_x) {
+      return _ref4.apply(this, arguments);
+    };
+  }();
+  var onSubmit = /*#__PURE__*/function () {
+    var _ref5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee5(data) {
+      var selectedRoleObj, additionalDetails, formData, response, _t5;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
+          case 0:
+            if (isEmailOtpVerified) {
+              _context5.next = 1;
+              break;
+            }
+            react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Please verify email OTP before creating admin.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+            return _context5.abrupt("return");
+          case 1:
+            if (isMobileOtpVerified) {
+              _context5.next = 2;
+              break;
+            }
+            react_toastify__WEBPACK_IMPORTED_MODULE_20__.toast.error("Please verify mobile OTP before creating admin.", {
+              position: "top-center",
+              autoClose: 3000
+            });
+            return _context5.abrupt("return");
+          case 2:
             selectedRoleObj = availableRoles.find(function (r) {
               return r.Role === data.role;
             });
             if (selectedRoleObj) {
-              _context2.next = 1;
+              _context5.next = 3;
               break;
             }
             setErrorMessage("Invalid role selected");
-            return _context2.abrupt("return");
-          case 1:
+            return _context5.abrupt("return");
+          case 3:
+            if (!(currentAdminRole === "System Admin" && !data.department)) {
+              _context5.next = 4;
+              break;
+            }
+            setErrorMessage("Department is required for System Admin");
+            return _context5.abrupt("return");
+          case 4:
             additionalDetails = {
               Role: selectedRoleObj.Role,
               RoleShort: selectedRoleObj.RoleShort,
               AccessLevel: selectedRoleObj.AccessLevel,
               AccessCode: data.district || data.division || selectedRoleObj.AccessCode,
-              Department: department,
+              Department: parseInt(data.department) || 0,
               Validate: true
             };
-            _context2.prev = 2;
+            _context5.prev = 5;
             formData = new FormData();
             formData.append("name", data.name);
             formData.append("username", data.username);
@@ -362236,11 +362627,12 @@ function AddAdmin() {
             formData.append("role", data.role);
             formData.append("division", data.division);
             formData.append("district", data.district);
+            formData.append("department", data.department);
             formData.append("AdditionalDetails", JSON.stringify(additionalDetails));
-            _context2.next = 3;
+            _context5.next = 6;
             return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].post("/Admin/AddAdmin", formData);
-          case 3:
-            response = _context2.sent;
+          case 6:
+            response = _context5.sent;
             if (response.data.status) {
               setShowMessageModal(true);
               setValue("name", "");
@@ -362251,22 +362643,27 @@ function AddAdmin() {
               setValue("role", "");
               setValue("division", "");
               setValue("district", "");
+              setValue("department", "");
               setErrorMessage("");
+              setIsEmailOtpSent(false);
+              setIsEmailOtpVerified(false);
+              setIsMobileOtpSent(false);
+              setIsMobileOtpVerified(false);
             }
-            _context2.next = 5;
+            _context5.next = 8;
             break;
-          case 4:
-            _context2.prev = 4;
-            _t2 = _context2["catch"](2);
-            setErrorMessage("Error creating admin: ".concat(_t2.message));
-          case 5:
+          case 7:
+            _context5.prev = 7;
+            _t5 = _context5["catch"](5);
+            setErrorMessage("Error creating admin: ".concat(_t5.message));
+          case 8:
           case "end":
-            return _context2.stop();
+            return _context5.stop();
         }
-      }, _callee2, null, [[2, 4]]);
+      }, _callee5, null, [[5, 7]]);
     }));
-    return function onSubmit(_x) {
-      return _ref2.apply(this, arguments);
+    return function onSubmit(_x2) {
+      return _ref5.apply(this, arguments);
     };
   }();
   if (isLoading) {
@@ -362333,7 +362730,12 @@ function AddAdmin() {
     sx: {
       mb: 4
     }
-  }, errorMessage), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+  }, errorMessage), currentAdminRole === "System Admin" && departments.length === 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    severity: "warning",
+    sx: {
+      mb: 4
+    }
+  }, "No departments available. Please contact support to configure departments."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
     sx: {
       bgcolor: "white",
       p: 4,
@@ -362353,21 +362755,32 @@ function AddAdmin() {
     name: "name",
     control: control,
     rules: {
-      required: "Name is required"
+      required: "Name is required",
+      minLength: {
+        value: 5,
+        message: "Name must be at least 5 characters"
+      }
     },
-    render: function render(_ref3) {
+    render: function render(_ref6) {
       var _errors$name;
-      var field = _ref3.field;
+      var field = _ref6.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
-        label: "Name",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          component: "span"
+        }, "Name ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         variant: "outlined",
         error: !!errors.name,
         helperText: (_errors$name = errors.name) === null || _errors$name === void 0 ? void 0 : _errors$name.message,
         InputLabelProps: {
           shrink: true
         },
-        "aria-invalid": errors.name ? "true" : "false"
+        "aria-invalid": errors.name ? "true" : "false",
+        disabled: isLoading
       }));
     }
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
@@ -362378,43 +362791,141 @@ function AddAdmin() {
     name: "username",
     control: control,
     rules: {
-      required: "Username is required"
+      required: "Username is required",
+      minLength: {
+        value: 5,
+        message: "Username must be at least 5 characters"
+      },
+      validate: function () {
+        var _validate = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee6(value) {
+          var _res$data, res, _t6;
+          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context6) {
+            while (1) switch (_context6.prev = _context6.next) {
+              case 0:
+                if (value) {
+                  _context6.next = 1;
+                  break;
+                }
+                return _context6.abrupt("return", "Username is required");
+              case 1:
+                _context6.prev = 1;
+                _context6.next = 2;
+                return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Home/CheckUsername", {
+                  params: {
+                    username: value
+                  }
+                });
+              case 2:
+                res = _context6.sent;
+                return _context6.abrupt("return", ((_res$data = res.data) === null || _res$data === void 0 ? void 0 : _res$data.isUnique) || "Username already exists");
+              case 3:
+                _context6.prev = 3;
+                _t6 = _context6["catch"](1);
+                return _context6.abrupt("return", "Error checking username");
+              case 4:
+              case "end":
+                return _context6.stop();
+            }
+          }, _callee6, null, [[1, 3]]);
+        }));
+        function validate(_x3) {
+          return _validate.apply(this, arguments);
+        }
+        return validate;
+      }()
     },
-    render: function render(_ref4) {
+    render: function render(_ref7) {
       var _errors$username;
-      var field = _ref4.field;
+      var field = _ref7.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
-        label: "Username",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          component: "span"
+        }, "Username ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         variant: "outlined",
         error: !!errors.username,
         helperText: (_errors$username = errors.username) === null || _errors$username === void 0 ? void 0 : _errors$username.message,
         InputLabelProps: {
           shrink: true
         },
-        "aria-invalid": errors.username ? "true" : "false"
+        "aria-invalid": errors.username ? "true" : "false",
+        disabled: isLoading
       }));
     }
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     item: true,
     xs: 12,
     sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    sx: {
+      display: "flex",
+      alignItems: "center",
+      gap: 1
+    }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
     name: "email",
     control: control,
     rules: {
       required: "Email is required",
       pattern: {
-        value: /\S+@\S+\.\S+/,
+        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         message: "Invalid email format"
-      }
+      },
+      validate: function () {
+        var _validate2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee7(value) {
+          var _res$data2, res, _t7;
+          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context7) {
+            while (1) switch (_context7.prev = _context7.next) {
+              case 0:
+                if (value) {
+                  _context7.next = 1;
+                  break;
+                }
+                return _context7.abrupt("return", "Email is required");
+              case 1:
+                _context7.prev = 1;
+                _context7.next = 2;
+                return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Home/CheckEmail", {
+                  params: {
+                    email: value,
+                    UserType: "Admin"
+                  }
+                });
+              case 2:
+                res = _context7.sent;
+                return _context7.abrupt("return", ((_res$data2 = res.data) === null || _res$data2 === void 0 ? void 0 : _res$data2.isUnique) || "Email already exists");
+              case 3:
+                _context7.prev = 3;
+                _t7 = _context7["catch"](1);
+                return _context7.abrupt("return", "Error checking email");
+              case 4:
+              case "end":
+                return _context7.stop();
+            }
+          }, _callee7, null, [[1, 3]]);
+        }));
+        function validate(_x4) {
+          return _validate2.apply(this, arguments);
+        }
+        return validate;
+      }()
     },
-    render: function render(_ref5) {
+    render: function render(_ref8) {
       var _errors$email;
-      var field = _ref5.field;
+      var field = _ref8.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
-        label: "Email",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          component: "span"
+        }, "Email ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         type: "email",
         variant: "outlined",
         error: !!errors.email,
@@ -362422,8 +362933,127 @@ function AddAdmin() {
         InputLabelProps: {
           shrink: true
         },
-        "aria-invalid": errors.email ? "true" : "false"
+        "aria-invalid": errors.email ? "true" : "false",
+        disabled: isLoading || isEmailOtpVerified,
+        sx: {
+          flex: 1
+        }
       }));
+    }
+  }), isEmailOtpVerified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    variant: "subtitle2",
+    color: "success.main",
+    fontWeight: "bold"
+  }, "Verified")), !isEmailOtpVerified && emailValue && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_CustomButton__WEBPACK_IMPORTED_MODULE_22__["default"], {
+    text: "Validate Email",
+    bgColor: "primary.main",
+    color: "white",
+    width: "100%",
+    disabled: isLoading,
+    onClick: handleEmailValidate,
+    sx: {
+      mt: 1
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 6
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    sx: {
+      display: "flex",
+      alignItems: "center",
+      gap: 1
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
+    name: "mobileNumber",
+    control: control,
+    rules: {
+      required: "Mobile Number is required",
+      pattern: {
+        value: /^[0-9]{10}$/,
+        message: "Enter 10 digit number"
+      },
+      validate: function () {
+        var _validate3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee8(value) {
+          var _res$data3, res, _t8;
+          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context8) {
+            while (1) switch (_context8.prev = _context8.next) {
+              case 0:
+                if (value) {
+                  _context8.next = 1;
+                  break;
+                }
+                return _context8.abrupt("return", "Mobile Number is required");
+              case 1:
+                _context8.prev = 1;
+                _context8.next = 2;
+                return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Home/CheckMobileNumber", {
+                  params: {
+                    number: value,
+                    UserType: "Admin"
+                  }
+                });
+              case 2:
+                res = _context8.sent;
+                return _context8.abrupt("return", ((_res$data3 = res.data) === null || _res$data3 === void 0 ? void 0 : _res$data3.isUnique) || "Mobile Number already exists");
+              case 3:
+                _context8.prev = 3;
+                _t8 = _context8["catch"](1);
+                return _context8.abrupt("return", "Error checking mobile number");
+              case 4:
+              case "end":
+                return _context8.stop();
+            }
+          }, _callee8, null, [[1, 3]]);
+        }));
+        function validate(_x5) {
+          return _validate3.apply(this, arguments);
+        }
+        return validate;
+      }()
+    },
+    render: function render(_ref9) {
+      var _errors$mobileNumber;
+      var field = _ref9.field;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        fullWidth: true,
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          component: "span"
+        }, "Mobile Number ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
+        type: "tel",
+        variant: "outlined",
+        error: !!errors.mobileNumber,
+        helperText: (_errors$mobileNumber = errors.mobileNumber) === null || _errors$mobileNumber === void 0 ? void 0 : _errors$mobileNumber.message,
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.mobileNumber ? "true" : "false",
+        disabled: isLoading || isMobileOtpVerified,
+        inputProps: {
+          maxLength: 10
+        },
+        sx: {
+          flex: 1
+        }
+      }));
+    }
+  }), isMobileOtpVerified && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    variant: "subtitle2",
+    color: "success.main",
+    fontWeight: "bold"
+  }, "Verified")), !isMobileOtpVerified && mobileValue && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_CustomButton__WEBPACK_IMPORTED_MODULE_22__["default"], {
+    text: "Validate Mobile",
+    bgColor: "primary.main",
+    color: "white",
+    width: "100%",
+    disabled: isLoading,
+    onClick: handleMobileValidate,
+    sx: {
+      mt: 1
     }
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     item: true,
@@ -362433,14 +363063,32 @@ function AddAdmin() {
     name: "password",
     control: control,
     rules: {
-      required: "Password is required"
+      required: "Password is required",
+      minLength: {
+        value: 6,
+        message: "Password must be at least 6 characters"
+      },
+      maxLength: {
+        value: 12,
+        message: "Password must be at most 12 characters"
+      },
+      pattern: {
+        value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,12}$/,
+        message: "Password must include uppercase, lowercase, number, and special character"
+      }
     },
-    render: function render(_ref6) {
+    render: function render(_ref0) {
       var _errors$password;
-      var field = _ref6.field;
+      var field = _ref0.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
-        label: "Password",
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          component: "span"
+        }, "Password ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
         type: "password",
         variant: "outlined",
         error: !!errors.password,
@@ -362448,33 +363096,52 @@ function AddAdmin() {
         InputLabelProps: {
           shrink: true
         },
-        "aria-invalid": errors.password ? "true" : "false"
+        "aria-invalid": errors.password ? "true" : "false",
+        disabled: isLoading
       }));
     }
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+  })), currentAdminRole === "System Admin" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     item: true,
     xs: 12,
     sm: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
-    name: "mobileNumber",
+    name: "department",
     control: control,
     rules: {
-      required: "Mobile number is required"
+      required: "Department is required for System Admin"
     },
-    render: function render(_ref7) {
-      var _errors$mobileNumber;
-      var field = _ref7.field;
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+    render: function render(_ref1) {
+      var field = _ref1.field;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
         fullWidth: true,
-        label: "Mobile Number",
         variant: "outlined",
-        error: !!errors.mobileNumber,
-        helperText: (_errors$mobileNumber = errors.mobileNumber) === null || _errors$mobileNumber === void 0 ? void 0 : _errors$mobileNumber.message,
-        InputLabelProps: {
-          shrink: true
-        },
-        "aria-invalid": errors.mobileNumber ? "true" : "false"
-      }));
+        error: !!errors.department
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+        shrink: true
+      }, "Department ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+        style: {
+          color: "red"
+        }
+      }, "*")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          component: "span"
+        }, "Department ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
+        disabled: isLoading
+      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: ""
+      }, "Please Select Department"), departments.map(function (dept) {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+          key: dept.departmentId,
+          value: dept.departmentId
+        }, dept.departmentName);
+      })), errors.department && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        color: "error",
+        variant: "caption"
+      }, errors.department.message));
     }
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     item: true,
@@ -362486,19 +363153,30 @@ function AddAdmin() {
     rules: {
       required: "Role is required"
     },
-    render: function render(_ref8) {
-      var field = _ref8.field;
+    render: function render(_ref10) {
+      var field = _ref10.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
         fullWidth: true,
         variant: "outlined",
         error: !!errors.role
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
         shrink: true
-      }, "Role"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "Role"
+      }, "Role ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+        style: {
+          color: "red"
+        }
+      }, "*")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          component: "span"
+        }, "Role ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
+        disabled: isLoading
       }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
         value: ""
-      }, "Select Role"), availableRoles.map(function (role) {
+      }, "Please Select Role"), availableRoles.map(function (role) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
           key: role.RoleShort,
           value: role.Role
@@ -362508,7 +363186,7 @@ function AddAdmin() {
         variant: "caption"
       }, errors.role.message));
     }
-  })), selectedRole === "Division Admin" && currentAdminLevel === "State" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+  })), (selectedRole === "Division Admin" || selectedRole === "District Admin") && (currentAdminLevel === "System" || currentAdminLevel === "State") && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     item: true,
     xs: 12,
     sm: 6
@@ -362516,21 +363194,32 @@ function AddAdmin() {
     name: "division",
     control: control,
     rules: {
-      required: "Division is required"
+      required: selectedRole === "Division Admin" || selectedRole === "District Admin" ? "Division is required" : false
     },
-    render: function render(_ref9) {
-      var field = _ref9.field;
+    render: function render(_ref11) {
+      var field = _ref11.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
         fullWidth: true,
         variant: "outlined",
         error: !!errors.division
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
         shrink: true
-      }, "Division"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "Division"
+      }, "Division ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+        style: {
+          color: "red"
+        }
+      }, "*")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          component: "span"
+        }, "Division ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
+        disabled: isLoading
       }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
         value: ""
-      }, "Select Division"), divisions.map(function (division) {
+      }, "Please Select Division"), divisions.map(function (division) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
           key: division.id,
           value: division.id
@@ -362550,19 +363239,30 @@ function AddAdmin() {
     rules: {
       required: "District is required"
     },
-    render: function render(_ref0) {
-      var field = _ref0.field;
+    render: function render(_ref12) {
+      var field = _ref12.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
         fullWidth: true,
         variant: "outlined",
         error: !!errors.district
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
         shrink: true
-      }, "District"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "District"
+      }, "District ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+        style: {
+          color: "red"
+        }
+      }, "*")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          component: "span"
+        }, "District ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("span", {
+          style: {
+            color: "red"
+          }
+        }, "*")),
+        disabled: isLoading
       }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
         value: ""
-      }, "Select District"), filteredDistricts.map(function (district) {
+      }, "Please Select District"), filteredDistricts.map(function (district) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
           key: district.id,
           value: district.id
@@ -362584,8 +363284,9 @@ function AddAdmin() {
       mt: 3,
       py: 1.5,
       fontSize: "1.1rem"
-    }
-  }, "Create Admin"))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_MessageModal__WEBPACK_IMPORTED_MODULE_19__["default"], {
+    },
+    disabled: isLoading || !isEmailOtpVerified || !isMobileOtpVerified
+  }, isLoading ? "Creating Admin..." : "Create Admin"))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_MessageModal__WEBPACK_IMPORTED_MODULE_19__["default"], {
     title: "Add Admin",
     message: "Admin Added Successfully.",
     type: "success",
@@ -362594,7 +363295,16 @@ function AddAdmin() {
     onClose: function onClose() {
       return setShowMessageModal(false);
     }
-  }));
+  }), _components_OtpModal__WEBPACK_IMPORTED_MODULE_23__["default"] && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_OtpModal__WEBPACK_IMPORTED_MODULE_23__["default"], {
+    open: isOtpModalOpen,
+    onClose: function onClose() {
+      setIsOtpModalOpen(false);
+      setOtpType(null);
+    },
+    onSubmit: handleOtpSubmit,
+    registeredAt: otpType,
+    title: "Enter ".concat(otpType === "email" ? "Email" : "Mobile", " OTP")
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_toastify__WEBPACK_IMPORTED_MODULE_20__.ToastContainer, null));
 }
 
 /***/ }),
@@ -362629,10 +363339,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Select/Select.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
-/* harmony import */ var react_hook_form__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! react-hook-form */ "./node_modules/react-hook-form/dist/index.esm.mjs");
-/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
-/* harmony import */ var _components_MessageModal__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../../components/MessageModal */ "./src/components/MessageModal.jsx");
-/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Modal/Modal.js");
+/* harmony import */ var react_hook_form__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! react-hook-form */ "./node_modules/react-hook-form/dist/index.esm.mjs");
+/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
+/* harmony import */ var _components_MessageModal__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../../components/MessageModal */ "./src/components/MessageModal.jsx");
+/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
+/* harmony import */ var _UserContext__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../../UserContext */ "./src/UserContext.js");
+
 
 
 
@@ -362644,7 +363357,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function AddDesignations() {
-  var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_17__.useForm)({
+  var _useContext = (0,react__WEBPACK_IMPORTED_MODULE_4__.useContext)(_UserContext__WEBPACK_IMPORTED_MODULE_22__.UserContext),
+    userType = _useContext.userType,
+    officerAuthorities = _useContext.officerAuthorities;
+  var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_18__.useForm)({
       defaultValues: {
         designation: "",
         designationShort: "",
@@ -362654,6 +363370,7 @@ function AddDesignations() {
     control = _useForm.control,
     handleSubmit = _useForm.handleSubmit,
     reset = _useForm.reset,
+    setValue = _useForm.setValue,
     errors = _useForm.formState.errors;
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState, 2),
@@ -362671,6 +363388,31 @@ function AddDesignations() {
     _useState8 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState7, 2),
     showMessageModal = _useState8[0],
     setShowMessageModal = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)({
+      title: "",
+      message: "",
+      type: "success"
+    }),
+    _useState0 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState9, 2),
+    modalMessage = _useState0[0],
+    setModalMessage = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState10 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState1, 2),
+    editModalOpen = _useState10[0],
+    setEditModalOpen = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
+    _useState12 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState11, 2),
+    editingDesignation = _useState12[0],
+    setEditingDesignation = _useState12[1];
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
+    _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState13, 2),
+    refreshTable = _useState14[0],
+    setRefreshTable = _useState14[1];
+
+  // Check if user has permission to update/delete
+  var canModifyDesignations = (0,react__WEBPACK_IMPORTED_MODULE_4__.useMemo)(function () {
+    return (officerAuthorities === null || officerAuthorities === void 0 ? void 0 : officerAuthorities.canDirectWithhold) || userType === "SeniorOfficer" || userType === "Admin";
+  }, [userType, officerAuthorities]);
 
   // Fetch current officer's details to get DepartmentId
   (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
@@ -362683,7 +363425,7 @@ function AddDesignations() {
               setIsLoading(true);
               _context.prev = 1;
               _context.next = 2;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].get("/Admin/GetCurrentAdminDetails");
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_19__["default"].get("/Admin/GetCurrentAdminDetails");
             case 2:
               response = _context.sent;
               if (!(!response.data || !response.data.additionalDetails)) {
@@ -362722,6 +363464,20 @@ function AddDesignations() {
     }();
     fetchOfficerDetails();
   }, []);
+
+  // Reset form when edit modal closes
+  (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(function () {
+    if (!editModalOpen) {
+      reset({
+        designation: "",
+        designationShort: "",
+        accessLevel: ""
+      });
+      setEditingDesignation(null);
+    }
+  }, [editModalOpen, reset]);
+
+  // Handle form submission for adding a designation
   var onSubmit = /*#__PURE__*/function () {
     var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee2(data) {
       var formData, response, _t2;
@@ -362735,13 +363491,23 @@ function AddDesignations() {
             formData.append("AccessLevel", data.accessLevel);
             formData.append("DepartmentId", departmentId.toString());
             _context2.next = 1;
-            return _axiosConfig__WEBPACK_IMPORTED_MODULE_18__["default"].post("/Admin/AddDesignation", formData);
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_19__["default"].post("/Admin/AddDesignation", formData);
           case 1:
             response = _context2.sent;
             if (response.data.status) {
+              setModalMessage({
+                title: "Add Designation",
+                message: "Designation Added Successfully.",
+                type: "success"
+              });
               setShowMessageModal(true);
               reset();
               setErrorMessage("");
+              setRefreshTable(function (prev) {
+                return !prev;
+              });
+            } else {
+              setErrorMessage("Failed to add designation: ".concat(response.data.message || "Unknown error"));
             }
             _context2.next = 3;
             break;
@@ -362759,6 +363525,153 @@ function AddDesignations() {
       return _ref2.apply(this, arguments);
     };
   }();
+
+  // Handle update designation
+  var handleUpdate = /*#__PURE__*/function () {
+    var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee3(data) {
+      var formData, response, _t3;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            if (editingDesignation) {
+              _context3.next = 1;
+              break;
+            }
+            return _context3.abrupt("return");
+          case 1:
+            _context3.prev = 1;
+            formData = new FormData();
+            formData.append("DesignationId", editingDesignation.designationId);
+            formData.append("Designation", data.designation);
+            formData.append("DesignationShort", data.designationShort);
+            formData.append("AccessLevel", data.accessLevel);
+            formData.append("DepartmentId", departmentId.toString());
+            _context3.next = 2;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_19__["default"].post("/Admin/UpdateDesignation", formData);
+          case 2:
+            response = _context3.sent;
+            if (response.data.status) {
+              setModalMessage({
+                title: "Update Designation",
+                message: "Designation Updated Successfully.",
+                type: "success"
+              });
+              setShowMessageModal(true);
+              setEditModalOpen(false);
+              setRefreshTable(function (prev) {
+                return !prev;
+              });
+            } else {
+              setErrorMessage("Failed to update designation: ".concat(response.data.message || "Unknown error"));
+            }
+            _context3.next = 4;
+            break;
+          case 3:
+            _context3.prev = 3;
+            _t3 = _context3["catch"](1);
+            setErrorMessage("Error updating designation: ".concat(_t3.message));
+          case 4:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3, null, [[1, 3]]);
+    }));
+    return function handleUpdate(_x2) {
+      return _ref3.apply(this, arguments);
+    };
+  }();
+
+  // Handle delete designation
+  var handleDelete = /*#__PURE__*/function () {
+    var _ref4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().mark(function _callee4(designationId) {
+      var formData, response, _t4;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_3___default().wrap(function (_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            if (window.confirm("Are you sure you want to delete this designation?")) {
+              _context4.next = 1;
+              break;
+            }
+            return _context4.abrupt("return");
+          case 1:
+            _context4.prev = 1;
+            formData = new FormData();
+            formData.append("DesignationId", designationId);
+            _context4.next = 2;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_19__["default"].post("/Admin/DeleteDesignation", formData);
+          case 2:
+            response = _context4.sent;
+            if (response.data.status) {
+              setModalMessage({
+                title: "Delete Designation",
+                message: "Designation Deleted Successfully.",
+                type: "success"
+              });
+              setShowMessageModal(true);
+              setRefreshTable(function (prev) {
+                return !prev;
+              });
+            } else {
+              setErrorMessage("Failed to delete designation: ".concat(response.data.message || "Unknown error"));
+            }
+            _context4.next = 4;
+            break;
+          case 3:
+            _context4.prev = 3;
+            _t4 = _context4["catch"](1);
+            setErrorMessage("Error deleting designation: ".concat(_t4.message));
+          case 4:
+          case "end":
+            return _context4.stop();
+        }
+      }, _callee4, null, [[1, 3]]);
+    }));
+    return function handleDelete(_x3) {
+      return _ref4.apply(this, arguments);
+    };
+  }();
+
+  // Action functions for ServerSideTable
+  var actionFunctions = {
+    UpdateDesignation: function UpdateDesignation(row) {
+      if (!canModifyDesignations) {
+        setErrorMessage("You do not have permission to update designations.");
+        return;
+      }
+      var userdata = row.original;
+      setEditingDesignation(userdata);
+      setValue("designation", userdata.designation);
+      setValue("designationShort", userdata.designationShort);
+      setValue("accessLevel", userdata.accessLevel);
+      setEditModalOpen(true);
+    },
+    DeleteDesignation: function DeleteDesignation(row) {
+      if (!canModifyDesignations) {
+        setErrorMessage("You do not have permission to delete designations.");
+        return;
+      }
+      handleDelete(row.original.designationId);
+    }
+  };
+
+  // Table columns
+  var columns = [{
+    field: "designationId",
+    headerName: "ID",
+    flex: 1
+  }, {
+    field: "designation",
+    headerName: "Designation",
+    flex: 1
+  }, {
+    field: "designationShort",
+    headerName: "Short Name",
+    flex: 1
+  }, {
+    field: "accessLevel",
+    headerName: "Access Level",
+    flex: 1
+  }];
   if (isLoading) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
       sx: {
@@ -362772,7 +363685,7 @@ function AddDesignations() {
       size: 60
     }));
   }
-  if (errorMessage) {
+  if (errorMessage && !editModalOpen) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
       maxWidth: "md",
       sx: {
@@ -362822,15 +363735,15 @@ function AddDesignations() {
     item: true,
     xs: 12,
     sm: 4
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_18__.Controller, {
     name: "designation",
     control: control,
     rules: {
       required: "Designation is required"
     },
-    render: function render(_ref3) {
+    render: function render(_ref5) {
       var _errors$designation;
-      var field = _ref3.field;
+      var field = _ref5.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
         label: "Designation",
@@ -362847,15 +363760,15 @@ function AddDesignations() {
     item: true,
     xs: 12,
     sm: 4
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_18__.Controller, {
     name: "designationShort",
     control: control,
     rules: {
       required: "Short name is required"
     },
-    render: function render(_ref4) {
+    render: function render(_ref6) {
       var _errors$designationSh;
-      var field = _ref4.field;
+      var field = _ref6.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
         fullWidth: true,
         label: "Short Name",
@@ -362872,14 +363785,14 @@ function AddDesignations() {
     item: true,
     xs: 12,
     sm: 4
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_17__.Controller, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_18__.Controller, {
     name: "accessLevel",
     control: control,
     rules: {
       required: "Access level is required"
     },
-    render: function render(_ref5) {
-      var field = _ref5.field;
+    render: function render(_ref7) {
+      var field = _ref7.field;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
         fullWidth: true,
         variant: "outlined",
@@ -362887,7 +363800,8 @@ function AddDesignations() {
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
         shrink: true
       }, "Access Level"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
-        label: "Access Level"
+        label: "Access Level",
+        "aria-label": "Select Access Level"
       }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
         value: ""
       }, "Select Access Level"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
@@ -362915,29 +363829,175 @@ function AddDesignations() {
       mt: 3,
       py: 1.5,
       fontSize: "1.1rem"
-    }
+    },
+    disabled: !canModifyDesignations,
+    "aria-label": "Add Designation"
   }, "Add Designation"))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
     variant: "h5",
     fontWeight: "bold",
     align: "center",
     gutterBottom: true
-  }, "Existing Designations"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_20__["default"], {
+  }, "Existing Designations"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_21__["default"], {
     url: "/Admin/GetDesignations",
     Title: "Designations",
     extraParams: {},
     canSanction: false,
     canHavePool: false,
-    pendingApplications: false
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_MessageModal__WEBPACK_IMPORTED_MODULE_19__["default"], {
-    title: "Add Designation",
-    message: "Designation Added Successfully.",
-    type: "success",
-    key: "addDesignation",
+    pendingApplications: false,
+    actionFunctions: actionFunctions,
+    columns: columns,
+    refresh: refreshTable,
+    onAction: function onAction(actionFunction, row) {
+      return actionFunctions[actionFunction](row);
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_components_MessageModal__WEBPACK_IMPORTED_MODULE_20__["default"], {
+    title: modalMessage.title,
+    message: modalMessage.message,
+    type: modalMessage.type,
+    key: "designationAction",
     open: showMessageModal,
     onClose: function onClose() {
       return setShowMessageModal(false);
     }
-  }));
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
+    open: editModalOpen,
+    onClose: function onClose() {
+      return setEditModalOpen(false);
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    sx: {
+      bgcolor: "white",
+      p: 4,
+      borderRadius: 2,
+      maxWidth: 600,
+      mx: "auto",
+      mt: "5%",
+      boxShadow: 24,
+      maxHeight: "80vh",
+      overflowY: "auto"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    variant: "h5",
+    fontWeight: "bold",
+    gutterBottom: true
+  }, "Edit Designation"), errorMessage && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    severity: "error",
+    sx: {
+      mb: 3
+    }
+  }, errorMessage), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement("form", {
+    onSubmit: handleSubmit(handleUpdate)
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    container: true,
+    spacing: 3
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 4
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_18__.Controller, {
+    name: "designation",
+    control: control,
+    rules: {
+      required: "Designation is required"
+    },
+    render: function render(_ref8) {
+      var _errors$designation2;
+      var field = _ref8.field;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        fullWidth: true,
+        label: "Designation",
+        variant: "outlined",
+        error: !!errors.designation,
+        helperText: (_errors$designation2 = errors.designation) === null || _errors$designation2 === void 0 ? void 0 : _errors$designation2.message,
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.designation ? "true" : "false"
+      }));
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 4
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_18__.Controller, {
+    name: "designationShort",
+    control: control,
+    rules: {
+      required: "Short name is required"
+    },
+    render: function render(_ref9) {
+      var _errors$designationSh2;
+      var field = _ref9.field;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        fullWidth: true,
+        label: "Short Name",
+        variant: "outlined",
+        error: !!errors.designationShort,
+        helperText: (_errors$designationSh2 = errors.designationShort) === null || _errors$designationSh2 === void 0 ? void 0 : _errors$designationSh2.message,
+        InputLabelProps: {
+          shrink: true
+        },
+        "aria-invalid": errors.designationShort ? "true" : "false"
+      }));
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12,
+    sm: 4
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_18__.Controller, {
+    name: "accessLevel",
+    control: control,
+    rules: {
+      required: "Access level is required"
+    },
+    render: function render(_ref0) {
+      var field = _ref0.field;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+        fullWidth: true,
+        variant: "outlined",
+        error: !!errors.accessLevel
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
+        shrink: true
+      }, "Access Level"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, field, {
+        label: "Access Level",
+        "aria-label": "Select Access Level"
+      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: ""
+      }, "Select Access Level"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: "State"
+      }, "State"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: "Division"
+      }, "Division"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: "District"
+      }, "District"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+        value: "Tehsil"
+      }, "Tehsil")), errors.accessLevel && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        color: "error",
+        variant: "caption"
+      }, errors.accessLevel.message));
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    item: true,
+    xs: 12
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    sx: {
+      display: "flex",
+      justifyContent: "flex-end",
+      gap: 2,
+      mt: 3
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+    variant: "outlined",
+    onClick: function onClick() {
+      return setEditModalOpen(false);
+    },
+    "aria-label": "Cancel Edit"
+  }, "Cancel"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+    type: "submit",
+    variant: "contained",
+    color: "primary",
+    "aria-label": "Update Designation"
+  }, "Update"))))))));
 }
 
 /***/ }),
@@ -364844,20 +365904,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Select/Select.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/MenuItem/MenuItem.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/IconButton/IconButton.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Modal/Modal.js");
-/* harmony import */ var _mui_icons_material_Add__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/icons-material/Add */ "./node_modules/@mui/icons-material/esm/Add.js");
-/* harmony import */ var _mui_icons_material_Delete__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/icons-material/Delete */ "./node_modules/@mui/icons-material/esm/Delete.js");
-/* harmony import */ var _mui_icons_material_DragIndicator__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/icons-material/DragIndicator */ "./node_modules/@mui/icons-material/esm/DragIndicator.js");
-/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Col.js");
-/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Row.js");
-/* harmony import */ var _dnd_kit_core__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @dnd-kit/core */ "./node_modules/@dnd-kit/core/dist/core.esm.js");
-/* harmony import */ var _dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! @dnd-kit/sortable */ "./node_modules/@dnd-kit/sortable/dist/sortable.esm.js");
-/* harmony import */ var _dnd_kit_utilities__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! @dnd-kit/utilities */ "./node_modules/@dnd-kit/utilities/dist/utilities.esm.js");
-/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
-/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! react-toastify */ "./node_modules/react-toastify/dist/index.mjs");
-/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! react-toastify/dist/ReactToastify.css */ "./node_modules/react-toastify/dist/ReactToastify.css");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Alert/Alert.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/IconButton/IconButton.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Divider/Divider.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Modal/Modal.js");
+/* harmony import */ var _mui_icons_material_Add__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @mui/icons-material/Add */ "./node_modules/@mui/icons-material/esm/Add.js");
+/* harmony import */ var _mui_icons_material_Delete__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! @mui/icons-material/Delete */ "./node_modules/@mui/icons-material/esm/Delete.js");
+/* harmony import */ var _mui_icons_material_DragIndicator__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @mui/icons-material/DragIndicator */ "./node_modules/@mui/icons-material/esm/DragIndicator.js");
+/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Col.js");
+/* harmony import */ var react_bootstrap__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! react-bootstrap */ "./node_modules/react-bootstrap/esm/Row.js");
+/* harmony import */ var _dnd_kit_core__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! @dnd-kit/core */ "./node_modules/@dnd-kit/core/dist/core.esm.js");
+/* harmony import */ var _dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! @dnd-kit/sortable */ "./node_modules/@dnd-kit/sortable/dist/sortable.esm.js");
+/* harmony import */ var _dnd_kit_utilities__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! @dnd-kit/utilities */ "./node_modules/@dnd-kit/utilities/dist/utilities.esm.js");
+/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
+/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! react-toastify */ "./node_modules/react-toastify/dist/index.mjs");
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_37__ = __webpack_require__(/*! react-toastify/dist/ReactToastify.css */ "./node_modules/react-toastify/dist/ReactToastify.css");
+/* harmony import */ var _UserContext__WEBPACK_IMPORTED_MODULE_38__ = __webpack_require__(/*! ../../UserContext */ "./src/UserContext.js");
 
 
 
@@ -364878,13 +365942,16 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 
 
 
+ // Assuming UserContext is in the same directory
 
 // SortableItem component for draggable rows
 var SortableItem = function SortableItem(_ref) {
   var id = _ref.id,
-    children = _ref.children;
-  var _useSortable = (0,_dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_30__.useSortable)({
-      id: id
+    children = _ref.children,
+    disabled = _ref.disabled;
+  var _useSortable = (0,_dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_33__.useSortable)({
+      id: id,
+      disabled: disabled
     }),
     attributes = _useSortable.attributes,
     listeners = _useSortable.listeners,
@@ -364892,7 +365959,7 @@ var SortableItem = function SortableItem(_ref) {
     transform = _useSortable.transform,
     transition = _useSortable.transition;
   var style = {
-    transform: _dnd_kit_utilities__WEBPACK_IMPORTED_MODULE_31__.CSS.Transform.toString(transform),
+    transform: _dnd_kit_utilities__WEBPACK_IMPORTED_MODULE_34__.CSS.Transform.toString(transform),
     transition: transition
   };
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_4__["default"])({
@@ -364901,7 +365968,7 @@ var SortableItem = function SortableItem(_ref) {
   }, attributes), children(listeners));
 };
 
-// Memoized SanctionDetails component for Sanction-specific content
+// Memoized SanctionDetails component
 var SanctionDetails = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_6__.memo)(function (_ref2) {
   var letterFor = _ref2.letterFor,
     information = _ref2.information,
@@ -365066,6 +366133,9 @@ var PDFPreview = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_6__.memo)(functi
   }));
 });
 var CreateLetterPdf = function CreateLetterPdf() {
+  var _useContext = (0,react__WEBPACK_IMPORTED_MODULE_6__.useContext)(_UserContext__WEBPACK_IMPORTED_MODULE_38__.UserContext),
+    userType = _useContext.userType,
+    officerAuthorities = _useContext.officerAuthorities; // Integrate UserContext
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_6__.useState)([]),
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_useState, 2),
     formFields = _useState2[0],
@@ -365110,8 +366180,21 @@ var CreateLetterPdf = function CreateLetterPdf() {
     _useState18 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_useState17, 2),
     selectedLetterType = _useState18[0],
     setSelectedLetterType = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_6__.useState)(false),
+    _useState20 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_useState19, 2),
+    isFetchingFields = _useState20[0],
+    setIsFetchingFields = _useState20[1];
+  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_6__.useState)(""),
+    _useState22 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_useState21, 2),
+    fetchFieldsError = _useState22[0],
+    setFetchFieldsError = _useState22[1];
 
-  // Fetch services and form fields
+  // Determine permissions from UserContext
+  var canDirectWithhold = (0,react__WEBPACK_IMPORTED_MODULE_6__.useMemo)(function () {
+    return (officerAuthorities === null || officerAuthorities === void 0 ? void 0 : officerAuthorities.canDirectWithhold) || userType === "SeniorOfficer";
+  }, [userType, officerAuthorities]);
+
+  // Fetch services
   (0,react__WEBPACK_IMPORTED_MODULE_6__.useEffect)(function () {
     var fetchServices = /*#__PURE__*/function () {
       var _ref4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_5___default().mark(function _callee() {
@@ -365121,13 +366204,15 @@ var CreateLetterPdf = function CreateLetterPdf() {
             case 0:
               _context.prev = 0;
               _context.next = 1;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_32__["default"].get("/Base/GetServices");
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_35__["default"].get("/Base/GetServices");
             case 1:
               response = _context.sent;
-              if (response.data.status && response.data.services) {
+              console.log("Services API response:", response.data);
+              if (response.data.status && Array.isArray(response.data.services)) {
                 setServices(response.data.services);
               } else {
-                react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.error("No services found.");
+                react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("No services found.");
+                setServices([]);
               }
               _context.next = 3;
               break;
@@ -365135,7 +366220,8 @@ var CreateLetterPdf = function CreateLetterPdf() {
               _context.prev = 2;
               _t = _context["catch"](0);
               console.error("Error fetching services:", _t);
-              react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.error("Failed to load services.");
+              react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Failed to load services.");
+              setServices([]);
             case 3:
             case "end":
               return _context.stop();
@@ -365146,40 +366232,88 @@ var CreateLetterPdf = function CreateLetterPdf() {
         return _ref4.apply(this, arguments);
       };
     }();
+    fetchServices();
+  }, []);
+
+  // Fetch form fields when selectedServiceId changes
+  (0,react__WEBPACK_IMPORTED_MODULE_6__.useEffect)(function () {
+    if (!selectedServiceId) {
+      setFormFields([]);
+      setFetchFieldsError("");
+      return;
+    }
     var fetchFormFields = /*#__PURE__*/function () {
       var _ref5 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_5___default().mark(function _callee2() {
-        var response, _t2;
+        var response, sectionFields, columnFields, allFields, _t2;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_5___default().wrap(function (_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
-              _context2.prev = 0;
-              _context2.next = 1;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_32__["default"].get("/Designer/GetFormElements", {
+              setIsFetchingFields(true);
+              setFetchFieldsError("");
+              _context2.prev = 1;
+              _context2.next = 2;
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_35__["default"].get("/Designer/GetFormElements", {
                 params: {
-                  serviceId: selectedServiceId || "1"
+                  serviceId: selectedServiceId
                 }
               });
-            case 1:
-              response = _context2.sent;
-              setFormFields(response.data.names || []);
-              _context2.next = 3;
-              break;
             case 2:
-              _context2.prev = 2;
-              _t2 = _context2["catch"](0);
-              console.error("Error fetching form fields:", _t2);
-              react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.error("Failed to load form fields.");
+              response = _context2.sent;
+              console.log("FormFields API response:", response.data);
+              if (response.data.status) {
+                // Extract fields from sections
+                sectionFields = Array.isArray(response.data.sections) ? response.data.sections.flatMap(function (section) {
+                  return section.fields.map(function (field) {
+                    return {
+                      name: field.name,
+                      label: field.label
+                    };
+                  });
+                }) : []; // Extract fields from columnNames
+                columnFields = Array.isArray(response.data.columnNames) ? response.data.columnNames.map(function (name) {
+                  return {
+                    name: name,
+                    label: name // Use name as label since no separate label is provided
+                  };
+                }) : []; // Combine and remove duplicates based on name
+                allFields = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(sectionFields), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(columnFields.filter(function (col) {
+                  return !sectionFields.some(function (field) {
+                    return field.name === col.name;
+                  });
+                })));
+                setFormFields(allFields);
+                if (allFields.length === 0) {
+                  setFetchFieldsError("No form fields or column names available for this service.");
+                  react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.warn("No form fields or column names available for this service.");
+                }
+              } else {
+                setFormFields([]);
+                setFetchFieldsError("No form fields or column names found for this service.");
+                react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("No form fields or column names found.");
+              }
+              _context2.next = 4;
+              break;
             case 3:
+              _context2.prev = 3;
+              _t2 = _context2["catch"](1);
+              console.error("Error fetching form fields:", _t2);
+              setFormFields([]);
+              setFetchFieldsError("Failed to load form fields and column names.");
+              react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Failed to load form fields and column names.");
+            case 4:
+              _context2.prev = 4;
+              setIsFetchingFields(false);
+              return _context2.finish(4);
+            case 5:
             case "end":
               return _context2.stop();
           }
-        }, _callee2, null, [[0, 2]]);
+        }, _callee2, null, [[1, 3, 4, 5]]);
       }));
       return function fetchFormFields() {
         return _ref5.apply(this, arguments);
       };
     }();
-    fetchServices();
     fetchFormFields();
   }, [selectedServiceId]);
 
@@ -365199,7 +366333,7 @@ var CreateLetterPdf = function CreateLetterPdf() {
             case 0:
               _context3.prev = 0;
               _context3.next = 1;
-              return _axiosConfig__WEBPACK_IMPORTED_MODULE_32__["default"].get("/Designer/GetLetterDetails", {
+              return _axiosConfig__WEBPACK_IMPORTED_MODULE_35__["default"].get("/Designer/GetLetterDetails", {
                 params: {
                   serviceId: selectedServiceId,
                   objField: selectedLetterType
@@ -365207,17 +366341,18 @@ var CreateLetterPdf = function CreateLetterPdf() {
               });
             case 1:
               response = _context3.sent;
+              console.log("LetterDetails API response:", response.data);
               if (response.data.requiredObj) {
                 _response$data$requir = response.data.requiredObj, _letterFor = _response$data$requir.letterFor, tableFields = _response$data$requir.tableFields, _information = _response$data$requir.information;
                 setLetterFor(_letterFor || "");
                 setInformation(_information || "");
                 setRows(tableFields || []);
-                react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.success("".concat(selectedLetterType, " letter data loaded successfully."));
+                react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.success("".concat(selectedLetterType, " letter data loaded successfully."));
               } else {
                 setLetterFor("");
                 setInformation("");
                 setRows([]);
-                react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.info("No existing ".concat(selectedLetterType, " letter data found for this service."));
+                react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.info("No existing ".concat(selectedLetterType, " letter data found for this service."));
               }
               _context3.next = 3;
               break;
@@ -365228,7 +366363,7 @@ var CreateLetterPdf = function CreateLetterPdf() {
               setLetterFor("");
               setInformation("");
               setRows([]);
-              react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.error("Failed to load ".concat(selectedLetterType, " letter data."));
+              react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Failed to load ".concat(selectedLetterType, " letter data."));
             case 3:
             case "end":
               return _context3.stop();
@@ -365257,8 +366392,30 @@ var CreateLetterPdf = function CreateLetterPdf() {
   };
   var closeModal = function closeModal() {
     setModalOpen(false);
+    setModalRowIndex(-1);
+    setModalRowData({
+      label: "",
+      transformString: "",
+      selectedFields: []
+    });
   };
   var saveModal = function saveModal() {
+    if (!modalRowData.label) {
+      react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Label is required.");
+      return;
+    }
+    if (!modalRowData.transformString) {
+      react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Transform String is required.");
+      return;
+    }
+    if (modalRowData.selectedFields.some(function (field) {
+      return !field || !formFields.some(function (f) {
+        return f.name === field;
+      });
+    })) {
+      react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("All selected fields must be valid.");
+      return;
+    }
     var newRows = (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(rows);
     if (modalRowIndex === -1) {
       newRows.push(modalRowData);
@@ -365348,7 +366505,9 @@ var CreateLetterPdf = function CreateLetterPdf() {
           label: row.label,
           transformString: row.transformString,
           selectedFields: row.selectedFields.filter(function (f) {
-            return formFields.includes(f);
+            return formFields.some(function (field) {
+              return field.name === f;
+            });
           })
         };
       }),
@@ -365359,7 +366518,7 @@ var CreateLetterPdf = function CreateLetterPdf() {
   };
   var saveLetter = /*#__PURE__*/function () {
     var _ref7 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_5___default().mark(function _callee4() {
-      var jsonOutput, formData, response, _t4;
+      var jsonOutput, formData, response, withholdResponse, _withholdResponse, _t4, _t5, _t6;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_5___default().wrap(function (_context4) {
         while (1) switch (_context4.prev = _context4.next) {
           case 0:
@@ -365367,14 +366526,14 @@ var CreateLetterPdf = function CreateLetterPdf() {
               _context4.next = 1;
               break;
             }
-            react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.error("Please select a service first.");
+            react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Please select a service first.");
             return _context4.abrupt("return");
           case 1:
             if (selectedLetterType) {
               _context4.next = 2;
               break;
             }
-            react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.error("Please select a letter type.");
+            react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Please select a letter type.");
             return _context4.abrupt("return");
           case 2:
             jsonOutput = handleGenerateJson();
@@ -365384,26 +366543,67 @@ var CreateLetterPdf = function CreateLetterPdf() {
             formData.append("letterData", JSON.stringify(jsonOutput));
             _context4.prev = 3;
             _context4.next = 4;
-            return _axiosConfig__WEBPACK_IMPORTED_MODULE_32__["default"].post("/Designer/SaveLetterDetails", formData);
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_35__["default"].post("/Designer/SaveLetterDetails", formData);
           case 4:
             response = _context4.sent;
-            if (response.data.status) {
-              react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.success("".concat(selectedLetterType, " letter saved successfully!"));
-            } else {
-              react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.error("Failed to save ".concat(selectedLetterType, " letter."));
+            if (!response.data.status) {
+              _context4.next = 13;
+              break;
             }
-            _context4.next = 6;
-            break;
-          case 5:
+            react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.success("".concat(selectedLetterType, " letter saved successfully!"));
+            // Optionally initiate withholding if applicable
+            if (!canDirectWithhold) {
+              _context4.next = 9;
+              break;
+            }
             _context4.prev = 5;
-            _t4 = _context4["catch"](3);
-            console.error("Error saving ".concat(selectedLetterType, " letter:"), _t4);
-            react_toastify__WEBPACK_IMPORTED_MODULE_33__.toast.error("An error occurred while saving the ".concat(selectedLetterType, " letter."));
+            _context4.next = 6;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_35__["default"].post("/Officer/DirectWithheld", formData);
           case 6:
+            withholdResponse = _context4.sent;
+            react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.success("Letter withheld successfully!");
+            _context4.next = 8;
+            break;
+          case 7:
+            _context4.prev = 7;
+            _t4 = _context4["catch"](5);
+            console.error("Error initiating direct withhold:", _t4);
+            react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Failed to initiate direct withhold.");
+          case 8:
+            _context4.next = 12;
+            break;
+          case 9:
+            _context4.prev = 9;
+            _context4.next = 10;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_35__["default"].post("/Officer/InitiateWithheld", formData);
+          case 10:
+            _withholdResponse = _context4.sent;
+            react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.success("Letter withhold process initiated; awaiting confirmation.");
+            _context4.next = 12;
+            break;
+          case 11:
+            _context4.prev = 11;
+            _t5 = _context4["catch"](9);
+            console.error("Error initiating withhold:", _t5);
+            react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Failed to initiate withhold process.");
+          case 12:
+            _context4.next = 14;
+            break;
+          case 13:
+            react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("Failed to save ".concat(selectedLetterType, " letter: ").concat(response.data.message || "Unknown error"));
+          case 14:
+            _context4.next = 16;
+            break;
+          case 15:
+            _context4.prev = 15;
+            _t6 = _context4["catch"](3);
+            console.error("Error saving ".concat(selectedLetterType, " letter:"), _t6);
+            react_toastify__WEBPACK_IMPORTED_MODULE_36__.toast.error("An error occurred while saving the ".concat(selectedLetterType, " letter."));
+          case 16:
           case "end":
             return _context4.stop();
         }
-      }, _callee4, null, [[3, 5]]);
+      }, _callee4, null, [[3, 15], [5, 7], [9, 11]]);
     }));
     return function saveLetter() {
       return _ref7.apply(this, arguments);
@@ -365411,7 +366611,7 @@ var CreateLetterPdf = function CreateLetterPdf() {
   }();
 
   // Setup sensors for drag-and-drop
-  var sensors = (0,_dnd_kit_core__WEBPACK_IMPORTED_MODULE_29__.useSensors)((0,_dnd_kit_core__WEBPACK_IMPORTED_MODULE_29__.useSensor)(_dnd_kit_core__WEBPACK_IMPORTED_MODULE_29__.PointerSensor, {
+  var sensors = (0,_dnd_kit_core__WEBPACK_IMPORTED_MODULE_32__.useSensors)((0,_dnd_kit_core__WEBPACK_IMPORTED_MODULE_32__.useSensor)(_dnd_kit_core__WEBPACK_IMPORTED_MODULE_32__.PointerSensor, {
     activationConstraint: {
       distance: 8
     }
@@ -365423,14 +366623,14 @@ var CreateLetterPdf = function CreateLetterPdf() {
       p: 3
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
-    maxWidth: true,
+    maxWidth: "lg",
     sx: {
       bgcolor: "white",
       borderRadius: 2,
       boxShadow: 3,
       p: 4
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_28__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_27__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_31__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_30__["default"], {
     md: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
     variant: "h4",
@@ -365455,17 +366655,23 @@ var CreateLetterPdf = function CreateLetterPdf() {
     value: selectedServiceId,
     label: "Select Service",
     onChange: function onChange(e) {
-      return setSelectedServiceId(e.target.value);
+      setSelectedServiceId(e.target.value);
+      setSelectedLetterType("");
+      setRows([]);
+      setLetterFor("");
+      setInformation("");
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
     value: "",
     disabled: true
-  }, "Select a Service"), services.map(function (service) {
+  }, "Select a Service"), services.length > 0 ? services.map(function (service) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
       key: service.serviceId,
       value: service.serviceId
     }, service.serviceName);
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
+  }) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
+    disabled: true
+  }, "No services available"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
     fullWidth: true,
     sx: {
       mb: 2
@@ -365508,6 +366714,8 @@ var CreateLetterPdf = function CreateLetterPdf() {
     },
     fullWidth: true,
     variant: "outlined",
+    multiline: true,
+    rows: 4,
     sx: {
       bgcolor: "grey.50"
     },
@@ -365516,19 +366724,44 @@ var CreateLetterPdf = function CreateLetterPdf() {
     sx: {
       mb: 4
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_dnd_kit_core__WEBPACK_IMPORTED_MODULE_29__.DndContext, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    variant: "h6",
+    sx: {
+      mb: 2,
+      fontWeight: "bold"
+    }
+  }, "Table Rows"), isFetchingFields && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    sx: {
+      display: "flex",
+      alignItems: "center",
+      mb: 2
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
+    size: 20,
+    sx: {
+      mr: 2
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    variant: "body2"
+  }, "Loading form fields...")), fetchFieldsError && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+    severity: "error",
+    sx: {
+      mb: 2
+    }
+  }, fetchFieldsError), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_dnd_kit_core__WEBPACK_IMPORTED_MODULE_32__.DndContext, {
     sensors: sensors,
-    collisionDetection: _dnd_kit_core__WEBPACK_IMPORTED_MODULE_29__.closestCenter,
+    collisionDetection: _dnd_kit_core__WEBPACK_IMPORTED_MODULE_32__.closestCenter,
     onDragEnd: handleDragEnd
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_30__.SortableContext, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_33__.SortableContext, {
     items: rows.map(function (row) {
       return row.label;
     }),
-    strategy: _dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_30__.verticalListSortingStrategy
+    strategy: _dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_33__.verticalListSortingStrategy
   }, rows.map(function (row, index) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(SortableItem, {
       key: row.label,
-      id: row.label
+      id: row.label,
+      disabled: !selectedServiceId || !selectedLetterType || isFetchingFields
     }, function (listeners) {
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
         sx: {
@@ -365537,26 +366770,27 @@ var CreateLetterPdf = function CreateLetterPdf() {
           p: 2,
           bgcolor: "grey.50",
           borderRadius: 1,
-          mb: 2
+          mb: 2,
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
         }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_28__["default"], {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_31__["default"], {
         className: "w-100 align-items-center",
         style: {
           margin: 0
         }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_27__["default"], {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_30__["default"], {
         md: 1,
         style: {
           padding: 0
         }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_4__["default"])({}, listeners, {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_23__["default"], (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_4__["default"])({}, listeners, {
         sx: {
           cursor: "grab"
         },
-        disabled: !selectedServiceId || !selectedLetterType
-      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_DragIndicator__WEBPACK_IMPORTED_MODULE_26__["default"], {
+        disabled: !selectedServiceId || !selectedLetterType || isFetchingFields
+      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_DragIndicator__WEBPACK_IMPORTED_MODULE_29__["default"], {
         fontSize: "small"
-      }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_27__["default"], {
+      }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_30__["default"], {
         md: 4,
         style: {
           padding: 0
@@ -365572,7 +366806,7 @@ var CreateLetterPdf = function CreateLetterPdf() {
         }
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
         variant: "body1"
-      }, row.label || "Row ".concat(index + 1)))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_27__["default"], {
+      }, row.label || "Row ".concat(index + 1)))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_30__["default"], {
         md: 4,
         style: {
           padding: 0
@@ -365588,13 +366822,13 @@ var CreateLetterPdf = function CreateLetterPdf() {
         }
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
         variant: "body1"
-      }, getPreview(row)))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_27__["default"], {
+      }, getPreview(row)))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_30__["default"], {
         md: 3,
         className: "d-flex justify-content-end",
         style: {
           padding: 0
         }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
         variant: "outlined",
         size: "small",
         onClick: function onClick() {
@@ -365604,42 +366838,43 @@ var CreateLetterPdf = function CreateLetterPdf() {
           minWidth: "80px",
           mr: 1
         },
-        disabled: !selectedServiceId || !selectedLetterType
-      }, "Edit"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
+        disabled: !selectedServiceId || !selectedLetterType || isFetchingFields || formFields.length === 0
+      }, "Edit"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_23__["default"], {
         onClick: function onClick() {
           return handleRemoveRow(index);
         },
         color: "error",
         size: "small",
-        disabled: !selectedServiceId || !selectedLetterType
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_Delete__WEBPACK_IMPORTED_MODULE_25__["default"], {
+        disabled: !selectedServiceId || !selectedLetterType || isFetchingFields
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_Delete__WEBPACK_IMPORTED_MODULE_28__["default"], {
         fontSize: "small"
       })))));
     });
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
     variant: "contained",
-    startIcon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_Add__WEBPACK_IMPORTED_MODULE_24__["default"], null),
+    startIcon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_Add__WEBPACK_IMPORTED_MODULE_27__["default"], null),
     onClick: openModalForAdd,
     sx: {
-      bgcolor: "blue.500"
+      bgcolor: "primary.main",
+      mt: 2
     },
-    disabled: !selectedServiceId || !selectedLetterType
+    disabled: !selectedServiceId || !selectedLetterType || isFetchingFields || formFields.length === 0
   }, "Add Row")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     sx: {
       display: "flex",
       gap: 2
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
     variant: "contained",
     color: "primary",
     onClick: handleGenerateJson,
-    disabled: !selectedServiceId || !selectedLetterType
-  }, "Generate JSON"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+    disabled: !selectedServiceId || !selectedLetterType || isFetchingFields
+  }, "Generate JSON"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
     variant: "contained",
     color: "success",
     onClick: saveLetter,
-    disabled: !selectedServiceId || !selectedLetterType
-  }, "Save Letter"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_27__["default"], {
+    disabled: !selectedServiceId || !selectedLetterType || isFetchingFields
+  }, "Save Letter"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_bootstrap__WEBPACK_IMPORTED_MODULE_30__["default"], {
     md: 6
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
     variant: "h5",
@@ -365655,7 +366890,7 @@ var CreateLetterPdf = function CreateLetterPdf() {
     information: information,
     rows: rows,
     getPreview: getPreview
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_23__["default"], {
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_26__["default"], {
     open: modalOpen,
     onClose: closeModal
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
@@ -365663,17 +366898,18 @@ var CreateLetterPdf = function CreateLetterPdf() {
       bgcolor: "white",
       p: 4,
       borderRadius: 2,
-      maxWidth: 500,
+      maxWidth: 600,
       mx: "auto",
-      marginTop: "20px",
+      mt: "5%",
       boxShadow: 24,
-      maxHeight: 800,
+      maxHeight: "80vh",
       overflowY: "auto"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
     variant: "h5",
     sx: {
-      mb: 3
+      mb: 3,
+      fontWeight: "bold"
     }
   }, "Configure Row"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"], {
     label: "Label",
@@ -365685,7 +366921,9 @@ var CreateLetterPdf = function CreateLetterPdf() {
     variant: "outlined",
     sx: {
       mb: 3
-    }
+    },
+    error: !modalRowData.label && modalRowData.label !== "",
+    helperText: !modalRowData.label && modalRowData.label !== "" ? "Label is required" : ""
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"], {
     label: "Transform String",
     value: modalRowData.transformString,
@@ -365696,13 +366934,39 @@ var CreateLetterPdf = function CreateLetterPdf() {
     variant: "outlined",
     sx: {
       mb: 3
-    }
+    },
+    error: !modalRowData.transformString && modalRowData.transformString !== "",
+    helperText: !modalRowData.transformString && modalRowData.transformString !== "" ? "Transform String is required" : ""
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
     variant: "subtitle1",
     sx: {
+      mb: 2,
+      fontWeight: "bold"
+    }
+  }, "Selected Fields"), isFetchingFields ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    sx: {
+      display: "flex",
+      alignItems: "center",
       mb: 2
     }
-  }, "Selected Fields"), modalRowData.selectedFields.map(function (field, index) {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
+    size: 20,
+    sx: {
+      mr: 2
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    variant: "body2"
+  }, "Loading form fields...")) : fetchFieldsError ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+    severity: "error",
+    sx: {
+      mb: 2
+    }
+  }, fetchFieldsError) : formFields.length === 0 ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+    severity: "warning",
+    sx: {
+      mb: 2
+    }
+  }, "No form fields or column names available for this service.") : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement((react__WEBPACK_IMPORTED_MODULE_6___default().Fragment), null, modalRowData.selectedFields.map(function (field, index) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
       key: index,
       sx: {
@@ -365714,47 +366978,64 @@ var CreateLetterPdf = function CreateLetterPdf() {
       sx: {
         width: "80%",
         mr: 2
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], {
+      },
+      error: field && !formFields.some(function (f) {
+        return f.name === field;
+      })
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
+      id: "field-select-".concat(index)
+    }, "Select Field"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], {
+      labelId: "field-select-".concat(index),
       value: field,
+      label: "Select Field",
       onChange: function onChange(e) {
         return updateSelectedField(index, e.target.value);
       },
-      displayEmpty: true
+      "aria-label": "Select field ".concat(index + 1, " for row configuration")
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
       value: "",
       disabled: true
-    }, "Select Field"), formFields.map(function (formField) {
+    }, "Select a Field"), formFields.map(function (formField) {
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
-        key: formField,
-        value: formField
-      }, formField);
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
+        key: formField.name,
+        value: formField.name
+      }, formField.label, " (", formField.name, ")");
+    })), field && !formFields.some(function (f) {
+      return f.name === field;
+    }) && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+      variant: "caption",
+      color: "error"
+    }, "Invalid field selected")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_23__["default"], {
       onClick: function onClick() {
         return removeSelectedField(index);
       },
       color: "error"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_Delete__WEBPACK_IMPORTED_MODULE_25__["default"], null)));
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_Delete__WEBPACK_IMPORTED_MODULE_28__["default"], null)));
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
     variant: "outlined",
-    startIcon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_Add__WEBPACK_IMPORTED_MODULE_24__["default"], null),
+    startIcon: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_icons_material_Add__WEBPACK_IMPORTED_MODULE_27__["default"], null),
     onClick: addSelectedField,
     sx: {
       mb: 3
     }
-  }, "Add Field"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+  }, "Add Field")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_25__["default"], {
+    sx: {
+      my: 2
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     sx: {
       display: "flex",
       justifyContent: "flex-end",
       gap: 2
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
     variant: "outlined",
     onClick: closeModal
-  }, "Cancel"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
+  }, "Cancel"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
     variant: "contained",
-    onClick: saveModal
-  }, "Save"))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_toastify__WEBPACK_IMPORTED_MODULE_33__.ToastContainer, {
+    onClick: saveModal,
+    disabled: isFetchingFields || formFields.length === 0
+  }, "Save"))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(react_toastify__WEBPACK_IMPORTED_MODULE_36__.ToastContainer, {
     position: "top-right",
     autoClose: 3000
   }));
@@ -372501,7 +373782,7 @@ function OfficerRegisterScreen() {
         if (response.data.status) {
           var designationOptions = response.data.designations.map(function (des) {
             return {
-              label: des.designation,
+              label: des.designation + "(".concat(des.accessLevel, ")"),
               value: des.designation,
               accessLevel: des.accessLevel // Assuming accessLevel is returned
             };
@@ -379606,6 +380887,7 @@ function OfficerHome() {
       "Total Applications": "#374151",
       "Total Corrigendum": "#374151",
       "Total Correction": "#374151",
+      "Total Amendment": "#374151",
       "Total Withheld Applications": "#374151",
       Pending: "#f59e0b",
       "Pending With Citizen": "#a855f7",
@@ -379625,6 +380907,7 @@ function OfficerHome() {
   var textColors = (0,react__WEBPACK_IMPORTED_MODULE_6__.useMemo)(function () {
     return {
       "Total Applications": "#FFFFFF",
+      "Total Amendment": "#FFFFFF",
       Pending: "#000000",
       Forwarded: "#FFFFFF",
       Returned: "#FFFFFF",
@@ -383367,6 +384650,10 @@ function UserDetails() {
     _useState32 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_useState31, 2),
     canTakeAction = _useState32[0],
     setCanTakeAction = _useState32[1];
+  var _useState33 = (0,react__WEBPACK_IMPORTED_MODULE_6__.useState)(null),
+    _useState34 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_4__["default"])(_useState33, 2),
+    currentOfficerDetails = _useState34[0],
+    setCurrentOfficerDetails = _useState34[1];
   var _useForm = (0,react_hook_form__WEBPACK_IMPORTED_MODULE_28__.useForm)({
       mode: "onChange"
     }),
@@ -383395,7 +384682,7 @@ function UserDetails() {
               setLoading(true);
               _context.prev = 1;
               _context.next = 2;
-              return (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_8__.fetchUserDetail)(applicationId, setFormDetails, setActionForm, setHaspending, setCanTakeAction);
+              return (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_8__.fetchUserDetail)(applicationId, setFormDetails, setActionForm, setHaspending, setCanTakeAction, null, setCurrentOfficerDetails);
             case 2:
               _context.next = 4;
               break;
@@ -384379,7 +385666,22 @@ function UserDetails() {
       maxWidth: "600px",
       mx: "auto"
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement("form", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"], {
+    variant: "h6",
+    sx: {
+      color: "#212121",
+      mb: 1,
+      textAlign: "center",
+      fontWeight: "bold"
+    }
+  }, "Declaration by Previous Officer"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"], {
+    variant: "subtitle2",
+    sx: {
+      color: "#757575",
+      mb: 1,
+      textAlign: "center"
+    }
+  }, currentOfficerDetails.detailsConfirmationDeclartion && currentOfficerDetails.detailsConfirmationDeclartion)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_6___default().createElement("form", {
     onSubmit: handleSubmit(onSubmit),
     autoComplete: "off"
   }, actionForm.length > 0 ? actionForm.map(function (field, index) {
@@ -386823,14 +388125,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Typography/Typography.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControl/FormControl.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormHelperText/FormHelperText.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/List/List.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableContainer/TableContainer.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Paper/Paper.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Paper/Paper.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControl/FormControl.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormHelperText/FormHelperText.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TextField/TextField.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Button/Button.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/CircularProgress/CircularProgress.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Alert/Alert.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableContainer/TableContainer.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Table/Table.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableHead/TableHead.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/TableRow/TableRow.js");
@@ -386842,13 +388144,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/RadioGroup/RadioGroup.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/FormControlLabel/FormControlLabel.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Radio/Radio.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/ListItem/ListItem.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/ListItemText/ListItemText.js");
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Alert/Alert.js");
-/* harmony import */ var _components_ServiceSelectionForm__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ../../components/ServiceSelectionForm */ "./src/components/ServiceSelectionForm.jsx");
-/* harmony import */ var _assets_fetch__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ../../assets/fetch */ "./src/assets/fetch.js");
-/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
-/* harmony import */ var _components_BasicModal__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! ../../components/BasicModal */ "./src/components/BasicModal.jsx");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/List/List.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/ListItem/ListItem.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Tooltip/Tooltip.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/IconButton/IconButton.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/ListItemText/ListItemText.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Dialog/Dialog.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/DialogTitle/DialogTitle.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/DialogContent/DialogContent.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/DialogActions/DialogActions.js");
+/* harmony import */ var _mui_icons_material_Delete__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! @mui/icons-material/Delete */ "./node_modules/@mui/icons-material/esm/Delete.js");
+/* harmony import */ var _components_ServiceSelectionForm__WEBPACK_IMPORTED_MODULE_37__ = __webpack_require__(/*! ../../components/ServiceSelectionForm */ "./src/components/ServiceSelectionForm.jsx");
+/* harmony import */ var _assets_fetch__WEBPACK_IMPORTED_MODULE_38__ = __webpack_require__(/*! ../../assets/fetch */ "./src/assets/fetch.js");
+/* harmony import */ var _axiosConfig__WEBPACK_IMPORTED_MODULE_39__ = __webpack_require__(/*! ../../axiosConfig */ "./src/axiosConfig.js");
+/* harmony import */ var _components_BasicModal__WEBPACK_IMPORTED_MODULE_40__ = __webpack_require__(/*! ../../components/BasicModal */ "./src/components/BasicModal.jsx");
 
 
 
@@ -386856,6 +388165,7 @@ __webpack_require__.r(__webpack_exports__);
 
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_1__["default"])(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+
 
 
 
@@ -386899,7 +388209,7 @@ function Withheld() {
   var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_5__.useState)(null),
     _useState14 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_useState13, 2),
     initialFormData = _useState14[0],
-    setInitialFormData = _useState14[1]; // Track initial form data
+    setInitialFormData = _useState14[1];
   var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_5__.useState)(null),
     _useState16 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_useState15, 2),
     applicationDetails = _useState16[0],
@@ -386936,8 +388246,12 @@ function Withheld() {
     _useState32 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_useState31, 2),
     selectedPdfUrl = _useState32[0],
     setSelectedPdfUrl = _useState32[1];
+  var _useState33 = (0,react__WEBPACK_IMPORTED_MODULE_5__.useState)(false),
+    _useState34 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_useState33, 2),
+    confirmDialogOpen = _useState34[0],
+    setConfirmDialogOpen = _useState34[1];
   (0,react__WEBPACK_IMPORTED_MODULE_5__.useEffect)(function () {
-    (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_31__.fetchServiceList)(setServices);
+    (0,_assets_fetch__WEBPACK_IMPORTED_MODULE_38__.fetchServiceList)(setServices);
   }, []);
   var handleServiceId = function handleServiceId(serviceId) {
     console.log("Selected serviceId:", serviceId);
@@ -386976,7 +388290,7 @@ function Withheld() {
             setInitialFormData(null);
             _context.prev = 3;
             _context.next = 4;
-            return _axiosConfig__WEBPACK_IMPORTED_MODULE_32__["default"].get("/Officer/GetWithheldApplication", {
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_39__["default"].get("/Officer/GetWithheldApplication", {
               params: {
                 referenceNumber: referenceNumber,
                 serviceId: parseInt(serviceId)
@@ -386989,27 +388303,10 @@ function Withheld() {
               _context.next = 5;
               break;
             }
-            if (res.data.response === "Application not found.") {
-              setError("Application not found.");
-              setRecordExists(false);
-              setCanCreate(false);
-              setHasChecked(false);
-            } else if (res.data.response === "Application is not sanctioned and cannot be withheld.") {
-              setError("Application is not sanctioned and cannot be withheld.");
-              setRecordExists(false);
-              setCanCreate(false);
-              setHasChecked(false);
-            } else if (res.data.response === "Error parsing application form details.") {
-              setError("Error parsing application form details.");
-              setRecordExists(false);
-              setCanCreate(false);
-              setHasChecked(false);
-            } else {
-              setError(res.data.response || "Failed to fetch details.");
-              setRecordExists(false);
-              setCanCreate(false);
-              setHasChecked(false);
-            }
+            setError(res.data.response || "Failed to fetch details.");
+            setRecordExists(false);
+            setCanCreate(false);
+            setHasChecked(false);
             return _context.abrupt("return");
           case 5:
             setRecordExists(!!res.data.recordExists);
@@ -387018,8 +388315,6 @@ function Withheld() {
             setHasChecked(true);
             setTableData(res.data.data || []);
             setTableColumns(res.data.columns || []);
-
-            // Handle files for withheld application
             withheldFiles = ((_res$data$application = res.data.application) === null || _res$data$application === void 0 ? void 0 : _res$data$application.files) || [];
             if (typeof withheldFiles === "string") {
               try {
@@ -387030,7 +388325,6 @@ function Withheld() {
               }
             }
             if (!Array.isArray(withheldFiles)) {
-              console.warn("Withheld files is not an array:", withheldFiles);
               withheldFiles = [];
             }
             newFormData = {
@@ -387040,12 +388334,9 @@ function Withheld() {
               files: withheldFiles
             };
             setFormData(newFormData);
-            // Store initial form data for update comparison
             if (res.data.application) {
               setInitialFormData(_objectSpread({}, newFormData));
             }
-
-            // Handle application details
             appDetails = res.data.applicationDetails || {};
             setApplicationDetails({
               applicantName: appDetails.applicantName || "N/A",
@@ -387085,7 +388376,16 @@ function Withheld() {
     }));
     setFormData(function (prev) {
       return _objectSpread(_objectSpread({}, prev), {}, {
-        files: [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(prev.files), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(selectedFiles)) // Append new files
+        files: [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(prev.files), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(selectedFiles))
+      });
+    });
+  };
+  var handleRemoveFile = function handleRemoveFile(fileToRemove) {
+    setFormData(function (prev) {
+      return _objectSpread(_objectSpread({}, prev), {}, {
+        files: prev.files.filter(function (file) {
+          return (typeof file === "string" ? file : file.name) !== (typeof fileToRemove === "string" ? fileToRemove : fileToRemove.name);
+        })
       });
     });
   };
@@ -387099,12 +388399,26 @@ function Withheld() {
   };
   var handleSave = /*#__PURE__*/function () {
     var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_4___default().mark(function _callee2() {
-      var noFieldChanges, initialFileNames, currentFileNames, noFileChanges, form, res, updatedFiles, _err$response, _t2;
+      var noFieldChanges, initialFileNames, currentFileNames, noFileChanges;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_4___default().wrap(function (_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            if (!(recordExists && initialFormData)) {
+            if (formData.withheldType) {
               _context2.next = 1;
+              break;
+            }
+            setError("Please select a Withheld Type.");
+            return _context2.abrupt("return");
+          case 1:
+            if (formData.withheldReason.trim()) {
+              _context2.next = 2;
+              break;
+            }
+            setError("Please provide a Withheld Reason.");
+            return _context2.abrupt("return");
+          case 2:
+            if (!(recordExists && initialFormData)) {
+              _context2.next = 3;
               break;
             }
             noFieldChanges = formData.withheldType === initialFormData.withheldType && formData.isWithheld === initialFormData.isWithheld && formData.withheldReason === initialFormData.withheldReason;
@@ -387116,56 +388430,69 @@ function Withheld() {
             }).sort();
             noFileChanges = initialFileNames.join() === currentFileNames.join();
             if (!(noFieldChanges && noFileChanges)) {
-              _context2.next = 1;
+              _context2.next = 3;
               break;
             }
             setError("No changes detected. Please modify the application details or files to update.");
             return _context2.abrupt("return");
-          case 1:
-            _context2.prev = 1;
+          case 3:
+            setConfirmDialogOpen(true);
+          case 4:
+          case "end":
+            return _context2.stop();
+        }
+      }, _callee2);
+    }));
+    return function handleSave() {
+      return _ref2.apply(this, arguments);
+    };
+  }();
+  var confirmSave = /*#__PURE__*/function () {
+    var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_4___default().mark(function _callee3() {
+      var form, res, updatedFiles, _err$response, _t2;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_4___default().wrap(function (_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.prev = 0;
             form = new FormData();
             form.append("ServiceId", serviceId);
             form.append("ReferenceNumber", referenceNumber);
             form.append("IsWithheld", formData.isWithheld.toString());
             form.append("WithheldType", formData.withheldType);
             form.append("WithheldReason", formData.withheldReason);
-
-            // Append new files
             formData.files.forEach(function (file) {
               if (file instanceof File) {
                 form.append("Files", file);
               } else {
-                form.append("ExistingFiles", file); // Existing files as strings
+                form.append("ExistingFiles", file);
               }
             });
             if (!recordExists) {
-              _context2.next = 3;
+              _context3.next = 2;
               break;
             }
-            _context2.next = 2;
-            return _axiosConfig__WEBPACK_IMPORTED_MODULE_32__["default"].put("/Officer/UpdateWithheldApplication", form, {
+            _context3.next = 1;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_39__["default"].put("/Officer/UpdateWithheldApplication", form, {
               headers: {
                 "Content-Type": "multipart/form-data"
               }
             });
-          case 2:
-            res = _context2.sent;
-            _context2.next = 5;
+          case 1:
+            res = _context3.sent;
+            _context3.next = 4;
             break;
-          case 3:
-            _context2.next = 4;
-            return _axiosConfig__WEBPACK_IMPORTED_MODULE_32__["default"].post("/Officer/CreateWithheldApplication", form, {
+          case 2:
+            _context3.next = 3;
+            return _axiosConfig__WEBPACK_IMPORTED_MODULE_39__["default"].post("/Officer/CreateWithheldApplication", form, {
               headers: {
                 "Content-Type": "multipart/form-data"
               }
             });
+          case 3:
+            res = _context3.sent;
           case 4:
-            res = _context2.sent;
-          case 5:
             console.log("Save response:", res.data);
             setSuccessMessage(res.data.message);
-
-            // Update files from response if available
             updatedFiles = res.data.files || [];
             if (typeof updatedFiles === "string") {
               try {
@@ -387185,8 +388512,6 @@ function Withheld() {
               files: updatedFiles
             });
             setInitialFormData(null);
-
-            // Reset form
             setServiceId("");
             setReferenceNumber("");
             setRecordExists(false);
@@ -387198,23 +388523,52 @@ function Withheld() {
             setTableColumns([]);
             setModalOpen(false);
             setSelectedPdfUrl("");
-            _context2.next = 7;
+            setTimeout(function () {
+              return setSuccessMessage("");
+            }, 5000); // Auto-dismiss success
+            _context3.next = 6;
             break;
-          case 6:
-            _context2.prev = 6;
-            _t2 = _context2["catch"](1);
+          case 5:
+            _context3.prev = 5;
+            _t2 = _context3["catch"](0);
             console.error("Save error:", _t2);
             setError(((_err$response = _t2.response) === null || _err$response === void 0 || (_err$response = _err$response.data) === null || _err$response === void 0 ? void 0 : _err$response.message) || "Failed to save application");
+            setTimeout(function () {
+              return setError("");
+            }, 5000); // Auto-dismiss error
+          case 6:
+            _context3.prev = 6;
+            setConfirmDialogOpen(false);
+            return _context3.finish(6);
           case 7:
           case "end":
-            return _context2.stop();
+            return _context3.stop();
         }
-      }, _callee2, null, [[1, 6]]);
+      }, _callee3, null, [[0, 5, 6, 7]]);
     }));
-    return function handleSave() {
-      return _ref2.apply(this, arguments);
+    return function confirmSave() {
+      return _ref3.apply(this, arguments);
     };
   }();
+  var handleClearForm = function handleClearForm() {
+    setFormData({
+      withheldType: "",
+      withheldReason: "",
+      isWithheld: true,
+      files: []
+    });
+    setServiceId("");
+    setReferenceNumber("");
+    setError("");
+    setSuccessMessage("");
+    setHasChecked(false);
+    setCanCreate(false);
+    setRecordExists(false);
+    setApplicationDetails(null);
+    setTableData([]);
+    setTableColumns([]);
+    setInitialFormData(null);
+  };
   var formatKey = function formatKey(key) {
     if (key === "r/o") return "Residence";
     return key.replace(/([A-Z])/g, " $1").replace(/^./, function (str) {
@@ -387235,7 +388589,7 @@ function Withheld() {
       },
       backgroundColor: "background.paper",
       color: "text.primary",
-      borderRadius: 1
+      borderRadius: "8px"
     },
     "& .MuiInputLabel-root": {
       color: "text.secondary",
@@ -387243,21 +388597,38 @@ function Withheld() {
         color: "primary.main"
       }
     },
-    marginBottom: 2
+    marginBottom: 3
   };
   var buttonStyles = {
     backgroundColor: "primary.main",
-    color: "background.paper",
+    color: "common.white",
     fontWeight: 600,
     textTransform: "none",
-    py: 1,
-    px: 3,
-    borderRadius: 2,
+    py: 1.5,
+    px: 4,
+    borderRadius: "8px",
     "&:hover": {
       backgroundColor: "primary.dark",
       transform: "scale(1.02)",
       transition: "all 0.2s ease"
+    },
+    "&:disabled": {
+      backgroundColor: "grey.400",
+      color: "grey.600"
     }
+  };
+  var fileUploadStyles = {
+    border: "2px dashed",
+    borderColor: "grey.400",
+    borderRadius: "8px",
+    padding: 2,
+    textAlign: "center",
+    backgroundColor: "grey.50",
+    "&:hover": {
+      borderColor: "primary.main",
+      backgroundColor: "primary.50"
+    },
+    cursor: "pointer"
   };
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
     sx: {
@@ -387265,36 +388636,45 @@ function Withheld() {
         xs: 2,
         md: 4
       },
-      maxWidth: 700,
+      maxWidth: 800,
       mx: "auto",
       minHeight: "100vh",
       bgcolor: "background.default",
-      borderRadius: 3,
-      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)"
+      borderRadius: "12px",
+      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+      display: "flex",
+      flexDirection: "column",
+      gap: 3
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
-    variant: "h5",
+    variant: "h4",
     sx: {
       fontFamily: "'Playfair Display', serif",
       color: "primary.main",
-      mb: 3,
-      fontWeight: 700
+      fontWeight: 700,
+      textAlign: "center"
     }
-  }, "Withheld Application Management"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+  }, "Withheld Application Management"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      p: 3,
+      borderRadius: "12px",
+      boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
     sx: {
       display: "flex",
       flexDirection: "column",
       gap: 2
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
     fullWidth: true,
     sx: formControlStyles,
     error: error.includes("Service")
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_components_ServiceSelectionForm__WEBPACK_IMPORTED_MODULE_30__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_components_ServiceSelectionForm__WEBPACK_IMPORTED_MODULE_37__["default"], {
     services: services,
     value: serviceId,
     onServiceSelect: handleServiceId
-  }), error.includes("Service") && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], null, "Please select a valid service")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+  }), error.includes("Service") && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], null, "Please select a valid service")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
     fullWidth: true,
     label: "Reference Number",
     value: referenceNumber,
@@ -387305,72 +388685,97 @@ function Withheld() {
     sx: formControlStyles,
     error: error.includes("Reference Number"),
     helperText: error.includes("Reference Number") ? "Please enter a valid reference number" : ""
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    sx: {
+      display: "flex",
+      gap: 2
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
     variant: "contained",
     sx: buttonStyles,
     onClick: handleCheck,
     disabled: loading || !services.length,
-    startIcon: loading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    startIcon: loading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
       size: 20
     })
-  }, loading ? "Checking..." : "Check Application"), hasChecked && applicationDetails && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+  }, loading ? "Checking..." : "Check Application"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    variant: "outlined",
+    sx: _objectSpread(_objectSpread({}, buttonStyles), {}, {
+      backgroundColor: "transparent",
+      borderColor: "primary.main",
+      color: "primary.main",
+      "&:hover": {
+        backgroundColor: "primary.50",
+        borderColor: "primary.dark"
+      }
+    }),
+    onClick: handleClearForm
+  }, "Clear Form")))), successMessage && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
+    severity: "success",
     sx: {
-      mb: 3,
-      p: 2,
-      bgcolor: "grey.100",
-      borderRadius: 2
+      borderRadius: "8px"
+    }
+  }, successMessage), error && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
+    severity: "error",
+    sx: {
+      borderRadius: "8px"
+    }
+  }, error), hasChecked && applicationDetails && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: {
+      p: 3,
+      borderRadius: "12px",
+      boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    variant: "h6",
+    sx: {
+      fontWeight: 600,
+      mb: 2
+    }
+  }, "Application Details"), Object.entries(applicationDetails).map(function (_ref4) {
+    var _ref5 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_ref4, 2),
+      key = _ref5[0],
+      value = _ref5[1];
+    return key !== "files" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      key: key,
+      variant: "body1",
+      sx: {
+        mb: 1
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement("strong", null, formatKey(key), ":"), " ", value || "N/A");
+  }), Array.isArray(formData.files) && formData.files.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    sx: {
+      mt: 3
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     variant: "subtitle1",
     sx: {
       fontWeight: 600,
-      mb: 1
+      mb: 2
     }
-  }, "Application Details"), Object.entries(applicationDetails).map(function (_ref3) {
-    var _ref4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_ref3, 2),
-      key = _ref4[0],
-      value = _ref4[1];
-    return key !== "files" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      key: key,
-      variant: "body2"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement("strong", null, formatKey(key), ":"), " ", value || "N/A");
-  }), Array.isArray(formData.files) && formData.files.length > 0 && recordExists && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement((react__WEBPACK_IMPORTED_MODULE_5___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
-    dense: true
+  }, "Uploaded Documents"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    sx: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 2
+    }
   }, formData.files.map(function (file, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+      key: index,
+      variant: "outlined",
       sx: {
-        mt: 3
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      variant: "subtitle1",
-      sx: {
-        fontWeight: 600,
-        mb: 2
-      }
-    }, "Uploaded Documents"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      sx: {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 2
-      }
-    }, formData.files.map(function (file, index) {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
-        key: index,
-        variant: "outlined",
-        sx: {
-          textTransform: "none",
-          borderColor: "primary.main",
-          color: "primary.main",
-          "&:hover": {
-            backgroundColor: "primary.light",
-            borderColor: "primary.dark"
-          }
-        },
-        onClick: function onClick() {
-          return handleFileClick(typeof file === "string" ? file : file.name);
+        textTransform: "none",
+        borderColor: "primary.main",
+        color: "primary.main",
+        "&:hover": {
+          backgroundColor: "primary.50",
+          borderColor: "primary.dark"
         }
-      }, typeof file === "string" ? file : file.name);
-    })));
+      },
+      onClick: function onClick() {
+        return handleFileClick(typeof file === "string" ? file : file.name);
+      }
+    }, typeof file === "string" ? file : file.name);
   }))), hasChecked && tableData.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
     sx: {
       mt: 3
@@ -387381,12 +388786,11 @@ function Withheld() {
       fontWeight: 600,
       mb: 2
     }
-  }, "Action History"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"], {
-    component: _mui_material__WEBPACK_IMPORTED_MODULE_15__["default"],
+  }, "Action History"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+    component: _mui_material__WEBPACK_IMPORTED_MODULE_8__["default"],
     sx: {
-      bgcolor: "grey.100",
-      borderRadius: 2,
-      boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)"
+      borderRadius: "8px",
+      boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_18__["default"], null, tableColumns.map(function (column, index) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
@@ -387394,7 +388798,7 @@ function Withheld() {
       sx: {
         fontWeight: 600,
         color: "text.primary",
-        backgroundColor: "grey.200"
+        backgroundColor: "grey.100"
       }
     }, column.header);
   }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_20__["default"], null, tableData.map(function (row, index) {
@@ -387405,17 +388809,16 @@ function Withheld() {
         key: colIndex
       }, row[column.accessorKey] || "N/A");
     }));
-  })))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_components_BasicModal__WEBPACK_IMPORTED_MODULE_33__["default"], {
+  })))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_components_BasicModal__WEBPACK_IMPORTED_MODULE_40__["default"], {
     open: modalOpen,
     handleClose: handleModalClose,
     Title: "View Document",
     pdf: selectedPdfUrl
-  }), hasChecked && canCreate && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_15__["default"], {
+  }), hasChecked && canCreate && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
     sx: {
       p: 3,
-      mt: 3,
-      borderRadius: 2,
-      boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)"
+      borderRadius: "12px",
+      boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     variant: "h6",
@@ -387424,7 +388827,7 @@ function Withheld() {
       fontWeight: 600,
       color: "text.primary"
     }
-  }, recordExists ? "Update Withheld Application" : "Create New Withheld Application"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+  }, recordExists ? "Update Withheld Application" : "Create Withheld Application"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
     fullWidth: true,
     sx: formControlStyles
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
@@ -387443,12 +388846,13 @@ function Withheld() {
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_23__["default"], {
     value: "Permanent"
   }, "Weedout"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_23__["default"], {
-    value: "Temporary"
-  }, "Temporary"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
+    value: "Temporary",
+    disabled: !canPermanentToTemporary
+  }, "Temporary")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], null, formData.withheldType === "Permanent" ? "Permanently withhold the application." : "Temporarily withhold; can be reversed later.")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
     label: "Withheld Reason",
     fullWidth: true,
     multiline: true,
-    rows: 3,
+    rows: 4,
     value: formData.withheldReason,
     onChange: function onChange(e) {
       return setFormData(function (prev) {
@@ -387457,11 +388861,12 @@ function Withheld() {
         });
       });
     },
-    sx: formControlStyles
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    sx: formControlStyles,
+    helperText: "Provide a detailed reason for withholding the application."
+  }), recordExists && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_9__["default"], {
     component: "fieldset",
     sx: {
-      mb: 2
+      mb: 3
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     variant: "subtitle1",
@@ -387469,7 +388874,7 @@ function Withheld() {
       fontWeight: 600,
       color: "text.primary"
     }
-  }, "Is Withheld"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
+  }, "Remove from Withheld"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_24__["default"], {
     row: true,
     value: formData.isWithheld.toString(),
     onChange: function onChange(e) {
@@ -387482,61 +388887,94 @@ function Withheld() {
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_25__["default"], {
     value: "true",
     control: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_26__["default"], null),
-    label: "Yes"
+    label: "Keep Withheld"
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_25__["default"], {
     value: "false",
     control: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_26__["default"], null),
-    label: "No"
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    label: "Remove from Withheld"
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], null, "Select \"Remove from Withheld\" to release the application.")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
     sx: {
-      mb: 2
+      mb: 3
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
     variant: "subtitle1",
     sx: {
       fontWeight: 600,
-      color: "text.primary"
+      color: "text.primary",
+      mb: 1
     }
-  }, "Upload PDF Files"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement("input", {
+  }, "Upload PDF Files"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    sx: fileUploadStyles
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement("input", {
     type: "file",
     accept: "application/pdf",
     multiple: true,
     onChange: handleFileChange,
     style: {
-      marginTop: "8px"
+      display: "block",
+      margin: "8px auto"
     }
-  }), Array.isArray(formData.files) && formData.files.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"], {
-    dense: true
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    variant: "body2",
+    color: "text.secondary"
+  }, "Drag and drop PDF files here or click to upload")), Array.isArray(formData.files) && formData.files.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_27__["default"], {
+    dense: true,
+    sx: {
+      mt: 2
+    }
   }, formData.files.map(function (file, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_27__["default"], {
-      key: index
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_28__["default"], {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_28__["default"], {
+      key: index,
+      secondaryAction: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_29__["default"], {
+        title: "Remove File"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_30__["default"], {
+        edge: "end",
+        onClick: function onClick() {
+          return handleRemoveFile(file);
+        }
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_icons_material_Delete__WEBPACK_IMPORTED_MODULE_36__["default"], {
+        color: "error"
+      })))
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_31__["default"], {
       primary: typeof file === "string" ? file : file.name
     }));
   }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"], {
     sx: {
-      mt: 2,
       display: "flex",
-      justifyContent: "flex-start"
+      gap: 2
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
     variant: "contained",
     sx: buttonStyles,
     onClick: handleSave,
     disabled: loading
-  }, recordExists ? "Update Application" : "Submit Application")))), successMessage && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_29__["default"], {
-    severity: "success",
-    sx: {
-      mb: 3,
-      borderRadius: 2
+  }, recordExists ? "Update Application" : "Submit Application"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    variant: "outlined",
+    sx: _objectSpread(_objectSpread({}, buttonStyles), {}, {
+      backgroundColor: "transparent",
+      borderColor: "primary.main",
+      color: "primary.main",
+      "&:hover": {
+        backgroundColor: "primary.50",
+        borderColor: "primary.dark"
+      }
+    }),
+    onClick: handleClearForm
+  }, "Clear Form"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_32__["default"], {
+    open: confirmDialogOpen,
+    onClose: function onClose() {
+      return setConfirmDialogOpen(false);
     }
-  }, successMessage), error && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_29__["default"], {
-    severity: "error",
-    sx: {
-      mb: 3,
-      borderRadius: 2
-    }
-  }, error));
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_33__["default"], null, "Confirm Submission"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_34__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"], null, "Are you sure you want to ", recordExists ? "update" : "submit", " this withheld application?")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_35__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    onClick: function onClick() {
+      return setConfirmDialogOpen(false);
+    },
+    color: "primary"
+  }, "Cancel"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    onClick: confirmSave,
+    color: "primary",
+    variant: "contained"
+  }, "Confirm"))));
 }
 
 /***/ }),

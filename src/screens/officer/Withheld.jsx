@@ -24,7 +24,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import ServiceSelectionForm from "../../components/ServiceSelectionForm";
 import { fetchServiceList } from "../../assets/fetch";
 import axiosInstance from "../../axiosConfig";
@@ -43,7 +50,7 @@ export default function Withheld() {
     isWithheld: true,
     files: [],
   });
-  const [initialFormData, setInitialFormData] = useState(null); // Track initial form data
+  const [initialFormData, setInitialFormData] = useState(null);
   const [applicationDetails, setApplicationDetails] = useState(null);
   const [recordExists, setRecordExists] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
@@ -53,6 +60,7 @@ export default function Withheld() {
   const [tableColumns, setTableColumns] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState("");
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchServiceList(setServices);
@@ -93,32 +101,10 @@ export default function Withheld() {
       console.log("API response:", res.data);
 
       if (!res.data.status) {
-        if (res.data.response === "Application not found.") {
-          setError("Application not found.");
-          setRecordExists(false);
-          setCanCreate(false);
-          setHasChecked(false);
-        } else if (
-          res.data.response ===
-          "Application is not sanctioned and cannot be withheld."
-        ) {
-          setError("Application is not sanctioned and cannot be withheld.");
-          setRecordExists(false);
-          setCanCreate(false);
-          setHasChecked(false);
-        } else if (
-          res.data.response === "Error parsing application form details."
-        ) {
-          setError("Error parsing application form details.");
-          setRecordExists(false);
-          setCanCreate(false);
-          setHasChecked(false);
-        } else {
-          setError(res.data.response || "Failed to fetch details.");
-          setRecordExists(false);
-          setCanCreate(false);
-          setHasChecked(false);
-        }
+        setError(res.data.response || "Failed to fetch details.");
+        setRecordExists(false);
+        setCanCreate(false);
+        setHasChecked(false);
         return;
       }
 
@@ -129,7 +115,6 @@ export default function Withheld() {
       setTableData(res.data.data || []);
       setTableColumns(res.data.columns || []);
 
-      // Handle files for withheld application
       let withheldFiles = res.data.application?.files || [];
       if (typeof withheldFiles === "string") {
         try {
@@ -140,7 +125,6 @@ export default function Withheld() {
         }
       }
       if (!Array.isArray(withheldFiles)) {
-        console.warn("Withheld files is not an array:", withheldFiles);
         withheldFiles = [];
       }
 
@@ -152,12 +136,10 @@ export default function Withheld() {
       };
 
       setFormData(newFormData);
-      // Store initial form data for update comparison
       if (res.data.application) {
         setInitialFormData({ ...newFormData });
       }
 
-      // Handle application details
       let appDetails = res.data.applicationDetails || {};
       setApplicationDetails({
         applicantName: appDetails.applicantName || "N/A",
@@ -185,7 +167,18 @@ export default function Withheld() {
     );
     setFormData((prev) => ({
       ...prev,
-      files: [...prev.files, ...selectedFiles], // Append new files
+      files: [...prev.files, ...selectedFiles],
+    }));
+  };
+
+  const handleRemoveFile = (fileToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      files: prev.files.filter(
+        (file) =>
+          (typeof file === "string" ? file : file.name) !==
+          (typeof fileToRemove === "string" ? fileToRemove : fileToRemove.name),
+      ),
     }));
   };
 
@@ -200,7 +193,15 @@ export default function Withheld() {
   };
 
   const handleSave = async () => {
-    // Prevent update if no changes were made to withheldType, isWithheld, or withheldReason
+    if (!formData.withheldType) {
+      setError("Please select a Withheld Type.");
+      return;
+    }
+    if (!formData.withheldReason.trim()) {
+      setError("Please provide a Withheld Reason.");
+      return;
+    }
+
     if (recordExists && initialFormData) {
       const noFieldChanges =
         formData.withheldType === initialFormData.withheldType &&
@@ -223,6 +224,10 @@ export default function Withheld() {
       }
     }
 
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmSave = async () => {
     try {
       const form = new FormData();
       form.append("ServiceId", serviceId);
@@ -231,12 +236,11 @@ export default function Withheld() {
       form.append("WithheldType", formData.withheldType);
       form.append("WithheldReason", formData.withheldReason);
 
-      // Append new files
       formData.files.forEach((file) => {
         if (file instanceof File) {
           form.append("Files", file);
         } else {
-          form.append("ExistingFiles", file); // Existing files as strings
+          form.append("ExistingFiles", file);
         }
       });
 
@@ -262,7 +266,6 @@ export default function Withheld() {
       console.log("Save response:", res.data);
       setSuccessMessage(res.data.message);
 
-      // Update files from response if available
       let updatedFiles = res.data.files || [];
       if (typeof updatedFiles === "string") {
         try {
@@ -283,8 +286,6 @@ export default function Withheld() {
         files: updatedFiles,
       });
       setInitialFormData(null);
-
-      // Reset form
       setServiceId("");
       setReferenceNumber("");
       setRecordExists(false);
@@ -296,10 +297,34 @@ export default function Withheld() {
       setTableColumns([]);
       setModalOpen(false);
       setSelectedPdfUrl("");
+      setTimeout(() => setSuccessMessage(""), 5000); // Auto-dismiss success
     } catch (err) {
       console.error("Save error:", err);
       setError(err.response?.data?.message || "Failed to save application");
+      setTimeout(() => setError(""), 5000); // Auto-dismiss error
+    } finally {
+      setConfirmDialogOpen(false);
     }
+  };
+
+  const handleClearForm = () => {
+    setFormData({
+      withheldType: "",
+      withheldReason: "",
+      isWithheld: true,
+      files: [],
+    });
+    setServiceId("");
+    setReferenceNumber("");
+    setError("");
+    setSuccessMessage("");
+    setHasChecked(false);
+    setCanCreate(false);
+    setRecordExists(false);
+    setApplicationDetails(null);
+    setTableData([]);
+    setTableColumns([]);
+    setInitialFormData(null);
   };
 
   const formatKey = (key) => {
@@ -320,302 +345,327 @@ export default function Withheld() {
       },
       backgroundColor: "background.paper",
       color: "text.primary",
-      borderRadius: 1,
+      borderRadius: "8px",
     },
     "& .MuiInputLabel-root": {
       color: "text.secondary",
       "&.Mui-focused": { color: "primary.main" },
     },
-    marginBottom: 2,
+    marginBottom: 3,
   };
 
   const buttonStyles = {
     backgroundColor: "primary.main",
-    color: "background.paper",
+    color: "common.white",
     fontWeight: 600,
     textTransform: "none",
-    py: 1,
-    px: 3,
-    borderRadius: 2,
+    py: 1.5,
+    px: 4,
+    borderRadius: "8px",
     "&:hover": {
       backgroundColor: "primary.dark",
       transform: "scale(1.02)",
       transition: "all 0.2s ease",
     },
+    "&:disabled": {
+      backgroundColor: "grey.400",
+      color: "grey.600",
+    },
+  };
+
+  const fileUploadStyles = {
+    border: "2px dashed",
+    borderColor: "grey.400",
+    borderRadius: "8px",
+    padding: 2,
+    textAlign: "center",
+    backgroundColor: "grey.50",
+    "&:hover": {
+      borderColor: "primary.main",
+      backgroundColor: "primary.50",
+    },
+    cursor: "pointer",
   };
 
   return (
     <Box
       sx={{
         p: { xs: 2, md: 4 },
-        maxWidth: 700,
+        maxWidth: 800,
         mx: "auto",
         minHeight: "100vh",
         bgcolor: "background.default",
-        borderRadius: 3,
+        borderRadius: "12px",
         boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
       }}
     >
       <Typography
-        variant="h5"
+        variant="h4"
         sx={{
           fontFamily: "'Playfair Display', serif",
           color: "primary.main",
-          mb: 3,
           fontWeight: 700,
+          textAlign: "center",
         }}
       >
         Withheld Application Management
       </Typography>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <FormControl
-          fullWidth
-          sx={formControlStyles}
-          error={error.includes("Service")}
-        >
-          <ServiceSelectionForm
-            services={services}
-            value={serviceId}
-            onServiceSelect={handleServiceId}
-          />
-          {error.includes("Service") && (
-            <FormHelperText>Please select a valid service</FormHelperText>
-          )}
-        </FormControl>
-
-        <TextField
-          fullWidth
-          label="Reference Number"
-          value={referenceNumber}
-          onChange={(e) => {
-            console.log("Reference Number:", e.target.value);
-            setReferenceNumber(e.target.value);
-          }}
-          sx={formControlStyles}
-          error={error.includes("Reference Number")}
-          helperText={
-            error.includes("Reference Number")
-              ? "Please enter a valid reference number"
-              : ""
-          }
-        />
-
-        <Button
-          variant="contained"
-          sx={buttonStyles}
-          onClick={handleCheck}
-          disabled={loading || !services.length}
-          startIcon={loading && <CircularProgress size={20} />}
-        >
-          {loading ? "Checking..." : "Check Application"}
-        </Button>
-
-        {hasChecked && applicationDetails && (
-          <Box sx={{ mb: 3, p: 2, bgcolor: "grey.100", borderRadius: 2 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-              Application Details
-            </Typography>
-            {Object.entries(applicationDetails).map(
-              ([key, value]) =>
-                key !== "files" && (
-                  <Typography key={key} variant="body2">
-                    <strong>{formatKey(key)}:</strong> {value || "N/A"}
-                  </Typography>
-                ),
+      <Paper
+        sx={{
+          p: 3,
+          borderRadius: "12px",
+          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)",
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <FormControl
+            fullWidth
+            sx={formControlStyles}
+            error={error.includes("Service")}
+          >
+            <ServiceSelectionForm
+              services={services}
+              value={serviceId}
+              onServiceSelect={handleServiceId}
+            />
+            {error.includes("Service") && (
+              <FormHelperText>Please select a valid service</FormHelperText>
             )}
-            {Array.isArray(formData.files) &&
-              formData.files.length > 0 &&
-              recordExists && (
-                <>
-                  <List dense>
-                    {formData.files.map((file, index) => (
-                      <Box sx={{ mt: 3 }}>
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontWeight: 600, mb: 2 }}
-                        >
-                          Uploaded Documents
-                        </Typography>
-                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                          {formData.files.map((file, index) => (
-                            <Button
-                              key={index}
-                              variant="outlined"
-                              sx={{
-                                textTransform: "none",
-                                borderColor: "primary.main",
-                                color: "primary.main",
-                                "&:hover": {
-                                  backgroundColor: "primary.light",
-                                  borderColor: "primary.dark",
-                                },
-                              }}
-                              onClick={() =>
-                                handleFileClick(
-                                  typeof file === "string" ? file : file.name,
-                                )
-                              }
-                            >
-                              {typeof file === "string" ? file : file.name}
-                            </Button>
-                          ))}
-                        </Box>
-                      </Box>
-                    ))}
-                  </List>
-                </>
-              )}
+          </FormControl>
 
-            {hasChecked && tableData.length > 0 && (
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-                  Action History
+          <TextField
+            fullWidth
+            label="Reference Number"
+            value={referenceNumber}
+            onChange={(e) => {
+              console.log("Reference Number:", e.target.value);
+              setReferenceNumber(e.target.value);
+            }}
+            sx={formControlStyles}
+            error={error.includes("Reference Number")}
+            helperText={
+              error.includes("Reference Number")
+                ? "Please enter a valid reference number"
+                : ""
+            }
+          />
+
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              sx={buttonStyles}
+              onClick={handleCheck}
+              disabled={loading || !services.length}
+              startIcon={loading && <CircularProgress size={20} />}
+            >
+              {loading ? "Checking..." : "Check Application"}
+            </Button>
+            <Button
+              variant="outlined"
+              sx={{
+                ...buttonStyles,
+                backgroundColor: "transparent",
+                borderColor: "primary.main",
+                color: "primary.main",
+                "&:hover": {
+                  backgroundColor: "primary.50",
+                  borderColor: "primary.dark",
+                },
+              }}
+              onClick={handleClearForm}
+            >
+              Clear Form
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+
+      {successMessage && (
+        <Alert severity="success" sx={{ borderRadius: "8px" }}>
+          {successMessage}
+        </Alert>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ borderRadius: "8px" }}>
+          {error}
+        </Alert>
+      )}
+
+      {hasChecked && applicationDetails && (
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: "12px",
+            boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Application Details
+          </Typography>
+          {Object.entries(applicationDetails).map(
+            ([key, value]) =>
+              key !== "files" && (
+                <Typography key={key} variant="body1" sx={{ mb: 1 }}>
+                  <strong>{formatKey(key)}:</strong> {value || "N/A"}
                 </Typography>
-                <TableContainer
-                  component={Paper}
-                  sx={{
-                    bgcolor: "grey.100",
-                    borderRadius: 2,
-                    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
-                  }}
-                >
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        {tableColumns.map((column, index) => (
-                          <TableCell
-                            key={index}
-                            sx={{
-                              fontWeight: 600,
-                              color: "text.primary",
-                              backgroundColor: "grey.200",
-                            }}
-                          >
-                            {column.header}
+              ),
+          )}
+          {Array.isArray(formData.files) && formData.files.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                Uploaded Documents
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+                {formData.files.map((file, index) => (
+                  <Button
+                    key={index}
+                    variant="outlined"
+                    sx={{
+                      textTransform: "none",
+                      borderColor: "primary.main",
+                      color: "primary.main",
+                      "&:hover": {
+                        backgroundColor: "primary.50",
+                        borderColor: "primary.dark",
+                      },
+                    }}
+                    onClick={() =>
+                      handleFileClick(
+                        typeof file === "string" ? file : file.name,
+                      )
+                    }
+                  >
+                    {typeof file === "string" ? file : file.name}
+                  </Button>
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {hasChecked && tableData.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                Action History
+              </Typography>
+              <TableContainer
+                component={Paper}
+                sx={{
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)",
+                }}
+              >
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      {tableColumns.map((column, index) => (
+                        <TableCell
+                          key={index}
+                          sx={{
+                            fontWeight: 600,
+                            color: "text.primary",
+                            backgroundColor: "grey.100",
+                          }}
+                        >
+                          {column.header}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {tableData.map((row, index) => (
+                      <TableRow key={index}>
+                        {tableColumns.map((column, colIndex) => (
+                          <TableCell key={colIndex}>
+                            {row[column.accessorKey] || "N/A"}
                           </TableCell>
                         ))}
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {tableData.map((row, index) => (
-                        <TableRow key={index}>
-                          {tableColumns.map((column, colIndex) => (
-                            <TableCell key={colIndex}>
-                              {row[column.accessorKey] || "N/A"}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
-            )}
-
-            {/* {hasChecked &&
-              Array.isArray(formData.files) &&
-              formData.files.length > 0 && (
-                <Box sx={{ mt: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: 600, mb: 2 }}
-                  >
-                    View Documents
-                  </Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                    {formData.files.map((file, index) => (
-                      <Button
-                        key={index}
-                        variant="outlined"
-                        sx={{
-                          textTransform: "none",
-                          borderColor: "primary.main",
-                          color: "primary.main",
-                          "&:hover": {
-                            backgroundColor: "primary.light",
-                            borderColor: "primary.dark",
-                          },
-                        }}
-                        onClick={() =>
-                          handleFileClick(
-                            typeof file === "string" ? file : file.name,
-                          )
-                        }
-                      >
-                        {typeof file === "string" ? file : file.name}
-                      </Button>
                     ))}
-                  </Box>
-                </Box>
-              )} */}
-          </Box>
-        )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+        </Paper>
+      )}
 
-        <BasicModal
-          open={modalOpen}
-          handleClose={handleModalClose}
-          Title="View Document"
-          pdf={selectedPdfUrl}
-        />
+      <BasicModal
+        open={modalOpen}
+        handleClose={handleModalClose}
+        Title="View Document"
+        pdf={selectedPdfUrl}
+      />
 
-        {hasChecked && canCreate && (
-          <Paper
-            sx={{
-              p: 3,
-              mt: 3,
-              borderRadius: 2,
-              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
-            }}
+      {hasChecked && canCreate && (
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: "12px",
+            boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: "text.primary" }}
           >
-            <Typography
-              variant="h6"
-              sx={{ mb: 2, fontWeight: 600, color: "text.primary" }}
-            >
-              {recordExists
-                ? "Update Withheld Application"
-                : "Create New Withheld Application"}
-            </Typography>
+            {recordExists
+              ? "Update Withheld Application"
+              : "Create Withheld Application"}
+          </Typography>
 
-            <FormControl fullWidth sx={formControlStyles}>
-              <InputLabel id="withheld-type-label">Withheld Type</InputLabel>
-              <Select
-                labelId="withheld-type-label"
-                label="Withheld Type"
-                value={formData.withheldType}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    withheldType: e.target.value,
-                  }))
-                }
-              >
-                <MenuItem value="Permanent">Weedout</MenuItem>
-                <MenuItem value="Temporary">Temporary</MenuItem>
-              </Select>
-            </FormControl>
-
-            <TextField
-              label="Withheld Reason"
-              fullWidth
-              multiline
-              rows={3}
-              value={formData.withheldReason}
+          <FormControl fullWidth sx={formControlStyles}>
+            <InputLabel id="withheld-type-label">Withheld Type</InputLabel>
+            <Select
+              labelId="withheld-type-label"
+              label="Withheld Type"
+              value={formData.withheldType}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  withheldReason: e.target.value,
+                  withheldType: e.target.value,
                 }))
               }
-              sx={formControlStyles}
-            />
+            >
+              <MenuItem value="Permanent">Weedout</MenuItem>
+              <MenuItem value="Temporary" disabled={!canPermanentToTemporary}>
+                Temporary
+              </MenuItem>
+            </Select>
+            <FormHelperText>
+              {formData.withheldType === "Permanent"
+                ? "Permanently withhold the application."
+                : "Temporarily withhold; can be reversed later."}
+            </FormHelperText>
+          </FormControl>
 
-            <FormControl component="fieldset" sx={{ mb: 2 }}>
+          <TextField
+            label="Withheld Reason"
+            fullWidth
+            multiline
+            rows={4}
+            value={formData.withheldReason}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                withheldReason: e.target.value,
+              }))
+            }
+            sx={formControlStyles}
+            helperText="Provide a detailed reason for withholding the application."
+          />
+
+          {recordExists && (
+            <FormControl component="fieldset" sx={{ mb: 3 }}>
               <Typography
                 variant="subtitle1"
                 sx={{ fontWeight: 600, color: "text.primary" }}
               >
-                Is Withheld
+                Remove from Withheld
               </Typography>
               <RadioGroup
                 row
@@ -630,67 +680,113 @@ export default function Withheld() {
                 <FormControlLabel
                   value="true"
                   control={<Radio />}
-                  label="Yes"
+                  label="Keep Withheld"
                 />
                 <FormControlLabel
                   value="false"
                   control={<Radio />}
-                  label="No"
+                  label="Remove from Withheld"
                 />
               </RadioGroup>
+              <FormHelperText>
+                Select "Remove from Withheld" to release the application.
+              </FormHelperText>
             </FormControl>
+          )}
 
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 600, color: "text.primary" }}
-              >
-                Upload PDF Files
-              </Typography>
+          <Box sx={{ mb: 3 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 600, color: "text.primary", mb: 1 }}
+            >
+              Upload PDF Files
+            </Typography>
+            <Box sx={fileUploadStyles}>
               <input
                 type="file"
                 accept="application/pdf"
                 multiple
                 onChange={handleFileChange}
-                style={{ marginTop: "8px" }}
+                style={{ display: "block", margin: "8px auto" }}
               />
-              {Array.isArray(formData.files) && formData.files.length > 0 && (
-                <List dense>
-                  {formData.files.map((file, index) => (
-                    <ListItem key={index}>
-                      <ListItemText
-                        primary={typeof file === "string" ? file : file.name}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              )}
+              <Typography variant="body2" color="text.secondary">
+                Drag and drop PDF files here or click to upload
+              </Typography>
             </Box>
+            {Array.isArray(formData.files) && formData.files.length > 0 && (
+              <List dense sx={{ mt: 2 }}>
+                {formData.files.map((file, index) => (
+                  <ListItem
+                    key={index}
+                    secondaryAction={
+                      <Tooltip title="Remove File">
+                        <IconButton
+                          edge="end"
+                          onClick={() => handleRemoveFile(file)}
+                        >
+                          <DeleteIcon color="error" />
+                        </IconButton>
+                      </Tooltip>
+                    }
+                  >
+                    <ListItemText
+                      primary={typeof file === "string" ? file : file.name}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </Box>
 
-            <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-start" }}>
-              <Button
-                variant="contained"
-                sx={buttonStyles}
-                onClick={handleSave}
-                disabled={loading}
-              >
-                {recordExists ? "Update Application" : "Submit Application"}
-              </Button>
-            </Box>
-          </Paper>
-        )}
-      </Box>
-      {successMessage && (
-        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
-          {successMessage}
-        </Alert>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              sx={buttonStyles}
+              onClick={handleSave}
+              disabled={loading}
+            >
+              {recordExists ? "Update Application" : "Submit Application"}
+            </Button>
+            <Button
+              variant="outlined"
+              sx={{
+                ...buttonStyles,
+                backgroundColor: "transparent",
+                borderColor: "primary.main",
+                color: "primary.main",
+                "&:hover": {
+                  backgroundColor: "primary.50",
+                  borderColor: "primary.dark",
+                },
+              }}
+              onClick={handleClearForm}
+            >
+              Clear Form
+            </Button>
+          </Box>
+        </Paper>
       )}
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-          {error}
-        </Alert>
-      )}
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+      >
+        <DialogTitle>Confirm Submission</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to {recordExists ? "update" : "submit"} this
+            withheld application?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialogOpen(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={confirmSave} color="primary" variant="contained">
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -767,11 +767,11 @@ namespace SahayataNidhi.Controllers.Officer
                     var disabilityType = FindFieldRecursively(formDetailsObj, "KindOfDisability")!;
                     _logger.LogInformation($"-------------------- Disability Type: {disabilityType["value"]} -----------------------");
                     applicationObject.applicationType = disabilityType["value"];
-                    applicationObject.expiryDate = expirationDate.ToString("dd/MM/yyyy") + $" ({daysLeft} days left)";
+                    applicationObject.expiryDate = expirationDate.ToString("dd MMM yyyy") + $" ({daysLeft} days left)";
                 }
                 else
                 {
-                    applicationObject.expiryDate = expirationDate.ToString("dd/MM/yyyy") + $" ({daysLeft} days left)";
+                    applicationObject.expiryDate = expirationDate.ToString("dd MMM yyyy") + $" ({daysLeft} days left)";
                     applicationObject.noOfMailSent = expiringApplication!.MailSent;
                     applicationObject.customActions = customActions;
 
@@ -2623,7 +2623,7 @@ namespace SahayataNidhi.Controllers.Officer
 
 
                     application["applicantName"] = GetFieldValue("ApplicantName", formDetails) ?? "N/A";
-                    application["parentage"] = GetFieldValue("RelationName", formDetails) ?? "N/A";
+                    application["parentage"] = GetFieldValue("Parentage", formDetails) ?? "N/A";
                     application["r/o"] = $"DISTRICT: {dswovalue}, ADDRESS: {GetFieldValue("PresentAddress", formDetails)}";
                 }
                 catch (JsonException)

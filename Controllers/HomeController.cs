@@ -372,30 +372,23 @@ namespace SahayataNidhi.Controllers
                     new("Profile", user.Profile!),                         // Custom claim for Profile
                 };
 
-                // Include designation if applicable
-                if (user.UserType == "Officer" || user.UserType == "Admin" && !string.IsNullOrWhiteSpace(user.AdditionalDetails))
+                if (user.UserType == "Officer" || user.UserType == "Admin")
                 {
-                    try
+                    if (!string.IsNullOrWhiteSpace(user.AdditionalDetails))
                     {
-                        var officerDetails = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(user.AdditionalDetails!);
-                        if (officerDetails != null)
+                        try
                         {
-                            // Check for "Validate" key
-                            if (officerDetails.TryGetValue("Validate", out var validatedToken))
+                            var officerDetails = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(user.AdditionalDetails);
+
+                            if (officerDetails != null)
                             {
-                                if (validatedToken.Type == JTokenType.Boolean)
+                                // ✅ Validate key
+                                if (officerDetails.TryGetValue("Validate", out var validatedToken))
                                 {
-                                    if (!validatedToken.Value<bool>())
-                                    {
-                                        return Json(new
-                                        {
-                                            status = false,
-                                            response = "You are not yet validated by an Admin. Please wait till validation is complete."
-                                        });
-                                    }
-                                }
-                                else if (bool.TryParse(validatedToken.ToString(), out bool isValidated))
-                                {
+                                    bool isValidated = validatedToken.Type == JTokenType.Boolean
+                                        ? validatedToken.Value<bool>()
+                                        : bool.TryParse(validatedToken.ToString(), out var parsed) && parsed;
+
                                     if (!isValidated)
                                     {
                                         return Json(new
@@ -405,37 +398,47 @@ namespace SahayataNidhi.Controllers
                                         });
                                     }
                                 }
-                            }
 
-                            // Check for "Role" key
-                            if (officerDetails.TryGetValue("Role", out var roleToken))
-                            {
-                                designation = roleToken.Type == JTokenType.String ? roleToken.Value<string>() : roleToken.ToString();
-
-                                if (!string.IsNullOrEmpty(designation))
+                                // ✅ Role/Designation
+                                if (officerDetails.TryGetValue("Role", out var roleToken))
                                 {
-                                    claims.Add(new Claim("Designation", designation));
+                                    designation = roleToken.Type == JTokenType.String
+                                        ? roleToken.Value<string>()
+                                        : roleToken.ToString();
+
+                                    if (!string.IsNullOrEmpty(designation))
+                                    {
+                                        claims.Add(new Claim("Designation", designation));
+                                    }
+                                }
+
+                                // ✅ Department for Admins
+                                if (user.UserType == "Admin" && officerDetails.TryGetValue("Department", out var deptToken))
+                                {
+                                    if (int.TryParse(deptToken.ToString(), out int departmentId))
+                                    {
+                                        var dept = _dbContext.Departments.FirstOrDefault(d => d.DepartmentId == departmentId);
+                                        department = dept?.DepartmentName ?? string.Empty;
+                                    }
                                 }
                             }
-                            _logger.LogInformation($"------------------ UserType: {user.UserType} -------------------------------");
-                            if (user.UserType == "Admin")
+                        }
+                        catch (JsonException ex)
+                        {
+                            _logger.LogError(ex, "Failed to parse AdditionalDetails JSON for user {Username}", user.Username);
+                            return Json(new
                             {
-                                int departmentId = Convert.ToInt32(officerDetails["Department"]);
-                                _logger.LogInformation($"------------------ DepartmentId: {departmentId} -------------------------------");
-                                department = _dbContext.Departments.FirstOrDefault(d => d.DepartmentId == departmentId)!.DepartmentName;
-                            }
+                                status = false,
+                                response = "Error parsing AdditionalDetails. Please contact support."
+                            });
                         }
                     }
-                    catch
+                    else
                     {
-                        return Json(new
-                        {
-                            status = false,
-                            response = "Error parsing AdditionalDetails for Officer."
-                        });
+                        _logger.LogInformation("User {Username} has no AdditionalDetails JSON, skipping parsing.", user.Username);
+                        // Officers/Admins with no details → still allowed to log in
                     }
                 }
-
                 // Generate JWT token (no expiry)
                 var jwtSecretKey = _configuration["JWT:Secret"];
                 var key = Encoding.ASCII.GetBytes(jwtSecretKey!);
@@ -483,7 +486,7 @@ namespace SahayataNidhi.Controllers
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _configuration["JWT:Issuer"],
                 Audience = _configuration["JWT:Audience"],
-                Expires = DateTime.UtcNow.AddMinutes(30) // 30-minute expiration
+                Expires = DateTime.UtcNow.AddMinutes(30)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -493,13 +496,12 @@ namespace SahayataNidhi.Controllers
             {
                 status = true,
                 token = tokenString,
-                userType = user.UserType,
-                profile = user.Profile,
-                username,
+                userType = user.UserType ?? "",
+                profile = user.Profile ?? "", // Ensure profile is a string or serialized JSON
+                username = username ?? "",
                 designation = User.FindFirst("Designation")?.Value ?? ""
             });
         }
-
 
         [HttpGet]
         [Authorize]
@@ -509,8 +511,6 @@ namespace SahayataNidhi.Controllers
             var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
             if (user == null)
                 return Unauthorized(new { status = false, message = "User not found." });
-
-            // If server-side session tracking exists, update expiry here (e.g., user.LastActivity = DateTime.UtcNow; _dbContext.SaveChanges();)
 
             var claims = User.Claims.Select(c => new Claim(c.Type, c.Value)).ToList();
             var jwtSecretKey = _configuration["JWT:Secret"];
@@ -523,7 +523,7 @@ namespace SahayataNidhi.Controllers
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _configuration["JWT:Issuer"],
                 Audience = _configuration["JWT:Audience"],
-                Expires = DateTime.UtcNow.AddHours(24) // Or longer/no expiry for "removed" state
+                Expires = DateTime.UtcNow.AddHours(24)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -533,13 +533,12 @@ namespace SahayataNidhi.Controllers
             {
                 status = true,
                 token = tokenString,
-                userType = user.UserType,
-                profile = user.Profile,
-                username,
+                userType = user.UserType ?? "",
+                profile = user.Profile ?? "", // Ensure profile is a string or serialized JSON
+                username = username ?? "",
                 designation = User.FindFirst("Designation")?.Value ?? ""
             });
         }
-
 
         [HttpGet]
         [Authorize] // Requires a valid JWT token

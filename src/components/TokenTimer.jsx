@@ -11,19 +11,26 @@ import axiosInstance from "../axiosConfig";
 import { debounce } from "lodash";
 
 const TokenTimer = () => {
-  const { setTokenExpiry } = useContext(UserContext);
+  const {
+    setTokenExpiry,
+    setToken,
+    setUserType,
+    setUsername,
+    setProfile,
+    setDesignation,
+  } = useContext(UserContext);
   const [timeLeft, setTimeLeft] = useState(null); // Format: "MM:SS" or null
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [countdownStartTime, setCountdownStartTime] = useState(null); // Timestamp when 30-min countdown begins
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const lastActivityRef = useRef(Date.now()); // Use ref to avoid re-renders on updates
+  const lastActivityRef = useRef(Date.now()); // Track last activity
   const intervalRef = useRef(null); // Ref for countdown interval
 
   const inactivityThreshold = 5 * 60 * 1000; // 5 minutes
   const sessionDuration = 30 * 60 * 1000; // 30 minutes
   const popupThreshold = 2 * 60 * 1000; // 2 minutes
 
-  // Initialize lastActivity from localStorage for persistence across refreshes
+  // Initialize lastActivity from localStorage
   useEffect(() => {
     const savedActivity = localStorage.getItem("lastActivity");
     if (savedActivity) {
@@ -32,23 +39,23 @@ const TokenTimer = () => {
     setTokenExpiry(Date.now() + sessionDuration); // Initial expiry
   }, [setTokenExpiry]);
 
-  // Debounced activity handler: Updates lastActivity and handles resumption
+  // Debounced activity handler
   const handleActivity = useCallback(
     debounce(() => {
       const now = Date.now();
       lastActivityRef.current = now;
       localStorage.setItem("lastActivity", now.toString());
 
-      // If countdown is active, stop it and send keep-alive request
+      // If countdown is active, stop it and send keep-alive
       if (countdownStartTime) {
         stopCountdown();
-        keepAlive(); // Send request to remove backend expiration
+        keepAlive();
       }
     }, 500),
     [countdownStartTime],
   );
 
-  // Attach/detach activity listeners
+  // Attach activity listeners
   useEffect(() => {
     const events = ["mousemove", "click", "keypress", "scroll"];
     events.forEach((event) => window.addEventListener(event, handleActivity));
@@ -60,25 +67,24 @@ const TokenTimer = () => {
     };
   }, [handleActivity]);
 
-  // Check for 5-min inactivity and start countdown (runs every 10 seconds to minimize checks)
+  // Check for inactivity every 10 seconds
   useEffect(() => {
     const checkInactivity = () => {
       const now = Date.now();
       const timeIdle = now - lastActivityRef.current;
 
       if (timeIdle >= inactivityThreshold && !countdownStartTime) {
-        // Start 30-min countdown from NOW (not from last activity)
         setCountdownStartTime(now);
-        refreshToken(); // Refresh backend token
+        refreshToken();
       }
     };
 
     checkInactivity();
-    const checkInterval = setInterval(checkInactivity, 10000); // Check every 10 seconds (low frequency)
+    const checkInterval = setInterval(checkInactivity, 10000);
     return () => clearInterval(checkInterval);
-  }, [countdownStartTime]); // Only re-run if countdown starts/stops
+  }, [countdownStartTime]);
 
-  // Countdown logic: Once started, update timer every 1 second
+  // Countdown logic
   useEffect(() => {
     if (!countdownStartTime) return;
 
@@ -93,7 +99,6 @@ const TokenTimer = () => {
         return;
       }
 
-      // Format and show timer
       const minutes = Math.floor(timeRemaining / 60000);
       const seconds = Math.floor((timeRemaining % 60000) / 1000);
       setTimeLeft(
@@ -102,14 +107,13 @@ const TokenTimer = () => {
           .padStart(2, "0")}`,
       );
 
-      // Show popup in last 2 min
       if (timeRemaining <= popupThreshold) {
         setIsPopupOpen(true);
       }
     };
 
     updateCountdown();
-    intervalRef.current = setInterval(updateCountdown, 1000); // Update every second for countdown
+    intervalRef.current = setInterval(updateCountdown, 1000);
 
     return () => {
       if (intervalRef.current) {
@@ -118,7 +122,7 @@ const TokenTimer = () => {
     };
   }, [countdownStartTime]);
 
-  // Stop countdown helper
+  // Stop countdown
   const stopCountdown = useCallback(() => {
     setCountdownStartTime(null);
     setTimeLeft(null);
@@ -129,7 +133,7 @@ const TokenTimer = () => {
     }
   }, []);
 
-  // Refresh token (called only on 5-min idle detection)
+  // Refresh token
   const refreshToken = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
@@ -139,11 +143,17 @@ const TokenTimer = () => {
       if (response.data.status) {
         const { token, userType, profile, username, designation } =
           response.data;
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("userType", userType);
-        localStorage.setItem("profile", profile);
-        localStorage.setItem("username", username);
-        localStorage.setItem("designation", designation);
+        // Update localStorage and context
+        setToken(token || null);
+        setUserType(userType || null);
+        setUsername(username || null);
+        setProfile(profile || null);
+        setDesignation(designation || null);
+        localStorage.setItem("token", token || "");
+        localStorage.setItem("userType", userType || "");
+        localStorage.setItem("profile", profile ? JSON.stringify(profile) : "");
+        localStorage.setItem("username", username || "");
+        localStorage.setItem("designation", designation || "");
         setTokenExpiry(Date.now() + sessionDuration);
       } else {
         throw new Error(response.data.message);
@@ -156,36 +166,42 @@ const TokenTimer = () => {
     }
   };
 
-  // Keep alive (remove expiration - called on activity resumption)
+  // Keep alive
   const keepAlive = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
       console.log("Sending keep-alive to remove backend expiration");
-      const response = await axiosInstance.get("/Home/KeepAlive"); // Update URL if needed
+      const response = await axiosInstance.get("/Home/KeepAlive");
       if (response.data.status) {
         const { token, userType, profile, username, designation } =
           response.data;
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("userType", userType);
-        localStorage.setItem("profile", profile);
-        localStorage.setItem("username", username);
-        localStorage.setItem("designation", designation);
-        setTokenExpiry(Date.now() + 24 * 60 * 60 * 1000); // e.g., 24 hours
+        // Update localStorage and context
+        setToken(token || null);
+        setUserType(userType || null);
+        setUsername(username || null);
+        setProfile(profile || null);
+        setDesignation(designation || null);
+        localStorage.setItem("token", token || "");
+        localStorage.setItem("userType", userType || "");
+        localStorage.setItem("profile", profile ? JSON.stringify(profile) : "");
+        localStorage.setItem("username", username || "");
+        localStorage.setItem("designation", designation || "");
+        setTokenExpiry(Date.now() + 24 * 60 * 60 * 1000);
       } else {
         throw new Error(response.data.message);
       }
     } catch (error) {
       console.error("Keep-alive failed:", error);
-      // Optionally fallback to refreshToken() or ignore if non-critical
+      await refreshToken(); // Fallback to refreshToken
     } finally {
       setIsRefreshing(false);
     }
   };
 
-  // Continue session (from popup - refreshes and stops countdown)
+  // Continue session
   const handleContinue = async () => {
-    await refreshToken(); // Extend the current countdown session
+    await refreshToken();
     stopCountdown();
   };
 
@@ -193,6 +209,12 @@ const TokenTimer = () => {
   const handleLogout = () => {
     stopCountdown();
     localStorage.clear();
+    setToken(null);
+    setUserType(null);
+    setUsername(null);
+    setProfile(null);
+    setDesignation(null);
+    setTokenExpiry(null);
     window.location.href = "/login";
   };
 
@@ -208,7 +230,7 @@ const TokenTimer = () => {
           zIndex: 1300,
           px: 3,
           py: 1.5,
-          bgcolor: timeLeft === "00:00" ? "error.main" : "#ff9800", // Note: timeLeft won't be "00:00" exactly due to async
+          bgcolor: timeLeft === "00:00" ? "error.main" : "#ff9800",
           color: "#fff",
           borderRadius: "8px",
           boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.3)",

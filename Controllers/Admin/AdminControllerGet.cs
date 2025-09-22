@@ -105,7 +105,9 @@ namespace SahayataNidhi.Controllers.Admin
                 var accessLevelParam = new SqlParameter("@AccessLevel", officer.AccessLevel ?? (object)DBNull.Value);
                 var accessCodeParam = new SqlParameter("@AccessCode", officer.AccessCode);
                 var dataTypeParam = new SqlParameter("@DataType", "new");
-                var departmentParam = new SqlParameter("@Department", officer.Department);
+                var departmentParam = new SqlParameter("@Department",
+                 officer.Department == 0 ? (object)DBNull.Value : officer.Department);
+
 
                 var result = dbcontext.Database
                 .SqlQueryRaw<DashboardData>(
@@ -601,18 +603,31 @@ namespace SahayataNidhi.Controllers.Admin
 
         public IActionResult GetCurrentAdminDetails()
         {
-            var officer = GetOfficerDetails();
+            var officer = GetOfficerDetails(); // Assume this retrieves the current admin's details
+            if (officer == null)
+            {
+                return BadRequest(new { status = false, message = "Officer details not found" });
+            }
+
             var additionalDetails = new
             {
-                officer?.Role,
-                officer?.RoleShort,
-                officer?.AccessLevel,
-                officer?.AccessCode,
-                officer?.Department
+                officer.Role,
+                officer.RoleShort,
+                officer.AccessLevel,
+                officer.AccessCode,
+                officer.Department,
             };
+
             dynamic? districts = null;
 
-            if (officer!.AccessLevel == "State")
+            if (officer.AccessLevel == "System")
+            {
+                // System Admins can access all districts
+                districts = dbcontext.Districts
+                    .Select(d => new { d.DistrictId, d.DistrictName })
+                    .ToList();
+            }
+            else if (officer.AccessLevel == "State")
             {
                 // State-level officers can access all districts
                 districts = dbcontext.Districts
@@ -621,19 +636,16 @@ namespace SahayataNidhi.Controllers.Admin
             }
             else if (officer.AccessLevel == "Division")
             {
-                // District-level officers can access only their own district
+                // Division-level officers can access only their own districts
                 districts = dbcontext.Districts
-                    .Where(d => d.Division == officer.AccessCode)
                     .Select(d => new { d.DistrictId, d.DistrictName })
                     .ToList();
             }
 
-
-
-
             return Json(new
             {
-                officer?.UserType,
+                status = true,
+                officer.UserType,
                 AdditionalDetails = JsonConvert.SerializeObject(additionalDetails),
                 districts
             });
@@ -654,7 +666,7 @@ namespace SahayataNidhi.Controllers.Admin
                     .Where(d => d.DepartmentId == officer.Department)
                     .Select(d => new
                     {
-                        UUID = d.Uuid,
+                        DesignationId = d.Uuid,
                         Designation = d.Designation,
                         DesignationShort = d.DesignationShort,
                         AccessLevel = d.AccessLevel
@@ -670,20 +682,25 @@ namespace SahayataNidhi.Controllers.Admin
 
                 // Define columns for the frontend
                 var columns = new List<object>
-            {
-                new { accessorKey = "uuid", header = "ID" },
-                new { accessorKey = "designation", header = "Designation" },
-                new { accessorKey = "designationShort", header = "Short Name" },
-                new { accessorKey = "accessLevel", header = "Access Level" }
-            };
+        {
+            new { accessorKey = "designationId", header = "ID" },
+            new { accessorKey = "designation", header = "Designation" },
+            new { accessorKey = "designationShort", header = "Short Name" },
+            new { accessorKey = "accessLevel", header = "Access Level" }
+        };
 
-                // Shape data
+                // Shape data with custom actions
                 var data = pagedData.Select(d => new
                 {
-                    uuid = d.UUID,
+                    designationId = d.DesignationId,
                     designation = d.Designation,
                     designationShort = d.DesignationShort,
-                    accessLevel = d.AccessLevel
+                    accessLevel = d.AccessLevel,
+                    customActions = new List<object>
+            {
+                new { tooltip = "Update", color = "#F0C38E", actionFunction = "UpdateDesignation" },
+                new { tooltip = "Delete", color = "#F0C38E", actionFunction = "DeleteDesignation" }
+            }
                 }).ToList();
 
                 return Json(new

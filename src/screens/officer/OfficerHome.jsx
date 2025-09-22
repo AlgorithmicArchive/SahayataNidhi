@@ -230,6 +230,7 @@ export default function OfficerHome() {
       "Total Applications": "#374151",
       "Total Corrigendum": "#374151",
       "Total Correction": "#374151",
+      "Total Amendment": "#374151",
       "Total Withheld Applications": "#374151",
       Pending: "#f59e0b",
       "Pending With Citizen": "#a855f7",
@@ -251,6 +252,7 @@ export default function OfficerHome() {
   const textColors = useMemo(
     () => ({
       "Total Applications": "#FFFFFF",
+      "Total Amendment": "#FFFFFF",
       Pending: "#000000",
       Forwarded: "#FFFFFF",
       Returned: "#FFFFFF",

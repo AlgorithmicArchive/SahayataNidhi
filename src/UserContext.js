@@ -3,42 +3,46 @@ import React, { createContext, useState, useEffect } from "react";
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [userType, setUserType] = useState(() => {
-    const savedUserType = localStorage.getItem("userType");
-    return savedUserType ? JSON.parse(savedUserType) : null;
-  });
+  // Utility to safely parse JSON from localStorage
+  const safeParse = (key, defaultValue) => {
+    try {
+      const value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : defaultValue;
+    } catch (error) {
+      console.error(`Failed to parse ${key} from localStorage:`, error);
+      return defaultValue;
+    }
+  };
 
-  const [token, setToken] = useState(() => {
-    return localStorage.getItem("token") || null;
-  });
+  // Initialize state with safe parsing
+  const [userType, setUserType] = useState(
+    () => localStorage.getItem("userType") || null,
+  );
+  const [token, setToken] = useState(
+    () => localStorage.getItem("token") || null,
+  );
+  const [username, setUsername] = useState(
+    () => localStorage.getItem("username") || null,
+  );
+  const [profile, setProfile] = useState(() => safeParse("profile", null));
+  const [verified, setVerified] = useState(() => safeParse("verified", false));
+  const [designation, setDesignation] = useState(
+    () => localStorage.getItem("designation") || null,
+  );
+  const [officerAuthorities, setOfficerAuthorities] = useState(() =>
+    safeParse("officerAuthorities", {}),
+  );
+  const [department, setDepartment] = useState(
+    () => localStorage.getItem("department") || null,
+  );
+  const [tokenExpiry, setTokenExpiry] = useState(() =>
+    safeParse("tokenExpiry", null),
+  );
 
-  const [username, setUsername] = useState(() => {
-    return localStorage.getItem("username") || null;
-  });
-
-  const [profile, setProfile] = useState(() => {
-    const savedProfile = localStorage.getItem("profile");
-    return savedProfile ? JSON.parse(savedProfile) : null;
-  });
-
-  const [verified, setVerified] = useState(() => {
-    const savedVerified = localStorage.getItem("verified");
-    return savedVerified ? JSON.parse(savedVerified) : false;
-  });
-
-  const [designation, setDesignation] = useState(() => {
-    const savedDesignation = localStorage.getItem("designation");
-    return savedDesignation ? JSON.parse(savedDesignation) : null;
-  });
-
-  const [officerAuthorities, setOfficerAuthorities] = useState({});
-  const [department, setDepartment] = useState(null); // New state for department
-
-  const [tokenExpiry, setTokenExpiry] = useState(null); // New state for token expiry
-
+  // Sync state with localStorage
   useEffect(() => {
     if (userType) {
-      localStorage.setItem("userType", JSON.stringify(userType));
+      localStorage.setItem("userType", userType);
     } else {
       localStorage.removeItem("userType");
     }
@@ -74,11 +78,38 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     if (designation) {
-      localStorage.setItem("designation", JSON.stringify(designation));
+      localStorage.setItem("designation", designation);
     } else {
       localStorage.removeItem("designation");
     }
   }, [designation]);
+
+  useEffect(() => {
+    if (officerAuthorities && Object.keys(officerAuthorities).length > 0) {
+      localStorage.setItem(
+        "officerAuthorities",
+        JSON.stringify(officerAuthorities),
+      );
+    } else {
+      localStorage.removeItem("officerAuthorities");
+    }
+  }, [officerAuthorities]);
+
+  useEffect(() => {
+    if (department) {
+      localStorage.setItem("department", department);
+    } else {
+      localStorage.removeItem("department");
+    }
+  }, [department]);
+
+  useEffect(() => {
+    if (tokenExpiry) {
+      localStorage.setItem("tokenExpiry", JSON.stringify(tokenExpiry));
+    } else {
+      localStorage.removeItem("tokenExpiry");
+    }
+  }, [tokenExpiry]);
 
   return (
     <UserContext.Provider
@@ -95,12 +126,12 @@ export const UserProvider = ({ children }) => {
         setVerified,
         designation,
         setDesignation,
-        tokenExpiry,
-        setTokenExpiry, // Expose tokenExpiry and setter
         officerAuthorities,
         setOfficerAuthorities,
         department,
-        setDepartment, // Expose department and setter
+        setDepartment,
+        tokenExpiry,
+        setTokenExpiry,
       }}
     >
       {children}

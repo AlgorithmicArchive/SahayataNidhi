@@ -200,7 +200,7 @@ export default function OfficerRegisterScreen() {
           if (response.data.status) {
             const designationOptions = response.data.designations.map(
               (des) => ({
-                label: des.designation,
+                label: des.designation + `(${des.accessLevel})`,
                 value: des.designation,
                 accessLevel: des.accessLevel, // Assuming accessLevel is returned
               }),

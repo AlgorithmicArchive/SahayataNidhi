@@ -1782,7 +1782,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       shrink: true,
                       style: { fontSize: "1rem", color: "#000000" },
                     }}
-                    InputProps={{
+                    inputProps={{
                       maxLength: field.maxLength,
                       readOnly: field.name === "BranchName",
                     }}

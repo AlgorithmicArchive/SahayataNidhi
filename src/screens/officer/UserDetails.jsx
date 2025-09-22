@@ -86,6 +86,7 @@ export default function UserDetails() {
   const [pendingFormData, setPendingFormData] = useState(null);
   const [hasPending, setHaspending] = useState(false);
   const [canTakeAction, setCanTakeAction] = useState(true);
+  const [currentOfficerDetails, setCurrentOfficerDetails] = useState(null);
 
   const {
     control,
@@ -113,6 +114,8 @@ export default function UserDetails() {
           setActionForm,
           setHaspending,
           setCanTakeAction,
+          null,
+          setCurrentOfficerDetails,
         );
       } catch (error) {
         console.error("Error fetching user details:", error);
@@ -825,6 +828,27 @@ export default function UserDetails() {
                     mx: "auto",
                   }}
                 >
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: "#212121",
+                        mb: 1,
+                        textAlign: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Declaration by Previous Officer
+                    </Typography>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ color: "#757575", mb: 1, textAlign: "center" }}
+                    >
+                      {currentOfficerDetails.detailsConfirmationDeclartion &&
+                        currentOfficerDetails.detailsConfirmationDeclartion}
+                    </Typography>
+                  </Box>
+
                   <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
                     {actionForm.length > 0 ? (
                       actionForm.map((field, index) => {

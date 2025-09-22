@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo } from "react";
+import React, { useState, useEffect, useMemo, memo, useContext } from "react";
 import {
   Container,
   Typography,
@@ -17,6 +17,9 @@ import {
   TableContainer,
   TableRow,
   Paper,
+  CircularProgress,
+  Alert,
+  Divider,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -38,11 +41,12 @@ import { CSS } from "@dnd-kit/utilities";
 import axiosInstance from "../../axiosConfig";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { UserContext } from "../../UserContext"; // Assuming UserContext is in the same directory
 
 // SortableItem component for draggable rows
-const SortableItem = ({ id, children }) => {
+const SortableItem = ({ id, children, disabled }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
+    useSortable({ id, disabled });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -56,7 +60,7 @@ const SortableItem = ({ id, children }) => {
   );
 };
 
-// Memoized SanctionDetails component for Sanction-specific content
+// Memoized SanctionDetails component
 const SanctionDetails = memo(
   ({
     letterFor,
@@ -252,6 +256,7 @@ const PDFPreview = memo(
 );
 
 const CreateLetterPdf = () => {
+  const { userType, officerAuthorities } = useContext(UserContext); // Integrate UserContext
   const [formFields, setFormFields] = useState([]);
   const [letterFor, setLetterFor] = useState("");
   const [information, setInformation] = useState("");
@@ -266,36 +271,104 @@ const CreateLetterPdf = () => {
   const [services, setServices] = useState([]);
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [selectedLetterType, setSelectedLetterType] = useState("");
+  const [isFetchingFields, setIsFetchingFields] = useState(false);
+  const [fetchFieldsError, setFetchFieldsError] = useState("");
 
-  // Fetch services and form fields
+  // Determine permissions from UserContext
+  const canDirectWithhold = useMemo(() => {
+    return (
+      officerAuthorities?.canDirectWithhold || userType === "SeniorOfficer"
+    );
+  }, [userType, officerAuthorities]);
+
+  // Fetch services
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const response = await axiosInstance.get("/Base/GetServices");
-        if (response.data.status && response.data.services) {
+        console.log("Services API response:", response.data);
+        if (response.data.status && Array.isArray(response.data.services)) {
           setServices(response.data.services);
         } else {
           toast.error("No services found.");
+          setServices([]);
         }
       } catch (error) {
         console.error("Error fetching services:", error);
         toast.error("Failed to load services.");
-      }
-    };
-
-    const fetchFormFields = async () => {
-      try {
-        const response = await axiosInstance.get("/Designer/GetFormElements", {
-          params: { serviceId: selectedServiceId || "1" },
-        });
-        setFormFields(response.data.names || []);
-      } catch (error) {
-        console.error("Error fetching form fields:", error);
-        toast.error("Failed to load form fields.");
+        setServices([]);
       }
     };
 
     fetchServices();
+  }, []);
+
+  // Fetch form fields when selectedServiceId changes
+  useEffect(() => {
+    if (!selectedServiceId) {
+      setFormFields([]);
+      setFetchFieldsError("");
+      return;
+    }
+
+    const fetchFormFields = async () => {
+      setIsFetchingFields(true);
+      setFetchFieldsError("");
+      try {
+        const response = await axiosInstance.get("/Designer/GetFormElements", {
+          params: { serviceId: selectedServiceId },
+        });
+        console.log("FormFields API response:", response.data);
+        if (response.data.status) {
+          // Extract fields from sections
+          const sectionFields = Array.isArray(response.data.sections)
+            ? response.data.sections.flatMap((section) =>
+                section.fields.map((field) => ({
+                  name: field.name,
+                  label: field.label,
+                })),
+              )
+            : [];
+          // Extract fields from columnNames
+          const columnFields = Array.isArray(response.data.columnNames)
+            ? response.data.columnNames.map((name) => ({
+                name,
+                label: name, // Use name as label since no separate label is provided
+              }))
+            : [];
+          // Combine and remove duplicates based on name
+          const allFields = [
+            ...sectionFields,
+            ...columnFields.filter(
+              (col) => !sectionFields.some((field) => field.name === col.name),
+            ),
+          ];
+          setFormFields(allFields);
+          if (allFields.length === 0) {
+            setFetchFieldsError(
+              "No form fields or column names available for this service.",
+            );
+            toast.warn(
+              "No form fields or column names available for this service.",
+            );
+          }
+        } else {
+          setFormFields([]);
+          setFetchFieldsError(
+            "No form fields or column names found for this service.",
+          );
+          toast.error("No form fields or column names found.");
+        }
+      } catch (error) {
+        console.error("Error fetching form fields:", error);
+        setFormFields([]);
+        setFetchFieldsError("Failed to load form fields and column names.");
+        toast.error("Failed to load form fields and column names.");
+      } finally {
+        setIsFetchingFields(false);
+      }
+    };
+
     fetchFormFields();
   }, [selectedServiceId]);
 
@@ -316,6 +389,7 @@ const CreateLetterPdf = () => {
             objField: selectedLetterType,
           },
         });
+        console.log("LetterDetails API response:", response.data);
         if (response.data.requiredObj) {
           const { letterFor, tableFields, information } =
             response.data.requiredObj;
@@ -362,9 +436,28 @@ const CreateLetterPdf = () => {
 
   const closeModal = () => {
     setModalOpen(false);
+    setModalRowIndex(-1);
+    setModalRowData({ label: "", transformString: "", selectedFields: [] });
   };
 
   const saveModal = () => {
+    if (!modalRowData.label) {
+      toast.error("Label is required.");
+      return;
+    }
+    if (!modalRowData.transformString) {
+      toast.error("Transform String is required.");
+      return;
+    }
+    if (
+      modalRowData.selectedFields.some(
+        (field) => !field || !formFields.some((f) => f.name === field),
+      )
+    ) {
+      toast.error("All selected fields must be valid.");
+      return;
+    }
+
     const newRows = [...rows];
     if (modalRowIndex === -1) {
       newRows.push(modalRowData);
@@ -439,7 +532,7 @@ const CreateLetterPdf = () => {
           label: row.label,
           transformString: row.transformString,
           selectedFields: row.selectedFields.filter((f) =>
-            formFields.includes(f),
+            formFields.some((field) => field.name === f),
           ),
         })),
         information,
@@ -473,8 +566,38 @@ const CreateLetterPdf = () => {
       );
       if (response.data.status) {
         toast.success(`${selectedLetterType} letter saved successfully!`);
+        // Optionally initiate withholding if applicable
+        if (canDirectWithhold) {
+          try {
+            const withholdResponse = await axiosInstance.post(
+              "/Officer/DirectWithheld",
+              formData,
+            );
+            toast.success("Letter withheld successfully!");
+          } catch (error) {
+            console.error("Error initiating direct withhold:", error);
+            toast.error("Failed to initiate direct withhold.");
+          }
+        } else {
+          try {
+            const withholdResponse = await axiosInstance.post(
+              "/Officer/InitiateWithheld",
+              formData,
+            );
+            toast.success(
+              "Letter withhold process initiated; awaiting confirmation.",
+            );
+          } catch (error) {
+            console.error("Error initiating withhold:", error);
+            toast.error("Failed to initiate withhold process.");
+          }
+        }
       } else {
-        toast.error(`Failed to save ${selectedLetterType} letter.`);
+        toast.error(
+          `Failed to save ${selectedLetterType} letter: ${
+            response.data.message || "Unknown error"
+          }`,
+        );
       }
     } catch (error) {
       console.error(`Error saving ${selectedLetterType} letter:`, error);
@@ -496,7 +619,7 @@ const CreateLetterPdf = () => {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "grey.100", p: 3 }}>
       <Container
-        maxWidth
+        maxWidth="lg"
         sx={{
           bgcolor: "white",
           borderRadius: 2,
@@ -522,16 +645,29 @@ const CreateLetterPdf = () => {
                   labelId="service-select-label"
                   value={selectedServiceId}
                   label="Select Service"
-                  onChange={(e) => setSelectedServiceId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedServiceId(e.target.value);
+                    setSelectedLetterType("");
+                    setRows([]);
+                    setLetterFor("");
+                    setInformation("");
+                  }}
                 >
                   <MenuItem value="" disabled>
                     Select a Service
                   </MenuItem>
-                  {services.map((service) => (
-                    <MenuItem key={service.serviceId} value={service.serviceId}>
-                      {service.serviceName}
-                    </MenuItem>
-                  ))}
+                  {services.length > 0 ? (
+                    services.map((service) => (
+                      <MenuItem
+                        key={service.serviceId}
+                        value={service.serviceId}
+                      >
+                        {service.serviceName}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>No services available</MenuItem>
+                  )}
                 </Select>
               </FormControl>
 
@@ -569,12 +705,30 @@ const CreateLetterPdf = () => {
                 onChange={(e) => setInformation(e.target.value)}
                 fullWidth
                 variant="outlined"
+                multiline
+                rows={4}
                 sx={{ bgcolor: "grey.50" }}
                 disabled={!selectedServiceId || !selectedLetterType}
               />
             </Box>
 
             <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
+                Table Rows
+              </Typography>
+              {isFetchingFields && (
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <CircularProgress size={20} sx={{ mr: 2 }} />
+                  <Typography variant="body2">
+                    Loading form fields...
+                  </Typography>
+                </Box>
+              )}
+              {fetchFieldsError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {fetchFieldsError}
+                </Alert>
+              )}
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -585,7 +739,15 @@ const CreateLetterPdf = () => {
                   strategy={verticalListSortingStrategy}
                 >
                   {rows.map((row, index) => (
-                    <SortableItem key={row.label} id={row.label}>
+                    <SortableItem
+                      key={row.label}
+                      id={row.label}
+                      disabled={
+                        !selectedServiceId ||
+                        !selectedLetterType ||
+                        isFetchingFields
+                      }
+                    >
                       {(listeners) => (
                         <Box
                           sx={{
@@ -595,6 +757,7 @@ const CreateLetterPdf = () => {
                             bgcolor: "grey.50",
                             borderRadius: 1,
                             mb: 2,
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                           }}
                         >
                           <Row
@@ -606,7 +769,9 @@ const CreateLetterPdf = () => {
                                 {...listeners}
                                 sx={{ cursor: "grab" }}
                                 disabled={
-                                  !selectedServiceId || !selectedLetterType
+                                  !selectedServiceId ||
+                                  !selectedLetterType ||
+                                  isFetchingFields
                                 }
                               >
                                 <DragIndicator fontSize="small" />
@@ -655,7 +820,10 @@ const CreateLetterPdf = () => {
                                 onClick={() => openModalForEdit(index)}
                                 sx={{ minWidth: "80px", mr: 1 }}
                                 disabled={
-                                  !selectedServiceId || !selectedLetterType
+                                  !selectedServiceId ||
+                                  !selectedLetterType ||
+                                  isFetchingFields ||
+                                  formFields.length === 0
                                 }
                               >
                                 Edit
@@ -665,7 +833,9 @@ const CreateLetterPdf = () => {
                                 color="error"
                                 size="small"
                                 disabled={
-                                  !selectedServiceId || !selectedLetterType
+                                  !selectedServiceId ||
+                                  !selectedLetterType ||
+                                  isFetchingFields
                                 }
                               >
                                 <DeleteIcon fontSize="small" />
@@ -682,8 +852,13 @@ const CreateLetterPdf = () => {
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={openModalForAdd}
-                sx={{ bgcolor: "blue.500" }}
-                disabled={!selectedServiceId || !selectedLetterType}
+                sx={{ bgcolor: "primary.main", mt: 2 }}
+                disabled={
+                  !selectedServiceId ||
+                  !selectedLetterType ||
+                  isFetchingFields ||
+                  formFields.length === 0
+                }
               >
                 Add Row
               </Button>
@@ -694,7 +869,9 @@ const CreateLetterPdf = () => {
                 variant="contained"
                 color="primary"
                 onClick={handleGenerateJson}
-                disabled={!selectedServiceId || !selectedLetterType}
+                disabled={
+                  !selectedServiceId || !selectedLetterType || isFetchingFields
+                }
               >
                 Generate JSON
               </Button>
@@ -702,7 +879,9 @@ const CreateLetterPdf = () => {
                 variant="contained"
                 color="success"
                 onClick={saveLetter}
-                disabled={!selectedServiceId || !selectedLetterType}
+                disabled={
+                  !selectedServiceId || !selectedLetterType || isFetchingFields
+                }
               >
                 Save Letter
               </Button>
@@ -733,15 +912,15 @@ const CreateLetterPdf = () => {
               bgcolor: "white",
               p: 4,
               borderRadius: 2,
-              maxWidth: 500,
+              maxWidth: 600,
               mx: "auto",
-              marginTop: "20px",
+              mt: "5%",
               boxShadow: 24,
-              maxHeight: 800,
+              maxHeight: "80vh",
               overflowY: "auto",
             }}
           >
-            <Typography variant="h5" sx={{ mb: 3 }}>
+            <Typography variant="h5" sx={{ mb: 3, fontWeight: "bold" }}>
               Configure Row
             </Typography>
             <TextField
@@ -751,6 +930,12 @@ const CreateLetterPdf = () => {
               fullWidth
               variant="outlined"
               sx={{ mb: 3 }}
+              error={!modalRowData.label && modalRowData.label !== ""}
+              helperText={
+                !modalRowData.label && modalRowData.label !== ""
+                  ? "Label is required"
+                  : ""
+              }
             />
             <TextField
               label="Transform String"
@@ -759,55 +944,103 @@ const CreateLetterPdf = () => {
               fullWidth
               variant="outlined"
               sx={{ mb: 3 }}
+              error={
+                !modalRowData.transformString &&
+                modalRowData.transformString !== ""
+              }
+              helperText={
+                !modalRowData.transformString &&
+                modalRowData.transformString !== ""
+                  ? "Transform String is required"
+                  : ""
+              }
             />
 
-            <Typography variant="subtitle1" sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: "bold" }}>
               Selected Fields
             </Typography>
-            {modalRowData.selectedFields.map((field, index) => (
-              <Box
-                key={index}
-                sx={{ display: "flex", alignItems: "center", mb: 2 }}
-              >
-                <FormControl sx={{ width: "80%", mr: 2 }}>
-                  <Select
-                    value={field}
-                    onChange={(e) => updateSelectedField(index, e.target.value)}
-                    displayEmpty
-                  >
-                    <MenuItem value="" disabled>
-                      Select Field
-                    </MenuItem>
-                    {formFields.map((formField) => (
-                      <MenuItem key={formField} value={formField}>
-                        {formField}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <IconButton
-                  onClick={() => removeSelectedField(index)}
-                  color="error"
-                >
-                  <DeleteIcon />
-                </IconButton>
+            {isFetchingFields ? (
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <CircularProgress size={20} sx={{ mr: 2 }} />
+                <Typography variant="body2">Loading form fields...</Typography>
               </Box>
-            ))}
+            ) : fetchFieldsError ? (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {fetchFieldsError}
+              </Alert>
+            ) : formFields.length === 0 ? (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                No form fields or column names available for this service.
+              </Alert>
+            ) : (
+              <>
+                {modalRowData.selectedFields.map((field, index) => (
+                  <Box
+                    key={index}
+                    sx={{ display: "flex", alignItems: "center", mb: 2 }}
+                  >
+                    <FormControl
+                      sx={{ width: "80%", mr: 2 }}
+                      error={field && !formFields.some((f) => f.name === field)}
+                    >
+                      <InputLabel id={`field-select-${index}`}>
+                        Select Field
+                      </InputLabel>
+                      <Select
+                        labelId={`field-select-${index}`}
+                        value={field}
+                        label="Select Field"
+                        onChange={(e) =>
+                          updateSelectedField(index, e.target.value)
+                        }
+                        aria-label={`Select field ${
+                          index + 1
+                        } for row configuration`}
+                      >
+                        <MenuItem value="" disabled>
+                          Select a Field
+                        </MenuItem>
+                        {formFields.map((formField) => (
+                          <MenuItem key={formField.name} value={formField.name}>
+                            {formField.label} ({formField.name})
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {field && !formFields.some((f) => f.name === field) && (
+                        <Typography variant="caption" color="error">
+                          Invalid field selected
+                        </Typography>
+                      )}
+                    </FormControl>
+                    <IconButton
+                      onClick={() => removeSelectedField(index)}
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                ))}
+                <Button
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={addSelectedField}
+                  sx={{ mb: 3 }}
+                >
+                  Add Field
+                </Button>
+              </>
+            )}
 
-            <Button
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={addSelectedField}
-              sx={{ mb: 3 }}
-            >
-              Add Field
-            </Button>
-
+            <Divider sx={{ my: 2 }} />
             <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
               <Button variant="outlined" onClick={closeModal}>
                 Cancel
               </Button>
-              <Button variant="contained" onClick={saveModal}>
+              <Button
+                variant="contained"
+                onClick={saveModal}
+                disabled={isFetchingFields || formFields.length === 0}
+              >
                 Save
               </Button>
             </Box>
