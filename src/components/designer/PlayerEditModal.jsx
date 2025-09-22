@@ -26,6 +26,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { toast } from "react-toastify";
+import axiosInstance from "../../axiosConfig";
 
 // Utility function to sanitize actionForm options (unchanged)
 const sanitizeActionForm = (actionForm) => {
@@ -56,9 +57,17 @@ const sanitizeActionForm = (actionForm) => {
   });
 };
 
-const PlayerEditModal = ({ player, onClose, onSave, players }) => {
+const PlayerEditModal = ({
+  player,
+  onClose,
+  onSave,
+  players,
+  serviceId,
+  services,
+}) => {
   const [editedPlayer, setEditedPlayer] = useState({
     ...player,
+    accessLevel: player.accessLevel || "", // Ensure AccessLevel is initialized
     canHavePool: player.canHavePool || false,
     canManageBankFiles: player.canManageBankFiles || false,
     canWithhold: player.canWithhold || false,
@@ -72,32 +81,52 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
     canReturnToPlayer: player.canReturnToPlayer,
     canReturnToCitizen: player.canReturnToCitizen,
     canReject: player.canReject,
-    // Exclude canWithhold by default
   });
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
   const [selectedField, setSelectedField] = useState(null);
-  const [designations, setDesignations] = useState(null);
+  const [designations, setDesignations] = useState([]);
+  const [isLoadingDesignations, setIsLoadingDesignations] = useState(true);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
+  // Fetch designations based on service's DepartmentId
   useEffect(() => {
     async function getDesignations() {
+      if (!serviceId) {
+        setIsLoadingDesignations(false);
+        return;
+      }
+
       try {
-        const response = await fetch("/Base/GetDesignations");
-        const result = await response.json();
-        if (result.status && result.designations) {
-          setDesignations(result.designations);
+        // Find the selected service to get DepartmentId
+        const service = services.find((s) => s.serviceId === serviceId);
+        if (!service || !service.departmentId) {
+          console.error("Service or DepartmentId not found");
+          setIsLoadingDesignations(false);
+          return;
+        }
+
+        const response = await axiosInstance.get(`/Base/GetDesignations`, {
+          params: { deparmentId: service.departmentId },
+        });
+        if (response.data.status && response.data.designations) {
+          setDesignations(response.data.designations);
         } else {
-          console.error("Failed to fetch designations:", result);
+          console.error("Failed to fetch designations:", response.data);
+          toast.error("Failed to load designations");
         }
       } catch (error) {
         console.error("Error fetching designations:", error);
+        toast.error("Error loading designations");
+      } finally {
+        setIsLoadingDesignations(false);
       }
     }
+
     getDesignations();
-  }, []);
+  }, [serviceId, services]);
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
@@ -169,10 +198,26 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
       }
     }
 
+    // Special handling for designation change to also update accessLevel
+    if (field === "designation" && value) {
+      const selectedDesignation = designations.find(
+        (des) => des.designation === value,
+      );
+      if (selectedDesignation) {
+        setEditedPlayer((prev) => ({
+          ...prev,
+          designation: value,
+          accessLevel: selectedDesignation.accessLevel || "",
+        }));
+        return;
+      }
+    }
+
     setEditedPlayer((prev) => ({
       ...prev,
       [field]: value,
     }));
+
     // Update actionFormOptions when permissions change
     if (
       [
@@ -291,7 +336,6 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
     if (actionFormOptions.canReject && editedPlayer.canReject) {
       actionOptions.push({ value: "Reject", label: "Reject" });
     }
-    // Withhold is explicitly excluded
     return actionOptions;
   };
 
@@ -350,25 +394,37 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
         <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
           Edit Player
         </Typography>
-        <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-          <InputLabel id="designation-select-label">Designation</InputLabel>
-          <Select
-            labelId="designation-select-label"
-            label="Designation"
-            value={editedPlayer.designation || ""}
-            onChange={(e) => handleChange("designation", e.target.value)}
-          >
-            <MenuItem value="">
-              <em>Select Designation</em>
-            </MenuItem>
-            {designations &&
-              designations.map((des, index) => (
+
+        {/* Loading state for designations */}
+        {isLoadingDesignations ? (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Loading designations...
+          </Typography>
+        ) : (
+          <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
+            <InputLabel id="designation-select-label">Designation</InputLabel>
+            <Select
+              labelId="designation-select-label"
+              label="Designation"
+              value={editedPlayer.designation || ""}
+              onChange={(e) => handleChange("designation", e.target.value)}
+            >
+              <MenuItem value="">
+                <em>Select Designation</em>
+              </MenuItem>
+              {designations.map((des, index) => (
                 <MenuItem key={index} value={des.designation}>
-                  {des.designation}
+                  {des.designation} ({des.accessLevel})
                 </MenuItem>
               ))}
-          </Select>
-        </FormControl>
+            </Select>
+          </FormControl>
+        )}
+
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Selected Access Level: {editedPlayer.accessLevel || "Not selected"}
+        </Typography>
+
         <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
           Permissions
         </Typography>
@@ -485,6 +541,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             label="Can Validate Aadhaar"
           />
         </Box>
+
         <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
           Action Form Options
         </Typography>
@@ -558,8 +615,8 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             }
             label="Include Reject in Action Form"
           />
-          {/* Withhold is not included in actionFormOptions */}
         </Box>
+
         <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
           Action Form
         </Typography>
@@ -614,6 +671,7 @@ const PlayerEditModal = ({ player, onClose, onSave, players }) => {
             Cancel
           </Button>
         </Box>
+
         {isFieldModalOpen && selectedField && (
           <FieldEditModal
             selectedField={selectedField}

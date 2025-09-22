@@ -342,7 +342,7 @@ namespace SahayataNidhi.Controllers.Officer
 
                     var newHistoryEntry = new
                     {
-                        actionTaker = officer.Role + " " + GetOfficerArea(officer.Role!, formDetailsJObject),
+                        actionTaker = officer.Role + " " + GetOfficerArea(officer.AccessLevel!, formDetailsJObject),
                         status = "forwarded",
                         remarks = remarks,
                         actionTakenOn = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
@@ -417,7 +417,7 @@ namespace SahayataNidhi.Controllers.Officer
                     var workFlow = JsonConvert.SerializeObject(filteredWorkflow);
                     var history = new
                     {
-                        officer = officer.Role + " " + GetOfficerArea(officer.Role!, formDetailsJObject),
+                        officer = officer.Role + " " + GetOfficerArea(officer.AccessLevel!, formDetailsJObject),
                         status = "Forwarded",
                         remarks = remarks,
                         actionTakenOn = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
@@ -573,7 +573,7 @@ namespace SahayataNidhi.Controllers.Officer
                 var corrigendumHistory = JsonConvert.DeserializeObject<List<dynamic>>(corrigendum.History ?? "[]");
                 var newCorrigendumHistory = new
                 {
-                    actionTaker = officer.Role + " " + GetOfficerArea(officer.Role!, formDetails),
+                    actionTaker = officer.Role + " " + GetOfficerArea(officer.AccessLevel!, formDetails),
                     status = action,
                     remarks = remarks,
                     actionTakenOn = DateTime.Now.ToString("dd MMMM yyyy hh:mm:ss tt"),

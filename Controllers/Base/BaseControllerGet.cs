@@ -280,6 +280,7 @@ namespace SahayataNidhi.Controllers
         public IActionResult GetDesignations(string deparmentId)
         {
             // JsonConvert.DeserializeObject
+            _logger.LogInformation($"------- Department ID: {deparmentId} --------");
             var designations = dbcontext.OfficersDesignations.Where(des => des.DepartmentId == Convert.ToInt32(deparmentId)).ToList();
             return Json(new { status = true, designations });
         }

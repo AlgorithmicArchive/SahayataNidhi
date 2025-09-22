@@ -130,6 +130,7 @@ namespace SahayataNidhi.Controllers.User
                 var officers = JsonConvert.DeserializeObject<JArray>(application.WorkFlow!);
                 var currentPlayer = application.CurrentPlayer;
                 string officerDesignation = (string)officers![currentPlayer!]!["designation"]!;
+                string officerAccessLevel = (string)officers[currentPlayer!]!["accessLevel"]!;
                 string serviceName = dbcontext.Services.FirstOrDefault(s => s.ServiceId == application.ServiceId)!.ServiceName!;
                 var Corrigendum = dbcontext.Corrigenda.Where(co => co.ReferenceNumber == application.ReferenceNumber).ToList();
                 List<string> corrigendumIds = [];
@@ -146,7 +147,7 @@ namespace SahayataNidhi.Controllers.User
                     }
                 }
 
-                string officerArea = GetOfficerArea(officerDesignation, formDetails);
+                string officerArea = GetOfficerArea(officerAccessLevel, formDetails);
 
                 // Define actions for this row
                 var actions = new List<dynamic>();
@@ -327,7 +328,8 @@ namespace SahayataNidhi.Controllers.User
             if ((string)currentPlayer!["status"]! == "pending")
             {
                 string designation = (string)currentPlayer["designation"]!;
-                string officerArea = GetOfficerArea(designation, formDetails);
+                string accessLevel = (string)currentPlayer["accessLevel"]!;
+                string officerArea = GetOfficerArea(accessLevel, formDetails);
                 data.Add(new
                 {
                     sno = index,

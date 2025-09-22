@@ -38,15 +38,8 @@ namespace SahayataNidhi.Controllers
                     return string.Empty;
             }
         }
-        public string GetOfficerArea(string designation, dynamic formDetails)
+        public string GetOfficerArea(string accessLevel, dynamic formDetails)
         {
-            var officerDesignation = dbcontext.OfficersDesignations
-                .FirstOrDefault(od => od.Designation == designation);
-
-            if (officerDesignation == null)
-                return string.Empty;
-
-            string accessLevel = officerDesignation.AccessLevel ?? string.Empty;
             int accessCode;
 
             switch (accessLevel)
@@ -308,7 +301,8 @@ namespace SahayataNidhi.Controllers
             if ((string)currentPlayer!["status"]! == "pending")
             {
                 string designation = (string)currentPlayer["designation"]!;
-                string officerArea = GetOfficerArea(designation, formDetails);
+                string accessLevel = (string)currentPlayer["accessLevel"]!;
+                string officerArea = GetOfficerArea(accessLevel, formDetails);
 
                 dynamic pendingItem = new ExpandoObject();
                 var pendingDict = (IDictionary<string, object?>)pendingItem;
@@ -404,8 +398,9 @@ namespace SahayataNidhi.Controllers
                 var officers = JsonConvert.DeserializeObject<JArray>(application.WorkFlow!);
                 var currentPlayer = application.CurrentPlayer;
                 string officerDesignation = (string)officers![currentPlayer!]!["designation"]!;
+                string offierAccessLevel = (string)officers![currentPlayer!]!["accessLevel"]!;
                 string officerStatus = (string)officers![currentPlayer!]!["status"]!;
-                string officerArea = GetOfficerArea(officerDesignation, formDetails);
+                string officerArea = GetOfficerArea(offierAccessLevel, formDetails);
 
                 string serviceName = dbcontext.Services
                     .FirstOrDefault(s => s.ServiceId == application.ServiceId)?

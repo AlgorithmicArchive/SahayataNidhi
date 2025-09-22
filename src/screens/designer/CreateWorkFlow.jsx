@@ -58,6 +58,7 @@ const sanitizeActionForm = (actionForm) => {
     return field;
   });
 };
+
 // Button styles
 const buttonStyles = {
   backgroundColor: "primary.main",
@@ -99,6 +100,7 @@ export default function CreateWorkflow() {
   const [newPlayer, setNewPlayer] = useState({
     playerId: 0,
     designation: "",
+    accessLevel: "", // Added AccessLevel
     canSanction: false,
     canReturnToPlayer: false,
     canReturnToCitizen: false,
@@ -109,7 +111,7 @@ export default function CreateWorkflow() {
     canCorrigendum: false,
     canManageBankFiles: false,
     canWithhold: false,
-    canValidateAadhaar: false, // Added to match PlayerEditModal
+    canValidateAadhaar: false,
     actionForm: [],
     actionFormOptions: {
       canSanction: false,
@@ -175,7 +177,6 @@ export default function CreateWorkflow() {
     if (optionsConfig.canReject && player.canReject) {
       actionOptions.push({ value: "Reject", label: "Reject" });
     }
-    // Withhold is not included
     const defaultActionField = {
       id: `default-field-${Date.now()}`,
       type: "select",
@@ -266,7 +267,12 @@ export default function CreateWorkflow() {
     if (service && service.officerEditableField) {
       try {
         const workflow = JSON.parse(service.officerEditableField);
-        setPlayers(workflow);
+        // Ensure AccessLevel is included when parsing existing workflow
+        const updatedWorkflow = workflow.map((player) => ({
+          ...player,
+          accessLevel: player.accessLevel || "", // Default to empty string if missing
+        }));
+        setPlayers(updatedWorkflow);
       } catch (err) {
         console.error("Error parsing workflow:", err);
         setPlayers([]);
@@ -288,11 +294,12 @@ export default function CreateWorkflow() {
       playerId: newPlayerId,
       prevPlayerId: newPlayerId > 0 ? newPlayerId - 1 : null,
       nextPlayerId: null,
-      actionForm: sanitizeActionForm(getDefaultActionFields(newPlayer)), // Apply sanitizeActionForm
+      actionForm: sanitizeActionForm(getDefaultActionFields(newPlayer)),
     };
     setPlayers([...updatedPlayers, newPlayerWithDefaultFields]);
     setNewPlayer({
       designation: "",
+      accessLevel: "", // Reset AccessLevel
       canSanction: false,
       canReturnToPlayer: false,
       canReturnToCitizen: false,
@@ -303,7 +310,7 @@ export default function CreateWorkflow() {
       canCorrigendum: false,
       canManageBankFiles: false,
       canWithhold: false,
-      canValidateAadhaar: false, // Added to match PlayerEditModal
+      canValidateAadhaar: false,
       actionForm: [],
       status: "",
       completedAt: null,
@@ -320,6 +327,10 @@ export default function CreateWorkflow() {
     const corrigendumCount = players.filter((p) => p.canCorrigendum).length;
     const bankFilesCount = players.filter((p) => p.canManageBankFiles).length;
     const withholdCount = players.filter((p) => p.canWithhold).length;
+    const validateAadhaarCount = players.filter(
+      (p) => p.canValidateAadhaar,
+    ).length;
+
     if (corrigendumCount > 1) {
       toast.error("Only one player can have Can Corrigendum authority.");
       return;
@@ -332,6 +343,11 @@ export default function CreateWorkflow() {
       toast.error("Only one player can have Can Withhold authority.");
       return;
     }
+    if (validateAadhaarCount > 1) {
+      toast.error("Only one player can have Can Validate Aadhaar authority.");
+      return;
+    }
+
     const formdata = new FormData();
     formdata.append("serviceId", selectedServiceId);
     formdata.append("workflowplayers", JSON.stringify(players));
@@ -404,6 +420,17 @@ export default function CreateWorkflow() {
       if (otherWithhold) {
         toast.error(
           `Another player (${otherWithhold.designation}) already has Can Withhold authority.`,
+        );
+        return;
+      }
+    }
+    if (updatedPlayer.canValidateAadhaar) {
+      const otherValidateAadhaar = players.find(
+        (p) => p.playerId !== updatedPlayer.playerId && p.canValidateAadhaar,
+      );
+      if (otherValidateAadhaar) {
+        toast.error(
+          `Another player (${otherValidateAadhaar.designation}) already has Can Validate Aadhaar authority.`,
         );
         return;
       }
@@ -532,7 +559,11 @@ export default function CreateWorkflow() {
                           variant="subtitle1"
                           sx={{ fontWeight: 600, color: "primary.main", mb: 1 }}
                         >
-                          {player.designation || "Unnamed Player"}
+                          {player.designation
+                            ? `${player.designation} (${
+                                player.accessLevel || "N/A"
+                              })`
+                            : "Unnamed Player"}
                         </Typography>
                         <Box sx={{ pl: 2 }}>
                           <Typography variant="body2">
@@ -612,6 +643,8 @@ export default function CreateWorkflow() {
             onClose={() => setIsEditModalOpen(false)}
             onSave={updatePlayer}
             players={players}
+            serviceId={selectedServiceId}
+            services={services}
             sx={{
               "& .MuiDialog-paper": {
                 borderRadius: 2,

@@ -108,15 +108,8 @@ namespace SahayataNidhi.Controllers.User
             return (int)nextCountParam.Value;
         }
 
-        public string GetOfficerArea(string designation, dynamic formDetails)
+        public string GetOfficerArea(string accessLevel, dynamic formDetails)
         {
-            var officerDesignation = dbcontext.OfficersDesignations
-                .FirstOrDefault(od => od.Designation == designation);
-
-            if (officerDesignation == null)
-                return string.Empty;
-
-            string accessLevel = officerDesignation.AccessLevel ?? string.Empty;
             int accessCode;
 
             switch (accessLevel)
@@ -362,6 +355,9 @@ namespace SahayataNidhi.Controllers.User
             if (fieldName.Contains("Village", StringComparison.OrdinalIgnoreCase)
                  && int.TryParse(s, out int VillageId))
                 return dbcontext.Villages.FirstOrDefault(m => m.VillageId == VillageId)!.VillageName!;
+            if (fieldName.Contains("BankName", StringComparison.OrdinalIgnoreCase)
+                && int.TryParse(s, out int BankId))
+                return dbcontext.Banks.FirstOrDefault(b => b.Id == BankId)?.BankName ?? "Unknown Bank";
 
             return s;
         }

@@ -65,7 +65,7 @@ const normalizeField = (field, timestamp = Date.now()) => ({
     : [],
   isConsentCheckbox: field.isConsentCheckbox ?? false,
   checkboxLayout: field.checkboxLayout || "vertical",
-  declaration: field.declaration || "", // Add declaration to normalized field
+  declaration: field.declaration || "",
 });
 
 // Function to recursively normalize additionalFields
@@ -93,10 +93,11 @@ const normalizeSections = (sections) => {
 export default function CreateService() {
   const [sections, setSections] = useState(defaultFormConfig);
   const [services, setServices] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [serviceName, setServiceName] = useState("");
   const [serviceNameShort, setServiceNameShort] = useState("");
-  const [departmentName, setDepartmentName] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedField, setSelectedField] = useState(null);
   const [isAdditionalModalOpen, setIsAdditionalModalOpen] = useState(false);
@@ -104,12 +105,27 @@ export default function CreateService() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axiosInstance.get("/Base/GetServices");
-        if (response.data.status && response.data.services) {
-          setServices(response.data.services);
+        const [servicesResponse, departmentsResponse] = await Promise.all([
+          axiosInstance.get("/Base/GetServices"),
+          axiosInstance.get("/Base/GetDepartments"),
+        ]);
+
+        if (servicesResponse.data.status && servicesResponse.data.services) {
+          setServices(servicesResponse.data.services);
+        } else {
+          toast.error("Failed to fetch services");
+        }
+
+        if (
+          departmentsResponse.data.status &&
+          departmentsResponse.data.departments
+        ) {
+          setDepartments(departmentsResponse.data.departments);
+        } else {
+          toast.error("Failed to fetch departments");
         }
       } catch (err) {
-        toast.error("Failed to fetch services");
+        toast.error("Failed to fetch data");
       }
     }
     fetchData();
@@ -123,7 +139,7 @@ export default function CreateService() {
       setSections(defaultFormConfig);
       setServiceName("");
       setServiceNameShort("");
-      setDepartmentName("");
+      setDepartmentId("");
       return;
     }
 
@@ -131,7 +147,7 @@ export default function CreateService() {
     if (service) {
       setServiceName(service.serviceName || "");
       setServiceNameShort(service.nameShort || "");
-      setDepartmentName(service.department || "");
+      setDepartmentId(service.departmentId || "");
       if (service.formElement) {
         try {
           const config = JSON.parse(service.formElement);
@@ -225,7 +241,7 @@ export default function CreateService() {
       dependentValues: [],
       isConsentCheckbox: false,
       checkboxLayout: "vertical",
-      declaration: "", // Initialize declaration for new fields
+      declaration: "",
     };
 
     setSections((prev) =>
@@ -255,16 +271,16 @@ export default function CreateService() {
 
   const handleLogForm = async () => {
     const formdata = new FormData();
-    if (!serviceName || !serviceNameShort || !departmentName) {
+    if (!serviceName || !serviceNameShort || !departmentId) {
       toast.error(
-        "Please provide Service Name, Service Name Short, and Department Name.",
+        "Please provide Service Name, Service Name Short, and select a Department.",
       );
       return;
     }
     console.log("Sections", sections);
     formdata.append("serviceName", serviceName);
     formdata.append("serviceNameShort", serviceNameShort);
-    formdata.append("departmentName", departmentName);
+    formdata.append("departmentId", departmentId);
     formdata.append("serviceId", selectedServiceId);
     formdata.append("formElement", JSON.stringify(sections));
 
@@ -283,7 +299,7 @@ export default function CreateService() {
         if (!selectedServiceId) {
           setServiceName("");
           setServiceNameShort("");
-          setDepartmentName("");
+          setDepartmentId("");
           setSections(defaultFormConfig);
           setSelectedServiceId("");
         }
@@ -303,7 +319,6 @@ export default function CreateService() {
   const updateField = (updatedField) => {
     console.log("UPDATED Field", updatedField);
     setSections((prev) => {
-      // If sectionId is present, update main field
       if (updatedField.sectionId) {
         return prev.map((section) =>
           section.id === updatedField.sectionId
@@ -318,7 +333,6 @@ export default function CreateService() {
             : section,
         );
       } else {
-        // Handle additional fields (no sectionId)
         return prev.map((section) =>
           section.fields.some((field) => field.id === updatedField.id)
             ? {
@@ -484,21 +498,36 @@ export default function CreateService() {
                       },
                     }}
                   />
-                  <TextField
-                    fullWidth
-                    label="Department Name"
-                    value={departmentName}
-                    onChange={(e) => setDepartmentName(e.target.value)}
-                    variant="outlined"
-                    sx={{
-                      bgcolor: "white",
-                      borderRadius: 1,
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": { borderColor: "grey.300" },
-                        "&:hover fieldset": { borderColor: "primary.main" },
-                      },
-                    }}
-                  />
+                  <FormControl fullWidth variant="outlined">
+                    <InputLabel id="department-select-label">
+                      Select Department
+                    </InputLabel>
+                    <Select
+                      labelId="department-select-label"
+                      value={departmentId}
+                      label="Select Department"
+                      onChange={(e) => setDepartmentId(e.target.value)}
+                      sx={{
+                        bgcolor: "white",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "grey.300",
+                        },
+                      }}
+                    >
+                      <MenuItem value="">
+                        <em>Select a Department</em>
+                      </MenuItem>
+                      {departments.map((department) => (
+                        <MenuItem
+                          key={department.departmentId}
+                          value={department.departmentId}
+                        >
+                          {department.departmentName}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                   <Button
                     variant="contained"
                     onClick={handleAddSection}

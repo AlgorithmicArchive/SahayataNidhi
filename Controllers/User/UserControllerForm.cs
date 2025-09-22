@@ -126,6 +126,7 @@ namespace SahayataNidhi.Controllers.User
                     var filteredPlayer = new JObject
                     {
                         ["designation"] = player["designation"],
+                        ["accessLevel"] = player["accessLevel"],
                         ["status"] = player["status"],
                         ["completedAt"] = player["completedAt"],
                         ["remarks"] = player["remarks"],
@@ -681,6 +682,7 @@ namespace SahayataNidhi.Controllers.User
                     var filteredPlayer = new JObject
                     {
                         ["designation"] = player["designation"],
+                        ["accessLevel"] = player["accessLevel"],
                         ["status"] = player["status"],
                         ["completedAt"] = player["completedAt"],
                         ["remarks"] = player["remarks"],

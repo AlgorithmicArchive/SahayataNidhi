@@ -1085,7 +1085,8 @@ namespace SahayataNidhi.Controllers.Officer
             if ((string)currentPlayer!["status"]! == "pending")
             {
                 string designation = (string)currentPlayer["designation"]!;
-                string officerArea = GetOfficerArea(designation, formDetails);
+                string accessLevel = (string)currentPlayer["accessLevel"]!;
+                string officerArea = GetOfficerArea(accessLevel, formDetails);
                 data.Add(new
                 {
                     sno = index,
@@ -1586,7 +1587,8 @@ namespace SahayataNidhi.Controllers.Officer
                 if ((string)currentPlayer!["status"]! == "pending")
                 {
                     string designation = (string)currentPlayer["designation"]!;
-                    string officerArea = GetOfficerArea(designation, formDetails);
+                    string accessLevel = (string)currentPlayer["accessLevel"]!;
+                    string officerArea = GetOfficerArea(accessLevel, formDetails);
                     historyTable.AddCell(new Cell()
                         .Add(new Paragraph(index.ToString())
                             .SetFontSize(10)
@@ -1866,7 +1868,8 @@ namespace SahayataNidhi.Controllers.Officer
 
                 var nextOfficerDetails = workFlow.Count > 1 ? workFlow[1] : new JObject();
                 string? nextOfficerDesignation = (string)nextOfficerDetails["designation"]!;
-                string officerArea = GetOfficerArea(nextOfficerDesignation, formDetailsWithCodes);
+                string? nextOfficerAccessLevel = (string)nextOfficerDetails["accessLevel"]!;
+                string officerArea = GetOfficerArea(nextOfficerAccessLevel, formDetailsWithCodes);
 
                 if (applicationId != null)
                 {
@@ -1937,7 +1940,8 @@ namespace SahayataNidhi.Controllers.Officer
                     workFlow = JArray.Parse(documentChange.WorkFlow ?? "[]");
                     nextOfficerDetails = workFlow.Count > documentChange.CurrentPlayer + 1 ? workFlow[documentChange.CurrentPlayer + 1] : new JObject();
                     nextOfficerDesignation = (string)nextOfficerDetails["designation"]!;
-                    officerArea = GetOfficerArea(nextOfficerDesignation, formDetailsWithCodes);
+                    nextOfficerAccessLevel = (string)nextOfficerDetails["accessLevel"]!;
+                    officerArea = GetOfficerArea(nextOfficerAccessLevel, formDetailsWithCodes);
 
                     JArray officerFiles = new JArray();
                     try
@@ -2096,7 +2100,8 @@ namespace SahayataNidhi.Controllers.Officer
                     var workFlow = JsonConvert.DeserializeObject<JArray>(application.WorkFlow!);
                     var creationOfficer = workFlow![0];
                     string creationOfficerDesignation = (string)creationOfficer["designation"]!;
-                    string officerArea = GetOfficerArea(creationOfficerDesignation, JObject.Parse(citizenApp.FormDetails!));
+                    string creationOfficerAccessLevel = (string)creationOfficer["accessLevel"]!;
+                    string officerArea = GetOfficerArea(creationOfficerAccessLevel, JObject.Parse(citizenApp.FormDetails!));
                     var customActions = new List<dynamic>();
 
                     var history = JArray.Parse(application.History!);
@@ -2282,7 +2287,8 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 var prevOfficer = Officer[corrigendumApplication.CurrentPlayer - 1];
                 string prevOfficerDesignation = (string)prevOfficer["designation"]!;
-                string officerArea = GetOfficerArea(prevOfficerDesignation, formDetails);
+                string prevOfficerAccessLevel = (string)prevOfficer["accessLevel"]!;
+                string officerArea = GetOfficerArea(prevOfficerAccessLevel, formDetails);
 
 
 
@@ -2301,7 +2307,8 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 var nextOfficer = Officer[corrigendumApplication.CurrentPlayer + 1];
                 string nextOfficerDesignation = (string)nextOfficer["designation"]!;
-                string officerArea = GetOfficerArea(nextOfficerDesignation, formDetails);
+                string nextOfficerAccessLevel = (string)nextOfficer["accessLevel"]!;
+                string officerArea = GetOfficerArea(nextOfficerAccessLevel, formDetails);
 
                 actions.Add(new { label = $"Forward to {nextOfficerDesignation} {officerArea}", value = "forward" });
             }
@@ -2358,7 +2365,7 @@ namespace SahayataNidhi.Controllers.Officer
                     data.Add(new
                     {
                         sno = index,
-                        actionTaker = item["designation"] + " " + GetOfficerArea(item["designation"].ToString(), formdetails),
+                        actionTaker = item["designation"] + " " + GetOfficerArea(item["accessLevel"].ToString(), formdetails),
                         actionTaken = item["status"],
                         remarks = item["remarks"],
                         actionTakenOn = item["completedAt"]

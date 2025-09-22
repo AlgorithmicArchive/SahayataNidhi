@@ -268,6 +268,10 @@ namespace SahayataNidhi.Controllers.Officer
                 && int.TryParse(s, out int vid))
                 return dbcontext.Villages.FirstOrDefault(m => m.VillageId == vid)!.VillageName!;
 
+            if (fieldName.Contains("BankName", StringComparison.OrdinalIgnoreCase)
+                && int.TryParse(s, out int BankId))
+                return dbcontext.Banks.FirstOrDefault(b => b.Id == BankId)?.BankName ?? "Unknown Bank";
+
             return s;
         }
         [HttpGet]
@@ -542,15 +546,9 @@ namespace SahayataNidhi.Controllers.Officer
             return value;
         }
 
-        public string GetOfficerArea(string designation, dynamic formDetails)
+        public string GetOfficerArea(string accessLevel, dynamic formDetails)
         {
-            var officerDesignation = dbcontext.OfficersDesignations
-                .FirstOrDefault(od => od.Designation == designation);
 
-            if (officerDesignation == null)
-                return string.Empty;
-
-            string accessLevel = officerDesignation.AccessLevel ?? string.Empty;
             int accessCode;
 
             switch (accessLevel)
@@ -587,8 +585,8 @@ namespace SahayataNidhi.Controllers.Officer
                 .Where(u => u.UserType == "Officer" && u.AdditionalDetails != null)
                 .AsEnumerable() // Forces evaluation on the client side
                 .Select(u => JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(u.AdditionalDetails!))
-                .Where(details => details != null && details.ContainsKey("Role"))
-                .Select(details => details!["Role"])
+                .Where(details => details != null && details.ContainsKey("AccessLevel"))
+                .Select(details => details!["AccessLevel"])
                 .Distinct()
                 .ToList();
 
@@ -631,7 +629,8 @@ namespace SahayataNidhi.Controllers.Officer
                 { "Block", id => dbcontext.Blocks.FirstOrDefault(m => m.BlockId == id)?.BlockName ?? "" },
                 { "HalqaPanchayat", id => dbcontext.HalqaPanchayats.FirstOrDefault(m => m.HalqaPanchayatId == id)?.HalqaPanchayatName ?? "" },
                 { "Village", id => dbcontext.Villages.FirstOrDefault(m => m.VillageId == id)?.VillageName ?? "" },
-                { "WardNo", id => dbcontext.Wards.FirstOrDefault(w => w.WardCode == id)?.WardNo.ToString() ?? "" }
+                { "WardNo", id => dbcontext.Wards.FirstOrDefault(w => w.WardCode == id)?.WardNo.ToString() ?? "" },
+                { "BankName", id => dbcontext.Banks.FirstOrDefault(w => w.Id == id)?.BankName.ToString() ?? "" }
             };
 
             foreach (var section in formDetails.Children<JProperty>())
