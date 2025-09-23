@@ -23,10 +23,31 @@ export function onlyDigits(field, value) {
   return true;
 }
 
-export function specificLength(field, value) {
-  if (value.length !== field.maxLength) {
-    return `This must be exactly ${field.maxLength} characters long.`;
+export function specificLength(field, value, formData = {}) {
+  let maxLengthValue;
+
+  // Determine maxLength based on dependent field if needed
+  if (typeof field.maxLength === "object" && field.maxLength.dependentOn) {
+    const dependentFieldId = field.maxLength.dependentOn;
+    const dependentValue = formData[dependentFieldId];
+
+    if (!dependentValue) {
+      return `Dependent field (${dependentFieldId}) value is missing.`;
+    }
+
+    maxLengthValue = field.maxLength[dependentValue];
+    if (maxLengthValue === undefined) {
+      return `No maximum length defined for option (${dependentValue}).`;
+    }
+  } else {
+    maxLengthValue = field.maxLength;
   }
+
+  // Check the length
+  if (value.length !== maxLengthValue) {
+    return `This must be exactly ${maxLengthValue} characters long.`;
+  }
+
   return true;
 }
 
@@ -88,21 +109,28 @@ export async function validateIfscCode(
 
     if (!res.ok) {
       if (res.status === 404) {
-        setValue("BranchName", "", {
-          shouldValidate: true,
-        });
-        $("#" + brabchId).removeAttr("readonly");
+        setValue("BranchName", "", { shouldValidate: true });
+        // Return an object indicating that readonly should be removed
+        return {
+          valid: false,
+          message: "Branch details not found.",
+          removeReadonly: true,
+        };
       }
       return `Error: ${res.status} ${res.statusText}`;
     }
 
     const data = await res.json();
 
-    const brabchId = "field-1740199859569";
-
     // Check if bank details are returned
     if (!data || !data.status || !data.bankDetails) {
-      return "IFSC Code is incorrect or branch details not available.";
+      setValue("BranchName", "", { shouldValidate: true });
+      // Return an object indicating that readonly should be removed
+      return {
+        valid: false,
+        message: "IFSC Code is incorrect or branch details not available.",
+        removeReadonly: true,
+      };
     }
 
     // Update BranchName from API response
@@ -111,6 +139,12 @@ export async function validateIfscCode(
     return true;
   } catch (error) {
     console.error("Error validating IFSC:", error);
+    // Return an object indicating that readonly should be removed in case of error
+    return {
+      valid: false,
+      message: "Error validating IFSC code.",
+      removeReadonly: true,
+    };
   }
 }
 

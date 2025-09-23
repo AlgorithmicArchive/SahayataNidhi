@@ -686,7 +686,7 @@ export default function Form() {
         boxSizing: "border-box",
       }}
     >
-      <DynamicScrollableForm data={dummyData} />
+      <DynamicScrollableForm data={{}} />
     </Box>
   );
 }

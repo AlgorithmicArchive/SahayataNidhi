@@ -3,6 +3,7 @@ import { Navbar, Nav, NavDropdown, Container } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { UserContext } from "../UserContext";
 import TokenTimer from "./TokenTimer";
+import axiosInstance from "../axiosConfig";
 
 const MyNavbar = () => {
   const [expanded, setExpanded] = useState(false);
@@ -44,15 +45,16 @@ const MyNavbar = () => {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await axiosInstance.get("/Home/LogOut");
     setToken(null);
     setUserType(null);
     setUsername(null);
     setProfile(null);
     setVerified(false);
-    localStorage.clear();
-    navigate("/login");
+    sessionStorage.clear();
     setExpanded(false);
+    navigate("/login");
   };
 
   const handleNavigate = (path) => {
@@ -492,6 +494,13 @@ const MyNavbar = () => {
                       >
                         Designation
                       </NavDropdown.Item>
+                      {designation == "System Admin" && (
+                        <NavDropdown.Item
+                          onClick={() => handleNavigate("/admin/addDepartment")}
+                        >
+                          Department
+                        </NavDropdown.Item>
+                      )}
                     </div>
                   </NavDropdown>
                 </div>

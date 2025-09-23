@@ -53,6 +53,7 @@ import OfficerAadhaarValidations from "../screens/officer/AadhaarValidations";
 import SearchApplication from "../screens/officer/SearchApplication";
 import CreateReports from "../screens/designer/CreateReports";
 import AddDesignations from "../screens/admin/AddDesignations";
+import AddDepartment from "../screens/admin/AddDepartment";
 
 const RoutesComponent = () => {
   return (
@@ -120,6 +121,7 @@ const RoutesComponent = () => {
           <Route path="reports" element={<ReportsAdmin />} />
           <Route path="addadmin" element={<AddAdmin />} />
           <Route path="addDesignations" element={<AddDesignations />} />
+          <Route path="addDepartment" element={<AddDepartment />} />
           <Route path="validateofficer" element={<ValidateOfficer />} />
         </Route>
       </Route>

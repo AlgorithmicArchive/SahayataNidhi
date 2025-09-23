@@ -721,5 +721,65 @@ namespace SahayataNidhi.Controllers.Admin
             }
         }
 
+        [HttpGet]
+        public IActionResult GetDepartments(int pageIndex = 0, int pageSize = 10)
+        {
+            try
+            {
+                // Fetch all departments
+                var departments = dbcontext.Departments
+                    .Select(d => new
+                    {
+                        DepartmentId = d.DepartmentId,
+                        DepartmentName = d.DepartmentName,
+                    })
+                    .ToList();
+
+                // Pagination
+                var totalRecords = departments.Count;
+                var pagedData = departments
+                    .Skip(pageIndex * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // Define columns for the frontend
+                var columns = new List<object>
+        {
+            new { accessorKey = "departmentId", header = "ID" },
+            new { accessorKey = "departmentName", header = "Department" },
+        };
+
+                // Shape data with custom actions
+                var data = pagedData.Select(d => new
+                {
+                    departmentId = d.DepartmentId,
+                    departmentName = d.DepartmentName,
+                    customActions = new List<object>
+                    {
+                        new { tooltip = "Update", color = "#F0C38E", actionFunction = "UpdateDepartment" },
+                        new { tooltip = "Delete", color = "#F0C38E", actionFunction = "DeleteDepartment" }
+                    }
+                }).ToList();
+
+                return Json(new
+                {
+                    data,
+                    columns,
+                    totalRecords
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception properly
+                return StatusCode(500, new
+                {
+                    error = "An error occurred while fetching departments",
+                    details = ex.Message
+                });
+            }
+        }
+
+
+
     }
 }

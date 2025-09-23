@@ -145,6 +145,7 @@ const flattenFormDetails = (nestedDetails) => {
   return flat;
 };
 
+// Helper function to sanitize form sections
 const sanitizeFormSections = (sections) => {
   return sections.map((section) => ({
     ...section,
@@ -218,7 +219,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   const [additionalDetails, setAdditionalDetails] = useState(null);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [aadhaarNumber, setAadhaarNumber] = useState("");
-  const applicantImageFile = watch("ApplicantImage");
   const [applicantImagePreview, setApplicantImagePreview] = useState(
     "/assets/images/profile.jpg",
   );
@@ -226,6 +226,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   const [otpModal, setOtpModal] = useState(false);
   const [emailAlertModalOpen, setEmailAlertModalOpen] = useState(false);
   const [ifscPrefix, setIfscPrefix] = useState("");
+  const [isBranchNameReadonly, setIsBranchNameReadonly] = useState(true); // New state for BranchName readonly
 
   const [DependableFields, setDependableFields] = useState([]);
   const navigate = useNavigate();
@@ -235,6 +236,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   const watchedDependableValues = useWatch({ control, name: DependableFields });
   const isBackspacePressed = useRef(false);
   const formRef = useRef(null);
+  const applicantImageFile = watch("ApplicantImage");
 
   // Effect to manage non-rendered fields
   useEffect(() => {
@@ -403,7 +405,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       additionalDetails &&
       additionalDetails.returnFields
     ) {
-      // setDependableFields(dependableFields);
       return !DependableFields.includes(fieldName);
     }
     return false;
@@ -413,7 +414,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     try {
       if (!path || typeof path !== "string") {
         console.warn(`No valid URL provided for ${fieldName}`);
-        if (setPreview) setPreview("/assets/images/profile.jpg"); // Fallback for images
+        if (setPreview) setApplicantImagePreview("/assets/images/profile.jpg"); // Fallback for images
         return;
       }
       const response = await fetch(`/Base/DisplayFile?fileName=${path}`);
@@ -428,7 +429,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       }
     } catch (error) {
       console.error(`Error setting default file for ${fieldName}:`, error);
-      if (setPreview) setPreview("/assets/images/profile.jpg"); // Fallback for images
+      if (setPreview) setApplicantImagePreview("/assets/images/profile.jpg"); // Fallback for images
     }
   };
 
@@ -458,7 +459,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       initialData?.ApplicantImage &&
       typeof initialData.ApplicantImage === "string"
     ) {
-      // Fetch the image from the URL and convert it to a File object
       setDefaultFile("ApplicantImage", initialData.ApplicantImage, true);
     } else if (data != null) {
       const flatDetails = flattenFormDetails(data);
@@ -511,7 +511,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
             setFormSections(updatedConfig);
 
-            // Add "Other" documents from data or formDetails in edit/incomplete mode
             if (mode === "edit" || mode === "incomplete") {
               const documentsSection = updatedConfig.find(
                 (section) => section.section === "Documents",
@@ -532,7 +531,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
               if (documentsSection && otherDocuments.length > 0) {
                 const newFields = otherDocuments.map((doc, idx) => {
-                  const newId = doc.name || `field-${Date.now()}-${idx}`; // Use existing name if available
+                  const newId = doc.name || `field-${Date.now()}-${idx}`;
                   return {
                     id: newId,
                     type: "enclosure",
@@ -540,7 +539,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     name: doc.name || `CustomDocument_${newId}`,
                     minLength: 5,
                     maxLength: 50,
-                    options: [], // No options to render TextField
+                    options: [],
                     span: 6,
                     validationFunctions: ["notEmpty", "validateFile"],
                     transformationFunctions: [],
@@ -574,7 +573,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           }
         }
 
-        // Rest of the existing useEffect code
         if ((mode === "incomplete" || mode === "edit") && referenceNumber) {
           const { formDetails, additionalDetails } = await fetchFormDetails(
             referenceNumber,
@@ -746,9 +744,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     function recurseAndSet(fields, sectionIndex, sectionName) {
       fields.forEach((field) => {
         const name = field.name;
-        // Find the corresponding section in initialData
         const sectionData = initialData[sectionName] || [];
-        // Find the field in initialData by name
         const fieldData = sectionData.find((f) => f.name === name);
         const value = fieldData ? fieldData.value : undefined;
 
@@ -774,7 +770,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             shouldValidate: true,
           });
         }
-        // Set the field value if it exists
         if (value !== undefined) {
           setValue(name, value, { shouldValidate: true });
         }
@@ -797,7 +792,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     }
 
     formSections.forEach((section, idx) => {
-      // Map section.section to initialData keys (e.g., "Present Address Details")
       const sectionName = section.section;
       recurseAndSet(section.fields, idx, sectionName);
     });
@@ -823,7 +817,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
     formSections.forEach((section) => {
       section.fields.forEach((field) => {
-        // Handle dependent selects
         if (
           field.type === "select" &&
           field.dependentOn &&
@@ -842,7 +835,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           }
         }
 
-        // Handle additionalFields recursively if needed
         if (field.additionalFields) {
           const selectedValue = watch(field.name);
           const additionalFields = field.additionalFields[selectedValue] || [];
@@ -864,7 +856,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           });
         }
 
-        // Handle dependent enclosures
         if (
           field.type === "enclosure" &&
           field.isDependentEnclosure &&
@@ -900,7 +891,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         console.warn("Permanent Address section not found");
         return;
       }
-      // Clear all fields in Permanent Address section
       permanentSection.fields.forEach((field) => {
         setValue(field.name, field.type === "select" ? "Please Select" : "", {
           shouldValidate: false,
@@ -925,7 +915,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       (sec) => sec.section === "Permanent Address Details",
     );
 
-    // Find address type fields dynamically
     const presentTypeField = presentSection.fields.find((field) =>
       field.name.toLowerCase().includes("addresstype"),
     );
@@ -938,7 +927,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       return;
     }
 
-    // Copy address type
     const presentAddressType = getValues(presentTypeField.name);
     let permanentAddressType = getValues(permanentTypeField.name);
 
@@ -954,21 +942,18 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       });
     }
 
-    // Get additional fields for the selected address type
     const presentAdditionalFields =
       presentTypeField.additionalFields?.[presentAddressType] || [];
     const permanentAdditionalFields =
       permanentTypeField.additionalFields?.[permanentAddressType] || [];
 
-    // Clear permanent additional fields
     permanentAdditionalFields.forEach((field) => {
       setValue(field.name, "", { shouldValidate: false });
     });
 
-    // Map and copy fields dynamically
     for (const presentField of [
-      ...presentSection.fields.filter((f) => f.name !== presentTypeField.name), // Non-type fields
-      ...presentAdditionalFields, // Additional fields for address type
+      ...presentSection.fields.filter((f) => f.name !== presentTypeField.name),
+      ...presentAdditionalFields,
     ]) {
       const fieldValue = getValues(presentField.name);
       const permanentFieldName = presentField.name.replace(
@@ -989,7 +974,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
       setValue(permanentField.name, fieldValue, { shouldValidate: true });
 
-      // Trigger area change for relevant fields (e.g., District, Municipality, etc.)
       if (
         /district|tehsil|muncipality|ward|block|halqapanchayat|village/i.test(
           presentField.name,
@@ -1003,7 +987,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       }
     }
 
-    // Validate all fields
     const validateFields = async () => {
       await trigger(permanentTypeField.name);
       for (const field of [
@@ -1046,24 +1029,18 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       setOtpModal(false);
       setAadhaarValid(true);
 
-      // Mask first 8 digits with 'X'
       const maskedAadhaar = aadhaarNumber.replace(/\d/g, (digit, index) => {
         return index < 8 ? "X" : digit;
       });
 
-      // Update form value with masked Aadhaar
       setValue("AadharNumber", maskedAadhaar);
-
-      // Store the secure Aadhaar token in state
       setAadhaarNumber(result.aadhaarToken);
-
       toast.success("Aadhaar Number Validated.");
     }
   };
 
   const handleAreaChange = async (sectionIndex, field, value) => {
     try {
-      // 🧠 Determine AddressType based on field name
       let addressTypeKey = "";
       if (field.name.startsWith("Present")) {
         addressTypeKey = "PresentAddressType";
@@ -1071,7 +1048,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         addressTypeKey = "PermanentAddressType";
       }
 
-      const AddressType = getValues(addressTypeKey); // 'Urban' or 'Rural'
+      const AddressType = getValues(addressTypeKey);
 
       const fieldNames = [
         { name: "District", childname: "Tehsil", respectiveTable: "Tehsil" },
@@ -1136,9 +1113,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         return;
       }
 
-      console.log("Address Type", AddressType, "match", match);
-
-      // Normalize to arrays
       let childFieldNames =
         typeof match.childname === "object"
           ? match.childname[AddressType]
@@ -1160,7 +1134,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         return;
       }
 
-      // Loop through each child/table pair
       for (let i = 0; i < childFieldNames.length; i++) {
         const childFieldName = childFieldNames[i];
         const tableName = tableNames[i];
@@ -1171,7 +1144,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           );
           const areaList = response.data?.data || [];
 
-          // Deduplicate options based on value
           const uniqueOptions = [];
           const seenValues = new Set();
           areaList.forEach((item) => {
@@ -1190,7 +1162,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             ...uniqueOptions,
           ];
 
-          // Check if current value is in newOptions, reset to "Please Select" if not
           const currentValue = getValues(childFieldName);
           const isValueValid = newOptions.some(
             (option) => option.value.toString() === currentValue?.toString(),
@@ -1205,18 +1176,15 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             let updated = false;
 
             section.fields = section.fields.map((f) => {
-              // Check top-level fields
               if (f.name === childFieldName) {
                 updated = true;
                 return { ...f, options: newOptions };
               }
 
-              // Check nested fields in additionalFields for Urban and Rural
               if (
                 f.additionalFields &&
                 typeof f.additionalFields === "object"
               ) {
-                // Handle Urban fields
                 if (Array.isArray(f.additionalFields.Urban)) {
                   f.additionalFields.Urban = f.additionalFields.Urban.map(
                     (af) => {
@@ -1229,7 +1197,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   );
                 }
 
-                // Handle Rural fields
                 if (Array.isArray(f.additionalFields.Rural)) {
                   f.additionalFields.Rural = f.additionalFields.Rural.map(
                     (af) => {
@@ -1361,15 +1328,12 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
   const handleEmailAlertSubmit = () => {
     setEmailAlertModalOpen(false);
-
-    // Continue submission with current form values
     const data = getValues();
-    onSubmit(data, "submit"); // will not block even if email is empty
+    onSubmit(data, "submit");
   };
 
   const handleEmailAlertCancel = () => {
     setEmailAlertModalOpen(false);
-    // Do nothing, abort submission
   };
 
   const onSubmit = async (data, operationType) => {
@@ -1382,8 +1346,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       return;
     }
 
-    // Find the email field dynamically
-    // Find email field dynamically
     let emailFieldValue = "";
     formSections.forEach((section) => {
       section.fields.forEach((field) => {
@@ -1393,14 +1355,13 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       });
     });
 
-    // Show warning modal if email is empty, **but continue submission if user clicks Submit in modal**
     if (
       operationType === "submit" &&
       !emailFieldValue &&
       !emailAlertModalOpen
     ) {
       setEmailAlertModalOpen(true);
-      return; // stop for now, user has to click Submit in modal to continue
+      return;
     }
 
     setLoading(true);
@@ -1513,7 +1474,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       name: `CustomDocument_${newId}`,
       minLength: 5,
       maxLength: 50,
-      options: [], // no options => render TextField instead of Select
+      options: [],
       span: 6,
       validationFunctions: ["notEmpty", "validateFile"],
       transformationFunctions: [],
@@ -1536,6 +1497,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       ),
     );
   };
+
   const removeDynamicEnclosure = (sectionId, fieldId) => {
     setFormSections((prevSections) =>
       prevSections.map((section) =>
@@ -1556,57 +1518,57 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         borderRadius: "12px",
         transition: "all 0.3s ease",
         "& fieldset": {
-          borderColor: "#A5B4FC", // Indigo-200
+          borderColor: "#A5B4FC",
         },
         "&:hover fieldset": {
-          borderColor: "#6366F1", // Indigo-500
+          borderColor: "#6366F1",
         },
         "&.Mui-focused fieldset": {
-          borderColor: "#6366F1", // Indigo-500
+          borderColor: "#6366F1",
           boxShadow: "0 0 0 3px rgba(99, 102, 241, 0.2)",
         },
         "&.Mui-error fieldset": {
-          borderColor: "#F43F5E", // Rose-500
+          borderColor: "#F43F5E",
         },
         "&.Mui-disabled": {
-          backgroundColor: "#EDE9FE", // Indigo-50
+          backgroundColor: "#EDE9FE",
         },
       },
       "& .MuiInputLabel-root": {
-        color: "#6B7280", // Gray-500
+        color: "#6B7280",
         fontWeight: "500",
         fontSize: "0.9rem",
         "&.Mui-focused": {
-          color: "#6366F1", // Indigo-500
+          color: "#6366F1",
         },
         "&.Mui-error": {
-          color: "#F43F5E", // Rose-500
+          color: "#F43F5E",
         },
       },
       "& .MuiInputBase-input": {
         fontSize: "1rem",
-        color: "#1F2937", // Gray-900
+        color: "#1F2937",
         padding: "14px 16px",
       },
       "& .MuiFormHelperText-root": {
-        color: "#F43F5E", // Rose-500
+        color: "#F43F5E",
         fontSize: "0.85rem",
       },
       marginBottom: "1.5rem",
     };
     const buttonStyles = {
-      background: "linear-gradient(to right, #10B981, #059669)", // Green-500 to Green-600
+      background: "linear-gradient(to right, #10B981, #059669)",
       color: "#FFFFFF",
       fontWeight: "600",
       textTransform: "none",
       borderRadius: "10px",
       padding: "10px 20px",
       "&:hover": {
-        background: "linear-gradient(to right, #059669, #047857)", // Green-600 to Green-700
+        background: "linear-gradient(to right, #059669, #047857)",
       },
       "&.Mui-disabled": {
-        background: "#D1D5DB", // Gray-300
-        color: "#9CA3AF", // Gray-400
+        background: "#D1D5DB",
+        color: "#9CA3AF",
       },
       marginBottom: "0.5rem",
     };
@@ -1630,14 +1592,13 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         <>
           {field.label}
           {isRequired && (
-            <span style={{ color: "#F43F5E", fontSize: "1rem" }}> *</span> // Rose-500
+            <span style={{ color: "#F43F5E", fontSize: "1rem" }}> *</span>
           )}
         </>
       );
     };
 
     switch (field.type) {
-      // inside your component (switch/case)
       case "text":
       case "email":
       case "date":
@@ -1652,15 +1613,29 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   field.name === "AadharNumber" &&
                   (mode === "edit" || mode === "incomplete" || aadhaarValid)
                 ) {
-                  return true; // Skip validation
+                  return true;
                 }
-                return await runValidations(
+                const validationResult = await runValidations(
                   field,
                   value,
                   getValues(),
                   referenceNumber,
                   setValue,
                 );
+                // Check if validation result for IfscCode indicates to remove readonly
+                if (
+                  field.name === "IfscCode" &&
+                  typeof validationResult === "object" &&
+                  validationResult.removeReadonly
+                ) {
+                  setIsBranchNameReadonly(false);
+                } else if (
+                  field.name === "IfscCode" &&
+                  validationResult === true
+                ) {
+                  setIsBranchNameReadonly(true);
+                }
+                return validationResult;
               },
             }}
             render={({ field: { onChange, value, ref } }) => (
@@ -1686,7 +1661,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                         onChange(formatted);
                         trigger(field.name);
                       }}
-                      format="dd/MM/yyyy" // Display format
+                      format="dd/MM/yyyy"
                       slotProps={{
                         textField: {
                           fullWidth: true,
@@ -1722,39 +1697,30 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       const fieldName = field.name;
                       let transformedVal = val;
 
-                      // 🔒 IFSC-specific logic
                       if (fieldName === "IfscCode" && ifscPrefix) {
-                        // Always enforce prefix
                         if (!val.startsWith(ifscPrefix)) {
                           val = ifscPrefix + val.slice(ifscPrefix.length);
                         }
-
-                        // Limit length to 11 characters
                         if (val.length > 11) {
                           val = val.slice(0, 11);
                         }
-
-                        transformedVal = val; // ensure prefix stays in final value
+                        transformedVal = val;
                       }
 
-                      // 🔑 Aadhaar-specific logic (unchanged)
                       if (fieldName === "AadharNumber") {
                         setAadhaarValid(false);
                         const lastChar = val.toString().charAt(val.length - 1);
-
                         let updatedAadhaar;
                         if (isBackspacePressed.current) {
-                          updatedAadhaar = aadhaarNumber.slice(0, -1); // remove last
+                          updatedAadhaar = aadhaarNumber.slice(0, -1);
                         } else {
-                          updatedAadhaar = aadhaarNumber + lastChar; // add
+                          updatedAadhaar = aadhaarNumber + lastChar;
                         }
-
                         setAadhaarNumber(updatedAadhaar);
                         transformedVal = updatedAadhaar;
                         val = updatedAadhaar;
                       }
 
-                      // 🔧 Generic transformation logic (unchanged)
                       if (field.transformationFunctions?.length > 0) {
                         field.transformationFunctions.forEach((fnName) => {
                           const transformFn =
@@ -1775,7 +1741,11 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     inputRef={ref}
                     disabled={isFieldDisabled(field.name)}
                     error={Boolean(errors[field.name])}
-                    helperText={errors[field.name]?.message || ""}
+                    helperText={
+                      typeof errors[field.name]?.message === "string"
+                        ? errors[field.name]?.message
+                        : errors[field.name]?.message?.message || ""
+                    }
                     fullWidth
                     margin="normal"
                     InputLabelProps={{
@@ -1783,14 +1753,24 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       style: { fontSize: "1rem", color: "#000000" },
                     }}
                     inputProps={{
-                      maxLength: field.maxLength,
-                      readOnly: field.name === "BranchName",
+                      maxLength: (() => {
+                        if (
+                          typeof field.maxLength === "object" &&
+                          field.maxLength.dependentOn
+                        ) {
+                          const dependentValue =
+                            getValues()[field.maxLength.dependentOn];
+                          return field.maxLength[dependentValue] ?? undefined;
+                        }
+                        return field.maxLength;
+                      })(),
+                      readOnly:
+                        field.name === "BranchName" && isBranchNameReadonly,
                     }}
                     sx={commonStyles}
                   />
                 )}
 
-                {/* Aadhaar-specific UI */}
                 {field.name === "AadharNumber" && aadhaarValid ? (
                   <Typography
                     variant="subtitle2"
@@ -1841,10 +1821,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             }
             rules={{
               validate: async (value) => {
-                // For required checkbox fields
                 if (field.required) {
                   if (field.isConsentCheckbox) {
-                    // Consent checkboxes don’t require validation unless specified
                     return true;
                   } else if (Array.isArray(value)) {
                     if (!value || value.length === 0) {
@@ -1854,8 +1832,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     return "This field is required";
                   }
                 }
-
-                // Run additional validations
                 return await runValidations(
                   field,
                   value,
@@ -2041,7 +2017,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       getOptionLabel={(option) => option.label || ""}
                       onChange={(event, newOption) => {
                         const newValue = newOption?.value || "";
-                        onChange({ target: { value: newValue } }); // mimic event for RHF
+                        onChange({ target: { value: newValue } });
 
                         if (
                           /district|muncipality|block|halqapanchayat/i.test(
@@ -2348,7 +2324,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       sx={{
         maxWidth: "90%",
         margin: "2rem auto",
-        background: "linear-gradient(to bottom, #E0F2FE, #BAE6FD)", // Sky-100 to Sky-200
+        background: "linear-gradient(to bottom, #E0F2FE, #BAE6FD)",
         borderRadius: "16px",
         padding: { xs: "1.5rem", md: "3rem" },
         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
@@ -2356,11 +2332,11 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         overflowY: "auto",
         "&::-webkit-scrollbar": {
           width: "8px",
-          backgroundColor: "#E0F2FE", // Sky-100
+          backgroundColor: "#E0F2FE",
           borderRadius: "4px",
         },
         "&::-webkit-scrollbar-thumb": {
-          backgroundColor: "#38BDF8", // Sky-400
+          backgroundColor: "#38BDF8",
           borderRadius: "4px",
         },
       }}
@@ -2373,7 +2349,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           >
             <Grid container spacing={3} alignItems="stretch">
               {formSections.map((section, index) => {
-                // Decide grid size dynamically
                 const isFullRow =
                   section.section === "Applicant Details" ||
                   section.section === "Declearation";
@@ -2387,7 +2362,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       sx={{
                         display: "flex",
                         flexDirection: "column",
-                        height: "100%", // equal height with sibling when half-width
+                        height: "100%",
                         padding: "2rem",
                         borderRadius: "12px",
                         background:

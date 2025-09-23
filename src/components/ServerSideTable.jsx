@@ -264,7 +264,7 @@ const ServerSideTable = React.forwardRef(
       });
     }, [url, serviceId, extraParams, Title]);
 
-    // Load saved column settings from localStorage on mount
+    // Load saved column settings from sessionStorage on mount
     useEffect(() => {
       const fetchTableSettings = async () => {
         try {
@@ -300,7 +300,7 @@ const ServerSideTable = React.forwardRef(
       fetchTableSettings();
     }, [storageKey]);
 
-    // Save column settings to localStorage
+    // Save column settings to sessionStorage
     const saveColumnSettings = useCallback(async () => {
       const formData = new FormData();
       formData.append("storageKey", storageKey);
@@ -315,7 +315,7 @@ const ServerSideTable = React.forwardRef(
       await axiosInstance.post("/Base/SaveTableSettings", formData);
     }, [columnOrder, columnVisibility, storageKey]);
 
-    // Update localStorage whenever columnOrder or columnVisibility changes
+    // Update sessionStorage whenever columnOrder or columnVisibility changes
     useEffect(() => {
       if (columnOrder.length > 0 || Object.keys(columnVisibility).length > 0) {
         saveColumnSettings();

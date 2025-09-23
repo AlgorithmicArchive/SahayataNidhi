@@ -303,5 +303,62 @@ namespace SahayataNidhi.Controllers.Admin
                 });
             }
         }
+
+        [HttpPost]
+        public IActionResult AddDepartment([FromForm] string DepartmentName)
+        {
+            try
+            {
+                var department = new Department { DepartmentName = DepartmentName };
+                dbcontext.Departments.Add(department);
+                dbcontext.SaveChanges();
+                return Json(new { status = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult UpdateDepartment([FromForm] int DepartmentId, [FromForm] string DepartmentName)
+        {
+            try
+            {
+                var department = dbcontext.Departments.Find(DepartmentId);
+                if (department == null)
+                    return Json(new { status = false, message = "Department not found" });
+
+                department.DepartmentName = DepartmentName;
+                dbcontext.SaveChanges();
+                return Json(new { status = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteDepartment([FromForm] int DepartmentId)
+        {
+            try
+            {
+                var department = dbcontext.Departments.Find(DepartmentId);
+                if (department == null)
+                    return Json(new { status = false, message = "Department not found" });
+
+                dbcontext.Departments.Remove(department);
+                dbcontext.SaveChanges();
+                return Json(new { status = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
+
+
+
     }
 }

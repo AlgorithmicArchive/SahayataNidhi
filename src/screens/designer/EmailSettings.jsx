@@ -378,7 +378,7 @@ export default function EmailManager() {
 
     const onSubmit = (data) => {
       try {
-        localStorage.setItem("emailSettings", JSON.stringify(data));
+        sessionStorage.setItem("emailSettings", JSON.stringify(data));
         toast.success("Settings saved successfully!");
       } catch (error) {
         toast.error("An error occurred while saving settings.");

@@ -213,15 +213,24 @@ namespace SahayataNidhi.Controllers
             string serviceIdString = form["serviceId"].ToString();
             string serviceName = form["serviceName"].ToString();
             string serviceNameShort = form["serviceNameShort"].ToString();
-            int departmentId = Convert.ToInt32(form["deparmentId"].ToString());
+            string departmentIdString = form["departmentId"].ToString();
+
+            // Validate departmentId
+            if (string.IsNullOrEmpty(departmentIdString) || !int.TryParse(departmentIdString, out int departmentId))
+            {
+                return Json(new { status = false, response = "Invalid or missing Department ID." });
+            }
 
             var formElement = form["formElement"].ToString();
 
             if (!string.IsNullOrEmpty(serviceIdString))
             {
-                int serviceId = Convert.ToInt32(serviceIdString);
-                var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
+                if (!int.TryParse(serviceIdString, out int serviceId))
+                {
+                    return Json(new { status = false, response = "Invalid Service ID." });
+                }
 
+                var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
 
                 if (service != null)
                 {
@@ -251,11 +260,11 @@ namespace SahayataNidhi.Controllers
                 dbcontext.Services.Add(newService);
             }
 
-
             dbcontext.SaveChanges();
 
             return Json(new { status = true });
         }
+
         [HttpPost]
         public IActionResult WorkFlowPlayers([FromForm] IFormCollection form)
         {

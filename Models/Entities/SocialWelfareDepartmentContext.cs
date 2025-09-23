@@ -6,7 +6,7 @@ namespace SahayataNidhi.Models.Entities;
 
 public partial class SocialWelfareDepartmentContext : DbContext
 {
-    public SocialWelfareDepartmentContext()
+    public SocialWelfareDepartmentContext(System.Data.Common.DbConnection dbConnection)
     {
     }
 

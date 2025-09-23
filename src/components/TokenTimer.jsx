@@ -30,9 +30,9 @@ const TokenTimer = () => {
   const sessionDuration = 30 * 60 * 1000; // 30 minutes
   const popupThreshold = 2 * 60 * 1000; // 2 minutes
 
-  // Initialize lastActivity from localStorage
+  // Initialize lastActivity from sessionStorage
   useEffect(() => {
-    const savedActivity = localStorage.getItem("lastActivity");
+    const savedActivity = sessionStorage.getItem("lastActivity");
     if (savedActivity) {
       lastActivityRef.current = parseInt(savedActivity, 10);
     }
@@ -44,7 +44,7 @@ const TokenTimer = () => {
     debounce(() => {
       const now = Date.now();
       lastActivityRef.current = now;
-      localStorage.setItem("lastActivity", now.toString());
+      sessionStorage.setItem("lastActivity", now.toString());
 
       // If countdown is active, stop it and send keep-alive
       if (countdownStartTime) {
@@ -143,17 +143,20 @@ const TokenTimer = () => {
       if (response.data.status) {
         const { token, userType, profile, username, designation } =
           response.data;
-        // Update localStorage and context
+        // Update sessionStorage and context
         setToken(token || null);
         setUserType(userType || null);
         setUsername(username || null);
         setProfile(profile || null);
         setDesignation(designation || null);
-        localStorage.setItem("token", token || "");
-        localStorage.setItem("userType", userType || "");
-        localStorage.setItem("profile", profile ? JSON.stringify(profile) : "");
-        localStorage.setItem("username", username || "");
-        localStorage.setItem("designation", designation || "");
+        sessionStorage.setItem("token", token || "");
+        sessionStorage.setItem("userType", userType || "");
+        sessionStorage.setItem(
+          "profile",
+          profile ? JSON.stringify(profile) : "",
+        );
+        sessionStorage.setItem("username", username || "");
+        sessionStorage.setItem("designation", designation || "");
         setTokenExpiry(Date.now() + sessionDuration);
       } else {
         throw new Error(response.data.message);
@@ -176,17 +179,20 @@ const TokenTimer = () => {
       if (response.data.status) {
         const { token, userType, profile, username, designation } =
           response.data;
-        // Update localStorage and context
+        // Update sessionStorage and context
         setToken(token || null);
         setUserType(userType || null);
         setUsername(username || null);
         setProfile(profile || null);
         setDesignation(designation || null);
-        localStorage.setItem("token", token || "");
-        localStorage.setItem("userType", userType || "");
-        localStorage.setItem("profile", profile ? JSON.stringify(profile) : "");
-        localStorage.setItem("username", username || "");
-        localStorage.setItem("designation", designation || "");
+        sessionStorage.setItem("token", token || "");
+        sessionStorage.setItem("userType", userType || "");
+        sessionStorage.setItem(
+          "profile",
+          profile ? JSON.stringify(profile) : "",
+        );
+        sessionStorage.setItem("username", username || "");
+        sessionStorage.setItem("designation", designation || "");
         setTokenExpiry(Date.now() + 24 * 60 * 60 * 1000);
       } else {
         throw new Error(response.data.message);
@@ -208,7 +214,7 @@ const TokenTimer = () => {
   // Logout
   const handleLogout = () => {
     stopCountdown();
-    localStorage.clear();
+    sessionStorage.clear();
     setToken(null);
     setUserType(null);
     setUsername(null);

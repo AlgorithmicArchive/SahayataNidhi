@@ -84,9 +84,9 @@ export default function LoginScreen() {
   }, []);
 
   // Automatically set the CAPTCHA field value whenever captcha changes
-  useEffect(() => {
-    setValue("captcha", captcha, { shouldValidate: true });
-  }, [captcha, setValue]);
+  // useEffect(() => {
+  //   setValue("captcha", captcha, { shouldValidate: true });
+  // }, [captcha, setValue]);
 
   const handleRefreshCaptcha = () => {
     setCaptcha(generateCaptcha());

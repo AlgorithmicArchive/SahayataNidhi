@@ -62,12 +62,12 @@ const MainContent = () => {
           setVerified(false);
           setDesignation(null);
           setTokenExpiry(null);
-          localStorage.removeItem("token");
-          localStorage.removeItem("userType");
-          localStorage.removeItem("username");
-          localStorage.removeItem("profile");
-          localStorage.removeItem("verified");
-          localStorage.removeItem("designation");
+          sessionStorage.removeItem("token");
+          sessionStorage.removeItem("userType");
+          sessionStorage.removeItem("username");
+          sessionStorage.removeItem("profile");
+          sessionStorage.removeItem("verified");
+          sessionStorage.removeItem("designation");
           toast.error("Session expired. Please log in again.");
           navigate("/login");
         } else {
@@ -83,12 +83,12 @@ const MainContent = () => {
             setVerified(false);
             setDesignation(null);
             setTokenExpiry(null);
-            localStorage.removeItem("token");
-            localStorage.removeItem("userType");
-            localStorage.removeItem("username");
-            localStorage.removeItem("profile");
-            localStorage.removeItem("verified");
-            localStorage.removeItem("designation");
+            sessionStorage.removeItem("token");
+            sessionStorage.removeItem("userType");
+            sessionStorage.removeItem("username");
+            sessionStorage.removeItem("profile");
+            sessionStorage.removeItem("verified");
+            sessionStorage.removeItem("designation");
             toast.error("Session expired. Please log in again.");
             navigate("/login");
           }, timeUntilExpiry);
@@ -105,12 +105,12 @@ const MainContent = () => {
         setVerified(false);
         setDesignation(null);
         setTokenExpiry(null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("userType");
-        localStorage.removeItem("username");
-        localStorage.removeItem("profile");
-        localStorage.removeItem("verified");
-        localStorage.removeItem("designation");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("userType");
+        sessionStorage.removeItem("username");
+        sessionStorage.removeItem("profile");
+        sessionStorage.removeItem("verified");
+        sessionStorage.removeItem("designation");
         toast.error("Invalid token. Please log in again.");
         navigate("/login");
       }

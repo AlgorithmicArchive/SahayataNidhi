@@ -32,7 +32,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Function to normalize a field object to include all required properties
-const normalizeField = (field, timestamp = Date.now()) => ({
+const normalizeField = (field, timestamp = Date.now(), banks = []) => ({
   id:
     field.id ||
     `field-${timestamp}-${Math.random().toString(36).substring(2, 9)}`,
@@ -41,7 +41,18 @@ const normalizeField = (field, timestamp = Date.now()) => ({
   name: field.name || `NewField_${timestamp}`,
   minLength: field.minLength !== undefined ? field.minLength : 5,
   maxLength: field.maxLength !== undefined ? field.maxLength : 50,
-  options: Array.isArray(field.options) ? field.options : [],
+  options:
+    field.name === "BankName" && banks.length > 0
+      ? [
+          { value: "Please Select", label: "Please Select" },
+          ...banks.map((bank) => ({
+            value: bank.id,
+            label: bank.bankName,
+          })),
+        ]
+      : Array.isArray(field.options)
+      ? field.options
+      : [],
   span: field.span !== undefined ? field.span : 12,
   validationFunctions: Array.isArray(field.validationFunctions)
     ? field.validationFunctions
@@ -52,6 +63,7 @@ const normalizeField = (field, timestamp = Date.now()) => ({
   additionalFields: normalizeAdditionalFields(
     field.additionalFields || {},
     timestamp,
+    banks,
   ),
   accept: field.accept || "",
   editable: field.editable !== undefined ? field.editable : true,
@@ -66,34 +78,41 @@ const normalizeField = (field, timestamp = Date.now()) => ({
   isConsentCheckbox: field.isConsentCheckbox ?? false,
   checkboxLayout: field.checkboxLayout || "vertical",
   declaration: field.declaration || "",
+  sectionId: field.sectionId || undefined,
+  optionsType: field.optionsType || "independent",
 });
 
 // Function to recursively normalize additionalFields
-const normalizeAdditionalFields = (additionalFields, timestamp) => {
+const normalizeAdditionalFields = (additionalFields, timestamp, banks) => {
   const normalized = {};
   Object.keys(additionalFields).forEach((option) => {
     normalized[option] = (additionalFields[option] || []).map((field) =>
-      normalizeField(field, timestamp),
+      normalizeField(field, timestamp, banks),
     );
   });
   return normalized;
 };
 
 // Function to normalize sections and their fields
-const normalizeSections = (sections) => {
+const normalizeSections = (sections, banks = []) => {
   return sections.map((section) => ({
     ...section,
     id: section.id || `section-${Date.now()}`,
     section: section.section || `Section ${sections.length + 1}`,
-    fields: (section.fields || []).map((field) => normalizeField(field)),
+    fields: (section.fields || []).map((field) =>
+      normalizeField({ ...field, sectionId: section.id }, Date.now(), banks),
+    ),
     editable: section.editable !== undefined ? section.editable : true,
   }));
 };
 
 export default function CreateService() {
-  const [sections, setSections] = useState(defaultFormConfig);
+  const [sections, setSections] = useState(
+    normalizeSections(defaultFormConfig),
+  );
   const [services, setServices] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [banks, setBanks] = useState([]);
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [serviceName, setServiceName] = useState("");
   const [serviceNameShort, setServiceNameShort] = useState("");
@@ -120,6 +139,7 @@ export default function CreateService() {
           departmentsResponse.data.status &&
           departmentsResponse.data.departments
         ) {
+          console.log("Departments:", departmentsResponse.data.departments);
           setDepartments(departmentsResponse.data.departments);
         } else {
           toast.error("Failed to fetch departments");
@@ -131,15 +151,16 @@ export default function CreateService() {
     fetchData();
   }, []);
 
-  const handleServiceChange = (e) => {
+  const handleServiceChange = async (e) => {
     const serviceId = e.target.value;
     setSelectedServiceId(serviceId);
 
     if (serviceId === "") {
-      setSections(defaultFormConfig);
+      setSections(normalizeSections(defaultFormConfig, banks));
       setServiceName("");
       setServiceNameShort("");
       setDepartmentId("");
+      setBanks([]);
       return;
     }
 
@@ -148,17 +169,44 @@ export default function CreateService() {
       setServiceName(service.serviceName || "");
       setServiceNameShort(service.nameShort || "");
       setDepartmentId(service.departmentId || "");
+
+      // Fetch banks after service selection
+      let banksResponse;
+      try {
+        banksResponse = await axiosInstance.get("/Base/GetBanks");
+        console.log("Fetched Banks:", banksResponse.data);
+        if (banksResponse.data.status && banksResponse.data.data) {
+          setBanks(banksResponse.data.data);
+        } else {
+          toast.error("Failed to fetch banks");
+          setBanks([]);
+        }
+      } catch (err) {
+        console.error("Error fetching banks:", err);
+        toast.error("Failed to fetch banks");
+        setBanks([]);
+      }
+
       if (service.formElement) {
         try {
           const config = JSON.parse(service.formElement);
-          setSections(normalizeSections(config));
+          setSections(
+            normalizeSections(config, banksResponse?.data.data || []),
+          );
         } catch (err) {
           console.error("Error parsing formElements:", err);
           toast.error("Invalid form data format.");
-          setSections(defaultFormConfig);
+          setSections(
+            normalizeSections(
+              defaultFormConfig,
+              banksResponse?.data.data || [],
+            ),
+          );
         }
       } else {
-        setSections(defaultFormConfig);
+        setSections(
+          normalizeSections(defaultFormConfig, banksResponse?.data.data || []),
+        );
       }
     }
   };
@@ -202,12 +250,16 @@ export default function CreateService() {
         id: `section-${sections.length + 1}`,
         section: `${sectionToDuplicate.section} Copy`,
         fields: sectionToDuplicate.fields.map((field) =>
-          normalizeField({
-            ...field,
-            id: `field-${Date.now()}-${Math.random()
-              .toString(36)
-              .substring(2, 9)}`,
-          }),
+          normalizeField(
+            {
+              ...field,
+              id: `field-${Date.now()}-${Math.random()
+                .toString(36)
+                .substring(2, 9)}`,
+            },
+            Date.now(),
+            banks,
+          ),
         ),
       };
       setSections((prev) => [...prev, newSection]);
@@ -242,6 +294,8 @@ export default function CreateService() {
       isConsentCheckbox: false,
       checkboxLayout: "vertical",
       declaration: "",
+      sectionId,
+      optionsType: "independent",
     };
 
     setSections((prev) =>
@@ -277,7 +331,7 @@ export default function CreateService() {
       );
       return;
     }
-    console.log("Sections", sections);
+
     formdata.append("serviceName", serviceName);
     formdata.append("serviceNameShort", serviceNameShort);
     formdata.append("departmentId", departmentId);
@@ -300,8 +354,9 @@ export default function CreateService() {
           setServiceName("");
           setServiceNameShort("");
           setDepartmentId("");
-          setSections(defaultFormConfig);
+          setSections(normalizeSections(defaultFormConfig, banks));
           setSelectedServiceId("");
+          setBanks([]);
         }
         const servicesResponse = await axiosInstance.get("/Base/GetServices");
         if (servicesResponse.data.status && servicesResponse.data.services) {
@@ -326,7 +381,7 @@ export default function CreateService() {
                 ...section,
                 fields: section.fields.map((field) =>
                   field.id === updatedField.id
-                    ? normalizeField(updatedField)
+                    ? normalizeField(updatedField, Date.now(), banks)
                     : field,
                 ),
               }
@@ -339,7 +394,7 @@ export default function CreateService() {
                 ...section,
                 fields: section.fields.map((field) =>
                   field.id === updatedField.id
-                    ? normalizeField(updatedField)
+                    ? normalizeField(updatedField, Date.now(), banks)
                     : field,
                 ),
               }
@@ -606,6 +661,7 @@ export default function CreateService() {
                         <SortableSection
                           key={section.id}
                           section={section}
+                          banks={banks}
                           onAddField={handleAddField}
                           onEditSectionName={handleSectionNameChange}
                           onEditField={handleEditField}
@@ -631,6 +687,7 @@ export default function CreateService() {
         <FieldEditModal
           selectedField={selectedField}
           sections={sections}
+          banks={banks}
           onClose={() => {
             setIsModalOpen(false);
             setSelectedField(null);
@@ -656,6 +713,7 @@ export default function CreateService() {
         <AdditionalFieldsModal
           sections={sections}
           selectedField={selectedField}
+          banks={banks}
           onClose={() => {
             setIsAdditionalModalOpen(false);
             setSelectedField(null);
