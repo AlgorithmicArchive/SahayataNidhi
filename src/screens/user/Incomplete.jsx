@@ -1,8 +1,40 @@
 import React, { useState } from "react";
-import { Box } from "@mui/material";
+import { Box, styled } from "@mui/material";
 import BasicModal from "../../components/BasicModal";
 import { useNavigate } from "react-router-dom";
 import ServerSideTable from "../../components/ServerSideTable";
+const MainContainer = styled(Box)`
+  min-height: 100vh;
+  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem; /* Reduced padding for smaller screens */
+  box-sizing: border-box;
+  width: 100%;
+
+  @media (max-width: 600px) {
+    padding: 1rem 0.5rem;
+  }
+`;
+
+const TableCard = styled(Box)`
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  width: 95%; /* Use percentage for responsiveness */
+  max-width: 1200px; /* Limit max width for larger screens */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  &:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 600px) {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+`;
 
 export default function Incomplete() {
   const [open, setOpen] = useState(false);
@@ -27,22 +59,15 @@ export default function Incomplete() {
   };
 
   return (
-    <Box
-      sx={{
-        height: { xs: "100vh", md: "90vh" },
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Box sx={{ width: { xs: "100%", md: "80%" } }}>
+    <MainContainer>
+      <TableCard>
         <ServerSideTable
           url="/User/IncompleteApplications"
           extraParams={{}}
           actionFunctions={actionFunctions}
           Title={"Incomplete Applications"}
         />
-      </Box>
+      </TableCard>
       <BasicModal
         open={open}
         handleClose={handleClose}
@@ -51,6 +76,6 @@ export default function Incomplete() {
         table={table}
         accordion={ApplicationId}
       />
-    </Box>
+    </MainContainer>
   );
 }

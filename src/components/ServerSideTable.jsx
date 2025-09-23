@@ -30,7 +30,14 @@ const TableContainer = styled(Box)`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
+  padding: 2rem 1rem; /* Reduced padding for smaller screens */
+  box-sizing: border-box;
+  min-height: 100vh;
+  width: 100%;
+
+  @media (max-width: 600px) {
+    padding: 1rem 0.5rem;
+  }
 `;
 
 const TableCard = styled(Box)`
@@ -38,10 +45,16 @@ const TableCard = styled(Box)`
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  width: 100%;
+  width: 95%; /* Use percentage for responsiveness */
+  max-width: 1200px; /* Limit max width for larger screens */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   &:hover {
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 600px) {
+    padding: 1rem;
+    border-radius: 12px;
   }
 `;
 
@@ -57,6 +70,11 @@ const ActionButton = styled(Button)`
     background: linear-gradient(45deg, #1565c0, #039be5);
     box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
   }
+
+  @media (max-width: 600px) {
+    padding: 0.4rem 1rem;
+    font-size: 0.875rem;
+  }
 `;
 
 const StyledIconButton = styled(IconButton)`
@@ -70,13 +88,17 @@ const StyledIconButton = styled(IconButton)`
     color: #ffffff;
     transform: scale(1.02);
   }
+
+  @media (max-width: 600px) {
+    padding: 0.3rem;
+  }
 `;
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
   & .MuiToggleButton-root {
     text-transform: none;
     font-weight: 600;
-    padding: 0.5rem 2rem;
+    padding: 0.5rem 1.5rem;
     border-radius: 8px;
     border: 1px solid #b3cde0;
     color: #1f2937;
@@ -91,6 +113,13 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
       &:hover {
         background: linear-gradient(45deg, #1565c0, #039be5);
       }
+    }
+  }
+
+  @media (max-width: 600px) {
+    & .MuiToggleButton-root {
+      padding: 0.4rem 1rem;
+      font-size: 0.875rem;
     }
   }
 `;
@@ -116,6 +145,11 @@ const StyledFormControl = styled(FormControl)`
   }
   min-width: 150px;
   margin-right: 1rem;
+
+  @media (max-width: 600px) {
+    min-width: 120px;
+    margin-right: 0.5rem;
+  }
 `;
 
 // Memoized Input Cell Component to prevent re-renders and focus loss
@@ -129,7 +163,7 @@ const InputCell = React.memo(({ row, inputValues, setInputValues }) => {
     if (inputValues[row.original.sno] !== localValue) {
       setLocalValue(inputValues[row.original.sno] || "");
     }
-  }, [inputValues[row.original.sno], row.original.sno]); // Removed localValue from dependencies
+  }, [inputValues[row.original.sno], row.original.sno]);
 
   const handleInputChange = useCallback(
     (e) => {
@@ -160,6 +194,11 @@ const InputCell = React.memo(({ row, inputValues, setInputValues }) => {
         pattern: "[0-9]*",
       }}
       onFocus={(e) => e.target.select()}
+      sx={{
+        "& .MuiInputBase-input": {
+          fontSize: { xs: "0.75rem", sm: "0.875rem" },
+        },
+      }}
     />
   );
 });
@@ -283,7 +322,7 @@ const ServerSideTable = React.forwardRef(
       }
     }, [columnOrder, columnVisibility, saveColumnSettings]);
 
-    // Memoized function to create input column - removed inputValues dependency
+    // Memoized function to create input column
     const createInputColumn = useCallback(() => {
       return {
         accessorKey: "customInput",
@@ -299,7 +338,7 @@ const ServerSideTable = React.forwardRef(
           />
         ),
       };
-    }, [memoizedSetInputValues]); // Removed inputValues from dependencies
+    }, [memoizedSetInputValues]);
 
     const fetchData = useCallback(async () => {
       if (!url) {
@@ -330,12 +369,12 @@ const ServerSideTable = React.forwardRef(
           json.poolData?.some((row) => row.customActions?.length > 0) ||
           false;
 
-        // base column config
+        // Base column config
         let updatedColumns = Object.values(json.columns || {}).map((col) =>
           col.accessorKey === "sno" ? { ...col, size: 20 } : col,
         );
 
-        // 🔑 check if any row has "input: true"
+        // Check if any row has "input: true"
         const hasInputColumn = json.data?.some((row) => row.input === true);
 
         if (hasInputColumn) {
@@ -401,7 +440,6 @@ const ServerSideTable = React.forwardRef(
       pagination.pageSize,
       extraParams,
       refreshTrigger,
-      // Removed createInputColumn from dependencies to prevent refresh on input
     ]);
 
     useEffect(() => {
@@ -533,15 +571,29 @@ const ServerSideTable = React.forwardRef(
               fontFamily: "'Inter', sans-serif",
               mb: 2,
               textAlign: "center",
+              fontSize: { xs: "1.5rem", sm: "2rem" },
             }}
           >
             {Title}
           </Typography>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-            <Typography variant="body2" color="#6b7280">
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              justifyContent: "space-between",
+              alignItems: { xs: "flex-start", sm: "center" },
+              mb: 3,
+              gap: { xs: 2, sm: 0 },
+            }}
+          >
+            <Typography
+              variant="body2"
+              color="#6b7280"
+              sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+            >
               Total Records: {totalRecords}
             </Typography>
-            <Box sx={{ display: "flex", gap: 1 }}>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
               <Tooltip title="Download as Excel" arrow>
                 <StyledIconButton
                   onClick={(e) => handleMenuOpen(e, "Excel")}
@@ -585,6 +637,9 @@ const ServerSideTable = React.forwardRef(
                     borderRadius: "8px",
                     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
                   },
+                  "& .MuiMenuItem-root": {
+                    fontSize: { xs: "0.875rem", sm: "1rem" },
+                  },
                 }}
               >
                 <MenuItem onClick={() => handleDownload(downloadType, "All")}>
@@ -599,7 +654,15 @@ const ServerSideTable = React.forwardRef(
             </Box>
           </Box>
           {showToggleButtons && (
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                mb: 3,
+                flexDirection: { xs: "column", sm: "row" },
+                gap: { xs: 1, sm: 2 },
+              }}
+            >
               <StyledToggleButtonGroup
                 value={viewType}
                 exclusive
@@ -616,7 +679,7 @@ const ServerSideTable = React.forwardRef(
             </Box>
           )}
           <MaterialReactTable
-            key={`table-${Title}`} // Stable key instead of pagination-based
+            key={`table-${Title}`}
             columns={memoizedColumns}
             data={memoizedTableData}
             state={{
@@ -655,10 +718,12 @@ const ServerSideTable = React.forwardRef(
                 background: "#e6f0fa",
                 color: "#1f2937",
                 fontWeight: 600,
-                fontSize: { xs: 12, md: 14 },
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 borderBottom: "2px solid #b3cde0",
                 borderRight: "1px solid #b3cde0",
                 "&:last-child": { borderRight: "none" },
+                whiteSpace: "normal",
+                wordBreak: "break-word",
               },
             }}
             muiTableBodyRowProps={{
@@ -673,10 +738,12 @@ const ServerSideTable = React.forwardRef(
               sx: {
                 color: "#1f2937",
                 background: "#ffffff",
-                fontSize: { xs: 12, md: 14 },
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 borderRight: "1px solid #b3cde0",
                 borderBottom: "1px solid #b3cde0",
                 "&:last-child": { borderRight: "none" },
+                whiteSpace: "normal",
+                wordBreak: "break-word",
               },
             }}
             muiTableFooterRowProps={{
@@ -690,7 +757,7 @@ const ServerSideTable = React.forwardRef(
                 color: "#1f2937",
                 background: "#ffffff",
                 borderTop: "1px solid #b3cde0",
-                fontSize: { xs: 12, md: 14 },
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
               },
             }}
             renderEmptyRowsFallback={() => (
@@ -699,14 +766,21 @@ const ServerSideTable = React.forwardRef(
                   textAlign: "center",
                   py: 4,
                   color: "#6b7280",
-                  fontSize: { xs: 14, md: 16 },
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
                 }}
               >
                 No {viewType.toLowerCase()} applications available.
               </Box>
             )}
             renderBottomToolbarCustomActions={() => (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  flexWrap: "wrap",
+                }}
+              >
                 {isLoading && (
                   <CircularProgress
                     size={24}
@@ -720,7 +794,7 @@ const ServerSideTable = React.forwardRef(
               enableRowActions: true,
               positionActionsColumn: "last",
               renderRowActions: ({ row }) => (
-                <Box sx={{ display: "flex", gap: 1 }}>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                   {Array.isArray(row.original.customActions) ? (
                     (row.original.customActions || []).map((action, index) => (
                       <Tooltip key={index} title={action.tooltipText} arrow>
@@ -748,7 +822,11 @@ const ServerSideTable = React.forwardRef(
                   ) : (
                     <Typography
                       variant="body2"
-                      sx={{ fontWeight: 600, color: "#1f2937" }}
+                      sx={{
+                        fontWeight: 600,
+                        color: "#1f2937",
+                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                      }}
                     >
                       {row.original.customActions}
                     </Typography>
@@ -760,7 +838,14 @@ const ServerSideTable = React.forwardRef(
               const selectedRows = table.getSelectedRowModel().rows;
               if (canSanction && pendingApplications && viewType === "Inbox") {
                 return (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flexWrap: "wrap",
+                    }}
+                  >
                     <ActionButton
                       variant="contained"
                       disabled={selectedRows.length === 0}
@@ -773,7 +858,14 @@ const ServerSideTable = React.forwardRef(
                 );
               } else if (canHavePool && viewType === "Pool") {
                 return (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flexWrap: "wrap",
+                    }}
+                  >
                     <StyledFormControl>
                       <InputLabel id="bulk-action-select-label">
                         Bulk Action
@@ -784,9 +876,18 @@ const ServerSideTable = React.forwardRef(
                         label="Bulk Action"
                         onChange={(e) => setSelectedAction(e.target.value)}
                         size="small"
+                        sx={{
+                          fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                        }}
                       >
                         {actionOptions.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
+                          <MenuItem
+                            key={option.value}
+                            value={option.value}
+                            sx={{
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                            }}
+                          >
                             {option.label}
                           </MenuItem>
                         ))}

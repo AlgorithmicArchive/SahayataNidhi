@@ -353117,12 +353117,12 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 
 
 
-var TableContainer = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"])(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  padding: 2rem;\n"])));
-var TableCard = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"])(_templateObject2 || (_templateObject2 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  background: #ffffff;\n  border-radius: 16px;\n  padding: 2rem;\n  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);\n  width: 100%;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);\n  }\n"])));
-var ActionButton = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"])(_templateObject3 || (_templateObject3 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  background: linear-gradient(45deg, #1e88e5, #4fc3f7);\n  color: #ffffff;\n  font-weight: 600;\n  text-transform: none;\n  border-radius: 8px;\n  padding: 0.5rem 1.5rem;\n  transition: all 0.3s ease;\n  &:hover {\n    background: linear-gradient(45deg, #1565c0, #039be5);\n    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);\n  }\n"])));
-var StyledIconButton = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"])(_templateObject4 || (_templateObject4 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  color: #1e88e5;\n  border: 1px solid #1e88e5;\n  border-radius: 8px;\n  padding: 0.5rem;\n  transition: all 0.3s ease;\n  &:hover {\n    background: linear-gradient(45deg, #1e88e5, #4fc3f7);\n    color: #ffffff;\n    transform: scale(1.02);\n  }\n"])));
-var StyledToggleButtonGroup = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"])(_templateObject5 || (_templateObject5 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  & .MuiToggleButton-root {\n    text-transform: none;\n    font-weight: 600;\n    padding: 0.5rem 2rem;\n    border-radius: 8px;\n    border: 1px solid #b3cde0;\n    color: #1f2937;\n    transition: all 0.3s ease;\n    &:hover {\n      background: #e6f0fa;\n      transform: scale(1.02);\n    }\n    &.Mui-selected {\n      background: linear-gradient(45deg, #1e88e5, #4fc3f7);\n      color: #ffffff;\n      &:hover {\n        background: linear-gradient(45deg, #1565c0, #039be5);\n      }\n    }\n  }\n"])));
-var StyledFormControl = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"])(_templateObject6 || (_templateObject6 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  & .MuiOutlinedInput-root {\n    border-radius: 8px;\n    background: #ffffff;\n    border: 1px solid #b3cde0;\n    &:hover .MuiOutlinedInput-notchedOutline {\n      border-color: #1e88e5;\n    }\n    &.Mui-focused .MuiOutlinedInput-notchedOutline {\n      border-color: #1e88e5;\n      border-width: 2px;\n    }\n  }\n  & .MuiInputLabel-root {\n    color: #1f2937;\n    &.Mui-focused {\n      color: #1e88e5;\n    }\n  }\n  min-width: 150px;\n  margin-right: 1rem;\n"])));
+var TableContainer = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"])(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  padding: 2rem 1rem; /* Reduced padding for smaller screens */\n  box-sizing: border-box;\n  min-height: 100vh;\n  width: 100%;\n\n  @media (max-width: 600px) {\n    padding: 1rem 0.5rem;\n  }\n"])));
+var TableCard = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"])(_templateObject2 || (_templateObject2 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  background: #ffffff;\n  border-radius: 16px;\n  padding: 2rem;\n  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);\n  width: 95%; /* Use percentage for responsiveness */\n  max-width: 1200px; /* Limit max width for larger screens */\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);\n  }\n\n  @media (max-width: 600px) {\n    padding: 1rem;\n    border-radius: 12px;\n  }\n"])));
+var ActionButton = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"])(_templateObject3 || (_templateObject3 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  background: linear-gradient(45deg, #1e88e5, #4fc3f7);\n  color: #ffffff;\n  font-weight: 600;\n  text-transform: none;\n  border-radius: 8px;\n  padding: 0.5rem 1.5rem;\n  transition: all 0.3s ease;\n  &:hover {\n    background: linear-gradient(45deg, #1565c0, #039be5);\n    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);\n  }\n\n  @media (max-width: 600px) {\n    padding: 0.4rem 1rem;\n    font-size: 0.875rem;\n  }\n"])));
+var StyledIconButton = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"])(_templateObject4 || (_templateObject4 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  color: #1e88e5;\n  border: 1px solid #1e88e5;\n  border-radius: 8px;\n  padding: 0.5rem;\n  transition: all 0.3s ease;\n  &:hover {\n    background: linear-gradient(45deg, #1e88e5, #4fc3f7);\n    color: #ffffff;\n    transform: scale(1.02);\n  }\n\n  @media (max-width: 600px) {\n    padding: 0.3rem;\n  }\n"])));
+var StyledToggleButtonGroup = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_13__["default"])(_templateObject5 || (_templateObject5 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  & .MuiToggleButton-root {\n    text-transform: none;\n    font-weight: 600;\n    padding: 0.5rem 1.5rem;\n    border-radius: 8px;\n    border: 1px solid #b3cde0;\n    color: #1f2937;\n    transition: all 0.3s ease;\n    &:hover {\n      background: #e6f0fa;\n      transform: scale(1.02);\n    }\n    &.Mui-selected {\n      background: linear-gradient(45deg, #1e88e5, #4fc3f7);\n      color: #ffffff;\n      &:hover {\n        background: linear-gradient(45deg, #1565c0, #039be5);\n      }\n    }\n  }\n\n  @media (max-width: 600px) {\n    & .MuiToggleButton-root {\n      padding: 0.4rem 1rem;\n      font-size: 0.875rem;\n    }\n  }\n"])));
+var StyledFormControl = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_31__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_14__["default"])(_templateObject6 || (_templateObject6 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_6__["default"])(["\n  & .MuiOutlinedInput-root {\n    border-radius: 8px;\n    background: #ffffff;\n    border: 1px solid #b3cde0;\n    &:hover .MuiOutlinedInput-notchedOutline {\n      border-color: #1e88e5;\n    }\n    &.Mui-focused .MuiOutlinedInput-notchedOutline {\n      border-color: #1e88e5;\n      border-width: 2px;\n    }\n  }\n  & .MuiInputLabel-root {\n    color: #1f2937;\n    &.Mui-focused {\n      color: #1e88e5;\n    }\n  }\n  min-width: 150px;\n  margin-right: 1rem;\n\n  @media (max-width: 600px) {\n    min-width: 120px;\n    margin-right: 0.5rem;\n  }\n"])));
 
 // Memoized Input Cell Component to prevent re-renders and focus loss
 var InputCell = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().memo(function (_ref) {
@@ -353139,8 +353139,7 @@ var InputCell = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().memo(f
     if (inputValues[row.original.sno] !== localValue) {
       setLocalValue(inputValues[row.original.sno] || "");
     }
-  }, [inputValues[row.original.sno], row.original.sno]); // Removed localValue from dependencies
-
+  }, [inputValues[row.original.sno], row.original.sno]);
   var handleInputChange = (0,react__WEBPACK_IMPORTED_MODULE_8__.useCallback)(function (e) {
     var value = e.target.value;
     setLocalValue(value);
@@ -353165,6 +353164,14 @@ var InputCell = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().memo(f
     },
     onFocus: function onFocus(e) {
       return e.target.select();
+    },
+    sx: {
+      "& .MuiInputBase-input": {
+        fontSize: {
+          xs: "0.75rem",
+          sm: "0.875rem"
+        }
+      }
     }
   });
 });
@@ -353354,7 +353361,7 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
     }
   }, [columnOrder, columnVisibility, saveColumnSettings]);
 
-  // Memoized function to create input column - removed inputValues dependency
+  // Memoized function to create input column
   var createInputColumn = (0,react__WEBPACK_IMPORTED_MODULE_8__.useCallback)(function () {
     return {
       accessorKey: "customInput",
@@ -353371,8 +353378,7 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
         });
       }
     };
-  }, [memoizedSetInputValues]); // Removed inputValues from dependencies
-
+  }, [memoizedSetInputValues]);
   var fetchData = (0,react__WEBPACK_IMPORTED_MODULE_8__.useCallback)(/*#__PURE__*/(0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_7___default().mark(function _callee3() {
     var _json$data, _json$poolData, _json$data2, response, json, hasAnyActions, updatedColumns, hasInputColumn, _t2;
     return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_7___default().wrap(function (_context3) {
@@ -353409,12 +353415,12 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
           })) || ((_json$poolData = json.poolData) === null || _json$poolData === void 0 ? void 0 : _json$poolData.some(function (row) {
             var _row$customActions2;
             return ((_row$customActions2 = row.customActions) === null || _row$customActions2 === void 0 ? void 0 : _row$customActions2.length) > 0;
-          })) || false; // base column config
+          })) || false; // Base column config
           updatedColumns = Object.values(json.columns || {}).map(function (col) {
             return col.accessorKey === "sno" ? _objectSpread(_objectSpread({}, col), {}, {
               size: 20
             }) : col;
-          }); // 🔑 check if any row has "input: true"
+          }); // Check if any row has "input: true"
           hasInputColumn = (_json$data2 = json.data) === null || _json$data2 === void 0 ? void 0 : _json$data2.some(function (row) {
             return row.input === true;
           });
@@ -353488,9 +353494,7 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
           return _context3.stop();
       }
     }, _callee3, null, [[2, 4, 5, 6]]);
-  })), [url, pagination.pageIndex, pagination.pageSize, extraParams, refreshTrigger
-  // Removed createInputColumn from dependencies to prevent refresh on input
-  ]);
+  })), [url, pagination.pageIndex, pagination.pageSize, extraParams, refreshTrigger]);
   (0,react__WEBPACK_IMPORTED_MODULE_8__.useEffect)(function () {
     fetchData();
   }, [fetchData]);
@@ -353629,21 +353633,44 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
       color: "#1f2937",
       fontFamily: "'Inter', sans-serif",
       mb: 2,
-      textAlign: "center"
+      textAlign: "center",
+      fontSize: {
+        xs: "1.5rem",
+        sm: "2rem"
+      }
     }
   }, Title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     sx: {
       display: "flex",
+      flexDirection: {
+        xs: "column",
+        sm: "row"
+      },
       justifyContent: "space-between",
-      mb: 3
+      alignItems: {
+        xs: "flex-start",
+        sm: "center"
+      },
+      mb: 3,
+      gap: {
+        xs: 2,
+        sm: 0
+      }
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_16__["default"], {
     variant: "body2",
-    color: "#6b7280"
+    color: "#6b7280",
+    sx: {
+      fontSize: {
+        xs: "0.875rem",
+        sm: "1rem"
+      }
+    }
   }, "Total Records: ", totalRecords), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     sx: {
       display: "flex",
-      gap: 1
+      gap: 1,
+      flexWrap: "wrap"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
     title: "Download as Excel",
@@ -353691,6 +353718,12 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
       "& .MuiPaper-root": {
         borderRadius: "8px",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)"
+      },
+      "& .MuiMenuItem-root": {
+        fontSize: {
+          xs: "0.875rem",
+          sm: "1rem"
+        }
       }
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
@@ -353705,7 +353738,15 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
     sx: {
       display: "flex",
       justifyContent: "center",
-      mb: 3
+      mb: 3,
+      flexDirection: {
+        xs: "column",
+        sm: "row"
+      },
+      gap: {
+        xs: 1,
+        sm: 2
+      }
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(StyledToggleButtonGroup, {
     value: viewType,
@@ -353719,8 +353760,7 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
     value: "Pool",
     "aria-label": "Pool view"
   }, "Pool (", poolData.length, ")"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(material_react_table__WEBPACK_IMPORTED_MODULE_9__.MaterialReactTable, (0,_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
-    key: "table-".concat(Title) // Stable key instead of pagination-based
-    ,
+    key: "table-".concat(Title),
     columns: memoizedColumns,
     data: memoizedTableData,
     state: _objectSpread({
@@ -353762,14 +353802,16 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
         color: "#1f2937",
         fontWeight: 600,
         fontSize: {
-          xs: 12,
-          md: 14
+          xs: "0.75rem",
+          sm: "0.875rem"
         },
         borderBottom: "2px solid #b3cde0",
         borderRight: "1px solid #b3cde0",
         "&:last-child": {
           borderRight: "none"
-        }
+        },
+        whiteSpace: "normal",
+        wordBreak: "break-word"
       }
     },
     muiTableBodyRowProps: {
@@ -353785,14 +353827,16 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
         color: "#1f2937",
         background: "#ffffff",
         fontSize: {
-          xs: 12,
-          md: 14
+          xs: "0.75rem",
+          sm: "0.875rem"
         },
         borderRight: "1px solid #b3cde0",
         borderBottom: "1px solid #b3cde0",
         "&:last-child": {
           borderRight: "none"
-        }
+        },
+        whiteSpace: "normal",
+        wordBreak: "break-word"
       }
     },
     muiTableFooterRowProps: {
@@ -353809,8 +353853,8 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
         background: "#ffffff",
         borderTop: "1px solid #b3cde0",
         fontSize: {
-          xs: 12,
-          md: 14
+          xs: "0.75rem",
+          sm: "0.875rem"
         }
       }
     },
@@ -353821,8 +353865,8 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
           py: 4,
           color: "#6b7280",
           fontSize: {
-            xs: 14,
-            md: 16
+            xs: "0.875rem",
+            sm: "1rem"
           }
         }
       }, "No ", viewType.toLowerCase(), " applications available.");
@@ -353832,7 +353876,8 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
         sx: {
           display: "flex",
           alignItems: "center",
-          gap: 2
+          gap: 2,
+          flexWrap: "wrap"
         }
       }, isLoading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_21__["default"], {
         size: 24,
@@ -353850,7 +353895,8 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
         sx: {
           display: "flex",
-          gap: 1
+          gap: 1,
+          flexWrap: "wrap"
         }
       }, Array.isArray(row.original.customActions) ? (row.original.customActions || []).map(function (action, index) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_17__["default"], {
@@ -353875,7 +353921,11 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
         variant: "body2",
         sx: {
           fontWeight: 600,
-          color: "#1f2937"
+          color: "#1f2937",
+          fontSize: {
+            xs: "0.75rem",
+            sm: "0.875rem"
+          }
         }
       }, row.original.customActions));
     }
@@ -353888,7 +353938,8 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
           sx: {
             display: "flex",
             alignItems: "center",
-            gap: 1
+            gap: 1,
+            flexWrap: "wrap"
           }
         }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(ActionButton, {
           variant: "contained",
@@ -353903,7 +353954,8 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
           sx: {
             display: "flex",
             alignItems: "center",
-            gap: 1
+            gap: 1,
+            flexWrap: "wrap"
           }
         }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(StyledFormControl, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_22__["default"], {
           id: "bulk-action-select-label"
@@ -353914,11 +353966,23 @@ var ServerSideTable = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().
           onChange: function onChange(e) {
             return setSelectedAction(e.target.value);
           },
-          size: "small"
+          size: "small",
+          sx: {
+            fontSize: {
+              xs: "0.75rem",
+              sm: "0.875rem"
+            }
+          }
         }, actionOptions.map(function (option) {
           return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_19__["default"], {
             key: option.value,
-            value: option.value
+            value: option.value,
+            sx: {
+              fontSize: {
+                xs: "0.75rem",
+                sm: "0.875rem"
+              }
+            }
           }, option.label);
         }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default().createElement(ActionButton, {
           variant: "contained",
@@ -389671,28 +389735,34 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* binding */ Incomplete)
 /* harmony export */ });
 /* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
-/* harmony import */ var _components_BasicModal__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../components/BasicModal */ "./src/components/BasicModal.jsx");
-/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router/dist/index.js");
-/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
+/* harmony import */ var _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/taggedTemplateLiteral */ "./node_modules/@babel/runtime/helpers/esm/taggedTemplateLiteral.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/Box/Box.js");
+/* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/styles/styled.js");
+/* harmony import */ var _components_BasicModal__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../components/BasicModal */ "./src/components/BasicModal.jsx");
+/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router/dist/index.js");
+/* harmony import */ var _components_ServerSideTable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../components/ServerSideTable */ "./src/components/ServerSideTable.jsx");
+
+
+var _templateObject, _templateObject2;
 
 
 
 
 
-
+var MainContainer = (0,_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_3__["default"])(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_1__["default"])(["\n  min-height: 100vh;\n  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  padding: 2rem 1rem; /* Reduced padding for smaller screens */\n  box-sizing: border-box;\n  width: 100%;\n\n  @media (max-width: 600px) {\n    padding: 1rem 0.5rem;\n  }\n"])));
+var TableCard = (0,_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_3__["default"])(_templateObject2 || (_templateObject2 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_1__["default"])(["\n  background: #ffffff;\n  border-radius: 16px;\n  padding: 2rem;\n  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);\n  width: 95%; /* Use percentage for responsiveness */\n  max-width: 1200px; /* Limit max width for larger screens */\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);\n  }\n\n  @media (max-width: 600px) {\n    padding: 1rem;\n    border-radius: 12px;\n  }\n"])));
 function Incomplete() {
-  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false),
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(false),
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState, 2),
     open = _useState2[0],
     setOpen = _useState2[1];
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(null),
     _useState4 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState3, 2),
     table = _useState4[0],
     setTable = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(null),
     _useState6 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState5, 2),
     ApplicationId = _useState6[0],
     setApplicationId = _useState6[1];
@@ -389704,7 +389774,7 @@ function Incomplete() {
   var handleClose = function handleClose() {
     return setOpen(false);
   };
-  var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_4__.useNavigate)();
+  var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_6__.useNavigate)();
   var actionFunctions = {
     IncompleteForm: function IncompleteForm(row) {
       var userdata = row.original;
@@ -389716,29 +389786,12 @@ function Incomplete() {
       });
     }
   };
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_2__["default"], {
-    sx: {
-      height: {
-        xs: "100vh",
-        md: "90vh"
-      },
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_2__["default"], {
-    sx: {
-      width: {
-        xs: "100%",
-        md: "80%"
-      }
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_5__["default"], {
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement(MainContainer, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement(TableCard, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_components_ServerSideTable__WEBPACK_IMPORTED_MODULE_7__["default"], {
     url: "/User/IncompleteApplications",
     extraParams: {},
     actionFunctions: actionFunctions,
     Title: "Incomplete Applications"
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(_components_BasicModal__WEBPACK_IMPORTED_MODULE_3__["default"], {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_components_BasicModal__WEBPACK_IMPORTED_MODULE_5__["default"], {
     open: open,
     handleClose: handleClose,
     Title: "Application Status",
@@ -389885,8 +389938,8 @@ var _templateObject, _templateObject2;
 
 
 
-var MainContainer = (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  min-height: 100vh;\n  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  padding: 2rem;\n"])));
-var TableCard = (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject2 || (_templateObject2 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  background: #ffffff;\n  border-radius: 16px;\n  padding: 2rem;\n  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);\n  width: 90%;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);\n  }\n"])));
+var MainContainer = (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  min-height: 100vh;\n  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  padding: 2rem 1rem; /* Reduced padding for smaller screens */\n  box-sizing: border-box;\n  width: 100%;\n\n  @media (max-width: 600px) {\n    padding: 1rem 0.5rem;\n  }\n"])));
+var TableCard = (0,_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject2 || (_templateObject2 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  background: #ffffff;\n  border-radius: 16px;\n  padding: 2rem;\n  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);\n  width: 95%; /* Use percentage for responsiveness */\n  max-width: 1200px; /* Limit max width for larger screens */\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);\n  }\n\n  @media (max-width: 600px) {\n    padding: 1rem;\n    border-radius: 12px;\n  }\n"])));
 function Initiated() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(false),
     _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_useState, 2),
@@ -390074,8 +390127,22 @@ function Initiated() {
     handleClose: handleClose,
     Title: "Application Status for " + ApplicationId,
     pdf: null,
-    table: table
-    // accordion={ApplicationId}
+    table: table,
+    sx: {
+      "& .MuiDialog-paper": {
+        width: {
+          xs: "90%",
+          sm: "70%",
+          md: "50%"
+        },
+        maxWidth: "800px",
+        borderRadius: "12px",
+        padding: {
+          xs: "1rem",
+          sm: "2rem"
+        }
+      }
+    }
   }));
 }
 
@@ -390112,8 +390179,8 @@ var _templateObject, _templateObject2;
 
 
 
-var MainContainer = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_5__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_3__["default"])(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_1__["default"])(["\n  min-height: 100vh;\n  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  padding: 2rem;\n"])));
-var TableCard = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_5__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_3__["default"])(_templateObject2 || (_templateObject2 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_1__["default"])(["\n  background: #ffffff;\n  border-radius: 16px;\n  padding: 2rem;\n  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);\n  width: 90%;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    transform: translateY(-4px);\n    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);\n  }\n"])));
+var MainContainer = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_5__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_3__["default"])(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_1__["default"])(["\n  min-height: 100vh;\n  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  padding: 2rem 1rem; /* Reduced padding for smaller screens */\n  box-sizing: border-box;\n  width: 100%;\n\n  @media (max-width: 600px) {\n    padding: 1rem 0.5rem;\n  }\n"])));
+var TableCard = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_5__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_3__["default"])(_templateObject2 || (_templateObject2 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_1__["default"])(["\n  background: #ffffff;\n  border-radius: 16px;\n  padding: 2rem;\n  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);\n  width: 95%; /* Use percentage for responsiveness */\n  max-width: 1200px; /* Limit max width for larger screens */\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);\n  }\n\n  @media (max-width: 600px) {\n    padding: 1rem;\n    border-radius: 12px;\n  }\n"])));
 function Services() {
   var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_4__.useNavigate)();
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(false),
@@ -390948,14 +391015,14 @@ var _templateObject, _templateObject2, _templateObject3, _templateObject4, _temp
 
 
 
-var MainContainer = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  min-height: 100vh;\n  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);\n  display: flex;\n  justify-content: center;\n  padding: 5rem;\n"])));
-var ProfileCard = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject2 || (_templateObject2 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  background: #ffffff;\n  border-radius: 20px;\n  padding: 2.5rem;\n  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);\n  max-width: 500px;\n  width: 100%;\n  height: max-content;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    transform: translateY(-6px);\n    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);\n  }\n"])));
-var StyledAvatar = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"])(_templateObject3 || (_templateObject3 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  width: 120px;\n  height: 120px;\n  border: 3px solid #1e88e5;\n  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);\n  transition: transform 0.3s ease;\n  margin: 0 auto;\n  &:hover {\n    transform: scale(1.1);\n  }\n"])));
-var UploadButton = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"])(_templateObject4 || (_templateObject4 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  background: #1e88e5;\n  color: #ffffff;\n  position: absolute;\n  bottom: -8px;\n  right: -8px;\n  border-radius: 50%;\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);\n  &:hover {\n    background: #1565c0;\n    transform: scale(1.1);\n  }\n"])));
-var StatContainer = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject5 || (_templateObject5 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  display: flex;\n  justify-content: space-between;\n  gap: 1rem;\n  margin: 1.5rem 0;\n"])));
-var StatBox = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject6 || (_templateObject6 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  flex: 1;\n  background: #e6f0fa;\n  border-radius: 10px;\n  padding: 1rem;\n  text-align: center;\n  border: 1px solid #b3cde0;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    transform: translateY(-4px);\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n  }\n"])));
-var InfoItem = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject7 || (_templateObject7 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 0.75rem 0;\n  border-bottom: 1px solid #b3cde0;\n  &:last-of-type {\n    border-bottom: none;\n  }\n"])));
-var ActionButton = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"])(_templateObject8 || (_templateObject8 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  background: linear-gradient(45deg, #1e88e5, #4fc3f7);\n  color: #ffffff;\n  font-weight: 600;\n  text-transform: none;\n  border-radius: 10px;\n  padding: 0.75rem 2rem;\n  margin-top: 1.5rem;\n  width: 100%;\n  transition: all 0.3s ease;\n  &:hover {\n    background: linear-gradient(45deg, #1565c0, #039be5);\n    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);\n  }\n"])));
+var MainContainer = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject || (_templateObject = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  min-height: 100vh;\n  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);\n  display: flex;\n  justify-content: center;\n  padding: 3rem 1rem; /* Reduced padding for smaller screens */\n  box-sizing: border-box;\n\n  @media (max-width: 600px) {\n    padding: 1.5rem 0.5rem;\n  }\n"])));
+var ProfileCard = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject2 || (_templateObject2 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  background: #ffffff;\n  border-radius: 20px;\n  padding: 2rem;\n  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);\n  max-width: 500px;\n  width: 90%; /* Use percentage for responsiveness */\n  height: max-content;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    transform: translateY(-6px);\n    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);\n  }\n\n  @media (max-width: 600px) {\n    padding: 1.5rem;\n    border-radius: 12px;\n  }\n"])));
+var StyledAvatar = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_6__["default"])(_templateObject3 || (_templateObject3 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  width: 100px; /* Slightly smaller for mobile */\n  height: 100px;\n  border: 3px solid #1e88e5;\n  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);\n  transition: transform 0.3s ease;\n  margin: 0 auto;\n  &:hover {\n    transform: scale(1.1);\n  }\n\n  @media (max-width: 600px) {\n    width: 80px;\n    height: 80px;\n  }\n"])));
+var UploadButton = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_7__["default"])(_templateObject4 || (_templateObject4 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  background: #1e88e5;\n  color: #ffffff;\n  position: absolute;\n  bottom: -8px;\n  right: -8px;\n  border-radius: 50%;\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);\n  &:hover {\n    background: #1565c0;\n    transform: scale(1.1);\n  }\n\n  @media (max-width: 600px) {\n    bottom: -4px;\n    right: -4px;\n    padding: 6px; /* Smaller touch target */\n  }\n"])));
+var StatContainer = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject5 || (_templateObject5 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  display: flex;\n  justify-content: space-between;\n  gap: 1rem;\n  margin: 1.5rem 0;\n\n  @media (max-width: 600px) {\n    flex-direction: column; /* Stack vertically on small screens */\n    gap: 0.75rem;\n  }\n"])));
+var StatBox = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject6 || (_templateObject6 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  flex: 1;\n  background: #e6f0fa;\n  border-radius: 10px;\n  padding: 1rem;\n  text-align: center;\n  border: 1px solid #b3cde0;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  &:hover {\n    transform: translateY(-4px);\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n  }\n\n  @media (max-width: 600px) {\n    padding: 0.75rem;\n  }\n"])));
+var InfoItem = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"])(_templateObject7 || (_templateObject7 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 0.75rem 0;\n  border-bottom: 1px solid #b3cde0;\n  &:last-of-type {\n    border-bottom: none;\n  }\n\n  @media (max-width: 600px) {\n    flex-direction: column; /* Stack label and value */\n    align-items: flex-start;\n    gap: 0.5rem;\n  }\n"])));
+var ActionButton = (0,_emotion_styled__WEBPACK_IMPORTED_MODULE_20__["default"])(_mui_material__WEBPACK_IMPORTED_MODULE_8__["default"])(_templateObject8 || (_templateObject8 = (0,_babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2__["default"])(["\n  background: linear-gradient(45deg, #1e88e5, #4fc3f7);\n  color: #ffffff;\n  font-weight: 600;\n  text-transform: none;\n  border-radius: 10px;\n  padding: 0.75rem 2rem;\n  margin-top: 1.5rem;\n  width: 100%;\n  transition: all 0.3s ease;\n  &:hover {\n    background: linear-gradient(45deg, #1565c0, #039be5);\n    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);\n  }\n\n  @media (max-width: 600px) {\n    padding: 0.5rem 1.5rem;\n    font-size: 0.875rem; /* Smaller font for mobile */\n  }\n"])));
 function UserHome() {
   var _userDetails$initiate, _userDetails$incomple;
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)(null),
@@ -391032,30 +391099,30 @@ function UserHome() {
       _email$split2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__["default"])(_email$split, 2),
       localPart = _email$split2[0],
       domain = _email$split2[1];
-    var maskedLocal = localPart.length > 1 ? localPart[0] + "*".repeat(localPart.length - 1) : localPart[0] + "*";
+    var maskedLocal;
+    if (localPart.length > 5) {
+      var middleLength = localPart.length - 4; // first 2 + last 2 visible
+      maskedLocal = localPart.slice(0, 2) + "*".repeat(middleLength) + localPart.slice(-2);
+    } else {
+      maskedLocal = localPart.slice(0, 2) + "*".repeat(Math.max(localPart.length - 2, 1));
+    }
     var domainParts = domain.split(".");
     var maskedDomain = domainParts.map(function (part, index) {
       return index === 0 ? part[0] + "*".repeat(Math.max(part.length - 1, 1)) : part;
     }).join(".");
     return "".concat(maskedLocal, "@").concat(maskedDomain);
   };
-
-  // Mask mobile number (e.g., 1234567890 -> ******7890)
   var maskMobileNumber = function maskMobileNumber(mobileNumber) {
     if (!mobileNumber) return "N/A";
-    var visibleDigits = 4;
-    var maskedLength = mobileNumber.length - visibleDigits;
-    return "*".repeat(maskedLength) + mobileNumber.slice(-visibleDigits);
+    if (mobileNumber.length <= 4) return "*".repeat(mobileNumber.length);
+    var middleLength = mobileNumber.length - 4; // first 2 + last 2 visible
+    return mobileNumber.slice(0, 2) + "*".repeat(middleLength) + mobileNumber.slice(-2);
   };
-
-  // Toggle email visibility
   var toggleEmailVisibility = function toggleEmailVisibility() {
     setShowEmail(function (prev) {
       return !prev;
     });
   };
-
-  // Toggle mobile number visibility
   var toggleMobileNumberVisibility = function toggleMobileNumberVisibility() {
     setShowMobileNumber(function (prev) {
       return !prev;
@@ -391099,14 +391166,22 @@ function UserHome() {
       fontWeight: 700,
       color: "#1f2937",
       fontFamily: "'Inter', sans-serif",
-      mt: 2
+      mt: 2,
+      fontSize: {
+        xs: "1.5rem",
+        sm: "2rem"
+      } /* Responsive font size */
     },
     id: "user-profile-title"
   }, (userDetails === null || userDetails === void 0 ? void 0 : userDetails.name) || "Unknown User"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     variant: "body2",
     sx: {
       color: "#6b7280",
-      fontWeight: 500
+      fontWeight: 500,
+      fontSize: {
+        xs: "0.875rem",
+        sm: "1rem"
+      }
     }
   }, (userDetails === null || userDetails === void 0 ? void 0 : userDetails.location) || "Jammu, Jammu")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
     sx: {
@@ -391124,13 +391199,21 @@ function UserHome() {
     variant: "caption",
     sx: {
       fontWeight: 600,
-      color: "#8b5cf6"
+      color: "#8b5cf6",
+      fontSize: {
+        xs: "0.75rem",
+        sm: "0.875rem"
+      }
     }
   }, "INITIATED"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     variant: "h5",
     sx: {
       fontWeight: 700,
-      color: "#1f2937"
+      color: "#1f2937",
+      fontSize: {
+        xs: "1.25rem",
+        sm: "1.5rem"
+      }
     }
   }, (_userDetails$initiate = userDetails === null || userDetails === void 0 ? void 0 : userDetails.initiated) !== null && _userDetails$initiate !== void 0 ? _userDetails$initiate : "N/A")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(StatBox, {
     sx: {
@@ -391143,13 +391226,21 @@ function UserHome() {
     variant: "caption",
     sx: {
       fontWeight: 600,
-      color: "#ec4899"
+      color: "#ec4899",
+      fontSize: {
+        xs: "0.75rem",
+        sm: "0.875rem"
+      }
     }
   }, "INCOMPLETE"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     variant: "h5",
     sx: {
       fontWeight: 700,
-      color: "#1f2937"
+      color: "#1f2937",
+      fontSize: {
+        xs: "1.25rem",
+        sm: "1.5rem"
+      }
     }
   }, (_userDetails$incomple = userDetails === null || userDetails === void 0 ? void 0 : userDetails.incomplete) !== null && _userDetails$incomple !== void 0 ? _userDetails$incomple : "N/A"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_11__["default"], {
     sx: {
@@ -391160,19 +391251,31 @@ function UserHome() {
     variant: "body1",
     sx: {
       fontWeight: 600,
-      color: "#6b7280"
+      color: "#6b7280",
+      fontSize: {
+        xs: "0.875rem",
+        sm: "1rem"
+      }
     }
   }, "Username"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     variant: "body1",
     sx: {
       fontWeight: 500,
-      color: "#1f2937"
+      color: "#1f2937",
+      fontSize: {
+        xs: "0.875rem",
+        sm: "1rem"
+      }
     }
   }, (userDetails === null || userDetails === void 0 ? void 0 : userDetails.username) || "N/A")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(InfoItem, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     variant: "body1",
     sx: {
       fontWeight: 600,
-      color: "#6b7280"
+      color: "#6b7280",
+      fontSize: {
+        xs: "0.875rem",
+        sm: "1rem"
+      }
     }
   }, "Email"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
     sx: {
@@ -391185,7 +391288,11 @@ function UserHome() {
     sx: {
       fontWeight: 500,
       color: "#1f2937",
-      wordBreak: "break-word"
+      wordBreak: "break-word",
+      fontSize: {
+        xs: "0.875rem",
+        sm: "1rem"
+      }
     }
   }, showEmail ? (userDetails === null || userDetails === void 0 ? void 0 : userDetails.email) || "N/A" : maskEmail(userDetails === null || userDetails === void 0 ? void 0 : userDetails.email)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
     title: showEmail ? "Hide Email" : "Show Email",
@@ -391194,13 +391301,21 @@ function UserHome() {
     onClick: toggleEmailVisibility,
     "aria-label": showEmail ? "Hide email" : "Show email",
     sx: {
-      color: "#1e88e5"
+      color: "#1e88e5",
+      padding: {
+        xs: "4px",
+        sm: "8px"
+      }
     }
   }, showEmail ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_15__["default"], null) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_14__["default"], null))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(InfoItem, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_10__["default"], {
     variant: "body1",
     sx: {
       fontWeight: 600,
-      color: "#6b7280"
+      color: "#6b7280",
+      fontSize: {
+        xs: "0.875rem",
+        sm: "1rem"
+      }
     }
   }, "Mobile Number"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
     sx: {
@@ -391212,7 +391327,11 @@ function UserHome() {
     variant: "body1",
     sx: {
       fontWeight: 500,
-      color: "#1f2937"
+      color: "#1f2937",
+      fontSize: {
+        xs: "0.875rem",
+        sm: "1rem"
+      }
     }
   }, showMobileNumber ? (userDetails === null || userDetails === void 0 ? void 0 : userDetails.mobileNumber) || "N/A" : maskMobileNumber(userDetails === null || userDetails === void 0 ? void 0 : userDetails.mobileNumber)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_material__WEBPACK_IMPORTED_MODULE_12__["default"], {
     title: showMobileNumber ? "Hide Mobile Number" : "Show Mobile Number",
@@ -391221,7 +391340,11 @@ function UserHome() {
     onClick: toggleMobileNumberVisibility,
     "aria-label": showMobileNumber ? "Hide mobile number" : "Show mobile number",
     sx: {
-      color: "#1e88e5"
+      color: "#1e88e5",
+      padding: {
+        xs: "4px",
+        sm: "8px"
+      }
     }
   }, showMobileNumber ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_15__["default"], null) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(_mui_icons_material__WEBPACK_IMPORTED_MODULE_14__["default"], null)))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4___default().createElement(ActionButton, {
     variant: "contained",
@@ -391235,7 +391358,11 @@ function UserHome() {
       background: "white",
       color: "#1f2937",
       borderRadius: 8,
-      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)"
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+      fontSize: {
+        xs: "0.875rem",
+        sm: "1rem"
+      }
     }
   }));
 }

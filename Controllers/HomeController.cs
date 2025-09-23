@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -19,7 +20,7 @@ using SendEmails;
 
 namespace SahayataNidhi.Controllers
 {
-    public class HomeController(ILogger<HomeController> logger, SocialWelfareDepartmentContext dbContext, OtpStore otpStore, EmailSender emailSender, UserHelperFunctions helper, PdfService pdfService, IConfiguration configuration, IAuditLogService auditService) : Controller
+    public class HomeController(ILogger<HomeController> logger, SocialWelfareDepartmentContext dbContext, OtpStore otpStore, EmailSender emailSender, UserHelperFunctions helper, PdfService pdfService, IConfiguration configuration, IAuditLogService auditService, SessionRepository sessionRepo) : Controller
     {
         private readonly ILogger<HomeController> _logger = logger;
         private readonly SocialWelfareDepartmentContext _dbContext = dbContext;
@@ -29,6 +30,7 @@ namespace SahayataNidhi.Controllers
         private readonly PdfService _pdfService = pdfService;
         private readonly IConfiguration _configuration = configuration;
         private readonly IAuditLogService _auditService = auditService;
+        private readonly SessionRepository _sessionRepo = sessionRepo;
 
         public override void OnActionExecuted(ActionExecutedContext context)
         {
@@ -350,122 +352,113 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login([FromForm] IFormCollection form)
+        public async Task<IActionResult> Login([FromForm] IFormCollection form)
         {
             var username = new SqlParameter("Username", form["username"].ToString());
-            SqlParameter password = !string.IsNullOrEmpty(form["password"]) ? new SqlParameter("Password", form["password"].ToString()) : null!;
+            var password = !string.IsNullOrEmpty(form["password"])
+                ? new SqlParameter("Password", form["password"].ToString())
+                : null!;
 
-            var user = _dbContext.Users.FromSqlRaw("EXEC UserLogin @Username,@Password", username, password).AsEnumerable().FirstOrDefault();
-            string? designation = "";
-            string? department = "";
-            if (user != null)
-            {
-                if (!user.IsEmailValid)
-                    return Json(new { status = false, response = "Email Not Verified.", isEmailVerified = false, email = user.Email, username = user.Username });
+            var user = _dbContext.Users
+                .FromSqlRaw("EXEC UserLogin @Username,@Password", username, password)
+                .AsEnumerable()
+                .FirstOrDefault();
 
-                // Create JWT claims
-                var claims = new List<Claim>
+            if (user == null)
+                return Json(new { status = false, response = "Invalid Username or Password." });
+
+            if (!user.IsEmailValid)
+                return Json(new { status = false, response = "Email Not Verified.", isEmailVerified = false, email = user.Email });
+
+            // ✅ Check for existing active session
+            var activeSession = await _sessionRepo.GetActiveSessionAsync(user.UserId);
+            if (activeSession != null)
+                return Json(new { status = false, response = "User is already logged in from another device." });
+
+            // ✅ Create JWT claims
+            var claims = new List<Claim>
                 {
-                    new(ClaimTypes.NameIdentifier, user.UserId.ToString()), // UserId as NameIdentifier
-                    new(ClaimTypes.Name, form["username"].ToString()),      // Username
-                    new(ClaimTypes.Role, user.UserType!),                  // UserType as Role
-                    new("Profile", user.Profile!),                         // Custom claim for Profile
+                    new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new(ClaimTypes.Name, user.Username!),
+                    new(ClaimTypes.Role, user.UserType!),
+                    new("Profile", user.Profile!)
                 };
 
-                if (user.UserType == "Officer" || user.UserType == "Admin")
+            string designation = "";
+            string department = "";
+
+            if (user.UserType == "Officer" || user.UserType == "Admin")
+            {
+                if (!string.IsNullOrWhiteSpace(user.AdditionalDetails))
                 {
-                    if (!string.IsNullOrWhiteSpace(user.AdditionalDetails))
+                    try
                     {
-                        try
+                        var details = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(user.AdditionalDetails);
+                        if (details != null)
                         {
-                            var officerDetails = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(user.AdditionalDetails);
+                            if (details.TryGetValue("Validate", out var validatedToken) &&
+                                !validatedToken.Value<bool>())
+                                return Json(new { status = false, response = "You are not yet validated by Admin." });
 
-                            if (officerDetails != null)
+                            if (details.TryGetValue("Role", out var roleToken))
                             {
-                                // ✅ Validate key
-                                if (officerDetails.TryGetValue("Validate", out var validatedToken))
+                                designation = roleToken.ToString();
+                                if (!string.IsNullOrEmpty(designation))
+                                    claims.Add(new Claim("Designation", designation));
+                            }
+
+                            if (user.UserType == "Admin" && details.TryGetValue("Department", out var deptToken))
+                            {
+                                if (int.TryParse(deptToken.ToString(), out int deptId))
                                 {
-                                    bool isValidated = validatedToken.Type == JTokenType.Boolean
-                                        ? validatedToken.Value<bool>()
-                                        : bool.TryParse(validatedToken.ToString(), out var parsed) && parsed;
-
-                                    if (!isValidated)
-                                    {
-                                        return Json(new
-                                        {
-                                            status = false,
-                                            response = "You are not yet validated by an Admin. Please wait till validation is complete."
-                                        });
-                                    }
-                                }
-
-                                // ✅ Role/Designation
-                                if (officerDetails.TryGetValue("Role", out var roleToken))
-                                {
-                                    designation = roleToken.Type == JTokenType.String
-                                        ? roleToken.Value<string>()
-                                        : roleToken.ToString();
-
-                                    if (!string.IsNullOrEmpty(designation))
-                                    {
-                                        claims.Add(new Claim("Designation", designation));
-                                    }
-                                }
-
-                                // ✅ Department for Admins
-                                if (user.UserType == "Admin" && officerDetails.TryGetValue("Department", out var deptToken))
-                                {
-                                    if (int.TryParse(deptToken.ToString(), out int departmentId))
-                                    {
-                                        var dept = _dbContext.Departments.FirstOrDefault(d => d.DepartmentId == departmentId);
-                                        department = dept?.DepartmentName ?? string.Empty;
-                                    }
+                                    department = _dbContext.Departments.FirstOrDefault(d => d.DepartmentId == deptId)?.DepartmentName ?? "";
                                 }
                             }
                         }
-                        catch (JsonException ex)
-                        {
-                            _logger.LogError(ex, "Failed to parse AdditionalDetails JSON for user {Username}", user.Username);
-                            return Json(new
-                            {
-                                status = false,
-                                response = "Error parsing AdditionalDetails. Please contact support."
-                            });
-                        }
                     }
-                    else
-                    {
-                        _logger.LogInformation("User {Username} has no AdditionalDetails JSON, skipping parsing.", user.Username);
-                        // Officers/Admins with no details → still allowed to log in
-                    }
+                    catch { /* handle JSON parsing errors */ }
                 }
-                // Generate JWT token (no expiry)
-                var jwtSecretKey = _configuration["JWT:Secret"];
-                var key = Encoding.ASCII.GetBytes(jwtSecretKey!);
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(claims),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                    Issuer = _configuration["JWT:Issuer"],
-                    Audience = _configuration["JWT:Audience"]
-                };
-
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                var tokenString = tokenHandler.WriteToken(token);
-
-                _auditService.InsertLog(HttpContext, "Login", "User logged in to the account.", user.UserId, "Success");
-                // Return the token and other required details to the client
-                return Json(new { status = true, token = tokenString, userType = user.UserType, profile = user.Profile, username = form["username"], designation, department });
             }
-            else
+
+            // ✅ Generate JWT
+            var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]!);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                _auditService.InsertLog(HttpContext, "Login", "Invalid Username Or Password.", user!.UserId, "Failure");
-                return Json(new { status = false, response = "Invalid Username or Password." });
-            }
-        }
+                Subject = new ClaimsIdentity(claims),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _configuration["JWT:Issuer"],
+                Audience = _configuration["JWT:Audience"]
+            };
 
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            // ✅ Save session
+            var newSession = new UserSession
+            {
+                SessionId = Guid.NewGuid(),
+                UserId = user.UserId,
+                JwtToken = tokenString,
+                LoginTime = DateTime.UtcNow,
+                LastActivityTime = DateTime.UtcNow
+            };
+            await _sessionRepo.AddSessionAsync(newSession);
+
+            // ✅ Audit log
+            _auditService.InsertLog(HttpContext, "Login", "User logged in.", user.UserId, "Success");
+
+            return Json(new
+            {
+                status = true,
+                token = tokenString,
+                userType = user.UserType,
+                profile = user.Profile,
+                username = user.Username,
+                designation,
+                department
+            });
+        }
         [HttpGet]
         [Authorize]
         public IActionResult RefreshToken()
@@ -904,7 +897,7 @@ namespace SahayataNidhi.Controllers
                 byte[] hashBytes = sha256.ComputeHash(inputBytes);
 
                 // Convert to hexadecimal string
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 for (int i = 0; i < hashBytes.Length; i++)
                 {
                     sb.Append(hashBytes[i].ToString("x2"));

@@ -23,33 +23,48 @@ const MainContainer = styled(Box)`
   background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);
   display: flex;
   justify-content: center;
-  padding: 5rem;
+  padding: 3rem 1rem; /* Reduced padding for smaller screens */
+  box-sizing: border-box;
+
+  @media (max-width: 600px) {
+    padding: 1.5rem 0.5rem;
+  }
 `;
 
 const ProfileCard = styled(Box)`
   background: #ffffff;
   border-radius: 20px;
-  padding: 2.5rem;
+  padding: 2rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   max-width: 500px;
-  width: 100%;
+  width: 90%; /* Use percentage for responsiveness */
   height: max-content;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   &:hover {
     transform: translateY(-6px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   }
+
+  @media (max-width: 600px) {
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
 `;
 
 const StyledAvatar = styled(Avatar)`
-  width: 120px;
-  height: 120px;
+  width: 100px; /* Slightly smaller for mobile */
+  height: 100px;
   border: 3px solid #1e88e5;
   box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
   transition: transform 0.3s ease;
   margin: 0 auto;
   &:hover {
     transform: scale(1.1);
+  }
+
+  @media (max-width: 600px) {
+    width: 80px;
+    height: 80px;
   }
 `;
 
@@ -65,6 +80,12 @@ const UploadButton = styled(IconButton)`
     background: #1565c0;
     transform: scale(1.1);
   }
+
+  @media (max-width: 600px) {
+    bottom: -4px;
+    right: -4px;
+    padding: 6px; /* Smaller touch target */
+  }
 `;
 
 const StatContainer = styled(Box)`
@@ -72,6 +93,11 @@ const StatContainer = styled(Box)`
   justify-content: space-between;
   gap: 1rem;
   margin: 1.5rem 0;
+
+  @media (max-width: 600px) {
+    flex-direction: column; /* Stack vertically on small screens */
+    gap: 0.75rem;
+  }
 `;
 
 const StatBox = styled(Box)`
@@ -86,6 +112,10 @@ const StatBox = styled(Box)`
     transform: translateY(-4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
+
+  @media (max-width: 600px) {
+    padding: 0.75rem;
+  }
 `;
 
 const InfoItem = styled(Box)`
@@ -96,6 +126,12 @@ const InfoItem = styled(Box)`
   border-bottom: 1px solid #b3cde0;
   &:last-of-type {
     border-bottom: none;
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column; /* Stack label and value */
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 `;
 
@@ -112,6 +148,11 @@ const ActionButton = styled(Button)`
   &:hover {
     background: linear-gradient(45deg, #1565c0, #039be5);
     box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+  }
+
+  @media (max-width: 600px) {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.875rem; /* Smaller font for mobile */
   }
 `;
 
@@ -154,12 +195,18 @@ export default function UserHome() {
 
   const maskEmail = (email) => {
     if (!email) return "N/A";
+
     const [localPart, domain] = email.split("@");
 
-    const maskedLocal =
-      localPart.length > 1
-        ? localPart[0] + "*".repeat(localPart.length - 1)
-        : localPart[0] + "*";
+    let maskedLocal;
+    if (localPart.length > 5) {
+      const middleLength = localPart.length - 4; // first 2 + last 2 visible
+      maskedLocal =
+        localPart.slice(0, 2) + "*".repeat(middleLength) + localPart.slice(-2);
+    } else {
+      maskedLocal =
+        localPart.slice(0, 2) + "*".repeat(Math.max(localPart.length - 2, 1));
+    }
 
     const domainParts = domain.split(".");
     const maskedDomain = domainParts
@@ -171,20 +218,22 @@ export default function UserHome() {
     return `${maskedLocal}@${maskedDomain}`;
   };
 
-  // Mask mobile number (e.g., 1234567890 -> ******7890)
   const maskMobileNumber = (mobileNumber) => {
     if (!mobileNumber) return "N/A";
-    const visibleDigits = 4;
-    const maskedLength = mobileNumber.length - visibleDigits;
-    return "*".repeat(maskedLength) + mobileNumber.slice(-visibleDigits);
+    if (mobileNumber.length <= 4) return "*".repeat(mobileNumber.length);
+
+    const middleLength = mobileNumber.length - 4; // first 2 + last 2 visible
+    return (
+      mobileNumber.slice(0, 2) +
+      "*".repeat(middleLength) +
+      mobileNumber.slice(-2)
+    );
   };
 
-  // Toggle email visibility
   const toggleEmailVisibility = () => {
     setShowEmail((prev) => !prev);
   };
 
-  // Toggle mobile number visibility
   const toggleMobileNumberVisibility = () => {
     setShowMobileNumber((prev) => !prev);
   };
@@ -228,6 +277,7 @@ export default function UserHome() {
               color: "#1f2937",
               fontFamily: "'Inter', sans-serif",
               mt: 2,
+              fontSize: { xs: "1.5rem", sm: "2rem" } /* Responsive font size */,
             }}
             id="user-profile-title"
           >
@@ -235,7 +285,11 @@ export default function UserHome() {
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: "#6b7280", fontWeight: 500 }}
+            sx={{
+              color: "#6b7280",
+              fontWeight: 500,
+              fontSize: { xs: "0.875rem", sm: "1rem" },
+            }}
           >
             {userDetails?.location || "Jammu, Jammu"}
           </Typography>
@@ -248,11 +302,22 @@ export default function UserHome() {
           >
             <Typography
               variant="caption"
-              sx={{ fontWeight: 600, color: "#8b5cf6" }}
+              sx={{
+                fontWeight: 600,
+                color: "#8b5cf6",
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              }}
             >
               INITIATED
             </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: "#1f2937" }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: "#1f2937",
+                fontSize: { xs: "1.25rem", sm: "1.5rem" },
+              }}
+            >
               {userDetails?.initiated ?? "N/A"}
             </Typography>
           </StatBox>
@@ -262,11 +327,22 @@ export default function UserHome() {
           >
             <Typography
               variant="caption"
-              sx={{ fontWeight: 600, color: "#ec4899" }}
+              sx={{
+                fontWeight: 600,
+                color: "#ec4899",
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              }}
             >
               INCOMPLETE
             </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: "#1f2937" }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: "#1f2937",
+                fontSize: { xs: "1.25rem", sm: "1.5rem" },
+              }}
+            >
               {userDetails?.incomplete ?? "N/A"}
             </Typography>
           </StatBox>
@@ -276,13 +352,21 @@ export default function UserHome() {
           <InfoItem>
             <Typography
               variant="body1"
-              sx={{ fontWeight: 600, color: "#6b7280" }}
+              sx={{
+                fontWeight: 600,
+                color: "#6b7280",
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+              }}
             >
               Username
             </Typography>
             <Typography
               variant="body1"
-              sx={{ fontWeight: 500, color: "#1f2937" }}
+              sx={{
+                fontWeight: 500,
+                color: "#1f2937",
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+              }}
             >
               {userDetails?.username || "N/A"}
             </Typography>
@@ -290,7 +374,11 @@ export default function UserHome() {
           <InfoItem>
             <Typography
               variant="body1"
-              sx={{ fontWeight: 600, color: "#6b7280" }}
+              sx={{
+                fontWeight: 600,
+                color: "#6b7280",
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+              }}
             >
               Email
             </Typography>
@@ -301,6 +389,7 @@ export default function UserHome() {
                   fontWeight: 500,
                   color: "#1f2937",
                   wordBreak: "break-word",
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
                 }}
               >
                 {showEmail
@@ -311,7 +400,7 @@ export default function UserHome() {
                 <IconButton
                   onClick={toggleEmailVisibility}
                   aria-label={showEmail ? "Hide email" : "Show email"}
-                  sx={{ color: "#1e88e5" }}
+                  sx={{ color: "#1e88e5", padding: { xs: "4px", sm: "8px" } }}
                 >
                   {showEmail ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
@@ -321,14 +410,22 @@ export default function UserHome() {
           <InfoItem>
             <Typography
               variant="body1"
-              sx={{ fontWeight: 600, color: "#6b7280" }}
+              sx={{
+                fontWeight: 600,
+                color: "#6b7280",
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+              }}
             >
               Mobile Number
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Typography
                 variant="body1"
-                sx={{ fontWeight: 500, color: "#1f2937" }}
+                sx={{
+                  fontWeight: 500,
+                  color: "#1f2937",
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                }}
               >
                 {showMobileNumber
                   ? userDetails?.mobileNumber || "N/A"
@@ -347,7 +444,7 @@ export default function UserHome() {
                       ? "Hide mobile number"
                       : "Show mobile number"
                   }
-                  sx={{ color: "#1e88e5" }}
+                  sx={{ color: "#1e88e5", padding: { xs: "4px", sm: "8px" } }}
                 >
                   {showMobileNumber ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
@@ -370,6 +467,7 @@ export default function UserHome() {
           color: "#1f2937",
           borderRadius: 8,
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+          fontSize: { xs: "0.875rem", sm: "1rem" },
         }}
       />
     </MainContainer>

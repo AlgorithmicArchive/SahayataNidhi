@@ -65,6 +65,8 @@ public partial class SocialWelfareDepartmentContext : DbContext
 
     public virtual DbSet<UserDocument> UserDocuments { get; set; }
 
+    public virtual DbSet<UserSession> UserSessions { get; set; }
+
     public virtual DbSet<Village> Villages { get; set; }
 
     public virtual DbSet<Ward> Wards { get; set; }
@@ -578,6 +580,19 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.Property(e => e.FileName).HasMaxLength(255);
             entity.Property(e => e.FileType).HasMaxLength(50);
             entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<UserSession>(entity =>
+        {
+            entity.HasKey(e => e.SessionId).HasName("PK__UserSess__C9F4929013FD5ADB");
+
+            entity.Property(e => e.SessionId).ValueGeneratedNever();
+            entity.Property(e => e.LastActivityTime)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.LoginTime)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
         });
