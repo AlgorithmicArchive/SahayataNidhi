@@ -1,4 +1,6 @@
 // formvalidations.js
+import * as tf from "@tensorflow/tfjs";
+import * as cocoSsd from "@tensorflow-models/coco-ssd";
 
 // Validation functions
 
@@ -81,7 +83,7 @@ export async function duplicateAccountNumber(
     );
     const data = await res.json();
     if (data.status) {
-      return "Account Numumber already exists.";
+      return "Account Number already exists.";
     }
     return true;
   } catch (error) {
@@ -98,6 +100,7 @@ export async function validateIfscCode(
   setValue,
 ) {
   const ifscCode = formData.IfscCode;
+  const bankName = formData.BankName;
 
   // Ensure IFSC code exists
   if (!ifscCode) {
@@ -105,12 +108,13 @@ export async function validateIfscCode(
   }
 
   try {
-    const res = await fetch(`/Base/GetBankDetails?IfscCode=${ifscCode}`);
+    const res = await fetch(
+      `/Base/GetBankDetails?IfscCode=${ifscCode}&BankId=${bankName}`,
+    );
 
     if (!res.ok) {
       if (res.status === 404) {
         setValue("BranchName", "", { shouldValidate: true });
-        // Return an object indicating that readonly should be removed
         return {
           valid: false,
           message: "Branch details not found.",
@@ -125,7 +129,6 @@ export async function validateIfscCode(
     // Check if bank details are returned
     if (!data || !data.status || !data.bankDetails) {
       setValue("BranchName", "", { shouldValidate: true });
-      // Return an object indicating that readonly should be removed
       return {
         valid: false,
         message: "IFSC Code is incorrect or branch details not available.",
@@ -139,7 +142,6 @@ export async function validateIfscCode(
     return true;
   } catch (error) {
     console.error("Error validating IFSC:", error);
-    // Return an object indicating that readonly should be removed in case of error
     return {
       valid: false,
       message: "Error validating IFSC code.",
@@ -330,6 +332,58 @@ export async function tehsilForDistrict(field, districtValue) {
   }
 }
 
+let modelLoaded = false;
+let cocoSsdModel = null;
+export async function loadCocoSsdModel() {
+  if (!modelLoaded) {
+    try {
+      cocoSsdModel = await cocoSsd.load();
+      modelLoaded = true;
+    } catch (error) {
+      console.error("Error loading COCO-SSD model:", error);
+      throw new Error("Failed to load COCO-SSD model");
+    }
+  }
+}
+
+export async function detectHuman(field, value) {
+  if (!value || !(value instanceof File)) {
+    return "No valid image file provided.";
+  }
+
+  try {
+    await loadCocoSsdModel();
+
+    // Create image from file
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("Failed to load image"));
+      image.src = URL.createObjectURL(value);
+    });
+
+    // Detect objects in the image using COCO-SSD
+    const predictions = await cocoSsdModel.detect(img);
+
+    // Revoke the object URL
+    URL.revokeObjectURL(img.src);
+
+    // Check if any prediction is a "person" with sufficient confidence
+    const personPrediction = predictions.find(
+      (pred) => pred.class === "person" && pred.score > 0.5,
+    );
+
+    if (personPrediction) {
+      return true;
+    } else {
+      return "No human detected in the image. Please upload a photo containing a human.";
+    }
+  } catch (error) {
+    console.error("Error in detectHuman with COCO-SSD:", error);
+    return "Human detection failed due to an error.";
+  }
+}
+
 export const runValidations = async (
   field,
   value,
@@ -368,7 +422,6 @@ export function formatKey(input) {
 }
 
 // Mapping of Validation Functions
-
 const ValidationFunctionsList = {
   notEmpty,
   onlyAlphabets,
@@ -383,6 +436,7 @@ const ValidationFunctionsList = {
   range,
   isDateAfterCurrentDate,
   isDateBeforeCurrentDate,
+  detectHuman,
 };
 
 export const TransformationFunctionsList = {
@@ -415,10 +469,11 @@ export const validationFunctionsList = [
   { id: "range", label: "Range Value" },
   { id: "isDateAfterCurrentDate", label: "After Current Date" },
   { id: "isDateBeforeCurrentDate", label: "Before Current Date" },
+  { id: "detectHuman", label: "Detect Human" },
 ];
 
 export const transformationFunctionsList = [
-  { id: "CaptilizeAlphabet", label: "Captital Alphabets" },
+  { id: "CaptilizeAlphabet", label: "Capital Alphabets" },
   { id: "handleCopyAddress", label: "Copy Address" },
   { id: "MaskAadhaar", label: "Mask Aadhaar" },
 ];

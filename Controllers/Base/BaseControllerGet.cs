@@ -607,12 +607,25 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetBankDetails(string IfscCode)
+        public IActionResult GetBankDetails(string IfscCode, int BankId)
         {
             try
             {
+                string bankName = dbcontext.Banks
+                 .FirstOrDefault(b => b.Id == BankId)?.BankName ?? string.Empty;
+
+                var pattern = $"%{bankName}%";
+
                 var bankDetails = dbcontext.BankDetails
-                    .FirstOrDefault(b => b.Ifsc == IfscCode);
+                    .FromSqlRaw(@"
+                    SELECT TOP (1) *
+                    FROM [SocialWelfareDepartment].[dbo].[BankDetails]
+                    WHERE IFSC = {0}
+                    AND BANK LIKE {1}", IfscCode, pattern)
+                    .FirstOrDefault();
+
+
+
 
                 if (bankDetails != null)
                 {

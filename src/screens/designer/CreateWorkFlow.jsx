@@ -31,25 +31,18 @@ import SaveIcon from "@mui/icons-material/Save";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
 
+// Utility function to sanitize actionForm options
 const sanitizeActionForm = (actionForm) => {
   return actionForm.map((field) => {
     if (field.options) {
       return {
         ...field,
-        options: field.options.filter(
-          (opt) =>
-            !opt.label?.toLowerCase().includes("withhold") &&
-            !opt.value?.toLowerCase().includes("withhold"),
-        ),
+        options: field.options, // Keep all options, including "withhold"
         dependentOptions: field.dependentOptions
           ? Object.fromEntries(
               Object.entries(field.dependentOptions).map(([key, opts]) => [
                 key,
-                opts.filter(
-                  (opt) =>
-                    !opt.label?.toLowerCase().includes("withhold") &&
-                    !opt.value?.toLowerCase().includes("withhold"),
-                ),
+                opts, // Keep all dependent options, including "withhold"
               ]),
             )
           : field.dependentOptions,
@@ -100,7 +93,7 @@ export default function CreateWorkflow() {
   const [newPlayer, setNewPlayer] = useState({
     playerId: 0,
     designation: "",
-    accessLevel: "", // Added AccessLevel
+    accessLevel: "",
     canSanction: false,
     canReturnToPlayer: false,
     canReturnToCitizen: false,
@@ -140,6 +133,7 @@ export default function CreateWorkflow() {
       canReturnToPlayer: player.canReturnToPlayer,
       canReturnToCitizen: player.canReturnToCitizen,
       canReject: player.canReject,
+      canWithhold: player.canWithhold, // Include canWithhold
     };
     if (optionsConfig.canForwardToPlayer && player.canForwardToPlayer) {
       let label = "Forward to Player";
@@ -176,6 +170,9 @@ export default function CreateWorkflow() {
     }
     if (optionsConfig.canReject && player.canReject) {
       actionOptions.push({ value: "Reject", label: "Reject" });
+    }
+    if (optionsConfig.canWithhold && player.canWithhold) {
+      actionOptions.push({ value: "Withhold", label: "Withhold" });
     }
     const defaultActionField = {
       id: `default-field-${Date.now()}`,
@@ -267,10 +264,9 @@ export default function CreateWorkflow() {
     if (service && service.officerEditableField) {
       try {
         const workflow = JSON.parse(service.officerEditableField);
-        // Ensure AccessLevel is included when parsing existing workflow
         const updatedWorkflow = workflow.map((player) => ({
           ...player,
-          accessLevel: player.accessLevel || "", // Default to empty string if missing
+          accessLevel: player.accessLevel || "",
         }));
         setPlayers(updatedWorkflow);
       } catch (err) {
@@ -299,7 +295,7 @@ export default function CreateWorkflow() {
     setPlayers([...updatedPlayers, newPlayerWithDefaultFields]);
     setNewPlayer({
       designation: "",
-      accessLevel: "", // Reset AccessLevel
+      accessLevel: "",
       canSanction: false,
       canReturnToPlayer: false,
       canReturnToCitizen: false,
@@ -326,7 +322,6 @@ export default function CreateWorkflow() {
     // Check for multiple players with exclusive authorities
     const corrigendumCount = players.filter((p) => p.canCorrigendum).length;
     const bankFilesCount = players.filter((p) => p.canManageBankFiles).length;
-    const withholdCount = players.filter((p) => p.canWithhold).length;
     const validateAadhaarCount = players.filter(
       (p) => p.canValidateAadhaar,
     ).length;
@@ -337,10 +332,6 @@ export default function CreateWorkflow() {
     }
     if (bankFilesCount > 1) {
       toast.error("Only one player can have Can Manage Bank Files authority.");
-      return;
-    }
-    if (withholdCount > 1) {
-      toast.error("Only one player can have Can Withhold authority.");
       return;
     }
     if (validateAadhaarCount > 1) {
@@ -409,17 +400,6 @@ export default function CreateWorkflow() {
       if (otherBankFiles) {
         toast.error(
           `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`,
-        );
-        return;
-      }
-    }
-    if (updatedPlayer.canWithhold) {
-      const otherWithhold = players.find(
-        (p) => p.playerId !== updatedPlayer.playerId && p.canWithhold,
-      );
-      if (otherWithhold) {
-        toast.error(
-          `Another player (${otherWithhold.designation}) already has Can Withhold authority.`,
         );
         return;
       }

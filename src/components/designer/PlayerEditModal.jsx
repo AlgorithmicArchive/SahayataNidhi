@@ -34,20 +34,12 @@ const sanitizeActionForm = (actionForm) => {
     if (field.options) {
       return {
         ...field,
-        options: field.options.filter(
-          (opt) =>
-            !opt.label?.toLowerCase().includes("withhold") &&
-            !opt.value?.toLowerCase().includes("withhold"),
-        ),
+        options: field.options,
         dependentOptions: field.dependentOptions
           ? Object.fromEntries(
               Object.entries(field.dependentOptions).map(([key, opts]) => [
                 key,
-                opts.filter(
-                  (opt) =>
-                    !opt.label?.toLowerCase().includes("withhold") &&
-                    !opt.value?.toLowerCase().includes("withhold"),
-                ),
+                opts,
               ]),
             )
           : field.dependentOptions,
@@ -67,14 +59,13 @@ const PlayerEditModal = ({
 }) => {
   const [editedPlayer, setEditedPlayer] = useState({
     ...player,
-    accessLevel: player.accessLevel || "", // Ensure AccessLevel is initialized
+    accessLevel: player.accessLevel || "",
     canHavePool: player.canHavePool || false,
     canManageBankFiles: player.canManageBankFiles || false,
     canWithhold: player.canWithhold || false,
     canValidateAadhaar: player.canValidateAadhaar || false,
     actionForm: sanitizeActionForm(player.actionForm || []),
   });
-  // New state to track which actions to include in actionForm
   const [actionFormOptions, setActionFormOptions] = useState({
     canForwardToPlayer: player.canForwardToPlayer,
     canSanction: player.canSanction,
@@ -91,7 +82,6 @@ const PlayerEditModal = ({
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
-  // Fetch designations based on service's DepartmentId
   useEffect(() => {
     async function getDesignations() {
       if (!serviceId) {
@@ -100,7 +90,6 @@ const PlayerEditModal = ({
       }
 
       try {
-        // Find the selected service to get DepartmentId
         const service = services.find((s) => s.serviceId === serviceId);
         if (!service || !service.departmentId) {
           console.error("Service or DepartmentId not found");
@@ -171,17 +160,6 @@ const PlayerEditModal = ({
       if (otherBankFiles) {
         toast.error(
           `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`,
-        );
-        return;
-      }
-    }
-    if (field === "canWithhold" && value) {
-      const otherWithhold = players.find(
-        (p) => p.playerId !== editedPlayer.playerId && p.canWithhold,
-      );
-      if (otherWithhold) {
-        toast.error(
-          `Another player (${otherWithhold.designation}) already has Can Withhold authority.`,
         );
         return;
       }
@@ -340,7 +318,6 @@ const PlayerEditModal = ({
   };
 
   const handleSave = () => {
-    // Update actionForm with selected options
     const actionOptions = generateActionFormOptions();
     const updatedActionForm = editedPlayer.actionForm.map((field) => {
       if (field.name === "defaultAction") {
@@ -348,7 +325,6 @@ const PlayerEditModal = ({
       }
       return field;
     });
-    // If no defaultAction field exists, add one
     if (!updatedActionForm.some((field) => field.name === "defaultAction")) {
       updatedActionForm.push({
         id: `default-field-${Date.now()}`,
@@ -395,7 +371,6 @@ const PlayerEditModal = ({
           Edit Player
         </Typography>
 
-        {/* Loading state for designations */}
         {isLoadingDesignations ? (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Loading designations...

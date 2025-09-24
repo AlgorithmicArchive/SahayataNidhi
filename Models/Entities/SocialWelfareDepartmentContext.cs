@@ -650,6 +650,7 @@ public partial class SocialWelfareDepartmentContext : DbContext
 
             entity.Property(e => e.WithheldId).HasColumnName("Withheld_Id");
             entity.Property(e => e.ReferenceNumber).HasMaxLength(50);
+            entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.WithheldOn).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.WithheldReason).HasColumnType("text");
             entity.Property(e => e.WithheldType).HasMaxLength(20);

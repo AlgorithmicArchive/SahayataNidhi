@@ -11,6 +11,14 @@ public partial class WithheldApplication
 
     public string ReferenceNumber { get; set; } = null!;
 
+    public string? Location { get; set; }
+
+    public string? WorkFlow { get; set; }
+
+    public int? CurrentPlayer { get; set; }
+
+    public string? History { get; set; }
+
     public bool IsWithheld { get; set; }
 
     public string WithheldType { get; set; } = null!;
@@ -18,6 +26,8 @@ public partial class WithheldApplication
     public string WithheldReason { get; set; } = null!;
 
     public string? Files { get; set; }
+
+    public string? Status { get; set; }
 
     public DateOnly? WithheldOn { get; set; }
 }

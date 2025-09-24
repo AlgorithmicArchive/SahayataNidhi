@@ -1,3 +1,6 @@
+using Emgu.CV;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Dnn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -205,10 +208,6 @@ namespace SahayataNidhi.Controllers
                 branchName = result.Branch
             });
         }
-
-
-
-
 
     }
 }

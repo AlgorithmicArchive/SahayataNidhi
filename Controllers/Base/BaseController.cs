@@ -12,11 +12,13 @@ using Wangkanai.Detection.Services;
 
 namespace SahayataNidhi.Controllers
 {
-    public partial class BaseController(SocialWelfareDepartmentContext dbcontext, ILogger<BaseController> logger, IDetectionService detection) : Controller
+    public partial class BaseController(SocialWelfareDepartmentContext dbcontext, ILogger<BaseController> logger, IDetectionService detection, IWebHostEnvironment webHostEnvironment) : Controller
     {
         protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
         protected readonly ILogger<BaseController> _logger = logger;
         private readonly IDetectionService _detection = detection;
+        private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
+
 
         private const long MinImageFile = 20 * 1024;  // 20KB
         private const long MaxImageFile = 50 * 1024;  // 50KB
@@ -68,7 +70,7 @@ namespace SahayataNidhi.Controllers
             return Json(new { status = true });
         }
 
-      
+
 
     }
 }
