@@ -495,11 +495,15 @@ const MyNavbar = () => {
                         Designation
                       </NavDropdown.Item>
                       {designation == "System Admin" && (
-                        <NavDropdown.Item
-                          onClick={() => handleNavigate("/admin/addDepartment")}
-                        >
-                          Department
-                        </NavDropdown.Item>
+                        <>
+                          <NavDropdown.Item
+                            onClick={() =>
+                              handleNavigate("/admin/addDepartment")
+                            }
+                          >
+                            Department
+                          </NavDropdown.Item>
+                        </>
                       )}
                     </div>
                   </NavDropdown>
@@ -516,6 +520,19 @@ const MyNavbar = () => {
                   onMouseLeave={handleMouseLeave}
                 >
                   Validate Officers
+                </Nav.Link>
+                <Nav.Link
+                  as={Link}
+                  to="/admin/viewFeedbacks"
+                  style={getNavItemStyle(
+                    "admin-viewFiedbacks",
+                    "/admin/viewFeedbacks",
+                  )}
+                  onClick={() => setExpanded(false)}
+                  onMouseEnter={() => handleMouseEnter("admin-viewFiedbacks")}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  View Feedbacks
                 </Nav.Link>
               </>
             )}
@@ -624,44 +641,56 @@ const MyNavbar = () => {
           </Nav>
 
           {userType && verified && (
-            <Nav className="ms-auto d-flex align-items-center gap-2">
-              <span style={{ color: "#333333" }}>{username}</span>
-              <TokenTimer />
-              <div
-                onMouseEnter={() => handleMouseEnter("profile")}
+            <>
+              <Nav.Link
+                as={Link}
+                to="/feedback"
+                style={getNavItemStyle("feedback", "/feedback")}
+                onClick={() => setExpanded(false)}
+                onMouseEnter={() => handleMouseEnter("feedback")}
                 onMouseLeave={handleMouseLeave}
               >
-                <NavDropdown
-                  title={
-                    <img
-                      src={
-                        `/Base/DisplayFile?fileName=${profile}` ||
-                        "/assets/images/profile.jpg"
-                      }
-                      alt="Profile"
-                      className="rounded-circle"
-                      style={{ width: "30px" }}
-                    />
-                  }
-                  id="profile-dropdown"
-                  show={isSmallScreen ? undefined : hoveredItem === "profile"}
+                Feedback
+              </Nav.Link>
+              <Nav className="ms-auto d-flex align-items-center gap-2">
+                <span style={{ color: "#333333" }}>{username}</span>
+                <TokenTimer />
+                <div
+                  onMouseEnter={() => handleMouseEnter("profile")}
+                  onMouseLeave={handleMouseLeave}
                 >
-                  <div
-                    onMouseEnter={() => handleMouseEnter("profile")}
-                    onMouseLeave={handleMouseLeave}
+                  <NavDropdown
+                    title={
+                      <img
+                        src={
+                          `/Base/DisplayFile?fileName=${profile}` ||
+                          "/assets/images/profile.jpg"
+                        }
+                        alt="Profile"
+                        className="rounded-circle"
+                        style={{ width: "30px" }}
+                      />
+                    }
+                    id="profile-dropdown"
+                    show={isSmallScreen ? undefined : hoveredItem === "profile"}
                   >
-                    <NavDropdown.Item
-                      onClick={() => handleNavigate("/settings")}
+                    <div
+                      onMouseEnter={() => handleMouseEnter("profile")}
+                      onMouseLeave={handleMouseLeave}
                     >
-                      Settings
-                    </NavDropdown.Item>
-                    <NavDropdown.Item onClick={handleLogout}>
-                      Logout
-                    </NavDropdown.Item>
-                  </div>
-                </NavDropdown>
-              </div>
-            </Nav>
+                      <NavDropdown.Item
+                        onClick={() => handleNavigate("/settings")}
+                      >
+                        Settings
+                      </NavDropdown.Item>
+                      <NavDropdown.Item onClick={handleLogout}>
+                        Logout
+                      </NavDropdown.Item>
+                    </div>
+                  </NavDropdown>
+                </div>
+              </Nav>
+            </>
           )}
         </Navbar.Collapse>
       </Container>

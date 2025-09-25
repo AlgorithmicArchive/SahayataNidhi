@@ -201,7 +201,7 @@ namespace SahayataNidhi.Controllers.Profile
                             }
                         }
                     }
-                    var profileFileName = await _helper.GetFilePath(profileFile);
+                    var profileFileName = await _helper.GetFilePath(profileFile, null, null, "profile");
                     _logger.LogInformation($"Profile file path: {profileFileName}");
                     user.Profile = profileFileName;
                 }
@@ -228,7 +228,7 @@ namespace SahayataNidhi.Controllers.Profile
                     // Get existing ProofOfAge filename to pass to GetFilePath
                     var existingProofOfAge = additionalDetails["ProofOfAge"]?.ToString();
 
-                    ageProofFileName = await _helper.GetFilePath(ageProofFile, null, existingProofOfAge);
+                    ageProofFileName = await _helper.GetFilePath(ageProofFile, null, existingProofOfAge, "document");
                     _logger.LogInformation($"Proof of Age file path: {ageProofFileName}");
 
                     // Update AdditionalDetails JSON
@@ -264,6 +264,159 @@ namespace SahayataNidhi.Controllers.Profile
                 return Json(new { isValid = false, errorMessage = "Failed to update user details: " + ex.Message });
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> CreateFeedback([FromForm] IFormCollection form)
+        {
+            try
+            {
+                var fileNames = new List<string>();
 
+                // Handle file uploads
+                if (form.Files != null && form.Files.Count > 0)
+                {
+                    foreach (var file in form.Files)
+                    {
+                        // Use FileService to store file and get unique filename
+                        var fileName = await _helper.GetFilePath(file, null, null, "feedback");
+                        if (fileName != "No file provided.")
+                        {
+                            fileNames.Add(fileName);
+                        }
+                    }
+                }
+
+                // Extract other form fields
+                var userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+                var title = form["Title"].ToString();
+                var description = form["Description"].ToString();
+
+                var feedback = new Feedback
+                {
+                    UserId = userId,
+                    Title = title,
+                    Description = description,
+                    Files = JsonConvert.SerializeObject(fileNames),
+                    CreatedOn = DateTime.Now
+                };
+
+                _dbcontext.Feedbacks.Add(feedback);
+                await _dbcontext.SaveChangesAsync();
+
+                return Ok(new { message = "Feedback submitted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error submitting feedback", error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFeedbacks(int pageIndex = 0, int pageSize = 10)
+        {
+            try
+            {
+                // Fetch all feedbacks
+                var feedbacks = await _dbcontext.Feedbacks
+                .Select(f => new
+                {
+                    f.Id,
+                    f.UserId,
+                    f.Title,
+                    f.Description,
+                    Files = JsonConvert.DeserializeObject<List<string>>(f.Files ?? "[]"),
+                    f.Status,
+                    f.CreatedOn
+                })
+                .OrderBy(f => f.Status != "Pending") // "Pending" first, others after
+                .ThenByDescending(f => f.CreatedOn)   // optional: newest first
+                .ToListAsync();
+
+
+                // Pagination
+                var totalRecords = feedbacks.Count;
+                var pagedData = feedbacks
+                    .Skip(pageIndex * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // Define columns for the frontend
+                var columns = new List<object>
+                {
+                    new { accessorKey = "id", header = "ID" },
+                    new { accessorKey = "title", header = "Title" },
+                    new { accessorKey = "description", header = "Description" },
+                    new { accessorKey = "createdOn", header = "Created On" },
+                    new { accessorKey = "status", header = "Status" },
+                };
+
+                var data = new List<object>();
+
+                // Define the reusable custom actions once
+                var customActions = new List<object>
+                {
+                    new { tooltip = "View Files", color = "#1976D2", actionFunction = "ViewFiles" },
+                };
+
+                foreach (var f in pagedData)
+                {
+                    if (f.Status == "Pending")
+                    {
+                        customActions.Add(new { tooltip = "Resolved", color = "#4CAF50", actionFunction = "ResolveFeedback" });
+                    }
+                    data.Add(new
+                    {
+                        f.Id,
+                        f.Title,
+                        f.Description,
+                        CreatedOn = f.CreatedOn.ToString("yyyy-MM-dd"),
+                        f.Status,
+                        f.Files,
+                        CustomActions = customActions
+                    });
+                }
+
+                return Json(new
+                {
+                    data,
+                    columns,
+                    totalRecords
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    error = "Error retrieving feedbacks",
+                    details = ex.Message
+                });
+            }
+        }
+
+
+        [HttpPost]
+        public IActionResult UpdateFeedbackStatus([FromForm] IFormCollection form)
+        {
+            try
+            {
+                var feedbackId = Convert.ToInt32(form["feedbackId"]);
+                _logger.LogInformation($"---------- Updating status for feedback ID: {feedbackId} ---------");
+
+                var feedback = _dbcontext.Feedbacks.FirstOrDefault(f => f.Id == feedbackId);
+                if (feedback == null)
+                {
+                    return Json(new { isValid = false, errorMessage = "Feedback not found." });
+                }
+
+                feedback.Status = "Resolved";
+                _dbcontext.SaveChanges();
+
+                return Json(new { isValid = true, message = "Feedback status updated to Resolved." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { isValid = false, errorMessage = "Error updating feedback status: " + ex.Message });
+            }
+        }
     }
 }

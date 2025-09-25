@@ -10,7 +10,14 @@ import {
   Select,
   FormControl,
   MenuItem,
+  Grid,
+  Tooltip,
+  Divider,
+  TextField,
+  IconButton,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import FieldEditModal from "./FieldEditModal";
 import SortableField from "./SortableField";
 import {
@@ -28,7 +35,7 @@ import {
 import { toast } from "react-toastify";
 import axiosInstance from "../../axiosConfig";
 
-// Utility function to sanitize actionForm options (unchanged)
+// Utility function to sanitize actionForm options
 const sanitizeActionForm = (actionForm) => {
   return actionForm.map((field) => {
     if (field.options) {
@@ -65,6 +72,7 @@ const PlayerEditModal = ({
     canWithhold: player.canWithhold || false,
     canValidateAadhaar: player.canValidateAadhaar || false,
     actionForm: sanitizeActionForm(player.actionForm || []),
+    customPermissions: player.customPermissions || [], // Store custom permissions
   });
   const [actionFormOptions, setActionFormOptions] = useState({
     canForwardToPlayer: player.canForwardToPlayer,
@@ -72,11 +80,18 @@ const PlayerEditModal = ({
     canReturnToPlayer: player.canReturnToPlayer,
     canReturnToCitizen: player.canReturnToCitizen,
     canReject: player.canReject,
+    canWithhold: player.canWithhold,
+    customPermissions: player.customPermissions
+      ? Object.fromEntries(
+          player.customPermissions.map((perm) => [perm.name, false]),
+        )
+      : {}, // Initialize custom permissions for action form
   });
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
   const [selectedField, setSelectedField] = useState(null);
   const [designations, setDesignations] = useState([]);
   const [isLoadingDesignations, setIsLoadingDesignations] = useState(true);
+  const [newPermissionName, setNewPermissionName] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -98,7 +113,7 @@ const PlayerEditModal = ({
         }
 
         const response = await axiosInstance.get(`/Base/GetDesignations`, {
-          params: { deparmentId: service.departmentId },
+          params: { departmentId: service.departmentId },
         });
         if (response.data.status && response.data.designations) {
           setDesignations(response.data.designations);
@@ -176,6 +191,17 @@ const PlayerEditModal = ({
       }
     }
 
+    // Handle custom permissions
+    if (field.startsWith("custom_")) {
+      setEditedPlayer((prev) => ({
+        ...prev,
+        customPermissions: prev.customPermissions.map((perm) =>
+          perm.name === field ? { ...perm, enabled: value } : perm,
+        ),
+      }));
+      return;
+    }
+
     // Special handling for designation change to also update accessLevel
     if (field === "designation" && value) {
       const selectedDesignation = designations.find(
@@ -204,6 +230,7 @@ const PlayerEditModal = ({
         "canReturnToPlayer",
         "canReturnToCitizen",
         "canReject",
+        "canWithhold",
       ].includes(field)
     ) {
       setActionFormOptions((prev) => ({
@@ -220,6 +247,159 @@ const PlayerEditModal = ({
       [field]: value,
     }));
     console.log(`Updated actionFormOptions.${field}:`, value);
+  };
+
+  const addPermission = () => {
+    if (!newPermissionName.trim()) {
+      toast.error("Permission name cannot be empty.");
+      return;
+    }
+    const permissionName = newPermissionName.trim();
+    const permissionKey = `custom_${permissionName
+      .replace(/\s+/g, "_")
+      .toLowerCase()}`;
+    if (
+      editedPlayer.customPermissions?.some(
+        (perm) => perm.name === permissionKey,
+      )
+    ) {
+      toast.error("Permission already exists.");
+      return;
+    }
+    const newPermission = {
+      name: permissionKey,
+      label: permissionName,
+      enabled: false,
+    };
+    setEditedPlayer((prev) => ({
+      ...prev,
+      customPermissions: [...(prev.customPermissions || []), newPermission],
+    }));
+    setActionFormOptions((prev) => ({
+      ...prev,
+      customPermissions: {
+        ...prev.customPermissions,
+        [permissionKey]: false,
+      },
+    }));
+    setNewPermissionName("");
+    toast.success(`Permission "${permissionName}" added successfully.`);
+  };
+
+  const removePermission = (permissionName) => {
+    setEditedPlayer((prev) => ({
+      ...prev,
+      customPermissions: prev.customPermissions.filter(
+        (perm) => perm.name !== permissionName,
+      ),
+    }));
+    setActionFormOptions((prev) => {
+      const { [permissionName]: _, ...rest } = prev.customPermissions || {};
+      return {
+        ...prev,
+        customPermissions: rest,
+      };
+    });
+    toast.success(`Permission removed successfully.`);
+  };
+
+  const selectAllPermissions = () => {
+    setEditedPlayer((prev) => ({
+      ...prev,
+      canSanction: true,
+      canReturnToPlayer: true,
+      canReturnToCitizen: true,
+      canForwardToPlayer: true,
+      canReject: true,
+      canPull: true,
+      canHavePool: true,
+      canCorrigendum: true,
+      canManageBankFiles: true,
+      canWithhold: true,
+      canValidateAadhaar: true,
+      customPermissions: prev.customPermissions?.map((perm) => ({
+        ...perm,
+        enabled: true,
+      })),
+    }));
+    setActionFormOptions((prev) => ({
+      ...prev,
+      canSanction: true,
+      canReturnToPlayer: true,
+      canReturnToCitizen: true,
+      canForwardToPlayer: true,
+      canReject: true,
+      canWithhold: true,
+      customPermissions: Object.fromEntries(
+        Object.keys(prev.customPermissions || {}).map((key) => [key, true]),
+      ),
+    }));
+  };
+
+  const deselectAllPermissions = () => {
+    setEditedPlayer((prev) => ({
+      ...prev,
+      canSanction: false,
+      canReturnToPlayer: false,
+      canReturnToCitizen: false,
+      canForwardToPlayer: false,
+      canReject: false,
+      canPull: false,
+      canHavePool: false,
+      canCorrigendum: false,
+      canManageBankFiles: false,
+      canWithhold: false,
+      canValidateAadhaar: false,
+      customPermissions: prev.customPermissions?.map((perm) => ({
+        ...perm,
+        enabled: false,
+      })),
+    }));
+    setActionFormOptions((prev) => ({
+      ...prev,
+      canSanction: false,
+      canReturnToPlayer: false,
+      canReturnToCitizen: false,
+      canForwardToPlayer: false,
+      canReject: false,
+      canWithhold: false,
+      customPermissions: Object.fromEntries(
+        Object.keys(prev.customPermissions || {}).map((key) => [key, false]),
+      ),
+    }));
+  };
+
+  const selectAllActionFormOptions = () => {
+    setActionFormOptions({
+      canSanction: editedPlayer.canSanction,
+      canReturnToPlayer: editedPlayer.canReturnToPlayer,
+      canReturnToCitizen: editedPlayer.canReturnToCitizen,
+      canForwardToPlayer: editedPlayer.canForwardToPlayer,
+      canReject: editedPlayer.canReject,
+      canWithhold: editedPlayer.canWithhold,
+      customPermissions: Object.fromEntries(
+        (editedPlayer.customPermissions || [])
+          .filter((perm) => perm.enabled)
+          .map((perm) => [perm.name, true]),
+      ),
+    });
+  };
+
+  const deselectAllActionFormOptions = () => {
+    setActionFormOptions({
+      canSanction: false,
+      canReturnToPlayer: false,
+      canReturnToCitizen: false,
+      canForwardToPlayer: false,
+      canReject: false,
+      canWithhold: false,
+      customPermissions: Object.fromEntries(
+        Object.keys(actionFormOptions.customPermissions || {}).map((key) => [
+          key,
+          false,
+        ]),
+      ),
+    });
   };
 
   const addActionFormField = () => {
@@ -314,6 +494,20 @@ const PlayerEditModal = ({
     if (actionFormOptions.canReject && editedPlayer.canReject) {
       actionOptions.push({ value: "Reject", label: "Reject" });
     }
+    if (actionFormOptions.canWithhold && editedPlayer.canWithhold) {
+      actionOptions.push({ value: "Withhold", label: "Withhold" });
+    }
+    // Add custom permissions to action form options
+    if (actionFormOptions.customPermissions) {
+      editedPlayer.customPermissions?.forEach((perm) => {
+        if (perm.enabled && actionFormOptions.customPermissions[perm.name]) {
+          actionOptions.push({
+            value: perm.name.replace("custom_", ""),
+            label: perm.label,
+          });
+        }
+      });
+    }
     return actionOptions;
   };
 
@@ -343,6 +537,7 @@ const PlayerEditModal = ({
     }
     const finalPlayer = {
       ...editedPlayer,
+      actionFormOptions: actionFormOptions,
       actionForm: sanitizeActionForm(updatedActionForm),
     };
     console.log("Saving editedPlayer:", finalPlayer);
@@ -358,7 +553,7 @@ const PlayerEditModal = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 600,
+          width: { xs: "90%", md: 700 },
           bgcolor: "background.paper",
           boxShadow: 24,
           p: 4,
@@ -367,7 +562,10 @@ const PlayerEditModal = ({
           borderRadius: 2,
         }}
       >
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+        <Typography
+          variant="h5"
+          sx={{ mb: 3, fontWeight: 600, color: "primary.main" }}
+        >
           Edit Player
         </Typography>
 
@@ -383,6 +581,12 @@ const PlayerEditModal = ({
               label="Designation"
               value={editedPlayer.designation || ""}
               onChange={(e) => handleChange("designation", e.target.value)}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": { borderColor: "primary.main" },
+                  "&.Mui-focused fieldset": { borderColor: "primary.main" },
+                },
+              }}
             >
               <MenuItem value="">
                 <em>Select Designation</em>
@@ -400,201 +604,266 @@ const PlayerEditModal = ({
           Selected Access Level: {editedPlayer.accessLevel || "Not selected"}
         </Typography>
 
-        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+        <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>
+          Add Custom Permission
+        </Typography>
+        <Divider sx={{ mb: 2 }} />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+          <TextField
+            label="New Permission Name"
+            value={newPermissionName}
+            onChange={(e) => setNewPermissionName(e.target.value)}
+            fullWidth
+            variant="outlined"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "&:hover fieldset": { borderColor: "primary.main" },
+                "&.Mui-focused fieldset": { borderColor: "primary.main" },
+              },
+            }}
+          />
+          <Button
+            variant="contained"
+            onClick={addPermission}
+            startIcon={<AddIcon />}
+            sx={{
+              bgcolor: "primary.main",
+              "&:hover": { bgcolor: "primary.dark" },
+            }}
+          >
+            Add
+          </Button>
+        </Box>
+
+        <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>
           Permissions
         </Typography>
-        <Box sx={{ pl: 2, mb: 2 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canSanction}
-                onChange={(e) => handleChange("canSanction", e.target.checked)}
-              />
-            }
-            label="Can Sanction"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canReturnToPlayer}
-                onChange={(e) =>
-                  handleChange("canReturnToPlayer", e.target.checked)
-                }
-              />
-            }
-            label="Can Return to Player"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canReturnToCitizen}
-                onChange={(e) =>
-                  handleChange("canReturnToCitizen", e.target.checked)
-                }
-              />
-            }
-            label="Can Return to Citizen"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canForwardToPlayer}
-                onChange={(e) =>
-                  handleChange("canForwardToPlayer", e.target.checked)
-                }
-              />
-            }
-            label="Can Forward to Player"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canReject}
-                onChange={(e) => handleChange("canReject", e.target.checked)}
-              />
-            }
-            label="Can Reject"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canPull}
-                onChange={(e) => handleChange("canPull", e.target.checked)}
-              />
-            }
-            label="Can Pull"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canHavePool}
-                onChange={(e) => handleChange("canHavePool", e.target.checked)}
-              />
-            }
-            label="Can Bulk Applications"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canCorrigendum}
-                onChange={(e) =>
-                  handleChange("canCorrigendum", e.target.checked)
-                }
-              />
-            }
-            label="Can Corrigendum"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canManageBankFiles}
-                onChange={(e) =>
-                  handleChange("canManageBankFiles", e.target.checked)
-                }
-              />
-            }
-            label="Can Manage Bank Files"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canWithhold}
-                onChange={(e) => handleChange("canWithhold", e.target.checked)}
-              />
-            }
-            label="Can Withhold"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPlayer.canValidateAadhaar}
-                onChange={(e) =>
-                  handleChange("canValidateAadhaar", e.target.checked)
-                }
-              />
-            }
-            label="Can Validate Aadhaar"
-          />
+        <Divider sx={{ mb: 2 }} />
+        <Grid container spacing={1} sx={{ pl: 2, mb: 2 }}>
+          {[
+            {
+              key: "canSanction",
+              label: "Can Sanction",
+              tooltip: "Allows the player to sanction actions",
+            },
+            {
+              key: "canReturnToPlayer",
+              label: "Can Return to Player",
+              tooltip: "Allows returning to previous player",
+            },
+            {
+              key: "canReturnToCitizen",
+              label: "Can Return to Citizen",
+              tooltip: "Allows returning to citizen",
+            },
+            {
+              key: "canForwardToPlayer",
+              label: "Can Forward to Player",
+              tooltip: "Allows forwarding to next player",
+            },
+            {
+              key: "canReject",
+              label: "Can Reject",
+              tooltip: "Allows rejecting the action",
+            },
+            {
+              key: "canPull",
+              label: "Can Pull",
+              tooltip: "Allows pulling actions",
+            },
+            {
+              key: "canHavePool",
+              label: "Can Bulk Applications",
+              tooltip: "Allows handling bulk applications",
+            },
+            {
+              key: "canCorrigendum",
+              label: "Can Corrigendum",
+              tooltip: "Allows corrigendum actions",
+            },
+            {
+              key: "canManageBankFiles",
+              label: "Can Manage Bank Files",
+              tooltip: "Allows managing bank files",
+            },
+            {
+              key: "canWithhold",
+              label: "Can Withhold",
+              tooltip: "Allows withholding actions",
+            },
+            {
+              key: "canValidateAadhaar",
+              label: "Can Validate Aadhaar",
+              tooltip: "Allows validating Aadhaar",
+            },
+          ].map((perm) => (
+            <Grid item xs={6} key={perm.key}>
+              <Tooltip title={perm.tooltip} arrow>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={editedPlayer[perm.key]}
+                      onChange={(e) => handleChange(perm.key, e.target.checked)}
+                    />
+                  }
+                  label={perm.label}
+                />
+              </Tooltip>
+            </Grid>
+          ))}
+          {editedPlayer.customPermissions?.map((perm) => (
+            <Grid item xs={6} key={perm.name}>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Tooltip title={`Custom permission: ${perm.label}`} arrow>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={perm.enabled}
+                        onChange={(e) =>
+                          handleChange(perm.name, e.target.checked)
+                        }
+                      />
+                    }
+                    label={perm.label}
+                  />
+                </Tooltip>
+                <IconButton
+                  onClick={() => removePermission(perm.name)}
+                  sx={{ ml: 1, color: "error.main" }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-start", gap: 2, mb: 2 }}
+        >
+          <Button
+            variant="outlined"
+            onClick={selectAllPermissions}
+            sx={{ borderColor: "primary.main", color: "primary.main" }}
+          >
+            Select All
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={deselectAllPermissions}
+            sx={{ borderColor: "primary.main", color: "primary.main" }}
+          >
+            Deselect All
+          </Button>
         </Box>
 
-        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+        <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>
           Action Form Options
         </Typography>
-        <Box sx={{ pl: 2, mb: 2 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={actionFormOptions.canSanction}
-                onChange={(e) =>
-                  handleActionFormOptionChange("canSanction", e.target.checked)
-                }
-                disabled={!editedPlayer.canSanction}
-              />
-            }
-            label="Include Sanction in Action Form"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={actionFormOptions.canReturnToPlayer}
-                onChange={(e) =>
-                  handleActionFormOptionChange(
-                    "canReturnToPlayer",
-                    e.target.checked,
-                  )
-                }
-                disabled={!editedPlayer.canReturnToPlayer}
-              />
-            }
-            label="Include Return to Player in Action Form"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={actionFormOptions.canReturnToCitizen}
-                onChange={(e) =>
-                  handleActionFormOptionChange(
-                    "canReturnToCitizen",
-                    e.target.checked,
-                  )
-                }
-                disabled={!editedPlayer.canReturnToCitizen}
-              />
-            }
-            label="Include Return to Citizen in Action Form"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={actionFormOptions.canForwardToPlayer}
-                onChange={(e) =>
-                  handleActionFormOptionChange(
-                    "canForwardToPlayer",
-                    e.target.checked,
-                  )
-                }
-                disabled={!editedPlayer.canForwardToPlayer}
-              />
-            }
-            label="Include Forward to Player in Action Form"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={actionFormOptions.canReject}
-                onChange={(e) =>
-                  handleActionFormOptionChange("canReject", e.target.checked)
-                }
-                disabled={!editedPlayer.canReject}
-              />
-            }
-            label="Include Reject in Action Form"
-          />
+        <Divider sx={{ mb: 2 }} />
+        <Grid container spacing={1} sx={{ pl: 2, mb: 2 }}>
+          {[
+            {
+              key: "canSanction",
+              label: "Include Sanction in Action Form",
+              tooltip: "Include Sanction option in action form",
+              enabled: editedPlayer.canSanction,
+            },
+            {
+              key: "canReturnToPlayer",
+              label: "Include Return to Player in Action Form",
+              tooltip: "Include Return to Player option in action form",
+              enabled: editedPlayer.canReturnToPlayer,
+            },
+            {
+              key: "canReturnToCitizen",
+              label: "Include Return to Citizen in Action Form",
+              tooltip: "Include Return to Citizen option in action form",
+              enabled: editedPlayer.canReturnToCitizen,
+            },
+            {
+              key: "canForwardToPlayer",
+              label: "Include Forward to Player in Action Form",
+              tooltip: "Include Forward to Player option in action form",
+              enabled: editedPlayer.canForwardToPlayer,
+            },
+            {
+              key: "canReject",
+              label: "Include Reject in Action Form",
+              tooltip: "Include Reject option in action form",
+              enabled: editedPlayer.canReject,
+            },
+            {
+              key: "canWithhold",
+              label: "Include Withhold in Action Form",
+              tooltip: "Include Withhold option in action form",
+              enabled: editedPlayer.canWithhold,
+            },
+          ].map((opt) => (
+            <Grid item xs={6} key={opt.key}>
+              <Tooltip title={opt.tooltip} arrow>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={actionFormOptions[opt.key]}
+                      onChange={(e) =>
+                        handleActionFormOptionChange(opt.key, e.target.checked)
+                      }
+                      disabled={!opt.enabled}
+                    />
+                  }
+                  label={opt.label}
+                />
+              </Tooltip>
+            </Grid>
+          ))}
+          {editedPlayer.customPermissions?.map((perm) => (
+            <Grid item xs={6} key={perm.name}>
+              <Tooltip title={`Include ${perm.label} in action form`} arrow>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={
+                        actionFormOptions.customPermissions?.[perm.name] ||
+                        false
+                      }
+                      onChange={(e) =>
+                        handleActionFormOptionChange(
+                          perm.name,
+                          e.target.checked,
+                        )
+                      }
+                      disabled={!perm.enabled}
+                    />
+                  }
+                  label={`Include ${perm.label} in Action Form`}
+                />
+              </Tooltip>
+            </Grid>
+          ))}
+        </Grid>
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-start", gap: 2, mb: 2 }}
+        >
+          <Button
+            variant="outlined"
+            onClick={selectAllActionFormOptions}
+            sx={{ borderColor: "primary.main", color: "primary.main" }}
+          >
+            Select All
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={deselectAllActionFormOptions}
+            sx={{ borderColor: "primary.main", color: "primary.main" }}
+          >
+            Deselect All
+          </Button>
         </Box>
 
-        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+        <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>
           Action Form
         </Typography>
+        <Divider sx={{ mb: 2 }} />
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -624,7 +893,11 @@ const PlayerEditModal = ({
         <Button
           variant="contained"
           onClick={addActionFormField}
-          sx={{ mt: 2, backgroundColor: "primary.main" }}
+          sx={{
+            mt: 2,
+            backgroundColor: "primary.main",
+            "&:hover": { bgcolor: "primary.dark" },
+          }}
         >
           Add Action Form Field
         </Button>
@@ -634,7 +907,10 @@ const PlayerEditModal = ({
           <Button
             variant="contained"
             onClick={handleSave}
-            sx={{ backgroundColor: "primary.main" }}
+            sx={{
+              backgroundColor: "primary.main",
+              "&:hover": { bgcolor: "primary.dark" },
+            }}
           >
             Save
           </Button>

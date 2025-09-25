@@ -46,7 +46,6 @@ namespace SahayataNidhi.Controllers.User
             string OfficerRole = "";
             string OfficerArea = "";
 
-            _logger.LogInformation($"------------------Reference Number: {ReferenceNumber}------------------");
 
             var formDetailsObj = JObject.Parse(formDetailsJson);
             var formdetailsToken = JToken.Parse(formDetailsJson);
@@ -63,7 +62,6 @@ namespace SahayataNidhi.Controllers.User
             // Process each file.
             foreach (var file in form.Files)
             {
-                _logger.LogInformation($"--------- Filename: {file.FileName} ------------------");
 
                 // Calculate SHA256 hash of the file content
                 string fileHash;
@@ -78,7 +76,7 @@ namespace SahayataNidhi.Controllers.User
                 if (!fileHashMap.TryGetValue(fileHash, out string? filePath))
                 {
                     // File is new, generate and store the file path
-                    filePath = await helper.GetFilePath(file);
+                    filePath = await helper.GetFilePath(file, null, null, "document");
                     fileHashMap[fileHash] = filePath;
                 }
                 else
@@ -438,7 +436,7 @@ namespace SahayataNidhi.Controllers.User
                         var file = form.Files.FirstOrDefault(f => f.Name == fieldName);
                         if (file != null)
                         {
-                            string filePath = await helper.GetFilePath(file);
+                            string filePath = await helper.GetFilePath(file, null, null, "document");
                             field["File"] = filePath;
                             _logger.LogInformation($"Updated file path for {fieldName}: {filePath}");
                         }
@@ -461,7 +459,7 @@ namespace SahayataNidhi.Controllers.User
                                 var file = form.Files.FirstOrDefault(f => f.Name == nestedFieldName);
                                 if (file != null)
                                 {
-                                    string filePath = await helper.GetFilePath(file);
+                                    string filePath = await helper.GetFilePath(file, null, null, "document");
                                     nestedField["File"] = filePath;
                                     _logger.LogInformation($"Updated file path for nested field {nestedFieldName}: {filePath}");
                                 }
@@ -595,7 +593,7 @@ namespace SahayataNidhi.Controllers.User
                     if (!udidCardFile.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                         return BadRequest(new { status = false, message = "UdidCard file must be a PDF." });
 
-                    string filePath = await helper.GetFilePath(udidCardFile);
+                    string filePath = await helper.GetFilePath(udidCardFile, null, null, "document");
                     udidCardFileName = Path.GetFileName(filePath);
                 }
                 else if (form.Keys.Any(k => k == "serverFiles[UdidCard]"))

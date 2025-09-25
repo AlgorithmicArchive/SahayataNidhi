@@ -54,6 +54,8 @@ import SearchApplication from "../screens/officer/SearchApplication";
 import CreateReports from "../screens/designer/CreateReports";
 import AddDesignations from "../screens/admin/AddDesignations";
 import AddDepartment from "../screens/admin/AddDepartment";
+import Feedback from "../screens/Feedback";
+import ViewFeedbacks from "../screens/admin/ViewFeedbacks";
 
 const RoutesComponent = () => {
   return (
@@ -122,6 +124,7 @@ const RoutesComponent = () => {
           <Route path="addadmin" element={<AddAdmin />} />
           <Route path="addDesignations" element={<AddDesignations />} />
           <Route path="addDepartment" element={<AddDepartment />} />
+          <Route path="viewFeedbacks" element={<ViewFeedbacks />} />
           <Route path="validateofficer" element={<ValidateOfficer />} />
         </Route>
       </Route>
@@ -146,6 +149,7 @@ const RoutesComponent = () => {
         }
       >
         <Route path="/settings" element={<Settings />} />
+        <Route path="/feedback" element={<Feedback />} />
       </Route>
     </Routes>
   );

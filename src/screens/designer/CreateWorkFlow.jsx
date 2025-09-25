@@ -37,12 +37,12 @@ const sanitizeActionForm = (actionForm) => {
     if (field.options) {
       return {
         ...field,
-        options: field.options, // Keep all options, including "withhold"
+        options: field.options,
         dependentOptions: field.dependentOptions
           ? Object.fromEntries(
               Object.entries(field.dependentOptions).map(([key, opts]) => [
                 key,
-                opts, // Keep all dependent options, including "withhold"
+                opts,
               ]),
             )
           : field.dependentOptions,
@@ -105,6 +105,7 @@ export default function CreateWorkflow() {
     canManageBankFiles: false,
     canWithhold: false,
     canValidateAadhaar: false,
+    customPermissions: [], // Support for dynamic permissions
     actionForm: [],
     actionFormOptions: {
       canSanction: false,
@@ -112,6 +113,8 @@ export default function CreateWorkflow() {
       canReturnToCitizen: false,
       canForwardToPlayer: false,
       canReject: false,
+      canWithhold: false,
+      customPermissions: {}, // Support for dynamic action form options
     },
     prevPlayerId: null,
     nextPlayerId: null,
@@ -133,7 +136,12 @@ export default function CreateWorkflow() {
       canReturnToPlayer: player.canReturnToPlayer,
       canReturnToCitizen: player.canReturnToCitizen,
       canReject: player.canReject,
-      canWithhold: player.canWithhold, // Include canWithhold
+      canWithhold: player.canWithhold,
+      customPermissions: player.customPermissions
+        ? Object.fromEntries(
+            player.customPermissions.map((perm) => [perm.name, perm.enabled]),
+          )
+        : {},
     };
     if (optionsConfig.canForwardToPlayer && player.canForwardToPlayer) {
       let label = "Forward to Player";
@@ -173,6 +181,17 @@ export default function CreateWorkflow() {
     }
     if (optionsConfig.canWithhold && player.canWithhold) {
       actionOptions.push({ value: "Withhold", label: "Withhold" });
+    }
+    // Add custom permissions to action options
+    if (optionsConfig.customPermissions) {
+      player.customPermissions?.forEach((perm) => {
+        if (perm.enabled && optionsConfig.customPermissions[perm.name]) {
+          actionOptions.push({
+            value: perm.name.replace("custom_", ""),
+            label: perm.label,
+          });
+        }
+      });
     }
     const defaultActionField = {
       id: `default-field-${Date.now()}`,
@@ -252,6 +271,7 @@ export default function CreateWorkflow() {
         }
       } catch (error) {
         console.error("Error fetching services:", error);
+        toast.error("Failed to fetch services");
       }
     }
     fetchData();
@@ -267,11 +287,13 @@ export default function CreateWorkflow() {
         const updatedWorkflow = workflow.map((player) => ({
           ...player,
           accessLevel: player.accessLevel || "",
+          customPermissions: player.customPermissions || [], // Ensure customPermissions is included
         }));
         setPlayers(updatedWorkflow);
       } catch (err) {
         console.error("Error parsing workflow:", err);
         setPlayers([]);
+        toast.error("Error loading workflow");
       }
     } else {
       setPlayers([]);
@@ -307,11 +329,22 @@ export default function CreateWorkflow() {
       canManageBankFiles: false,
       canWithhold: false,
       canValidateAadhaar: false,
+      customPermissions: [], // Reset customPermissions
       actionForm: [],
+      actionFormOptions: {
+        canSanction: false,
+        canReturnToPlayer: false,
+        canReturnToCitizen: false,
+        canForwardToPlayer: false,
+        canReject: false,
+        canWithhold: false,
+        customPermissions: {}, // Reset custom action form options
+      },
       status: "",
       completedAt: null,
       remarks: "",
     });
+    toast.success("New player added");
   };
 
   const saveWorkflow = async () => {
@@ -423,6 +456,7 @@ export default function CreateWorkflow() {
     updateAllDefaultActionFields();
     setIsEditModalOpen(false);
     setSelectedPlayer(null);
+    toast.success("Player updated successfully");
   };
 
   const sensors = useSensors(useSensor(PointerSensor));
@@ -586,6 +620,16 @@ export default function CreateWorkflow() {
                             <strong>Withhold:</strong>{" "}
                             {player.canWithhold ? "Yes" : "No"}
                           </Typography>
+                          <Typography variant="body2">
+                            <strong>Validate Aadhaar:</strong>{" "}
+                            {player.canValidateAadhaar ? "Yes" : "No"}
+                          </Typography>
+                          {player.customPermissions?.map((perm) => (
+                            <Typography variant="body2" key={perm.name}>
+                              <strong>{perm.label}:</strong>{" "}
+                              {perm.enabled ? "Yes" : "No"}
+                            </Typography>
+                          ))}
                         </Box>
                         <Box sx={{ mt: 2, display: "flex", gap: 2 }}>
                           <Button
@@ -629,7 +673,7 @@ export default function CreateWorkflow() {
               "& .MuiDialog-paper": {
                 borderRadius: 2,
                 p: 3,
-                width: { xs: "90%", md: 600 },
+                width: { xs: "90%", md: 700 },
               },
             }}
           />

@@ -14,7 +14,7 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SocialW
 
     private readonly ILogger<UserHelperFunctions> _logger = logger;
 
-    public async Task<string> GetFilePath(IFormFile? docFile = null, byte[]? fileData = null, string? fileName = null)
+    public async Task<string> GetFilePath(IFormFile? docFile = null, byte[]? fileData = null, string? fileName = null, string documentType = "document")
     {
         if ((docFile == null || docFile.Length == 0) && fileData == null)
         {
@@ -77,10 +77,11 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SocialW
         // Save to database to generate FileId
         var fileModel = new UserDocument
         {
-            FileName = fileName == null ? uniqueName : fileName, // Temporary placeholder
+            FileName = fileName ?? uniqueName, // Temporary placeholder
             FileType = contentType,
             FileSize = data.Length,
             FileData = data,
+            DocumentType = documentType,
             UpdatedAt = DateTime.Now
         };
 

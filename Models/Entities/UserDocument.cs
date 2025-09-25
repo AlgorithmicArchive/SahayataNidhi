@@ -15,5 +15,7 @@ public partial class UserDocument
 
     public byte[] FileData { get; set; } = null!;
 
+    public string? DocumentType { get; set; }
+
     public DateTime UpdatedAt { get; set; }
 }

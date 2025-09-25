@@ -41,6 +41,8 @@ public partial class SocialWelfareDepartmentContext : DbContext
 
     public virtual DbSet<EmailSetting> EmailSettings { get; set; }
 
+    public virtual DbSet<Feedback> Feedbacks { get; set; }
+
     public virtual DbSet<HalqaPanchayat> HalqaPanchayats { get; set; }
 
     public virtual DbSet<Muncipality> Muncipalities { get; set; }
@@ -314,6 +316,21 @@ public partial class SocialWelfareDepartmentContext : DbContext
                 .IsUnicode(false);
         });
 
+        modelBuilder.Entity<Feedback>(entity =>
+        {
+            entity.ToTable("Feedback");
+
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Description).HasColumnType("text");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasDefaultValue("Pending");
+            entity.Property(e => e.Title).HasMaxLength(255);
+            entity.Property(e => e.UserId).HasColumnName("userId");
+        });
+
         modelBuilder.Entity<HalqaPanchayat>(entity =>
         {
             entity
@@ -577,6 +594,7 @@ public partial class SocialWelfareDepartmentContext : DbContext
             entity.HasKey(e => e.FileId);
 
             entity.Property(e => e.FileId).HasColumnName("fileId");
+            entity.Property(e => e.DocumentType).HasMaxLength(50);
             entity.Property(e => e.FileName).HasMaxLength(255);
             entity.Property(e => e.FileType).HasMaxLength(50);
             entity.Property(e => e.UpdatedAt)

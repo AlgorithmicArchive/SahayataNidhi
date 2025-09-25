@@ -373,9 +373,9 @@ namespace SahayataNidhi.Controllers
 
             _logger.LogInformation($"User {user.Username} ({user.UserId}) is attempting to log in.");
             // ✅ Check for existing active session
-            var activeSession = await _sessionRepo.GetActiveSessionAsync(user.UserId);
-            if (activeSession != null)
-                return Json(new { status = false, response = "User is already logged in from another device." });
+            // var activeSession = await _sessionRepo.GetActiveSessionAsync(user.UserId);
+            // if (activeSession != null)
+            //     return Json(new { status = false, response = "User is already logged in from another device." });
 
             // ✅ Create JWT claims
             var claims = new List<Claim>
@@ -728,36 +728,35 @@ namespace SahayataNidhi.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> LogOut()
+        public IActionResult LogOut()
         {
             // Get the UserId from the JWT token's claims
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Adjust claim type if needed
-            _logger.LogInformation($" -------------- UserId claim from token: {userIdClaim} -------------");
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-            {
-                _logger.LogWarning("Logout failed: Unable to retrieve or parse UserId from JWT token.");
-                // Optionally, redirect to an error page or login page
-                return RedirectToAction("Index", "Home");
-            }
+            // var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Adjust claim type if needed
+            // if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            // {
+            //     _logger.LogWarning("Logout failed: Unable to retrieve or parse UserId from JWT token.");
+            //     // Optionally, redirect to an error page or login page
+            //     return RedirectToAction("Index", "Home");
+            // }
 
-            _logger.LogInformation($"Logging out user with UserId: {userId}");
+            // _logger.LogInformation($"Logging out user with UserId: {userId}");
 
-            // Find and remove the active session
-            var session = await _sessionRepo.GetActiveSessionAsync(userId);
-            if (session != null)
-            {
-                await _sessionRepo.RemoveSessionAsync(session);
-                _logger.LogInformation($"Session removed for UserId: {userId}, SessionId: {session.SessionId}");
-            }
-            else
-            {
-                _logger.LogWarning($"No active session found for UserId: {userId} during logout.");
-            }
+            // // Find and remove the active session
+            // var session = await _sessionRepo.GetActiveSessionAsync(userId);
+            // if (session != null)
+            // {
+            //     await _sessionRepo.RemoveSessionAsync(session);
+            //     _logger.LogInformation($"Session removed for UserId: {userId}, SessionId: {session.SessionId}");
+            // }
+            // else
+            // {
+            //     _logger.LogWarning($"No active session found for UserId: {userId} during logout.");
+            // }
 
-            // Clear authentication on the server (optional, clears server-side cookies if any)
-            // await HttpContext.SignOutAsync();
+            // // Clear authentication on the server (optional, clears server-side cookies if any)
+            // // await HttpContext.SignOutAsync();
 
-            // Redirect to the home page
+            // // Redirect to the home page
             return RedirectToAction("Index", "Home");
         }
 

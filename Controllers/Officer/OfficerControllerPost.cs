@@ -850,17 +850,98 @@ namespace SahayataNidhi.Controllers.Officer
                         }
                     }
                 }
+                var citinzenApplication = dbcontext.CitizenApplications
+                    .FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber.ToString());
+                var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
+
+                JObject formDetailsJObject;
+                try
+                {
+                    formDetailsJObject = JObject.Parse(citinzenApplication!.FormDetails!)!;
+                }
+                catch (JsonException ex)
+                {
+                    return BadRequest($"Failed to deserialize form details for application with reference number '{referenceNumber}': {ex.Message}");
+                }
+
+                if (!formDetailsJObject.TryGetValue("Location", out JToken? locationToken) || locationToken.Type == JTokenType.Null)
+                {
+                    return BadRequest($"'Location' property is missing or null in form details for application with reference number '{referenceNumber}'.");
+                }
+
+                string location = locationToken.ToString();
+
+                JArray players;
+                try
+                {
+                    players = JArray.Parse(service!.OfficerEditableField ?? "[]");
+                }
+                catch (JsonException ex)
+                {
+                    return BadRequest($"Failed to parse OfficerEditableField: {ex.Message}");
+                }
+
+                if (players.Count == 0)
+                {
+                    return Json(new { status = false, message = "No workflow players defined for this service." });
+                }
+
+                int currentPlayerIndex = players.ToList().FindIndex(p => p["designation"]?.ToString() == officer.Role);
+
+                var filteredWorkflow = new JArray();
+                foreach (var player in players)
+                {
+                    var filteredPlayer = new JObject
+                    {
+                        ["designation"] = player["designation"],
+                        ["status"] = player["status"],
+                        ["completedAt"] = player["completedAt"],
+                        ["remarks"] = player["remarks"],
+                        ["playerId"] = player["playerId"],
+                        ["prevPlayerId"] = player["prevPlayerId"],
+                        ["nextPlayerId"] = player["nextPlayerId"],
+                        ["canPull"] = true
+                    };
+                    filteredWorkflow.Add(filteredPlayer);
+                }
+
+                if (filteredWorkflow.Count > 0)
+                {
+                    filteredWorkflow[0]["status"] = "forwarded";
+                    filteredWorkflow[0]["remarks"] = withheldReason.ToString();
+                    filteredWorkflow[0]["completedAt"] = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
+                    if (filteredWorkflow.Count > 1)
+                    {
+                        filteredWorkflow[1]["status"] = "pending";
+                    }
+                }
+
+                var workFlow = JsonConvert.SerializeObject(filteredWorkflow);
+
+                var history = new
+                {
+                    officer = officer.Role + " " + GetOfficerArea(officer.AccessLevel!, formDetailsJObject),
+                    status = "Forwarded",
+                    remarks = withheldReason.ToString(),
+                    actionTakenOn = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
+                };
+
+                List<dynamic> History = new List<dynamic> { history };
 
                 // Create new application
                 var newApplication = new WithheldApplication
                 {
                     ServiceId = serviceId,
                     ReferenceNumber = referenceNumber.ToString(),
+                    Location = location,
+                    WorkFlow = workFlow,
+                    CurrentPlayer = currentPlayerIndex != -1 ? currentPlayerIndex : 0,
+                    History = JsonConvert.SerializeObject(History),
                     IsWithheld = isWithheld,
                     WithheldType = withheldType.ToString(),
                     WithheldReason = withheldReason.ToString(),
+                    Status = "Initiated",
                     Files = fileNames.Count != 0 ? JsonConvert.SerializeObject(fileNames) : null,
-                    // WithheldOn is not set explicitly as it has a default value of GETDATE() in the database
                 };
 
                 dbcontext.WithheldApplications.Add(newApplication);
