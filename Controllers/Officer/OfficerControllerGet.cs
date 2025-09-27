@@ -448,7 +448,7 @@ namespace SahayataNidhi.Controllers.Officer
                     columns = columns
                         .Select(col =>
                             col.accessorKey == "actionTakenOn"
-                                ? new { accessorKey = col.accessorKey, header = "Action Taken On" }
+                                ? new { col.accessorKey, header = "Action Taken On" }
                                 : col
                         )
                         .ToList<dynamic>();
@@ -2156,7 +2156,7 @@ namespace SahayataNidhi.Controllers.Officer
                         applicantName = GetFieldValue("ApplicantName", formDetails),
                         currentStatus = CurrentStatus == "sanctioned" ? "Issued" : CurrentStatus,
                         creationDate = application.CreatedAt.ToString("dd MMM yyyy hh:mm:ss tt"),
-                        applicationType = applicationType,
+                        applicationType,
                         serviceId = citizenApp.ServiceId,
                         customActions
                     });
@@ -2563,6 +2563,42 @@ namespace SahayataNidhi.Controllers.Officer
             var citizenApplication = dbcontext.CitizenApplications
                 .FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
 
+            var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == parsedServiceId);
+            List<dynamic> workflow;
+            try
+            {
+                workflow = JsonConvert.DeserializeObject<List<dynamic>>(service!.OfficerEditableField!) ?? new List<dynamic>();
+            }
+            catch (JsonException ex)
+            {
+                return StatusCode(500, $"Error parsing workflow: {ex.Message}");
+            }
+
+            if (workflow.Count == 0)
+                return Json(new { countList = new List<object>(), corrigendumList = new List<object>(), correctionList = new List<object>(), canSanction = false });
+
+            // Find officer authorities
+            dynamic authorities = workflow.FirstOrDefault(p => p.designation == officer.Role)!;
+            if (authorities == null)
+                return Json(new { countList = new List<object>(), corrigendumList = new List<object>(), correctionList = new List<object>(), canSanction = false });
+
+            int currentPlayerId = (int)authorities.playerId;
+
+            var officerAuthorities = new
+            {
+                CanSanction = (bool?)authorities.canSanction ?? false,
+                CanHavePool = (bool?)authorities.canHavePool ?? false,
+                CanForwardToPlayer = (bool?)authorities.canForwardToPlayer ?? false,
+                CanReturnToPlayer = (bool?)authorities.canReturnToPlayer ?? false,
+                CanCorrigendum = (bool?)authorities.canCorrigendum ?? false,
+                CanReturnToCitizen = (bool?)authorities.canReturnToCitizen ?? false,
+                CanManageBankFiles = (bool?)authorities.canManageBankFiles ?? false,
+                CanWithhold = (bool?)authorities.canWithhold ?? false,
+                CanDirectWithheld = (bool?)authorities.canDirectWithheld ?? false,
+                CanValidateAadhaar = (bool?)authorities.canValidateAadhaar ?? false
+            };
+
+
             if (withheldApplication == null)
             {
                 if (citizenApplication == null)
@@ -2575,8 +2611,9 @@ namespace SahayataNidhi.Controllers.Officer
                 }
             }
 
-            bool canPermanentToTemporary = true;
-            var history = dbcontext.ActionHistories.Where(ah => ah.ReferenceNumber == referenceNumber && ah.ActionTaken.Contains("Withheld")).ToList();
+            bool canPermanentToTemporary = currentPlayerId == (workflow.Count - 1);
+
+            var history = withheldApplication != null ? JsonConvert.DeserializeObject<dynamic>(withheldApplication!.History!) : new List<dynamic>();
             var columns = new List<dynamic>
             {
                 new { header = "S.No", accessorKey="sno" },
@@ -2587,17 +2624,17 @@ namespace SahayataNidhi.Controllers.Officer
             };
             int index = 1;
             List<dynamic> data = [];
-            foreach (var item in history)
+            foreach (var item in history!)
             {
                 string officerArea = GetOfficerAreaForHistory(item.LocationLevel!, item.LocationValue);
 
                 data.Add(new
                 {
                     sno = index,
-                    actionTaker = item.ActionTaker != "Citizen" ? item.ActionTaker + " " + officerArea : item.ActionTaker,
-                    actionTaken = item.ActionTaken! == "ReturnToCitizen" ? "Returned to citizen for correction" : item.ActionTaken,
-                    remarks = item.Remarks,
-                    actionTakenOn = item.ActionTakenDate,
+                    actionTaker = item.officer,
+                    actionTaken = item.status,
+                    item.remarks,
+                    item.actionTakenOn,
                 });
                 index++;
             }
@@ -2636,7 +2673,55 @@ namespace SahayataNidhi.Controllers.Officer
                 application["applicantName"] = "N/A";
                 application["parentage"] = "N/A";
             }
+           
             bool recordExists = withheldApplication != null;
+
+            var options = new List<dynamic>();
+
+            if (withheldApplication == null && officerAuthorities.CanWithhold)
+            {
+                // Case 1: No withheld application
+                if (officerAuthorities.CanDirectWithheld)
+                {
+                    options.Add(new { label = "Approve", value = "approve" });
+                }
+                else
+                {
+                    options.Add(new { label = "Forward", value = "forward" });
+                }
+            }
+            else if (withheldApplication != null)
+            {
+                var withheldType = Withheld["withheldType"]?.ToString();
+
+                if (withheldType == "Permanent")
+                {
+                    // Case 2: Permanent withheld
+                    if (canPermanentToTemporary)
+                    {
+                        options.Add(new { label = "Approve", value = "approve" });
+                    }
+                    else
+                    {
+                        options.Add(new { label = "Forward", value = "forward" });
+                    }
+                }
+                else if (withheldType == "Temporary")
+                {
+                    // Case 3: Temporary withheld
+                    if (officerAuthorities.CanWithhold && !officerAuthorities.CanDirectWithheld)
+                    {
+                        options.Add(new { label = "Forward", value = "forward" });
+                    }
+                    else
+                    {
+                        options.Add(new { label = "Approve", value = "approve" });
+                    }
+                }
+            }
+
+
+
 
             return Json(new
             {
@@ -2644,6 +2729,8 @@ namespace SahayataNidhi.Controllers.Officer
                 application = Withheld,
                 canPermanentToTemporary,
                 applicationDetails = application,
+                canCreate = withheldApplication == null || (withheldApplication != null && currentPlayerId == withheldApplication.CurrentPlayer),
+                options,
                 data,
                 columns,
                 recordExists

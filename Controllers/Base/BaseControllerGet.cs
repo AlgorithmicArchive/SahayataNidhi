@@ -277,11 +277,10 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetDesignations(string deparmentId)
+        public IActionResult GetDesignations(string departmentId)
         {
-            // JsonConvert.DeserializeObject
-            _logger.LogInformation($"------- Department ID: {deparmentId} --------");
-            var designations = dbcontext.OfficersDesignations.Where(des => des.DepartmentId == Convert.ToInt32(deparmentId)).ToList();
+            _logger.LogInformation($"------- Department ID: {departmentId} --------");
+            var designations = dbcontext.OfficersDesignations.Where(des => des.DepartmentId == Convert.ToInt32(departmentId)).ToList();
             return Json(new { status = true, designations });
         }
 

@@ -61,13 +61,16 @@ export default function Withheld() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [action, setAction] = useState("");
+  const [actionOptions, setActionOptions] = useState([]);
+  const [application, setApplication] = useState({});
 
   useEffect(() => {
     fetchServiceList(setServices);
   }, []);
 
   const handleServiceId = (serviceId) => {
-    console.log("Selected serviceId:", serviceId);
+    console.log(serviceId);
     setServiceId(serviceId);
   };
 
@@ -92,6 +95,8 @@ export default function Withheld() {
     setModalOpen(false);
     setSelectedPdfUrl("");
     setInitialFormData(null);
+    setAction("");
+    setActionOptions([]);
 
     try {
       const res = await axiosInstance.get("/Officer/GetWithheldApplication", {
@@ -110,10 +115,12 @@ export default function Withheld() {
 
       setRecordExists(!!res.data.recordExists);
       setCanPermanentToTemporary(res.data.canPermanentToTemporary ?? true);
-      setCanCreate(true);
+      setCanCreate(res.data.canCreate);
       setHasChecked(true);
       setTableData(res.data.data || []);
       setTableColumns(res.data.columns || []);
+      setActionOptions(res.data.options || []);
+      setApplication(res.data.application);
 
       let withheldFiles = res.data.application?.files || [];
       if (typeof withheldFiles === "string") {
@@ -201,6 +208,10 @@ export default function Withheld() {
       setError("Please provide a Withheld Reason.");
       return;
     }
+    if (!action) {
+      setError("Please select an action.");
+      return;
+    }
 
     if (recordExists && initialFormData) {
       const noFieldChanges =
@@ -218,7 +229,7 @@ export default function Withheld() {
 
       if (noFieldChanges && noFileChanges) {
         setError(
-          "No changes detected. Please modify the application details or files to update.",
+          "No changes detected. Please modify the application details, files, or action to update.",
         );
         return;
       }
@@ -235,6 +246,7 @@ export default function Withheld() {
       form.append("IsWithheld", formData.isWithheld.toString());
       form.append("WithheldType", formData.withheldType);
       form.append("WithheldReason", formData.withheldReason);
+      form.append("Action", action);
 
       formData.files.forEach((file) => {
         if (file instanceof File) {
@@ -243,6 +255,8 @@ export default function Withheld() {
           form.append("ExistingFiles", file);
         }
       });
+
+      console.log(form);
 
       let res;
       if (recordExists) {
@@ -297,11 +311,13 @@ export default function Withheld() {
       setTableColumns([]);
       setModalOpen(false);
       setSelectedPdfUrl("");
-      setTimeout(() => setSuccessMessage(""), 5000); // Auto-dismiss success
+      setAction("");
+      setActionOptions([]);
+      setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
       console.error("Save error:", err);
       setError(err.response?.data?.message || "Failed to save application");
-      setTimeout(() => setError(""), 5000); // Auto-dismiss error
+      setTimeout(() => setError(""), 5000);
     } finally {
       setConfirmDialogOpen(false);
     }
@@ -325,6 +341,8 @@ export default function Withheld() {
     setTableData([]);
     setTableColumns([]);
     setInitialFormData(null);
+    setAction("");
+    setActionOptions([]);
   };
 
   const formatKey = (key) => {
@@ -507,6 +525,8 @@ export default function Withheld() {
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Application Details
           </Typography>
+
+          {/* Applicant Details */}
           {Object.entries(applicationDetails).map(
             ([key, value]) =>
               key !== "files" && (
@@ -515,6 +535,30 @@ export default function Withheld() {
                 </Typography>
               ),
           )}
+
+          {/* Withheld Application Details */}
+          {application && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                Withheld Information
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 0.5 }}>
+                <strong>Type:</strong>{" "}
+                {application.withheldType == "Permanent"
+                  ? "Weedout"
+                  : application.withheldType || "N/A"}
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 0.5 }}>
+                <strong>Reason:</strong> {application.withheldReason || "N/A"}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Status:</strong>{" "}
+                {application.isWithheld ? "Currently Withheld" : "Not Withheld"}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Uploaded Documents */}
           {Array.isArray(formData.files) && formData.files.length > 0 && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
@@ -547,6 +591,7 @@ export default function Withheld() {
             </Box>
           )}
 
+          {/* Action History Table */}
           {hasChecked && tableData.length > 0 && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
@@ -632,9 +677,7 @@ export default function Withheld() {
               }
             >
               <MenuItem value="Permanent">Weedout</MenuItem>
-              <MenuItem value="Temporary" disabled={!canPermanentToTemporary}>
-                Temporary
-              </MenuItem>
+              <MenuItem value="Temporary">Temporary</MenuItem>
             </Select>
             <FormHelperText>
               {formData.withheldType === "Permanent"
@@ -694,6 +737,32 @@ export default function Withheld() {
             </FormControl>
           )}
 
+          <FormControl
+            fullWidth
+            sx={formControlStyles}
+            error={error.includes("action")}
+          >
+            <InputLabel id="action-label">Action</InputLabel>
+            <Select
+              labelId="action-label"
+              label="Action"
+              value={action}
+              onChange={(e) => setAction(e.target.value)}
+            >
+              {actionOptions.map((option, index) => (
+                <MenuItem key={index} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+            <FormHelperText>
+              Select the action to take for this application.
+            </FormHelperText>
+            {error.includes("action") && (
+              <FormHelperText>Please select a valid action</FormHelperText>
+            )}
+          </FormControl>
+
           <Box sx={{ mb: 3 }}>
             <Typography
               variant="subtitle1"
@@ -743,7 +812,7 @@ export default function Withheld() {
               variant="contained"
               sx={buttonStyles}
               onClick={handleSave}
-              disabled={loading}
+              disabled={loading || !action}
             >
               {recordExists ? "Update Application" : "Submit Application"}
             </Button>
@@ -775,7 +844,7 @@ export default function Withheld() {
         <DialogContent>
           <Typography>
             Are you sure you want to {recordExists ? "update" : "submit"} this
-            withheld application?
+            withheld application with action: {action}?
           </Typography>
         </DialogContent>
         <DialogActions>

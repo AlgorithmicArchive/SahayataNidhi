@@ -13,11 +13,7 @@ import {
   Grid,
   Tooltip,
   Divider,
-  TextField,
-  IconButton,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
 import FieldEditModal from "./FieldEditModal";
 import SortableField from "./SortableField";
 import {
@@ -71,6 +67,7 @@ const PlayerEditModal = ({
     canManageBankFiles: player.canManageBankFiles || false,
     canWithhold: player.canWithhold || false,
     canValidateAadhaar: player.canValidateAadhaar || false,
+    canDirectWithheld: player.canDirectWithheld || false, // Added new permission
     actionForm: sanitizeActionForm(player.actionForm || []),
     customPermissions: player.customPermissions || [], // Store custom permissions
   });
@@ -81,6 +78,7 @@ const PlayerEditModal = ({
     canReturnToCitizen: player.canReturnToCitizen,
     canReject: player.canReject,
     canWithhold: player.canWithhold,
+    canDirectWithheld: player.canDirectWithheld || false, // Added new permission
     customPermissions: player.customPermissions
       ? Object.fromEntries(
           player.customPermissions.map((perm) => [perm.name, false]),
@@ -91,7 +89,6 @@ const PlayerEditModal = ({
   const [selectedField, setSelectedField] = useState(null);
   const [designations, setDesignations] = useState([]);
   const [isLoadingDesignations, setIsLoadingDesignations] = useState(true);
-  const [newPermissionName, setNewPermissionName] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -190,6 +187,17 @@ const PlayerEditModal = ({
         return;
       }
     }
+    if (field === "canDirectWithheld" && value) {
+      const otherDirectWithheld = players.find(
+        (p) => p.playerId !== editedPlayer.playerId && p.canDirectWithheld,
+      );
+      if (otherDirectWithheld) {
+        toast.error(
+          `Another player (${otherDirectWithheld.designation}) already has Can Direct Withheld authority.`,
+        );
+        return;
+      }
+    }
 
     // Handle custom permissions
     if (field.startsWith("custom_")) {
@@ -231,6 +239,7 @@ const PlayerEditModal = ({
         "canReturnToCitizen",
         "canReject",
         "canWithhold",
+        "canDirectWithheld",
       ].includes(field)
     ) {
       setActionFormOptions((prev) => ({
@@ -249,60 +258,6 @@ const PlayerEditModal = ({
     console.log(`Updated actionFormOptions.${field}:`, value);
   };
 
-  const addPermission = () => {
-    if (!newPermissionName.trim()) {
-      toast.error("Permission name cannot be empty.");
-      return;
-    }
-    const permissionName = newPermissionName.trim();
-    const permissionKey = `custom_${permissionName
-      .replace(/\s+/g, "_")
-      .toLowerCase()}`;
-    if (
-      editedPlayer.customPermissions?.some(
-        (perm) => perm.name === permissionKey,
-      )
-    ) {
-      toast.error("Permission already exists.");
-      return;
-    }
-    const newPermission = {
-      name: permissionKey,
-      label: permissionName,
-      enabled: false,
-    };
-    setEditedPlayer((prev) => ({
-      ...prev,
-      customPermissions: [...(prev.customPermissions || []), newPermission],
-    }));
-    setActionFormOptions((prev) => ({
-      ...prev,
-      customPermissions: {
-        ...prev.customPermissions,
-        [permissionKey]: false,
-      },
-    }));
-    setNewPermissionName("");
-    toast.success(`Permission "${permissionName}" added successfully.`);
-  };
-
-  const removePermission = (permissionName) => {
-    setEditedPlayer((prev) => ({
-      ...prev,
-      customPermissions: prev.customPermissions.filter(
-        (perm) => perm.name !== permissionName,
-      ),
-    }));
-    setActionFormOptions((prev) => {
-      const { [permissionName]: _, ...rest } = prev.customPermissions || {};
-      return {
-        ...prev,
-        customPermissions: rest,
-      };
-    });
-    toast.success(`Permission removed successfully.`);
-  };
-
   const selectAllPermissions = () => {
     setEditedPlayer((prev) => ({
       ...prev,
@@ -317,6 +272,7 @@ const PlayerEditModal = ({
       canManageBankFiles: true,
       canWithhold: true,
       canValidateAadhaar: true,
+      canDirectWithheld: true, // Added new permission
       customPermissions: prev.customPermissions?.map((perm) => ({
         ...perm,
         enabled: true,
@@ -330,6 +286,7 @@ const PlayerEditModal = ({
       canForwardToPlayer: true,
       canReject: true,
       canWithhold: true,
+      canDirectWithheld: true, // Added new permission
       customPermissions: Object.fromEntries(
         Object.keys(prev.customPermissions || {}).map((key) => [key, true]),
       ),
@@ -350,6 +307,7 @@ const PlayerEditModal = ({
       canManageBankFiles: false,
       canWithhold: false,
       canValidateAadhaar: false,
+      canDirectWithheld: false, // Added new permission
       customPermissions: prev.customPermissions?.map((perm) => ({
         ...perm,
         enabled: false,
@@ -363,6 +321,7 @@ const PlayerEditModal = ({
       canForwardToPlayer: false,
       canReject: false,
       canWithhold: false,
+      canDirectWithheld: false, // Added new permission
       customPermissions: Object.fromEntries(
         Object.keys(prev.customPermissions || {}).map((key) => [key, false]),
       ),
@@ -377,6 +336,7 @@ const PlayerEditModal = ({
       canForwardToPlayer: editedPlayer.canForwardToPlayer,
       canReject: editedPlayer.canReject,
       canWithhold: editedPlayer.canWithhold,
+      canDirectWithheld: editedPlayer.canDirectWithheld, // Added new permission
       customPermissions: Object.fromEntries(
         (editedPlayer.customPermissions || [])
           .filter((perm) => perm.enabled)
@@ -393,6 +353,7 @@ const PlayerEditModal = ({
       canForwardToPlayer: false,
       canReject: false,
       canWithhold: false,
+      canDirectWithheld: false, // Added new permission
       customPermissions: Object.fromEntries(
         Object.keys(actionFormOptions.customPermissions || {}).map((key) => [
           key,
@@ -496,6 +457,9 @@ const PlayerEditModal = ({
     }
     if (actionFormOptions.canWithhold && editedPlayer.canWithhold) {
       actionOptions.push({ value: "Withhold", label: "Withhold" });
+    }
+    if (actionFormOptions.canDirectWithheld && editedPlayer.canDirectWithheld) {
+      actionOptions.push({ value: "DirectWithheld", label: "Direct Withheld" });
     }
     // Add custom permissions to action form options
     if (actionFormOptions.customPermissions) {
@@ -605,37 +569,6 @@ const PlayerEditModal = ({
         </Typography>
 
         <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>
-          Add Custom Permission
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-          <TextField
-            label="New Permission Name"
-            value={newPermissionName}
-            onChange={(e) => setNewPermissionName(e.target.value)}
-            fullWidth
-            variant="outlined"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "&:hover fieldset": { borderColor: "primary.main" },
-                "&.Mui-focused fieldset": { borderColor: "primary.main" },
-              },
-            }}
-          />
-          <Button
-            variant="contained"
-            onClick={addPermission}
-            startIcon={<AddIcon />}
-            sx={{
-              bgcolor: "primary.main",
-              "&:hover": { bgcolor: "primary.dark" },
-            }}
-          >
-            Add
-          </Button>
-        </Box>
-
-        <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>
           Permissions
         </Typography>
         <Divider sx={{ mb: 2 }} />
@@ -696,6 +629,11 @@ const PlayerEditModal = ({
               label: "Can Validate Aadhaar",
               tooltip: "Allows validating Aadhaar",
             },
+            {
+              key: "canDirectWithheld",
+              label: "Can Direct Withheld",
+              tooltip: "Allows direct withholding actions",
+            },
           ].map((perm) => (
             <Grid item xs={6} key={perm.key}>
               <Tooltip title={perm.tooltip} arrow>
@@ -727,12 +665,6 @@ const PlayerEditModal = ({
                     label={perm.label}
                   />
                 </Tooltip>
-                <IconButton
-                  onClick={() => removePermission(perm.name)}
-                  sx={{ ml: 1, color: "error.main" }}
-                >
-                  <DeleteIcon />
-                </IconButton>
               </Box>
             </Grid>
           ))}
@@ -797,6 +729,12 @@ const PlayerEditModal = ({
               label: "Include Withhold in Action Form",
               tooltip: "Include Withhold option in action form",
               enabled: editedPlayer.canWithhold,
+            },
+            {
+              key: "canDirectWithheld",
+              label: "Include Direct Withheld in Action Form",
+              tooltip: "Include Direct Withheld option in action form",
+              enabled: editedPlayer.canDirectWithheld,
             },
           ].map((opt) => (
             <Grid item xs={6} key={opt.key}>
