@@ -2598,7 +2598,6 @@ namespace SahayataNidhi.Controllers.Officer
                 CanValidateAadhaar = (bool?)authorities.canValidateAadhaar ?? false
             };
 
-
             if (withheldApplication == null)
             {
                 if (citizenApplication == null)
@@ -2618,9 +2617,9 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 new { header = "S.No", accessorKey="sno" },
                 new { header = "Action Taker", accessorKey="actionTaker" },
-                new { header = "Action Taken",accessorKey="actionTaken" },
+                new { header = "Action Taken", accessorKey="actionTaken" },
                 new { header = "Remarks", accessorKey="remarks" },
-                new { header = "Action Taken On",accessorKey="actionTakenOn" },
+                new { header = "Action Taken On", accessorKey="actionTakenOn" },
             };
             int index = 1;
             List<dynamic> data = [];
@@ -2657,8 +2656,6 @@ namespace SahayataNidhi.Controllers.Officer
                     var tswovalue = dbcontext.Tswotehsils.FirstOrDefault(to => to.TehsilId == Convert.ToInt32(GetFieldValue("Tehsil", formDetails)));
                     var dswovalue = dbcontext.Districts.FirstOrDefault(to => to.DistrictId == Convert.ToInt32(GetFieldValue("District", formDetails)))!.DistrictName;
 
-
-
                     application["applicantName"] = GetFieldValue("ApplicantName", formDetails) ?? "N/A";
                     application["parentage"] = GetFieldValue("Parentage", formDetails) ?? "N/A";
                     application["r/o"] = $"DISTRICT: {dswovalue}, ADDRESS: {GetFieldValue("PresentAddress", formDetails)}";
@@ -2673,30 +2670,38 @@ namespace SahayataNidhi.Controllers.Officer
                 application["applicantName"] = "N/A";
                 application["parentage"] = "N/A";
             }
-           
+
             bool recordExists = withheldApplication != null;
 
             var options = new List<dynamic>();
+            _logger.LogInformation($"---------- Authorities: {officerAuthorities} --------------");
 
             if (withheldApplication == null && officerAuthorities.CanWithhold)
             {
-                // Case 1: No withheld application
-                if (officerAuthorities.CanDirectWithheld)
+                if (currentPlayerId < workflow.Count - 1)
+                    options.Add(new { label = "Forward", value = "forward" });
+                if (officerAuthorities.CanDirectWithheld || canPermanentToTemporary)
                 {
                     options.Add(new { label = "Approve", value = "approve" });
-                }
-                else
-                {
-                    options.Add(new { label = "Forward", value = "forward" });
                 }
             }
             else if (withheldApplication != null)
             {
                 var withheldType = Withheld["withheldType"]?.ToString();
+                var isWithheld = (bool)Withheld["isWithheld"];
 
-                if (withheldType == "Permanent")
+                if (withheldType == "Permanent" && isWithheld)
                 {
-                    // Case 2: Permanent withheld
+                    // Case: Permanent withheld and user wants to remove from withheld
+                    if (!canPermanentToTemporary)
+                    {
+                        options.Add(new { label = "Forward", value = "forward" });
+                    }
+                    // No "approve" option unless canPermanentToTemporary is false (handled in UpdateWithheldApplication)
+                }
+                else if (withheldType == "Permanent")
+                {
+                    // Case: Permanent withheld, not removing
                     if (canPermanentToTemporary)
                     {
                         options.Add(new { label = "Approve", value = "approve" });
@@ -2708,7 +2713,7 @@ namespace SahayataNidhi.Controllers.Officer
                 }
                 else if (withheldType == "Temporary")
                 {
-                    // Case 3: Temporary withheld
+                    // Case: Temporary withheld
                     if (officerAuthorities.CanWithhold && !officerAuthorities.CanDirectWithheld)
                     {
                         options.Add(new { label = "Forward", value = "forward" });
@@ -2720,23 +2725,19 @@ namespace SahayataNidhi.Controllers.Officer
                 }
             }
 
-
-
-
             return Json(new
             {
                 status = true,
                 application = Withheld,
                 canPermanentToTemporary,
                 applicationDetails = application,
-                canCreate = withheldApplication == null || (withheldApplication != null && currentPlayerId == withheldApplication.CurrentPlayer),
+                canCreate = withheldApplication == null || (withheldApplication != null && currentPlayerId == withheldApplication.CurrentPlayer && withheldApplication.Status == "Initiated"),
                 options,
                 data,
                 columns,
                 recordExists
             });
         }
-
         [HttpGet]
         public IActionResult GetApplicationsForAadhaarValidation(int pageIndex = 0, int pageSize = 10, int serviceId = 1)
         {

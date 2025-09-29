@@ -227,9 +227,28 @@ export default function Withheld() {
         .sort();
       const noFileChanges = initialFileNames.join() === currentFileNames.join();
 
-      if (noFieldChanges && noFileChanges) {
+      if (
+        noFieldChanges &&
+        noFileChanges &&
+        action === initialFormData.action
+      ) {
         setError(
           "No changes detected. Please modify the application details, files, or action to update.",
+        );
+        return;
+      }
+
+      // Restrict action for Permanent withheld when isWithheld or withheldType is updated
+      if (
+        initialFormData.withheldType === "Permanent" &&
+        initialFormData.isWithheld &&
+        (formData.withheldType !== initialFormData.withheldType ||
+          !formData.isWithheld) &&
+        canPermanentToTemporary &&
+        action !== "approve"
+      ) {
+        setError(
+          "For a Permanent withheld application, only the 'Approve' action is allowed when updating Withheld Type or removing from withheld, until reviewed by the final authority.",
         );
         return;
       }
@@ -537,14 +556,14 @@ export default function Withheld() {
           )}
 
           {/* Withheld Application Details */}
-          {application && (
+          {recordExists && application && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
                 Withheld Information
               </Typography>
               <Typography variant="body2" sx={{ mb: 0.5 }}>
                 <strong>Type:</strong>{" "}
-                {application.withheldType == "Permanent"
+                {application.withheldType === "Permanent"
                   ? "Weedout"
                   : application.withheldType || "N/A"}
               </Typography>
@@ -702,40 +721,38 @@ export default function Withheld() {
             helperText="Provide a detailed reason for withholding the application."
           />
 
-          {recordExists && (
-            <FormControl component="fieldset" sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 600, color: "text.primary" }}
-              >
-                Remove from Withheld
-              </Typography>
-              <RadioGroup
-                row
-                value={formData.isWithheld.toString()}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    isWithheld: e.target.value === "true",
-                  }))
-                }
-              >
-                <FormControlLabel
-                  value="true"
-                  control={<Radio />}
-                  label="Keep Withheld"
-                />
-                <FormControlLabel
-                  value="false"
-                  control={<Radio />}
-                  label="Remove from Withheld"
-                />
-              </RadioGroup>
-              <FormHelperText>
-                Select "Remove from Withheld" to release the application.
-              </FormHelperText>
-            </FormControl>
-          )}
+          <FormControl component="fieldset" sx={{ mb: 3 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 600, color: "text.primary" }}
+            >
+              Remove from Withheld
+            </Typography>
+            <RadioGroup
+              row
+              value={formData.isWithheld.toString()}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  isWithheld: e.target.value === "true",
+                }))
+              }
+            >
+              <FormControlLabel
+                value="true"
+                control={<Radio />}
+                label="Keep Withheld"
+              />
+              <FormControlLabel
+                value="false"
+                control={<Radio />}
+                label="Remove from Withheld"
+              />
+            </RadioGroup>
+            <FormHelperText>
+              Select "Remove from Withheld" to release the application.
+            </FormHelperText>
+          </FormControl>
 
           <FormControl
             fullWidth
@@ -756,7 +773,13 @@ export default function Withheld() {
               ))}
             </Select>
             <FormHelperText>
-              Select the action to take for this application.
+              {initialFormData?.withheldType === "Permanent" &&
+              initialFormData?.isWithheld &&
+              (formData.withheldType !== initialFormData.withheldType ||
+                !formData.isWithheld) &&
+              canPermanentToTemporary
+                ? "Only 'Approve' action is allowed when updating Withheld Type or removing a Permanent withheld application, until reviewed by the final authority."
+                : "Select the action to take for this application."}
             </FormHelperText>
             {error.includes("action") && (
               <FormHelperText>Please select a valid action</FormHelperText>
