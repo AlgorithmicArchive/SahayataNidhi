@@ -2731,7 +2731,7 @@ namespace SahayataNidhi.Controllers.Officer
                 application = Withheld,
                 canPermanentToTemporary,
                 applicationDetails = application,
-                canCreate = withheldApplication == null || (withheldApplication != null && currentPlayerId == withheldApplication.CurrentPlayer && withheldApplication.Status == "Initiated"),
+                canCreate = withheldApplication == null || (withheldApplication != null && currentPlayerId == withheldApplication.CurrentPlayer) || withheldApplication!.Status == "Approved",
                 options,
                 data,
                 columns,

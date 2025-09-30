@@ -52,6 +52,39 @@ const Header = () => {
 
   return (
     <Box sx={{ width: "100%" }}>
+      {/* Banner with Marquee Effect */}
+      <Box
+        sx={{
+          backgroundColor: "#FFF3CD",
+          borderBottom: "2px solid #333333",
+          overflow: "hidden",
+        }}
+      >
+        <Container>
+          <Typography
+            sx={{
+              py: 1,
+              px: { xs: 2, md: 6 },
+              color: "#856404",
+              fontSize: { xs: "0.9rem", md: "1rem" },
+              whiteSpace: "nowrap",
+              display: "inline-block",
+              animation: "marquee 20s linear infinite",
+              "@keyframes marquee": {
+                "0%": { transform: "translateX(100%)" },
+                "100%": { transform: "translateX(-100%)" },
+              },
+            }}
+            translate="no"
+            className="notranslate"
+          >
+            This is a demo portal for testing only. Data entered here will not
+            be transferred to the working portal. Send suggestion / feedback to{" "}
+            <a href="mailto:anil.abrol@nic.in">anil.abrol@nic.in</a>.
+          </Typography>
+        </Container>
+      </Box>
+
       {/* Top Row */}
       <Box sx={{ borderBottom: "2px solid #333333" }}>
         <Container>
@@ -66,8 +99,8 @@ const Header = () => {
               alignItems: "center",
               gap: 3,
             }}
-            translate="no" // Prevent translation
-            className="notranslate" // Fallback for compatibility
+            translate="no"
+            className="notranslate"
           >
             <Typography>जम्मू और कश्मीर सरकार</Typography>
             <Typography>GOVERNMENT OF JAMMU AND KASHMIR</Typography>
@@ -87,6 +120,7 @@ const Header = () => {
           </Box>
         </Container>
       </Box>
+
       {/* Middle Row */}
       <Box sx={{ borderBottom: "2px solid #333333" }}>
         <Container>
@@ -101,8 +135,8 @@ const Header = () => {
               flexDirection: { xs: "column", md: "row" },
               gap: { xs: 2, md: 0 },
             }}
-            translate="no" // Prevent translation
-            className="notranslate" // Fallback for compatibility
+            translate="no"
+            className="notranslate"
           >
             <Box
               sx={{

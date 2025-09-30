@@ -71,12 +71,12 @@ namespace SahayataNidhi.Controllers
         {
             // Extract form fields
             var fullName = new SqlParameter("@Name", form["fullName"].ToString());
-            var username = new SqlParameter("@Username", form["username"].ToString()); // Match form field name
-            var password = new SqlParameter("@Password", form["password"].ToString()); // Match form field name
-            var email = new SqlParameter("@Email", form["email"].ToString()); // Match form field name
-            var mobileNumber = new SqlParameter("@MobileNumber", form["mobileNumber"].ToString()); // Match form field name
-            var department = new SqlParameter("@Department", form["department"].ToString()); // New field for department
-            var designation = new SqlParameter("@Designation", form["designation"].ToString()); // Match form field name
+            var username = new SqlParameter("@Username", form["username"].ToString());
+            var password = new SqlParameter("@Password", form["password"].ToString());
+            var email = new SqlParameter("@Email", form["email"].ToString());
+            var mobileNumber = new SqlParameter("@MobileNumber", form["mobileNumber"].ToString());
+            var department = new SqlParameter("@Department", form["department"].ToString());
+            var designation = new SqlParameter("@Designation", form["designation"].ToString());
             var profile = new SqlParameter("@Profile", "/assets/images/profile.jpg");
 
             // Determine UserType based on designation
@@ -97,10 +97,10 @@ namespace SahayataNidhi.Controllers
                 RoleShort = GetShortTitleFromRole(form["designation"].ToString()),
                 AccessLevel = form["accessLevel"].ToString(),
                 AccessCode = Convert.ToInt32(form["accessCode"].ToString()),
-                Department = form["department"].ToString(), // Include department
-                District = form.ContainsKey("District") ? form["District"].ToString() : null, // Include District if present
-                Division = form.ContainsKey("Division") ? form["Division"].ToString() : null, // Include Division if present
-                Tehsil = form.ContainsKey("Tehsil") ? form["Tehsil"].ToString() : null, // Include Tehsil if present
+                Department = form["department"].ToString(),
+                District = form.ContainsKey("District") ? form["District"].ToString() : null,
+                Division = form.ContainsKey("Division") ? form["Division"].ToString() : null,
+                Tehsil = form.ContainsKey("Tehsil") ? form["Tehsil"].ToString() : null,
                 Validate = false
             };
             var additionalDetailsParam = new SqlParameter("@AdditionalDetails", JsonConvert.SerializeObject(additionalDetails));
@@ -117,7 +117,15 @@ namespace SahayataNidhi.Controllers
             {
                 string otp = GenerateOTP(7);
                 _otpStore.StoreOtp("registration", otp);
-                await _emailSender.SendEmail(form["email"].ToString(), "OTP For Registration", otp);
+                try
+                {
+                    await _emailSender.SendEmail(form["email"].ToString(), "OTP For Registration", otp);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
+                    return Json(new { status = true, userId = result[0].UserId, message = $"Email sending failed. Use this OTP: {otp}" });
+                }
                 return Json(new { status = true, userId = result[0].UserId });
             }
             else
@@ -129,13 +137,16 @@ namespace SahayataNidhi.Controllers
         [HttpGet]
         public async Task<IActionResult> SendLoginOtp(string? username)
         {
-            string otpKey;
-            otpKey = $"otp:{username}";
-
+            string otpKey = $"otp:{username}";
             string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
-            string email = _dbContext.Users.FirstOrDefault(u => u.Username == username)!.Email!;
+            string email = _dbContext.Users.FirstOrDefault(u => u.Username == username)?.Email;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return Json(new { status = false, message = "User not found." });
+            }
 
             string htmlMessage = $@"
             <div style='font-family: Arial, sans-serif;'>
@@ -147,16 +158,27 @@ namespace SahayataNidhi.Controllers
                 <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
             </div>";
 
-            await _emailSender.SendEmail(email!, "OTP For Registration", htmlMessage);
+            try
+            {
+                await _emailSender.SendEmail(email, "OTP For Login", htmlMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
+                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Use this OTP: {otp}" });
+            }
             return Json(new { status = true });
         }
 
         [HttpGet]
         public async Task<IActionResult> SendOtp(string? email)
         {
-            string otpKey;
-            otpKey = $"otp:{email}";
+            if (string.IsNullOrEmpty(email))
+            {
+                return Json(new { status = false, message = "Email is required." });
+            }
 
+            string otpKey = $"otp:{email}";
             string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
@@ -170,7 +192,15 @@ namespace SahayataNidhi.Controllers
                 <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
             </div>";
 
-            await _emailSender.SendEmail(email!, "OTP For Registration", htmlMessage);
+            try
+            {
+                await _emailSender.SendEmail(email, "OTP For Registration", htmlMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
+                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Use this OTP: {otp}" });
+            }
             return Json(new { status = true });
         }
 
@@ -191,7 +221,6 @@ namespace SahayataNidhi.Controllers
 
             string otpKey = $"otp:{user.UserId}";
             string userName = user.Name ?? "User";
-
             string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
@@ -206,7 +235,15 @@ namespace SahayataNidhi.Controllers
                     <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
                 </div>";
 
-            await _emailSender.SendEmail(email!, "OTP for Password Reset", htmlMessage);
+            try
+            {
+                await _emailSender.SendEmail(email, "OTP for Password Reset", htmlMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
+                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Use this OTP: {otp}" });
+            }
             return Json(new { status = true, message = "OTP sent to your email." });
         }
 
@@ -226,11 +263,9 @@ namespace SahayataNidhi.Controllers
             }
 
             string fullName = user.Name!;
-            string username = user.Username ?? "User"; // Assuming Name is the username field
-
-            // Current date and time in IST
+            string username = user.Username ?? "User";
             string currentDateTime = DateTime.UtcNow.AddHours(5.5)
-                .ToString("dd MMM yyyy, hh:mm tt") + " IST"; // 15 Jul 2025, 03:54 PM IST
+                .ToString("dd MMM yyyy, hh:mm tt") + " IST";
 
             string htmlMessage = $@"
             <div style='font-family: Arial, sans-serif;'>
@@ -242,7 +277,15 @@ namespace SahayataNidhi.Controllers
                 <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
             </div>";
 
-            await _emailSender.SendEmail(email, "Your Username", htmlMessage);
+            try
+            {
+                await _emailSender.SendEmail(email, "Your Username", htmlMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to send email: {ex.Message}. Username: {username}");
+                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Your username is: {username}" });
+            }
             return Json(new { status = true, message = "Username has been sent to your email." });
         }
 
@@ -303,7 +346,6 @@ namespace SahayataNidhi.Controllers
                 .SqlQueryRaw<ResetPasswordResult>("EXEC ResetUserPassword @Email, @NewPassword", parameters)
                 .ToListAsync();
 
-
                 var resetResult = result.FirstOrDefault();
                 if (resetResult != null && resetResult.Result == 1)
                 {
@@ -315,7 +357,6 @@ namespace SahayataNidhi.Controllers
                     _auditService.InsertLog(HttpContext, "Reset Password", "Failed to reset password.", user!.UserId, "Failure");
                     return Json(new { status = false, message = resetResult?.Message ?? "Failed to reset password." });
                 }
-
             }
             catch (Exception ex)
             {
@@ -334,7 +375,6 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = "OTP or email is missing." });
             }
 
-            // Construct the OTP key using the provided email
             string otpKey = $"otp:{email}";
             string? storedOtp = _otpStore.RetrieveOtp(otpKey);
 
@@ -343,7 +383,6 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = "OTP has expired or is invalid." });
             }
 
-            // Verify the OTP
             if (storedOtp == otp)
             {
                 return Json(new { status = true, message = "OTP validated successfully." });
@@ -372,19 +411,14 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, response = "Email Not Verified.", isEmailVerified = false, email = user.Email });
 
             _logger.LogInformation($"User {user.Username} ({user.UserId}) is attempting to log in.");
-            // ✅ Check for existing active session
-            // var activeSession = await _sessionRepo.GetActiveSessionAsync(user.UserId);
-            // if (activeSession != null)
-            //     return Json(new { status = false, response = "User is already logged in from another device." });
 
-            // ✅ Create JWT claims
             var claims = new List<Claim>
-                {
-                    new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new(ClaimTypes.Name, user.Username!),
-                    new(ClaimTypes.Role, user.UserType!),
-                    new("Profile", user.Profile!)
-                };
+            {
+                new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new(ClaimTypes.Name, user.Username!),
+                new(ClaimTypes.Role, user.UserType!),
+                new("Profile", user.Profile!)
+            };
 
             string designation = "";
             string department = "";
@@ -422,7 +456,6 @@ namespace SahayataNidhi.Controllers
                 }
             }
 
-            // ✅ Generate JWT
             var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]!);
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -436,7 +469,6 @@ namespace SahayataNidhi.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
 
-            // ✅ Save session
             var newSession = new UserSession
             {
                 SessionId = Guid.NewGuid(),
@@ -447,7 +479,6 @@ namespace SahayataNidhi.Controllers
             };
             await _sessionRepo.AddSessionAsync(newSession);
 
-            // ✅ Audit log
             _auditService.InsertLog(HttpContext, "Login", "User logged in.", user.UserId, "Success");
 
             return Json(new
@@ -461,6 +492,7 @@ namespace SahayataNidhi.Controllers
                 department
             });
         }
+
         [HttpGet]
         [Authorize]
         public IActionResult RefreshToken()
@@ -492,7 +524,7 @@ namespace SahayataNidhi.Controllers
                 status = true,
                 token = tokenString,
                 userType = user.UserType ?? "",
-                profile = user.Profile ?? "", // Ensure profile is a string or serialized JSON
+                profile = user.Profile ?? "",
                 username = username ?? "",
                 designation = User.FindFirst("Designation")?.Value ?? ""
             });
@@ -529,17 +561,16 @@ namespace SahayataNidhi.Controllers
                 status = true,
                 token = tokenString,
                 userType = user.UserType ?? "",
-                profile = user.Profile ?? "", // Ensure profile is a string or serialized JSON
+                profile = user.Profile ?? "",
                 username = username ?? "",
                 designation = User.FindFirst("Designation")?.Value ?? ""
             });
         }
 
         [HttpGet]
-        [Authorize] // Requires a valid JWT token
+        [Authorize]
         public IActionResult ValidateToken()
         {
-            // If the request reaches here, the token is valid (due to [Authorize])
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var username = User.FindFirst(ClaimTypes.Name)?.Value;
             var userType = User.FindFirst(ClaimTypes.Role)?.Value;
@@ -586,7 +617,6 @@ namespace SahayataNidhi.Controllers
             var AddtionalDetails = new SqlParameter("@AdditionalDetails", JsonConvert.SerializeObject(addtionalDetails));
             var registeredDate = new SqlParameter("@RegisteredDate", DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt"));
 
-
             var result = await _dbContext.Users.FromSqlRaw(
                 "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber, @Profile, @UserType, @BackupCodes, @AdditionalDetails, @RegisteredDate",
                 fullName, username, password, email, mobileNumber, Profile, UserType, AddtionalDetails, backupCodesParam, registeredDate
@@ -596,7 +626,7 @@ namespace SahayataNidhi.Controllers
             {
                 result[0].IsEmailValid = true;
                 _dbContext.SaveChanges();
-                return Json(new { status = true, response = "Registration Successfull." });
+                return Json(new { status = true, response = "Registration Successful." });
             }
             else
             {
@@ -614,8 +644,6 @@ namespace SahayataNidhi.Controllers
             {
                 return Json(new { status = false, message = "Authorization header missing" });
             }
-
-            var claims = User.Claims;
 
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var userTypeClaim = User.FindFirst(ClaimTypes.Role)?.Value;
@@ -635,6 +663,7 @@ namespace SahayataNidhi.Controllers
             {
                 string otpKey = $"otp:{usernameClaim}";
                 string? otpCache = _otpStore.RetrieveOtp(otpKey);
+                _logger.LogInformation($"OTP CACHE: {otpCache} OTP: {otp}");
                 if (otpCache == otp || otp == "1234567")
                 {
                     verified = true;
@@ -674,7 +703,6 @@ namespace SahayataNidhi.Controllers
             }
         }
 
-
         [HttpPost]
         public async Task<IActionResult> SendEmailVerificationOtp([FromForm] IFormCollection form)
         {
@@ -700,11 +728,17 @@ namespace SahayataNidhi.Controllers
                 <p>Your OTP is <strong>{otp}</strong>. It is valid for 5 minutes.</p>
             </div>";
 
-            await _emailSender.SendEmail(email, "Email Verification OTP", htmlMessage);
-
+            try
+            {
+                await _emailSender.SendEmail(email, "Email Verification OTP", htmlMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
+                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Use this OTP: {otp}" });
+            }
             return Json(new { status = true, message = "OTP sent to your email." });
         }
-
 
         [HttpPost]
         public IActionResult VerifyEmailOtp([FromForm] IFormCollection form)
@@ -730,33 +764,6 @@ namespace SahayataNidhi.Controllers
         [Authorize]
         public IActionResult LogOut()
         {
-            // Get the UserId from the JWT token's claims
-            // var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Adjust claim type if needed
-            // if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-            // {
-            //     _logger.LogWarning("Logout failed: Unable to retrieve or parse UserId from JWT token.");
-            //     // Optionally, redirect to an error page or login page
-            //     return RedirectToAction("Index", "Home");
-            // }
-
-            // _logger.LogInformation($"Logging out user with UserId: {userId}");
-
-            // // Find and remove the active session
-            // var session = await _sessionRepo.GetActiveSessionAsync(userId);
-            // if (session != null)
-            // {
-            //     await _sessionRepo.RemoveSessionAsync(session);
-            //     _logger.LogInformation($"Session removed for UserId: {userId}, SessionId: {session.SessionId}");
-            // }
-            // else
-            // {
-            //     _logger.LogWarning($"No active session found for UserId: {userId} during logout.");
-            // }
-
-            // // Clear authentication on the server (optional, clears server-side cookies if any)
-            // // await HttpContext.SignOutAsync();
-
-            // // Redirect to the home page
             return RedirectToAction("Index", "Home");
         }
 
@@ -788,25 +795,23 @@ namespace SahayataNidhi.Controllers
         [HttpGet]
         public IActionResult GetDesignations(string deparmentId)
         {
-            // JsonConvert.DeserializeObject
             var designations = _dbContext.OfficersDesignations.Where(des => des.DepartmentId == Convert.ToInt32(deparmentId)).ToList();
             return Json(new { status = true, designations });
         }
-
-
 
         [HttpGet]
         public IActionResult CheckUsername(string username)
         {
             var exists = _dbContext.Users.FirstOrDefault(u => u.Username == username);
-            bool isUnique = exists == null; // unique if no matching user is found
+            bool isUnique = exists == null;
             return Json(new { isUnique });
         }
+
         [HttpGet]
         public IActionResult CheckEmail(string email, string UserType)
         {
             var exists = _dbContext.Users.FirstOrDefault(u => u.Email == email && u.UserType == UserType);
-            bool isUnique = exists == null; // unique if no matching user is found
+            bool isUnique = exists == null;
             return Json(new { isUnique });
         }
 
@@ -814,47 +819,46 @@ namespace SahayataNidhi.Controllers
         public IActionResult CheckMobileNumber(string number, string UserType)
         {
             var exists = _dbContext.Users.FirstOrDefault(u => u.MobileNumber == number && u.UserType == UserType);
-            bool isUnique = exists == null; // unique if no matching user is found
+            bool isUnique = exists == null;
             return Json(new { isUnique });
         }
-
 
         public dynamic? AadhaarData(string aadhaarNumber)
         {
             var AadhaarData = new List<dynamic>
             {
                 new {
-                      AadhaarNumber = "123456789012",
-                      Name = "Rahul Sharma",
-                      DOB = "1989-01-01",
-                      Gender = "M",
-                      Address = "123 Sector 10, New Delhi",
-                      Email = "randomizerweb129@gmail.com"
-                   },
+                    AadhaarNumber = "123456789012",
+                    Name = "Rahul Sharma",
+                    DOB = "1989-01-01",
+                    Gender = "M",
+                    Address = "123 Sector 10, New Delhi",
+                    Email = "randomizerweb129@gmail.com"
+                },
                 new {
-                      AadhaarNumber = "123456789012",
-                      Name = "Rahul Sharma",
-                      DOB = "1989-01-01",
-                      Gender = "M",
-                      Address = "123 Sector 10, New Delhi",
-                      Email = "randomizerweb129@gmail.com"
-                   },
+                    AadhaarNumber = "123456789012",
+                    Name = "Rahul Sharma",
+                    DOB = "1989-01-01",
+                    Gender = "M",
+                    Address = "123 Sector 10, New Delhi",
+                    Email = "randomizerweb129@gmail.com"
+                },
             };
 
-
-
             var result = AadhaarData.FirstOrDefault(x => x.AadhaarNumber == aadhaarNumber);
-
             return result;
         }
 
         public IActionResult SendAadhaarOTP(string aadhaarNumber)
         {
-            string otpKey;
             var aadhaarData = AadhaarData(aadhaarNumber);
-            string email = aadhaarData!.Email;
-            otpKey = $"otp:{email}";
+            if (aadhaarData == null)
+            {
+                return Json(new { status = false, message = "Aadhaar number not found." });
+            }
 
+            string email = aadhaarData.Email;
+            string otpKey = $"otp:{email}";
             string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
@@ -867,8 +871,16 @@ namespace SahayataNidhi.Controllers
                 <br />
                 <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
             </div>";
-            _logger.LogInformation($"---------- OTP : {otp} -------------------");
-            // await _emailSender.SendEmail(email!, "OTP For Registration", htmlMessage);
+
+            try
+            {
+                _emailSender.SendEmail(email, "OTP For Aadhaar Verification", htmlMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
+                return Json(new { status = true, message = $"Email sending failed. Use this OTP: {otp}" });
+            }
             return Json(new { status = true });
         }
 
@@ -879,10 +891,16 @@ namespace SahayataNidhi.Controllers
 
             if (string.IsNullOrEmpty(otp) || string.IsNullOrEmpty(aadhaarNumber))
             {
-                return Json(new { status = false, message = "OTP or email is missing." });
+                return Json(new { status = false, message = "OTP or Aadhaar number is missing." });
             }
-            string email = AadhaarData(aadhaarNumber)!.Email;
-            // Construct the OTP key using the provided email
+
+            var aadhaarData = AadhaarData(aadhaarNumber);
+            if (aadhaarData == null)
+            {
+                return Json(new { status = false, message = "Aadhaar number not found." });
+            }
+
+            string email = aadhaarData.Email;
             string otpKey = $"otp:{email}";
             string? storedOtp = _otpStore.RetrieveOtp(otpKey);
 
@@ -891,7 +909,6 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = "OTP has expired or is invalid." });
             }
 
-            // Verify the OTP
             if (storedOtp == otp || otp == "1234567")
             {
                 string tokenizeAadhaar = TokenizeAadhaar(aadhaarNumber, "MySecureKey123");
@@ -901,12 +918,10 @@ namespace SahayataNidhi.Controllers
             return Json(new { status = false, message = "Invalid OTP." });
         }
 
-
         public static string TokenizeAadhaar(string aadhaarNumber, string secretKey)
         {
             try
             {
-                // Basic input validation
                 if (string.IsNullOrWhiteSpace(aadhaarNumber) || aadhaarNumber.Length != 12)
                 {
                     throw new ArgumentException("Invalid Aadhaar number. Must be 12 digits.");
@@ -917,31 +932,24 @@ namespace SahayataNidhi.Controllers
                     throw new ArgumentException("Secret key cannot be empty.");
                 }
 
-                // Mask last 8 digits for tokenization (simplified example)
                 string maskedAadhaar = aadhaarNumber.Substring(0, 4) + "XXXXXXXX";
-
-                // Generate a simple hash-based token (NOT secure for production)
                 using var sha256 = SHA256.Create();
                 byte[] inputBytes = Encoding.UTF8.GetBytes(aadhaarNumber + secretKey);
                 byte[] hashBytes = sha256.ComputeHash(inputBytes);
 
-                // Convert to hexadecimal string
                 StringBuilder sb = new();
                 for (int i = 0; i < hashBytes.Length; i++)
                 {
                     sb.Append(hashBytes[i].ToString("x2"));
                 }
 
-                // Return combined masked Aadhaar and token
                 return $"{maskedAadhaar}-{sb.ToString().Substring(0, 16)}";
             }
             catch (Exception ex)
             {
-                // Log error in production
                 throw new Exception("Error during Aadhaar tokenization: " + ex.Message);
             }
         }
-
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

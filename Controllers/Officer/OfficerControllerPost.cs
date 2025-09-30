@@ -968,7 +968,7 @@ namespace SahayataNidhi.Controllers.Officer
                     IsWithheld = isWithheld,
                     WithheldType = withheldType,
                     WithheldReason = withheldReason,
-                    Status = action != "approved" ? "Initiated" : "Approved",
+                    Status = action != "approve" ? "Initiated" : "Approved",
                     Files = fileNames.Count != 0 ? JsonConvert.SerializeObject(fileNames) : null,
                 };
 

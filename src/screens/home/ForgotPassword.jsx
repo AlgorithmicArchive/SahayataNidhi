@@ -76,11 +76,11 @@ export default function ForgotPassword() {
           setUsername(data.username || "Username sent to your email!");
           setSuccess(data.message || "Username has been sent to your email!");
           setEmail("");
-          navigate("/"); // Redirect to home after success
+          // navigate("/"); // Redirect to home after success
         }
       } else {
         setError(
-          data.message || "Failed to process request. Please try again."
+          data.message || "Failed to process request. Please try again.",
         );
       }
     } catch (err) {
@@ -122,7 +122,7 @@ export default function ForgotPassword() {
         navigate("/login");
       } else {
         setError(
-          data.message || "Invalid OTP or reset failed. Please try again."
+          data.message || "Invalid OTP or reset failed. Please try again.",
         );
       }
     } catch (err) {
@@ -223,7 +223,6 @@ export default function ForgotPassword() {
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               required
-              inputProps={{ maxLength: 6 }}
             />
             <TextField
               label="New Password"

@@ -10,6 +10,7 @@ import { UserContext } from "../../UserContext";
 export default function Verification() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [otpMessage, setOtpMessage] = useState("");
   const {
     handleSubmit,
     control,
@@ -21,9 +22,32 @@ export default function Verification() {
 
   const handleOptionSelect = async (option) => {
     setSelectedOption(option);
-    // if (option == "otp") {
-    //   await fetch(`/Home/SendLoginOtp?username=${username}`);
-    // }
+    setErrorMessage("");
+    setOtpMessage("");
+    if (option === "otp") {
+      try {
+        const response = await fetch(`/Home/SendLoginOtp?username=${username}`);
+        const data = await response.json();
+        if (data.status) {
+          if (data.message) {
+            setOtpMessage(data.message);
+          } else {
+            setOtpMessage("OTP sent to your email and mobile number.");
+          }
+        } else {
+          setErrorMessage(data.message || "Failed to send OTP.");
+        }
+      } catch (error) {
+        console.error("Error sending OTP:", error);
+        setErrorMessage("An error occurred while sending OTP.");
+      }
+    }
+  };
+
+  const handleBack = () => {
+    setSelectedOption(null);
+    setErrorMessage("");
+    setOtpMessage("");
   };
 
   const onSubmit = async (data) => {
@@ -34,7 +58,6 @@ export default function Verification() {
 
     try {
       const response = await Validate(formData);
-
       if (response.status) {
         setVerified(true);
         const url =
@@ -44,7 +67,7 @@ export default function Verification() {
             ? "/officer/home"
             : response.userType === "Designer"
             ? "/designer/dashboard"
-            : response.userType == "Viewer"
+            : response.userType === "Viewer"
             ? "/viewer/home"
             : "/user/home";
         navigate(url);
@@ -97,7 +120,7 @@ export default function Verification() {
           >
             Use OTP Verification
           </Button>
-          {userType != "Citizen" && (
+          {userType !== "Citizen" && (
             <Button
               variant="contained"
               onClick={() => handleOptionSelect("backup")}
@@ -158,7 +181,38 @@ export default function Verification() {
             color="background.paper"
             width="100%"
           />
+
+          <Button
+            variant="outlined"
+            onClick={handleBack}
+            sx={{
+              color: "primary.main",
+              borderColor: "primary.main",
+              borderRadius: 3,
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "primary.light",
+                borderColor: "primary.dark",
+              },
+            }}
+          >
+            Back
+          </Button>
         </Box>
+      )}
+
+      {otpMessage && selectedOption === "otp" && (
+        <Typography
+          variant="body2"
+          sx={{
+            mt: 2,
+            color: otpMessage.includes("failed")
+              ? "error.main"
+              : "text.primary",
+          }}
+        >
+          {otpMessage}
+        </Typography>
       )}
 
       {errorMessage && (

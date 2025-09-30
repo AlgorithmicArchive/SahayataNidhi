@@ -111,9 +111,21 @@ builder.Services.AddHostedService<QueuedHostedService>();
 builder.Services.AddSingleton<ICronScheduler, CronScheduler>();
 builder.Services.AddHostedService<CronScheduler>();
 builder.Services.AddScoped<SessionRepository>();
+builder.Services.AddScoped<CronServices>();
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
+
+
+app.Lifetime.ApplicationStarted.Register(async () =>
+{
+    using var scope = app.Services.CreateScope();
+    var cronService = scope.ServiceProvider.GetRequiredService<CronServices>();
+
+    // Automatically registers NotifyExpiringEligibilities
+    await cronService.RegisterAllTasksAsync("40 14 * * *"); // daily at 12 AM
+});
+
 
 // HTTP request pipeline
 if (!app.Environment.IsDevelopment())

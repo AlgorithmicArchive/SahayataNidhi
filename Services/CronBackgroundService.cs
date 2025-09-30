@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SahayataNidhi.Models.Entities;
+using System.Reflection;
 
 public interface ICronScheduler
 {
@@ -124,19 +125,56 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
                     {
                         try
                         {
-                            await action(stoppingToken);
-
-                            // Update last executed time in DB
-                            using var scope = _serviceProvider.CreateScope();
-                            var db = scope.ServiceProvider.GetRequiredService<SocialWelfareDepartmentContext>();
-                            var dbJob = await db.ScheduledJobs.FindAsync(Guid.Parse(task.Key));
-                            if (dbJob != null)
+                            // Dynamically resolve action from registry at execution time
+                            if (!_actionRegistry.TryGetValue(actionType, out var currentAction))
                             {
-                                dbJob.LastExecutedAt = DateTime.UtcNow;
-                                await db.SaveChangesAsync();
+                                // Try to resolve from DI
+                                using var scope = _serviceProvider.CreateScope();
+                                var cronServices = scope.ServiceProvider.GetService<CronServices>();
+                                if (cronServices != null)
+                                {
+                                    var method = cronServices.GetType().GetMethod(actionType, BindingFlags.Public | BindingFlags.Instance);
+                                    if (method != null)
+                                    {
+                                        currentAction = ct =>
+                                        {
+                                            object?[] args = method.GetParameters().Select(p =>
+                                            {
+                                                if (p.ParameterType == typeof(string)) return "1";
+                                                if (p.ParameterType == typeof(CancellationToken)) return ct;
+                                                return Type.Missing;
+                                            }).ToArray();
+
+                                            return (Task)method.Invoke(cronServices, args)!;
+                                        };
+
+                                        _actionRegistry.TryAdd(actionType, currentAction);
+                                        _logger.LogInformation($"🔄 Dynamically registered missing action: {actionType}");
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning($"❌ No method found for actionType {actionType}. Skipping execution.");
+                                        return;
+                                    }
+                                }
                             }
 
-                            _logger.LogInformation($"✅ Executed dynamic task {task.Key} ({actionType}) at {DateTime.UtcNow}");
+                            if (currentAction != null)
+                            {
+                                await currentAction(stoppingToken);
+
+                                // Update last executed time in DB
+                                using var scope = _serviceProvider.CreateScope();
+                                var db = scope.ServiceProvider.GetRequiredService<SocialWelfareDepartmentContext>();
+                                var dbJob = await db.ScheduledJobs.FindAsync(Guid.Parse(task.Key));
+                                if (dbJob != null)
+                                {
+                                    dbJob.LastExecutedAt = DateTime.UtcNow;
+                                    await db.SaveChangesAsync();
+                                }
+
+                                _logger.LogInformation($"✅ Executed dynamic task {task.Key} ({actionType}) at {DateTime.UtcNow}");
+                            }
                         }
                         catch (Exception ex)
                         {

@@ -1071,6 +1071,83 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
 
+        public async Task NotifyExpiringEligibilities(string? ServiceId, int pageIndex = 0, int pageSize = 10)
+        {
+            if (!int.TryParse(ServiceId, out int serviceId))
+            {
+                // just log or exit silently in void methods
+                _logger.LogWarning("Invalid ServiceId provided");
+                return;
+            }
+
+            string accessLevel = "State";
+            int? accessCode = 0;
+            string takenBy = "";
+            int? divisionCode = null;
+            string resultType = "expiringeligibility";
+
+            if (pageIndex < 0) pageIndex = 0;
+            if (pageSize < 1) pageSize = 10;
+
+            var applications = await dbcontext.CitizenApplications
+                .FromSqlRaw("EXEC [dbo].[GetDisabilityApplications] @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode, @ResultType, @PageNumber, @PageSize",
+                    new SqlParameter("@AccessLevel", accessLevel),
+                    new SqlParameter("@AccessCode", accessCode ?? (object)DBNull.Value),
+                    new SqlParameter("@ServiceId", serviceId),
+                    new SqlParameter("@TakenBy", takenBy),
+                    new SqlParameter("@DivisionCode", divisionCode ?? (object)DBNull.Value),
+                    new SqlParameter("@ResultType", resultType),
+                    new SqlParameter("@PageNumber", pageIndex + 1),
+                    new SqlParameter("@PageSize", pageSize))
+                .ToListAsync();
+
+            int mailSentCount = 0;
+
+            foreach (var application in applications)
+            {
+                var formDetailsObj = JToken.Parse(application.FormDetails ?? "{}");
+                string applicantName = GetFieldValue("ApplicantName", formDetailsObj);
+                string email = GetFieldValue("Email", formDetailsObj);
+
+                var expiringApplication = dbcontext.ApplicationsWithExpiringEligibilities
+                    .FirstOrDefault(ae => ae.ReferenceNumber == application.ReferenceNumber);
+
+                if (expiringApplication != null && !string.IsNullOrEmpty(email))
+                {
+                    DateTime expirationDate = DateTime.Parse(expiringApplication.ExpirationDate);
+
+                    string htmlMessage = $@"
+                    <div style='font-family: Arial, sans-serif;'>
+                        <h2 style='color: #2e6c80;'>UDID Card Validity Expiring</h2>
+                        <p><strong>{applicantName}</strong>,</p>
+                        <p>
+                            This is a reminder that your UDID Card linked to application reference number 
+                            <strong>{application.ReferenceNumber}</strong> is expiring on <strong>{expirationDate:dd MMM yyyy}</strong>.
+                        </p>
+                        <p>
+                            Please renew your UDID card and update your application if a new one has been issued.
+                            This is necessary to continue receiving financial assistance without interruption.
+                        </p>
+                        <p>
+                            You can log into the citizen portal and update your UDID card details at your earliest convenience.
+                        </p>
+                        <p>
+                            If you've already renewed your UDID card, kindly ignore this message.
+                        </p>
+                        <br />
+                        <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
+                    </div>";
+
+                    expiringApplication.MailSent++;
+                    await dbcontext.SaveChangesAsync();
+
+                    await emailSender.SendEmail(email, "Important: UDID Card Validity Expiring", htmlMessage);
+                    mailSentCount++;
+                }
+            }
+
+            _logger.LogInformation("Processed {Count} applications, sent {Mails} mails", applications.Count, mailSentCount);
+        }
 
     }
 }
