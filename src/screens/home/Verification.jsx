@@ -1,4 +1,10 @@
-import { Container, Typography, Button, Box } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Button,
+  Box,
+  CircularProgress,
+} from "@mui/material";
 import React, { useContext, useState } from "react";
 import CustomInputField from "../../components/form/CustomInputField";
 import { useForm } from "react-hook-form";
@@ -11,6 +17,7 @@ export default function Verification() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [otpMessage, setOtpMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // New state for loading
   const {
     handleSubmit,
     control,
@@ -21,10 +28,10 @@ export default function Verification() {
   const navigate = useNavigate();
 
   const handleOptionSelect = async (option) => {
-    setSelectedOption(option);
     setErrorMessage("");
     setOtpMessage("");
     if (option === "otp") {
+      setIsLoading(true); // Start loading
       try {
         const response = await fetch(`/Home/SendLoginOtp?username=${username}`);
         const data = await response.json();
@@ -34,13 +41,18 @@ export default function Verification() {
           } else {
             setOtpMessage("OTP sent to your email and mobile number.");
           }
+          setSelectedOption(option); // Set option after successful response
         } else {
           setErrorMessage(data.message || "Failed to send OTP.");
         }
       } catch (error) {
         console.error("Error sending OTP:", error);
         setErrorMessage("An error occurred while sending OTP.");
+      } finally {
+        setIsLoading(false); // Stop loading
       }
+    } else {
+      setSelectedOption(option); // For backup code, no fetch required
     }
   };
 
@@ -102,7 +114,7 @@ export default function Verification() {
         Verification
       </Typography>
 
-      {!selectedOption && (
+      {!selectedOption && !isLoading && (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Button
             variant="contained"
@@ -138,6 +150,22 @@ export default function Verification() {
               Use Backup Codes
             </Button>
           )}
+        </Box>
+      )}
+
+      {!selectedOption && isLoading && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <CircularProgress sx={{ color: "primary.main" }} />
+          <Typography variant="body2" sx={{ color: "text.primary" }}>
+            Sending OTP...
+          </Typography>
         </Box>
       )}
 
