@@ -4,7 +4,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Force publish for IIS (Windows x64 only) -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.102.3" />
     <PackageReference Include="CsvHelper" Version="33.0.1" />
@@ -27,5 +30,18 @@
     <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
     <PackageReference Include="Wangkanai.Detection" Version="8.20.0" />
   </ItemGroup>
+
+  <!-- Custom Target to enforce Development environment in web.config -->
+  <Target Name="ForceDevelopmentEnv" AfterTargets="AfterPublish">
+    <XmlPoke 
+      XmlInputPath="$(PublishDir)web.config"
+      Query="/configuration/location/system.webServer/aspNetCore/environmentVariables/environmentVariable[@name='ASPNETCORE_ENVIRONMENT']/@value"
+      Value="Development" />
+    <XmlPoke 
+      XmlInputPath="$(PublishDir)web.config"
+      Query="/configuration/location/system.webServer/aspNetCore/environmentVariables"
+      Value="" 
+      Condition="!Exists('$(PublishDir)web.config')"/>
+  </Target>
 
 </Project>
