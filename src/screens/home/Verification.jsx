@@ -183,6 +183,20 @@ export default function Verification() {
             boxShadow: 3,
           }}
         >
+          {otpMessage && selectedOption === "otp" && (
+            <Typography
+              variant="body2"
+              sx={{
+                mt: 2,
+                color: otpMessage.includes("not")
+                  ? "error.main"
+                  : "text.primary",
+              }}
+            >
+              {otpMessage}
+            </Typography>
+          )}
+
           <CustomInputField
             label={
               selectedOption === "otp"
@@ -227,20 +241,6 @@ export default function Verification() {
             Back
           </Button>
         </Box>
-      )}
-
-      {otpMessage && selectedOption === "otp" && (
-        <Typography
-          variant="body2"
-          sx={{
-            mt: 2,
-            color: otpMessage.includes("failed")
-              ? "error.main"
-              : "text.primary",
-          }}
-        >
-          {otpMessage}
-        </Typography>
       )}
 
       {errorMessage && (

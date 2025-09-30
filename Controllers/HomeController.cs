@@ -165,7 +165,7 @@ namespace SahayataNidhi.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
-                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Use this OTP: {otp}" });
+                return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Use this OTP: {otp}" });
             }
             return Json(new { status = true });
         }
@@ -199,7 +199,7 @@ namespace SahayataNidhi.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
-                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Use this OTP: {otp}" });
+                return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Use this OTP: {otp}" });
             }
             return Json(new { status = true });
         }
@@ -242,7 +242,7 @@ namespace SahayataNidhi.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
-                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Use this OTP: {otp}" });
+                return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Use this OTP: {otp}" });
             }
             return Json(new { status = true, message = "OTP sent to your email." });
         }
@@ -284,7 +284,7 @@ namespace SahayataNidhi.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Failed to send email: {ex.Message}. Username: {username}");
-                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Your username is: {username}" });
+                return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Your username is: {username}" });
             }
             return Json(new { status = true, message = "Username has been sent to your email." });
         }
@@ -735,7 +735,7 @@ namespace SahayataNidhi.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
-                return Json(new { status = true, message = $"Staging Portal- Email Sending doesn't work. Use this OTP: {otp}" });
+                return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Use this OTP: {otp}" });
             }
             return Json(new { status = true, message = "OTP sent to your email." });
         }

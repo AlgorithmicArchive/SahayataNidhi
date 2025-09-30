@@ -618,7 +618,7 @@ namespace SahayataNidhi.Controllers
                 var bankDetails = dbcontext.BankDetails
                     .FromSqlRaw(@"
                     SELECT TOP (1) *
-                    FROM [SocialWelfareDepartment].[dbo].[BankDetails]
+                    FROM [BankDetails]
                     WHERE IFSC = {0}
                     AND BANK LIKE {1}", IfscCode, pattern)
                     .FirstOrDefault();
