@@ -1681,94 +1681,106 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     />
                   </LocalizationProvider>
                 ) : (
-                  <TextField
-                    type={field.type}
-                    id={`${field.id}`}
-                    label={getLabelWithAsteriskJSX(field)}
-                    value={value || ""}
-                    onKeyDown={(e) => {
-                      isBackspacePressed.current = e.key === "Backspace";
-                    }}
-                    placeholder={
-                      field.name === "OtherDocument" ? "File1, File2,..." : ""
-                    }
-                    onChange={(e) => {
-                      let val = e.target.value;
-                      const fieldName = field.name;
-                      let transformedVal = val;
-
-                      if (fieldName === "IfscCode" && ifscPrefix) {
-                        if (!val.startsWith(ifscPrefix)) {
-                          val = ifscPrefix + val.slice(ifscPrefix.length);
-                        }
-                        if (val.length > 11) {
-                          val = val.slice(0, 11);
-                        }
-                        transformedVal = val;
+                  <Box sx={{ width: "100%" }}>
+                    <TextField
+                      type={field.type}
+                      id={`${field.id}`}
+                      label={getLabelWithAsteriskJSX(field)}
+                      value={value || ""}
+                      onKeyDown={(e) => {
+                        isBackspacePressed.current = e.key === "Backspace";
+                      }}
+                      placeholder={
+                        field.name === "OtherDocument" ? "File1, File2,..." : ""
                       }
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        const fieldName = field.name;
+                        let transformedVal = val;
 
-                      if (fieldName === "AadharNumber") {
-                        setAadhaarValid(false);
-                        const lastChar = val.toString().charAt(val.length - 1);
-                        let updatedAadhaar;
-                        if (isBackspacePressed.current) {
-                          updatedAadhaar = aadhaarNumber.slice(0, -1);
-                        } else {
-                          updatedAadhaar = aadhaarNumber + lastChar;
-                        }
-                        setAadhaarNumber(updatedAadhaar);
-                        transformedVal = updatedAadhaar;
-                        val = updatedAadhaar;
-                      }
-
-                      if (field.transformationFunctions?.length > 0) {
-                        field.transformationFunctions.forEach((fnName) => {
-                          const transformFn =
-                            TransformationFunctionsList[fnName];
-                          if (transformFn) {
-                            transformedVal = transformFn(
-                              transformedVal,
-                              val,
-                              getValues(),
-                              setValue,
-                            );
+                        if (fieldName === "IfscCode" && ifscPrefix) {
+                          if (!val.startsWith(ifscPrefix)) {
+                            val = ifscPrefix + val.slice(ifscPrefix.length);
                           }
-                        });
-                      }
-
-                      onChange(transformedVal);
-                    }}
-                    inputRef={ref}
-                    disabled={isFieldDisabled(field.name)}
-                    error={Boolean(errors[field.name])}
-                    helperText={
-                      typeof errors[field.name]?.message === "string"
-                        ? errors[field.name]?.message
-                        : errors[field.name]?.message?.message || ""
-                    }
-                    fullWidth
-                    margin="normal"
-                    InputLabelProps={{
-                      shrink: true,
-                      style: { fontSize: "1rem", color: "#000000" },
-                    }}
-                    inputProps={{
-                      maxLength: (() => {
-                        if (
-                          typeof field.maxLength === "object" &&
-                          field.maxLength.dependentOn
-                        ) {
-                          const dependentValue =
-                            getValues()[field.maxLength.dependentOn];
-                          return field.maxLength[dependentValue] ?? undefined;
+                          if (val.length > 11) {
+                            val = val.slice(0, 11);
+                          }
+                          transformedVal = val;
                         }
-                        return field.maxLength;
-                      })(),
-                      readOnly:
-                        field.name === "BranchName" && isBranchNameReadonly,
-                    }}
-                    sx={commonStyles}
-                  />
+
+                        if (fieldName === "AadharNumber") {
+                          setAadhaarValid(false);
+                          const lastChar = val
+                            .toString()
+                            .charAt(val.length - 1);
+                          let updatedAadhaar;
+                          if (isBackspacePressed.current) {
+                            updatedAadhaar = aadhaarNumber.slice(0, -1);
+                          } else {
+                            updatedAadhaar = aadhaarNumber + lastChar;
+                          }
+                          setAadhaarNumber(updatedAadhaar);
+                          transformedVal = updatedAadhaar;
+                          val = updatedAadhaar;
+                        }
+
+                        if (field.transformationFunctions?.length > 0) {
+                          field.transformationFunctions.forEach((fnName) => {
+                            const transformFn =
+                              TransformationFunctionsList[fnName];
+                            if (transformFn) {
+                              transformedVal = transformFn(
+                                transformedVal,
+                                val,
+                                getValues(),
+                                setValue,
+                              );
+                            }
+                          });
+                        }
+
+                        onChange(transformedVal);
+                      }}
+                      inputRef={ref}
+                      disabled={isFieldDisabled(field.name)}
+                      error={Boolean(errors[field.name])}
+                      helperText={
+                        typeof errors[field.name]?.message === "string"
+                          ? errors[field.name]?.message
+                          : errors[field.name]?.message?.message || ""
+                      }
+                      fullWidth
+                      margin="normal"
+                      InputLabelProps={{
+                        shrink: true,
+                        style: { fontSize: "1rem", color: "#000000" },
+                      }}
+                      inputProps={{
+                        maxLength: (() => {
+                          if (
+                            typeof field.maxLength === "object" &&
+                            field.maxLength.dependentOn
+                          ) {
+                            const dependentValue =
+                              getValues()[field.maxLength.dependentOn];
+                            return field.maxLength[dependentValue] ?? undefined;
+                          }
+                          return field.maxLength;
+                        })(),
+                        readOnly:
+                          field.name === "BranchName" && isBranchNameReadonly,
+                      }}
+                      sx={commonStyles}
+                    />
+                    {field.name == "AadharNumber" && (
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontSize: 12, mt: 0.5, display: "block" }}
+                      >
+                        Dummy Addhaar Number:123456789012 Dummy OTP: 1234567{" "}
+                      </Typography>
+                    )}
+                  </Box>
                 )}
 
                 {field.name === "AadharNumber" && aadhaarValid ? (
