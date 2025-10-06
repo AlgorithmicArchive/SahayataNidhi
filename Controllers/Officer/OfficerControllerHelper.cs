@@ -1149,5 +1149,6 @@ namespace SahayataNidhi.Controllers.Officer
             _logger.LogInformation("Processed {Count} applications, sent {Mails} mails", applications.Count, mailSentCount);
         }
 
+        
     }
 }

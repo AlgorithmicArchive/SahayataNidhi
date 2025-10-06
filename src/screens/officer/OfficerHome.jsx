@@ -232,6 +232,9 @@ export default function OfficerHome() {
       "Total Withheld Applications": "#374151",
       Pending: "#f59e0b",
       "Pending With Citizen": "#a855f7",
+      "Withheld Pending": "#f59e0b",
+      "Withheld Forwarded": "#0ea5e9",
+      "Withheld Approved": "#10b981",
       Forwarded: "#0ea5e9",
       "Shifted To Another Location": "#ec4899",
       Returned: "#f97316",
@@ -479,6 +482,9 @@ export default function OfficerHome() {
       "Pension's Stopped": "pensionstopped",
       "PCP-UDID Expires 3 Months": "expiringeligibility",
       "PCP Applications": "totalpcpapplication",
+      "Withheld Pending": "pending",
+      "Withheld Forwarded": "forwarded",
+      "Withheld Approved": "approved",
     };
 
     let mappedType = typeMap[cleanedStatus] || cleanedStatus.toLowerCase();

@@ -32,4 +32,7 @@ public class StatusCounts
     public int TotalWithheldCount { get; set; }
     public int TemporaryWithheldCount { get; set; }
     public int PermanentWithheldCount { get; set; }
+    public int WithheldPendingCount { get; set; }
+    public int WithheldForwardedCount { get; set; }
+    public int WithheldApprovedCount { get; set; }
 }

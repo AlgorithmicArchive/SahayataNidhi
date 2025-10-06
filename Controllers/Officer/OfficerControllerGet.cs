@@ -203,12 +203,12 @@ namespace SahayataNidhi.Controllers.Officer
                 .FirstOrDefault() ?? new ShiftedCountModal();
 
             var temporaryCount = dbcontext.Database
-               .SqlQueryRaw<TemporaryDisability>(
-                   "EXEC GetTemporaryDisabilityCount @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode",
-                   sqlParams.ToArray()
-               )
-               .AsEnumerable()
-               .FirstOrDefault() ?? new TemporaryDisability();
+                .SqlQueryRaw<TemporaryDisability>(
+                    "EXEC GetTemporaryDisabilityCount @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode",
+                    sqlParams.ToArray()
+                )
+                .AsEnumerable()
+                .FirstOrDefault() ?? new TemporaryDisability();
 
             // Build count lists using a helper function
             var countList = BuildMainApplicationCounts(counts, officerAuthorities);
@@ -296,6 +296,39 @@ namespace SahayataNidhi.Controllers.Officer
                 count = counts.PermanentWithheldCount,
                 tooltipText = "Permanent Withheld Applications",
                 tableTitle = "Permanent Withheld Applications",
+                bgColor = "#FFCC00",
+                textColor = "#000000"
+            });
+
+            // Add Withheld Pending count (always show, even if 0)
+            withheldCountList.Add(new
+            {
+                label = "Withheld Pending",
+                count = counts.WithheldPendingCount,
+                tooltipText = "Withheld Applications with Pending Status",
+                tableTitle = "Withheld Pending Applications",
+                bgColor = "#FFCC00",
+                textColor = "#000000"
+            });
+
+            // Add Withheld Forwarded count (always show, even if 0)
+            withheldCountList.Add(new
+            {
+                label = "Withheld Forwarded",
+                count = counts.WithheldForwardedCount,
+                tooltipText = "Withheld Applications with Forwarded Status",
+                tableTitle = "Withheld Forwarded Applications",
+                bgColor = "#FFCC00",
+                textColor = "#000000"
+            });
+
+            // Add Withheld Approved count (always show, even if 0)
+            withheldCountList.Add(new
+            {
+                label = "Withheld Approved",
+                count = counts.WithheldApprovedCount,
+                tooltipText = "Withheld Applications with Approved Status",
+                tableTitle = "Withheld Approved Applications",
                 bgColor = "#FFCC00",
                 textColor = "#000000"
             });
@@ -618,56 +651,114 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         [HttpGet]
-        public IActionResult GetWithheldApplications(string serviceId, string type, int pageIndex = 0, int pageSize = 10)
+        public async Task<IActionResult> GetWithheldApplications(string serviceId, string type, int pageIndex = 0, int pageSize = 10)
         {
-            var withheldType = type.StartsWith("withheld_")
-            ? type.Split('_')[1]
-            : type;
-
-            _logger.LogInformation($"----- Withheld Type: {withheldType} --------------");
-
-            var response = dbcontext.WithheldApplications
-            .Where(wh => wh.ServiceId == Convert.ToInt32(serviceId) &&
-                        (withheldType == "total" || wh.WithheldType == withheldType))
-            .ToList();
-
-            List<dynamic> columns =
-            [
-                new { accessorKey = "sno", header = "S.No" },
-                    new { accessorKey = "referenceNumber", header = "Reference Number" },
-                    new { accessorKey = "applicantName", header = "Applicant Name" },
-                    new { accessorKey = "withheldType", header = "Withheld Type" },
-                    new { accessorKey = "withheldReason", header = "Withheld Reason" }
-            ];
-            List<dynamic> data = [];
-            int index = 1;
-            foreach (var application in response)
+            var officer = GetOfficerDetails();
+            string officerRole = officer.Role!.ToString();
+            // Validate inputs
+            if (string.IsNullOrEmpty(serviceId) || !int.TryParse(serviceId, out int parsedServiceId))
             {
-                var details = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == application.ReferenceNumber);
-                var formdetails = JToken.Parse(details!.FormDetails!);
-                var applicantName = FindFieldRecursively(formdetails, "ApplicantName");
-                var customActions = new List<dynamic>();
-                customActions.Add(new
+                _logger.LogWarning("Invalid ServiceId provided: {ServiceId}", serviceId);
+                return BadRequest(new { error = "Invalid ServiceId" });
+            }
+
+            if (string.IsNullOrEmpty(type))
+            {
+                _logger.LogWarning("Type parameter is missing or empty");
+                return BadRequest(new { error = "Type parameter is required" });
+            }
+
+            var withheldType = type.StartsWith("withheld_")
+                ? type.Split('_')[1]
+                : type;
+
+            bool isStatusNotType = withheldType != "temporary" && withheldType != "permanent" && withheldType != "total";
+
+            // Validate officerRole when type implies status filtering
+            if (isStatusNotType && string.IsNullOrEmpty(officerRole))
+            {
+                _logger.LogWarning("OfficerRole is required for type: {Type}", type);
+                return BadRequest(new { error = "OfficerRole is required for status-based filtering" });
+            }
+
+            _logger.LogInformation($"Executing GetWithheldApplications: ServiceId={serviceId}, Type={type}, OfficerRole={officerRole}, PageIndex={pageIndex}, PageSize={pageSize}");
+
+            // Prepare columns for frontend
+            var columns = new List<dynamic>
+    {
+        new { accessorKey = "sno", header = "S.No" },
+        new { accessorKey = "referenceNumber", header = "Reference Number" },
+        new { accessorKey = "applicantName", header = "Applicant Name" },
+        new { accessorKey = "withheldType", header = "Withheld Type" },
+        new { accessorKey = "withheldReason", header = "Withheld Reason" }
+    };
+
+            List<dynamic> data = [];
+            int totalRecords = 0;
+
+            try
+            {
+                var totalRecordsParam = new SqlParameter
+                {
+                    ParameterName = "@TotalRecords",
+                    SqlDbType = SqlDbType.Int,
+                    Direction = ParameterDirection.Output
+                };
+
+                var result = await dbcontext.Database
+                    .SqlQueryRaw<WithheldApplicationResult>(
+                        "EXEC dbo.GetWithheldApplications @ServiceId, @Type, @OfficerRole, @PageIndex, @PageSize, @TotalRecords OUTPUT",
+                        new SqlParameter("@ServiceId", parsedServiceId),
+                        new SqlParameter("@Type", type),
+                        new SqlParameter("@OfficerRole", (object)officerRole! ?? DBNull.Value),
+                        new SqlParameter("@PageIndex", pageIndex),
+                        new SqlParameter("@PageSize", pageSize),
+                        totalRecordsParam
+                    )
+                    .ToListAsync();
+
+                totalRecords = totalRecordsParam.Value != DBNull.Value ? (int)totalRecordsParam.Value : 0;
+
+                // Prepare data for frontend
+                data = result.Select(r => new
+                {
+                    sno = r.Sno,
+                    referenceNumber = r.ReferenceNumber,
+                    applicantName = r.ApplicantName ?? "N/A",
+                    withheldType = r.WithheldType,
+                    withheldReason = r.WithheldReason,
+                    customActions = new List<dynamic>
+            {
+                new
                 {
                     type = "View",
                     tooltip = "View",
                     color = "#F0C38E",
                     actionFunction = "handleViewApplication"
-                });
-                data.Add(new
-                {
-                    sno = index,
-                    referenceNumber = application.ReferenceNumber,
-                    applicantName = (string)applicantName!["value"]!,
-                    withheldType = application.WithheldType,
-                    withheldReason = application.WithheldReason,
-                    customActions
-                });
+                }
+            }
+                }).ToList<dynamic>();
+
+                _logger.LogInformation("Retrieved {Count} records with TotalRecords={TotalRecords}", result.Count, totalRecords);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing GetWithheldApplications: ServiceId={ServiceId}, Type={Type}, OfficerRole={OfficerRole}", serviceId, type, officerRole);
+                return StatusCode(500, new { error = "An error occurred while fetching withheld applications" });
             }
 
-            return Json(new { columns, data, totlaRecords = response.Count });
+            return Json(new { columns, data, totalRecords });
         }
 
+        // Define a model for the stored procedure result set
+        public class WithheldApplicationResult
+        {
+            public long Sno { get; set; }
+            public string? ReferenceNumber { get; set; }
+            public string? ApplicantName { get; set; }
+            public string? WithheldType { get; set; }
+            public string? WithheldReason { get; set; }
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetTemporaryDisability(string? ServiceId, string type, int pageIndex = 0, int pageSize = 10)
