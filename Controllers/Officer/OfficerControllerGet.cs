@@ -654,7 +654,7 @@ namespace SahayataNidhi.Controllers.Officer
         public async Task<IActionResult> GetWithheldApplications(string serviceId, string type, int pageIndex = 0, int pageSize = 10)
         {
             var officer = GetOfficerDetails();
-            string officerRole = officer.Role!.ToString();
+            string officerRole = officer.Role!  .ToString();
             // Validate inputs
             if (string.IsNullOrEmpty(serviceId) || !int.TryParse(serviceId, out int parsedServiceId))
             {
