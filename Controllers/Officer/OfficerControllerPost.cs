@@ -626,7 +626,42 @@ namespace SahayataNidhi.Controllers.Officer
                 {
                     filesObj[roleKey] = newFiles;
                 }
+                try
+                {
+                    var getServices = dbcontext.WebServices.FirstOrDefault(ws => ws.ServiceId == citizenApplication.ServiceId && ws.IsActive);
+                    if (getServices != null)
+                    {
+                        var onAction = JsonConvert.DeserializeObject<List<string>>(getServices.OnAction);
+                        if (onAction != null && onAction.Contains(action))
+                        {
+                            // Create payload from corrigendumFields
+                            var corrigendumPayload = new Dictionary<string, string>();
+                            var corrigendumFieldsObj = JObject.Parse(corrigendum.CorrigendumFields);
+                            foreach (var field in corrigendumFieldsObj.Properties())
+                            {
+                                var FieldObj = field.Value as JObject;
+                                if (FieldObj != null)
+                                {
+                                    var name = FieldObj["name"]?.ToString();
+                                    var newValue = FieldObj["new_value"]?.ToString();
+                                    if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(newValue))
+                                    {
+                                        corrigendumPayload[name] = newValue;
+                                    }
+                                }
+                            }
 
+                            // Send API request with the corrigendumFields payload
+                            await SendApiRequestAsync(getServices.ApiEndPoint, corrigendumPayload);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Optional: log the error
+                    Console.WriteLine("Error in external service call: " + ex.Message);
+                    // Or use a logger: _logger.LogError(ex, "Service call failed");
+                }
                 corrigendum.CorrigendumFields = corrigendumFields.ToString(Formatting.None);
                 corrigendum.Type = type;
 

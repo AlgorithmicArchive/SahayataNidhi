@@ -141,9 +141,8 @@ namespace SahayataNidhi.Controllers
         {
             try
             {
-                _logger.LogInformation($"Fetching web service configuration for ServiceId: {serviceId}");
                 var webService = dbcontext.WebServices
-                    .FirstOrDefault(ws => ws.ServiceId == serviceId && ws.IsActive);
+                    .FirstOrDefault(ws => ws.ServiceId == serviceId);
 
                 if (webService == null)
                 {

@@ -654,7 +654,15 @@ export default function CreateWebService() {
     }
   };
 
-  const actionOptions = ["Submission", "Rejection", "Sanction"];
+  const actionOptions = [
+    "Submission",
+    "Rejection",
+    "Sanction",
+    "Correction",
+    "Corrigendum",
+    "Amendment",
+    "Withheld",
+  ];
 
   return (
     <Container fluid sx={{ bgcolor: "grey.100", minHeight: "100vh", py: 4 }}>

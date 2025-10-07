@@ -95,7 +95,7 @@ namespace SahayataNidhi.Controllers
                 {
                     // Update existing web service
                     webService = dbcontext.WebServices
-                        .FirstOrDefault(ws => ws.Id == parsedWebServiceId && ws.IsActive)!;
+                        .FirstOrDefault(ws => ws.Id == parsedWebServiceId)!;
 
                     if (webService != null)
                     {
