@@ -426,7 +426,7 @@ const Corrections = () => {
                   </MenuItem>
                   <MenuItem value="Correction">Correction</MenuItem>
                   <MenuItem value="Corrigendum">Corrigendum</MenuItem>
-                  <MenuItem value="Amendment">Amendment</MenuItem>
+                  <MenuItem value="Amendment">Document Updation</MenuItem>
                 </Select>
               </FormControl>
             </Box>

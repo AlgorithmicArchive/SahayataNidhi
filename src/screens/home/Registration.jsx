@@ -371,6 +371,10 @@ export default function RegisterScreen() {
                         value: 5,
                         message: "Full Name must be at least 5 characters",
                       },
+                      maxLength: {
+                        value: 255,
+                        message: "Full Name must be at most 255 characters",
+                      },
                     }}
                     render={({ field, fieldState: { error } }) => (
                       <TextField
@@ -400,6 +404,10 @@ export default function RegisterScreen() {
                       minLength: {
                         value: 5,
                         message: "Username must be at least 5 characters",
+                      },
+                      maxLength: {
+                        value: 20,
+                        message: "Username must be at most 20 characters",
                       },
                       validate: async (value) => {
                         if (!value) return "Username is required";

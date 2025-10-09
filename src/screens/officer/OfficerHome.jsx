@@ -1599,7 +1599,7 @@ export default function OfficerHome() {
 
           {withheldCountList.length > 0 &&
             renderConsolidatedStatCard(
-              "Withheld Payments (After Sanction)",
+              "Withheld Payments",
               withheldCountList,
               "withheld",
               "Applications withheld after sanction",
@@ -1607,7 +1607,7 @@ export default function OfficerHome() {
 
           {temporaryCountList.length > 0 &&
             renderConsolidatedStatCard(
-              "Physically Challenged Applications",
+              "Physically Challenged",
               temporaryCountList,
               "application",
               "Physically challenged applications",
@@ -1623,9 +1623,9 @@ export default function OfficerHome() {
 
           {amendmentList?.length > 0 &&
             renderConsolidatedStatCard(
-              "Amendments",
+              "Datat Updations",
               amendmentList,
-              "Amendment",
+              "Amendments",
               "Amendments issued after cases are sanctioned",
             )}
 

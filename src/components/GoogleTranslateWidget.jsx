@@ -33,10 +33,10 @@ const GoogleTranslateWidget = () => {
         new window.google.translate.TranslateElement(
           {
             pageLanguage: "en",
-            includedLanguages: "en,hi,ur",
+            includedLanguages: "en",
             layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
           },
-          "google_translate_element"
+          "google_translate_element",
         );
       }
     };

@@ -342,7 +342,7 @@ const MyNavbar = () => {
                         )}
                         onClick={() => setExpanded(false)}
                       >
-                        Alteration
+                        Data Updation
                       </NavDropdown.Item>
                     )}
                     {officerAuthorities.canWithhold && (
