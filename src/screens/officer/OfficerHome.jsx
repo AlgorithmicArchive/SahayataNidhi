@@ -1186,7 +1186,7 @@ export default function OfficerHome() {
     const data = [Math.max(counts.total, 0), Math.max(counts.pending, 0)];
     const backgroundColor = ["#374151", "#f59e0b"];
     const borderColor = ["#374151", "#f59e0b"];
-
+    console.log("Officer Authorities in barData:", officerAuthorities);
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
       data.push(Math.max(counts.forwarded, 0));
@@ -1282,7 +1282,7 @@ export default function OfficerHome() {
 
   const barChartOptions = useMemo(
     () => ({
-      margin: { top: 20, right: 30, left: 20, bottom: 5 },
+      margin: { top: 20, right: 30, left: 20, bottom: 50 }, // Increased bottom margin
     }),
     [],
   );
@@ -1735,7 +1735,14 @@ export default function OfficerHome() {
                         margin={barChartOptions.margin}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
+                        <XAxis
+                          dataKey="name"
+                          angle={-45}
+                          textAnchor="end"
+                          interval={0}
+                          height={60}
+                          tick={{ fontSize: 12 }}
+                        />
                         <YAxis />
                         <Tooltip />
                         <Legend />
