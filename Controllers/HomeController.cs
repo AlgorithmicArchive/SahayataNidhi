@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Renci.SshNet.Messages;
 using SahayataNidhi.Models;
 using SahayataNidhi.Models.Entities;
 using SendEmails;
@@ -171,37 +172,51 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SendOtp(string? email)
+        public async Task<IActionResult> SendOtp(string? email, string? mobile)
         {
-            if (string.IsNullOrEmpty(email))
+            if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(mobile))
             {
-                return Json(new { status = false, message = "Email is required." });
+                return Json(new { status = false, message = "Either email or mobile is required." });
             }
 
-            string otpKey = $"otp:{email}";
+            if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(mobile))
+            {
+                return Json(new { status = false, message = "Please provide only one: email or mobile, not both." });
+            }
+
+            string otpKey = !string.IsNullOrEmpty(email) ? $"otp:email:{email}" : $"otp:mobile:{mobile}";
             string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
-            string htmlMessage = $@"
-            <div style='font-family: Arial, sans-serif;'>
-                <h2 style='color: #2e6c80;'>Your OTP Code</h2>
-                <p>Use the following One-Time Password (OTP) to complete your verification. It is valid for <strong>5 minutes</strong>.</p>
-                <div style='font-size: 24px; font-weight: bold; color: #333; margin: 20px 0;'>{otp}</div>
-                <p>If you did not request this, please ignore this email.</p>
-                <br />
-                <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
-            </div>";
-
             try
             {
-                await _emailSender.SendEmail(email, "OTP For Registration", htmlMessage);
+                if (!string.IsNullOrEmpty(email))
+                {
+                    string htmlMessage = $@"
+                    <div style='font-family: Arial, sans-serif;'>
+                        <h2 style='color: #2e6c80;'>Your OTP Code</h2>
+                        <p>Use the following One-Time Password (OTP) to complete your verification. It is valid for <strong>5 minutes</strong>.</p>
+                        <div style='font-size: 24px; font-weight: bold; color: #333; margin: 20px 0;'>{otp}</div>
+                        <p>If you did not request this, please ignore this email.</p>
+                        <br />
+                        <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
+                    </div>";
+
+                    await _emailSender.SendEmail(email, "OTP for Verification", htmlMessage);
+                    return Json(new { status = true, message = "OTP sent successfully to your email." });
+                }
+                else
+                {
+                    // You can integrate an SMS service here
+                    _logger.LogInformation($"Simulated SMS OTP sent to {mobile}: {otp}");
+                    return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Use this OTP: {otp}" });
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
+                _logger.LogWarning($"Failed to send OTP: {ex.Message}. OTP: {otp}");
                 return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Use this OTP: {otp}" });
             }
-            return Json(new { status = true });
         }
 
         [HttpPost]
@@ -365,17 +380,24 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpPost]
-        public IActionResult OTPValidation([FromForm] IFormCollection form)
+        public IActionResult OTPValidation([FromForm] string? email, [FromForm] string? mobile, [FromForm] string otp)
         {
-            var otp = form["otp"].ToString();
-            var email = form["email"].ToString();
-
-            if (string.IsNullOrEmpty(otp) || string.IsNullOrEmpty(email))
+            if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(mobile))
             {
-                return Json(new { status = false, message = "OTP or email is missing." });
+                return Json(new { status = false, message = "Either email or mobile is required." });
             }
 
-            string otpKey = $"otp:{email}";
+            if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(mobile))
+            {
+                return Json(new { status = false, message = "Please provide only one: email or mobile, not both." });
+            }
+
+            if (string.IsNullOrEmpty(otp))
+            {
+                return Json(new { status = false, message = "OTP is required." });
+            }
+
+            string otpKey = !string.IsNullOrEmpty(email) ? $"otp:email:{email}" : $"otp:mobile:{mobile}";
             string? storedOtp = _otpStore.RetrieveOtp(otpKey);
 
             if (storedOtp == null)
@@ -383,12 +405,12 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = "OTP has expired or is invalid." });
             }
 
-            if (storedOtp == otp)
+            if (storedOtp != otp)
             {
-                return Json(new { status = true, message = "OTP validated successfully." });
+                return Json(new { status = false, message = "Invalid OTP." });
             }
 
-            return Json(new { status = false, message = "Invalid OTP." });
+            return Json(new { status = true, message = "OTP validated successfully." });
         }
 
         [HttpPost]

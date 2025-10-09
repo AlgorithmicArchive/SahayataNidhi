@@ -13,7 +13,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, set } from "react-hook-form";
 import CustomButton from "../../components/CustomButton";
 import OtpModal from "../../components/OtpModal";
 import axios from "axios";
@@ -70,6 +70,7 @@ export default function RegisterScreen() {
   const [isEmailOtpVerified, setIsEmailOtpVerified] = useState(false);
   const [isMobileOtpSent, setIsMobileOtpSent] = useState(false);
   const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const selectedDistrict = watch("District");
   const emailValue = watch("email");
   const mobileValue = watch("mobileNumber");
@@ -147,6 +148,7 @@ export default function RegisterScreen() {
         if (response.data.status) {
           setIsEmailOtpSent(true);
           setIsOtpModalOpen(true);
+          setErrorMessage(response.data.message || "");
           setOtpType("email");
           setUserId(response.data.userId);
           toast.success("OTP sent to your email!", {
@@ -177,15 +179,16 @@ export default function RegisterScreen() {
     if (isValid && !errors.mobileNumber) {
       setLoading(true);
       try {
-        const mobile = getValues("email");
+        const mobile = getValues("mobileNumber");
         const response = await axios.get("/Home/SendOtp", {
-          params: { email: mobile },
+          params: { mobile: mobile },
         });
         if (response.data.status) {
           setIsMobileOtpSent(true);
           setIsOtpModalOpen(true);
           setOtpType("mobile");
           setUserId(response.data.userId);
+          setErrorMessage(response.data.message || "");
           toast.success("OTP sent to your mobile number!", {
             position: "top-center",
             autoClose: 3000,
@@ -271,7 +274,7 @@ export default function RegisterScreen() {
     if (otpType === "email") {
       formData.append("email", getValues("email"));
     } else if (otpType === "mobile") {
-      formData.append("email", getValues("email"));
+      formData.append("mobile", getValues("mobileNumber"));
     }
 
     try {
@@ -897,6 +900,7 @@ export default function RegisterScreen() {
               setIsOtpModalOpen(false);
               setOtpType(null);
             }}
+            erorrMessage={errorMessage}
             onSubmit={handleOtpSubmit}
             registeredAt={otpType}
             title={`Enter ${otpType === "email" ? "Email" : "Mobile"} OTP`}

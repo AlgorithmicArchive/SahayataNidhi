@@ -6,6 +6,7 @@ export default function OtpModal({
   onClose,
   onSubmit,
   registeredAt = "email",
+  erorrMessage = "",
 }) {
   const [otp, setOtp] = useState("");
 
@@ -44,8 +45,13 @@ export default function OtpModal({
         <Typography id="otp-modal-title" variant="h6" component="h2">
           Enter OTP
         </Typography>
-        <Typography id="otp-modal-description" sx={{ mt: 1 }}>
-          Please enter the OTP sent to your registered {registeredAt}.
+        <Typography
+          id="otp-modal-description"
+          sx={{ mt: 1, color: erorrMessage == "" ? "green" : "red" }}
+        >
+          {erorrMessage == ""
+            ? `Please enter the OTP sent to your registered {registeredAt}.`
+            : erorrMessage}
         </Typography>
         <form
           onSubmit={handleSubmit}

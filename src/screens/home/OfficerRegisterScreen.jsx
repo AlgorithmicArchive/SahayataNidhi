@@ -9,8 +9,6 @@ import {
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import CustomInputField from "../../components/form/CustomInputField";
 import CustomSelectField from "../../components/form/CustomSelectField";
 import CustomButton from "../../components/CustomButton";
@@ -33,110 +31,33 @@ const generateCaptcha = () => {
   return captcha;
 };
 
-// Validation schema
-const schema = yup.object().shape({
-  fullName: yup
-    .string()
-    .required("Full name is required")
-    .min(5, "Full Name must be at least 5 characters"),
-  username: yup
-    .string()
-    .required("Username is required")
-    .min(5, "Username must be at least 5 characters")
-    .test("username-unique", "Username already exists", async (value) => {
-      if (!value) return false;
-      try {
-        const response = await axios.get("/Home/CheckUsername", {
-          params: { username: value },
-        });
-        return response.data.isUnique;
-      } catch {
-        return false;
-      }
-    }),
-  email: yup
-    .string()
-    .required("Email is required")
-    .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
-    .test("email-unique", "Email already exists", async (value) => {
-      if (!value) return false;
-      try {
-        const response = await axios.get("/Home/CheckEmail", {
-          params: { email: value, UserType: "Officer" },
-        });
-        return response.data.isUnique;
-      } catch {
-        return false;
-      }
-    }),
-  mobileNumber: yup
-    .string()
-    .required("Mobile Number is required")
-    .matches(/^[0-9]{10}$/, "Enter 10 digit number")
-    .test("mobile-unique", "Mobile Number already exists", async (value) => {
-      if (!value) return false;
-      try {
-        const res = await axios.get("/Home/CheckMobileNumber", {
-          params: { number: value, UserType: "Officer" },
-        });
-        return res.data?.isUnique;
-      } catch {
-        return false;
-      }
-    }),
-  password: yup
-    .string()
-    .required("Password is required")
-    .min(6, "Password must be at least 6 characters")
-    .max(12, "Password must be at most 12 characters")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,12}$/,
-      "Password must include uppercase, lowercase, number, and special character",
-    ),
-  confirmPassword: yup
-    .string()
-    .required("Confirm your password")
-    .test("passwords-match", "Passwords do not match", function (value) {
-      return value === this.parent.password;
-    }),
-  department: yup.string().required("Department is required"),
-  designation: yup.string().required("Designation is required"),
-  District: yup.string().when("designation", {
-    is: (designation) =>
-      accessLevelMap[designation] === "District" ||
-      accessLevelMap[designation] === "Tehsil",
-    then: yup.string().required("District is required"),
-  }),
-  Division: yup.string().when("designation", {
-    is: (designation) => accessLevelMap[designation] === "Division",
-    then: yup.string().required("Division is required"),
-  }),
-  Tehsil: yup.string().when("designation", {
-    is: (designation) => accessLevelMap[designation] === "Tehsil",
-    then: yup.string().required("Tehsil is required"),
-  }),
-  captcha: yup
-    .string()
-    .required("CAPTCHA is required")
-    .test("captcha-match", "CAPTCHA is incorrect", function (value) {
-      return value === this.options.context.captcha;
-    }),
-});
-
 export default function OfficerRegisterScreen() {
   const {
     handleSubmit,
-    getValues,
     control,
-    formState: { errors },
+    getValues,
     watch,
     trigger,
+    formState: { errors },
   } = useForm({
     mode: "onChange",
     reValidateMode: "onChange",
-    resolver: yupResolver(schema),
-    context: { captcha: captcha },
+    defaultValues: {
+      fullName: "",
+      username: "",
+      email: "",
+      mobileNumber: "",
+      password: "",
+      confirmPassword: "",
+      department: "",
+      designation: "",
+      District: "",
+      Division: "",
+      Tehsil: "",
+      captcha: "",
+    },
   });
+
   const [captcha, setCaptcha] = useState(generateCaptcha());
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
@@ -151,6 +72,8 @@ export default function OfficerRegisterScreen() {
   const [isEmailOtpVerified, setIsEmailOtpVerified] = useState(false);
   const [isMobileOtpSent, setIsMobileOtpSent] = useState(false);
   const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const selectedDepartment = watch("department");
   const selectedDesignation = watch("designation");
   const selectedDistrict = watch("District");
@@ -160,7 +83,6 @@ export default function OfficerRegisterScreen() {
 
   // Fetch departments and districts on mount
   useEffect(() => {
-    // Fetch departments
     axios
       .get("/Home/GetDepartments")
       .then((response) => {
@@ -200,13 +122,12 @@ export default function OfficerRegisterScreen() {
           if (response.data.status) {
             const designationOptions = response.data.designations.map(
               (des) => ({
-                label: des.designation + `(${des.accessLevel})`,
+                label: des.designation + ` (${des.accessLevel})`,
                 value: des.designation,
-                accessLevel: des.accessLevel, // Assuming accessLevel is returned
+                accessLevel: des.accessLevel,
               }),
             );
             setDesignations(designationOptions);
-            // Update accessLevelMap
             const newAccessLevelMap = {};
             designationOptions.forEach((des) => {
               newAccessLevelMap[des.value] = des.accessLevel;
@@ -285,6 +206,7 @@ export default function OfficerRegisterScreen() {
           setIsEmailOtpSent(true);
           setIsOtpModalOpen(true);
           setOtpType("email");
+          setErrorMessage(response.data.message || "");
           setUserId(response.data.userId);
           toast.success("OTP sent to your email!", {
             position: "top-center",
@@ -315,14 +237,15 @@ export default function OfficerRegisterScreen() {
       setLoading(true);
       try {
         const mobile = getValues("mobileNumber");
-        const response = await axios.get("/Home/SendMobileOtp", {
-          params: { mobileNumber: mobile },
+        const response = await axios.get("/Home/SendOtp", {
+          params: { mobile },
         });
         if (response.data.status) {
           setIsMobileOtpSent(true);
           setIsOtpModalOpen(true);
           setOtpType("mobile");
           setUserId(response.data.userId);
+          setErrorMessage(response.data.message || "");
           toast.success("OTP sent to your mobile number!", {
             position: "top-center",
             autoClose: 3000,
@@ -367,13 +290,13 @@ export default function OfficerRegisterScreen() {
     Object.entries(data).forEach(([key, value]) => {
       formData.append(key, value);
     });
-    formData.append("accessLevel", accessLevelMap[selectedDesignation]);
+    formData.append("accessLevel", accessLevelMap[selectedDesignation] || "");
     formData.append(
       "accessCode",
       accessLevelMap[selectedDesignation] !== "State"
-        ? accessLevelMap[selectedDesignation].includes("Tehsil")
+        ? accessLevelMap[selectedDesignation]?.includes("Tehsil")
           ? data["Tehsil"]
-          : accessLevelMap[selectedDesignation].includes("District")
+          : accessLevelMap[selectedDesignation]?.includes("District")
           ? data["District"]
           : data["Division"]
         : 0,
@@ -422,14 +345,12 @@ export default function OfficerRegisterScreen() {
     if (otpType === "email") {
       formData.append("email", getValues("email"));
     } else if (otpType === "mobile") {
-      formData.append("mobileNumber", getValues("mobileNumber"));
+      formData.append("mobile", getValues("mobileNumber"));
     }
 
     try {
       const response = await axios.post(
-        otpType === "email"
-          ? "/Home/OTPValidation"
-          : "/Home/MobileOTPValidation",
+        otpType === "email" ? "/Home/OTPValidation" : "/Home/OTPValidation",
         formData,
       );
       if (response.data.status) {
@@ -501,7 +422,6 @@ export default function OfficerRegisterScreen() {
         role="form"
         aria-labelledby="officer-register-title"
       >
-        {/* Header */}
         <Box sx={{ textAlign: "center", mb: 3 }}>
           <Typography
             variant="h4"
@@ -520,7 +440,6 @@ export default function OfficerRegisterScreen() {
           </Typography>
         </Box>
 
-        {/* Form */}
         <Box
           component="form"
           noValidate
@@ -540,6 +459,13 @@ export default function OfficerRegisterScreen() {
                 control={control}
                 errors={errors}
                 disabled={loading}
+                rules={{
+                  required: "Full name is required",
+                  minLength: {
+                    value: 5,
+                    message: "Full Name must be at least 5 characters",
+                  },
+                }}
               />
             </Col>
             <Col xs={6}>
@@ -553,6 +479,26 @@ export default function OfficerRegisterScreen() {
                 control={control}
                 errors={errors}
                 disabled={loading}
+                rules={{
+                  required: "Username is required",
+                  minLength: {
+                    value: 5,
+                    message: "Username must be at least 5 characters",
+                  },
+                  validate: async (value) => {
+                    if (!value) return "Username is required";
+                    try {
+                      const response = await axios.get("/Home/CheckUsername", {
+                        params: { username: value },
+                      });
+                      return (
+                        response.data.isUnique || "Username already exists"
+                      );
+                    } catch {
+                      return "Error checking username availability";
+                    }
+                  },
+                }}
               />
             </Col>
           </Row>
@@ -569,6 +515,24 @@ export default function OfficerRegisterScreen() {
                 control={control}
                 errors={errors}
                 disabled={loading || isEmailOtpVerified}
+                rules={{
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Invalid email format",
+                  },
+                  validate: async (value) => {
+                    if (!value) return "Email is required";
+                    try {
+                      const response = await axios.get("/Home/CheckEmail", {
+                        params: { email: value, UserType: "Officer" },
+                      });
+                      return response.data.isUnique || "Email already exists";
+                    } catch {
+                      return "Error checking email availability";
+                    }
+                  },
+                }}
               />
               {isEmailOtpVerified && (
                 <Typography
@@ -605,6 +569,26 @@ export default function OfficerRegisterScreen() {
                 errors={errors}
                 maxLength={10}
                 disabled={loading || isMobileOtpVerified}
+                rules={{
+                  required: "Mobile Number is required",
+                  pattern: {
+                    value: /^[0-9]{10}$/,
+                    message: "Enter 10 digit number",
+                  },
+                  validate: async (value) => {
+                    if (!value) return "Mobile Number is required";
+                    try {
+                      const res = await axios.get("/Home/CheckMobileNumber", {
+                        params: { number: value, UserType: "Officer" },
+                      });
+                      return (
+                        res.data?.isUnique || "Mobile Number already exists"
+                      );
+                    } catch {
+                      return "Error checking mobile number availability";
+                    }
+                  },
+                }}
               />
               {isMobileOtpVerified && (
                 <Typography
@@ -642,6 +626,22 @@ export default function OfficerRegisterScreen() {
                 control={control}
                 errors={errors}
                 disabled={loading}
+                rules={{
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters",
+                  },
+                  maxLength: {
+                    value: 12,
+                    message: "Password must be at most 12 characters",
+                  },
+                  pattern: {
+                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,12}$/,
+                    message:
+                      "Password must include uppercase, lowercase, number, and special character",
+                  },
+                }}
               />
             </Col>
             <Col xs={6}>
@@ -656,6 +656,11 @@ export default function OfficerRegisterScreen() {
                 control={control}
                 errors={errors}
                 disabled={loading}
+                rules={{
+                  required: "Confirm your password",
+                  validate: (value) =>
+                    value === getValues("password") || "Passwords do not match",
+                }}
               />
             </Col>
           </Row>
@@ -673,6 +678,9 @@ export default function OfficerRegisterScreen() {
                 options={departments}
                 errors={errors}
                 disabled={loading}
+                rules={{
+                  required: "Department is required",
+                }}
               />
             </Col>
             <Col xs={6}>
@@ -688,6 +696,9 @@ export default function OfficerRegisterScreen() {
                 options={designations}
                 errors={errors}
                 disabled={loading || !selectedDepartment}
+                rules={{
+                  required: "Designation is required",
+                }}
               />
             </Col>
           </Row>
@@ -707,6 +718,13 @@ export default function OfficerRegisterScreen() {
                   options={districtOptions}
                   errors={errors}
                   disabled={loading}
+                  rules={{
+                    required:
+                      accessLevelMap[selectedDesignation] === "District" ||
+                      accessLevelMap[selectedDesignation] === "Tehsil"
+                        ? "District is required"
+                        : false,
+                  }}
                 />
               )}
               {accessLevelMap[selectedDesignation] === "Division" && (
@@ -725,6 +743,12 @@ export default function OfficerRegisterScreen() {
                   ]}
                   errors={errors}
                   disabled={loading}
+                  rules={{
+                    required:
+                      accessLevelMap[selectedDesignation] === "Division"
+                        ? "Division is required"
+                        : false,
+                  }}
                 />
               )}
             </Col>
@@ -742,6 +766,12 @@ export default function OfficerRegisterScreen() {
                   options={tehsilOptions}
                   errors={errors}
                   disabled={loading}
+                  rules={{
+                    required:
+                      accessLevelMap[selectedDesignation] === "Tehsil"
+                        ? "Tehsil is required"
+                        : false,
+                  }}
                 />
               )}
             </Col>
@@ -841,6 +871,11 @@ export default function OfficerRegisterScreen() {
                 errors={errors}
                 aria-describedby="captcha-error"
                 disabled={loading}
+                rules={{
+                  required: "CAPTCHA is required",
+                  validate: (value) =>
+                    value === captcha || "CAPTCHA is incorrect",
+                }}
               />
             </Col>
           </Row>
@@ -894,6 +929,7 @@ export default function OfficerRegisterScreen() {
           setOtpType(null);
         }}
         onSubmit={handleOtpSubmit}
+        erorrMessage={errorMessage}
         title={`Enter ${otpType === "email" ? "Email" : "Mobile"} OTP`}
         aria-labelledby="otp-modal-title"
         sx={{
