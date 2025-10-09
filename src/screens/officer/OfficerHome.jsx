@@ -542,6 +542,14 @@ export default function OfficerHome() {
           state: { applicationId: data.referenceNumber, notaction: true },
         });
       },
+      handleViewWithheldApplication: (row) => {
+        {
+          const data = row.original;
+          navigate("/officer/withheld", {
+            state: { applicationId: data.referenceNumber },
+          });
+        }
+      },
       pullApplication: async (row) => {
         setPullRow(row.original);
         setPullConfirmOpen(true);

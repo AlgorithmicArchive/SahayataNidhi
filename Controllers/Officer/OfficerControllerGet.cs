@@ -366,8 +366,8 @@ namespace SahayataNidhi.Controllers.Officer
             var totalRecordsParam = new SqlParameter
             {
                 ParameterName = "@TotalRecords",
-                SqlDbType = System.Data.SqlDbType.Int,
-                Direction = System.Data.ParameterDirection.Output
+                SqlDbType = SqlDbType.Int,
+                Direction = ParameterDirection.Output
             };
 
             var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == ServiceId);
@@ -654,7 +654,7 @@ namespace SahayataNidhi.Controllers.Officer
         public async Task<IActionResult> GetWithheldApplications(string serviceId, string type, int pageIndex = 0, int pageSize = 10)
         {
             var officer = GetOfficerDetails();
-            string officerRole = officer.Role!  .ToString();
+            string officerRole = officer.Role!.ToString();
             // Validate inputs
             if (string.IsNullOrEmpty(serviceId) || !int.TryParse(serviceId, out int parsedServiceId))
             {
@@ -734,7 +734,7 @@ namespace SahayataNidhi.Controllers.Officer
                     type = "View",
                     tooltip = "View",
                     color = "#F0C38E",
-                    actionFunction = "handleViewApplication"
+                    actionFunction = "handleViewWithheldApplication"
                 }
             }
                 }).ToList<dynamic>();
@@ -2847,8 +2847,8 @@ namespace SahayataNidhi.Controllers.Officer
             var totalRecordsParam = new SqlParameter
             {
                 ParameterName = "@TotalRecords",
-                SqlDbType = System.Data.SqlDbType.Int,
-                Direction = System.Data.ParameterDirection.Output
+                SqlDbType = SqlDbType.Int,
+                Direction = ParameterDirection.Output
             };
 
             var response = dbcontext.CitizenApplications
@@ -2926,8 +2926,8 @@ namespace SahayataNidhi.Controllers.Officer
             var totalRecordsParam = new SqlParameter
             {
                 ParameterName = "@TotalRecords",
-                SqlDbType = System.Data.SqlDbType.Int,
-                Direction = System.Data.ParameterDirection.Output
+                SqlDbType = SqlDbType.Int,
+                Direction = ParameterDirection.Output
             };
 
             var response = dbcontext.CitizenApplications

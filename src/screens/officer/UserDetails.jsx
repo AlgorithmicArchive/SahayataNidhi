@@ -408,11 +408,11 @@ export default function UserDetails() {
         return;
       }
 
-      const isAppRunning = await checkDesktopApp();
-      if (!isAppRunning) {
-        setButtonLoading(false);
-        return;
-      }
+      // const isAppRunning = await checkDesktopApp();
+      // if (!isAppRunning) {
+      //   setButtonLoading(false);
+      //   return;
+      // }
 
       setCertificateDetails(certDetails);
       setPendingFormData(data);

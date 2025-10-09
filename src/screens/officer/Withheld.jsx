@@ -36,8 +36,11 @@ import ServiceSelectionForm from "../../components/ServiceSelectionForm";
 import { fetchServiceList } from "../../assets/fetch";
 import axiosInstance from "../../axiosConfig";
 import BasicModal from "../../components/BasicModal";
+import { useLocation } from "react-router-dom";
 
 export default function Withheld() {
+  const location = useLocation();
+  const { applicationId } = location.state || {};
   const [services, setServices] = useState([]);
   const [serviceId, setServiceId] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
@@ -55,7 +58,7 @@ export default function Withheld() {
   const [recordExists, setRecordExists] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const [canCreate, setCanCreate] = useState(false);
-  const [canPermanentToTemporary, setCanPermanentToTemporary] = useState(true);
+  const [hasPermanentToTemporary, setCanPermanentToTemporary] = useState(true);
   const [tableData, setTableData] = useState([]);
   const [tableColumns, setTableColumns] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -68,6 +71,24 @@ export default function Withheld() {
   useEffect(() => {
     fetchServiceList(setServices);
   }, []);
+
+  useEffect(() => {
+    if (applicationId) {
+      setReferenceNumber(applicationId);
+    }
+  }, [applicationId]);
+
+  useEffect(() => {
+    if (referenceNumber && services.length > 0 && !serviceId && !hasChecked) {
+      setServiceId(services[0]?.ServiceId?.toString() || "");
+    }
+  }, [services, referenceNumber, serviceId, hasChecked]);
+
+  useEffect(() => {
+    if (referenceNumber && serviceId && !hasChecked) {
+      handleCheck();
+    }
+  }, [referenceNumber, serviceId, hasChecked]);
 
   const handleServiceId = (serviceId) => {
     console.log(serviceId);
