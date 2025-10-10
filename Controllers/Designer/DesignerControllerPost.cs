@@ -363,7 +363,6 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpPost]
-
         public IActionResult SaveDocumentFields([FromForm] IFormCollection form)
         {
             int serviceId = Convert.ToInt32(form["serviceId"].ToString());
@@ -456,6 +455,65 @@ namespace SahayataNidhi.Controllers
             catch (Exception ex)
             {
                 return Json(new { status = false, message = $"Error saving document fields: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveServiceConfig([FromForm] int serviceId, [FromForm] string submissionLimitConfig)
+        {
+            try
+            {
+                if (serviceId <= 0)
+                {
+                    return BadRequest(new { status = false, message = "Invalid service ID." });
+                }
+
+                if (string.IsNullOrWhiteSpace(submissionLimitConfig))
+                {
+                    return BadRequest(new { status = false, message = "SubmissionLimitConfig is required." });
+                }
+
+                // Validate JSON
+                try
+                {
+                    var config = JsonConvert.DeserializeObject<dynamic>(submissionLimitConfig);
+                    if (config!.isLimited == true)
+                    {
+                        string limitType = config.limitType?.ToString()!;
+                        int limitCount = config.limitCount != null ? (int)config.limitCount : 0;
+
+                        if (string.IsNullOrEmpty(limitType) || !new[] { "All Time", "Yearly", "Monthly", "Weekly", "Daily" }.Contains(limitType))
+                        {
+                            return BadRequest(new { status = false, message = "Invalid limit type. Must be 'All Time', 'Yearly', 'Monthly', 'Weekly', or 'Daily'." });
+                        }
+                        if (limitCount <= 0)
+                        {
+                            return BadRequest(new { status = false, message = "Limit count must be greater than zero when limits are enabled." });
+                        }
+                    }
+                }
+                catch (JsonException)
+                {
+                    return BadRequest(new { status = false, message = "Invalid SubmissionLimitConfig JSON format." });
+                }
+
+                var service = await dbcontext.Services
+                    .Where(s => s.ServiceId == serviceId)
+                    .FirstOrDefaultAsync();
+
+                if (service == null)
+                {
+                    return NotFound(new { status = false, message = "Service not found." });
+                }
+
+                service.SubmissionLimitConfig = submissionLimitConfig;
+                await dbcontext.SaveChangesAsync();
+
+                return Ok(new { status = true, message = "Configuration saved successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = $"Error saving configuration: {ex.Message}" });
             }
         }
     }

@@ -442,6 +442,7 @@ namespace SahayataNidhi.Controllers
                 userType = user.UserType,
                 profile = user.Profile,
                 username = user.Username,
+                userId = user.UserId,
                 designation,
                 department
             });
@@ -660,71 +661,84 @@ namespace SahayataNidhi.Controllers
         public IActionResult Verification([FromForm] IFormCollection form)
         {
             var authHeader = Request.Headers.Authorization.ToString();
-            _logger.LogInformation($"Authorization Header: {authHeader}");
+            _logger.LogInformation("Authorization Header: {AuthHeader}", authHeader);
 
             if (string.IsNullOrEmpty(authHeader))
-            {
                 return Json(new { status = false, message = "Authorization header missing" });
-            }
 
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userTypeClaim = User.FindFirst(ClaimTypes.Role)?.Value;
-            var usernameClaim = User.FindFirst(ClaimTypes.Name)?.Value;
-            var profileClaim = User.FindFirst("Profile")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userType = User.FindFirst(ClaimTypes.Role)?.Value;
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
+            var profile = User.FindFirst("Profile")?.Value;
 
-            string otp = form["otp"].ToString();
-            string backupCode = form["backupCode"].ToString();
+            if (string.IsNullOrEmpty(username))
+                return Json(new { status = false, message = "User not found. Please try again." });
+
+            string? otp = form["otp"];
+            string? backupCode = form["backupCode"];
             bool verified = false;
 
-            if (string.IsNullOrEmpty(usernameClaim))
+            // --- OTP Verification ---
+            if (!string.IsNullOrEmpty(otp))
             {
-                return Json(new { status = false, message = "User not found. Please try again." });
-            }
+                string otpKey = $"otp:{username}";
+                string? cachedOtp = _otpStore.RetrieveOtp(otpKey);
 
-            if (!string.IsNullOrEmpty(otp) && string.IsNullOrEmpty(backupCode))
-            {
-                string otpKey = $"otp:{usernameClaim}";
-                string? otpCache = _otpStore.RetrieveOtp(otpKey);
-                _logger.LogInformation($"OTP CACHE: {otpCache} OTP: {otp}");
-                if (otpCache == otp || otp == "1234567")
+                _logger.LogInformation("OTP Verification -> Cached: {CachedOtp}, Provided: {Otp}", cachedOtp, otp);
+
+                if (cachedOtp == otp)
                 {
                     verified = true;
+                    _logger.LogInformation("User {Username} verified successfully via OTP.", username);
                 }
             }
-            else if (string.IsNullOrEmpty(otp) && !string.IsNullOrEmpty(backupCode))
+
+            // --- Backup Code Verification (only if OTP not provided or failed) ---
+            if (!verified && !string.IsNullOrEmpty(backupCode) && !string.IsNullOrEmpty(userId))
             {
-                if (backupCode == "1234567") verified = true;
-                else
+                var user = _dbContext.Users.FirstOrDefault(u => u.UserId.ToString() == userId);
+                if (user?.BackupCodes != null)
                 {
-                    var user = _dbContext.Users.FirstOrDefault(u => u.UserId.ToString() == userIdClaim);
-                    if (user != null)
+                    try
                     {
-                        var backupCodes = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(user.BackupCodes!);
-                        if (backupCodes != null && backupCodes.TryGetValue("unused", out var unused) && backupCodes.TryGetValue("used", out var used))
+                        var codes = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(user.BackupCodes)
+                                    ?? new Dictionary<string, List<string>>();
+
+                        if (codes.TryGetValue("unused", out var unused) &&
+                            codes.TryGetValue("used", out var used) &&
+                            unused.Contains(backupCode))
                         {
-                            if (unused.Contains(backupCode))
-                            {
-                                verified = true;
-                                unused.Remove(backupCode);
-                                used.Add(backupCode);
-                                user.BackupCodes = JsonConvert.SerializeObject(backupCodes);
-                                _dbContext.SaveChanges();
-                            }
+                            unused.Remove(backupCode);
+                            used.Add(backupCode);
+
+                            user.BackupCodes = JsonConvert.SerializeObject(codes);
+                            _dbContext.SaveChanges();
+
+                            verified = true;
+                            _logger.LogInformation("User {Username} verified successfully via backup code.", username);
                         }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError(ex, "Failed to parse backup codes for user {UserId}", userId);
                     }
                 }
             }
 
+            // --- Return Response ---
             if (verified)
             {
-                return Json(new { status = true, userType = userTypeClaim, profile = profileClaim, username = usernameClaim });
+                return Json(new
+                {
+                    status = true,
+                    userType,
+                    profile,
+                    username
+                });
             }
-            else
-            {
-                return Json(new { status = false, message = "Invalid Code" });
-            }
-        }
 
+            return Json(new { status = false, message = "Invalid code." });
+        }
         [HttpPost]
         public async Task<IActionResult> SendEmailVerificationOtp([FromForm] IFormCollection form)
         {

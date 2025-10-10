@@ -68,6 +68,7 @@ export default function LoginScreen() {
     setUsername,
     setDesignation,
     setDepartment,
+    setUserId,
   } = useContext(UserContext);
 
   const navigate = useNavigate();
@@ -82,11 +83,6 @@ export default function LoginScreen() {
   useEffect(() => {
     setCaptcha(generateCaptcha());
   }, []);
-
-  // Automatically set the CAPTCHA field value whenever captcha changes
-  // useEffect(() => {
-  //   setValue("captcha", captcha, { shouldValidate: true });
-  // }, [captcha, setValue]);
 
   const handleRefreshCaptcha = () => {
     setCaptcha(generateCaptcha());
@@ -108,6 +104,7 @@ export default function LoginScreen() {
         setProfile(response.profile);
         setUsername(response.username);
         setDesignation(response.designation);
+        setUserId(response.userId);
         if (response.department && response.department != "")
           setDepartment(response.department);
         navigate("/verification");

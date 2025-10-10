@@ -628,10 +628,10 @@ const MyNavbar = () => {
                       </NavDropdown.Item>
                       <NavDropdown.Item
                         onClick={() =>
-                          handleNavigate("/designer/createreports")
+                          handleNavigate("/designer/submissionlimitations")
                         }
                       >
-                        Create Reports
+                        Submission Limitations
                       </NavDropdown.Item>
                     </div>
                   </NavDropdown>

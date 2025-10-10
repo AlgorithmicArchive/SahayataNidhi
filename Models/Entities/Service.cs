@@ -27,6 +27,8 @@ public partial class Service
 
     public bool? ApprovalListEnabled { get; set; }
 
+    public string? SubmissionLimitConfig { get; set; }
+
     public string? WebService { get; set; }
 
     public string? CreatedAt { get; set; }

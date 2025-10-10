@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
+using JsonException = Newtonsoft.Json.JsonException;
 
 namespace SahayataNidhi.Controllers
 {
@@ -486,6 +487,51 @@ namespace SahayataNidhi.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetServiceConfig([FromQuery] int serviceId)
+        {
+            try
+            {
+                if (serviceId <= 0)
+                {
+                    return BadRequest(new { status = false, message = "Invalid service ID." });
+                }
 
+                var service = await dbcontext.Services
+                    .AsNoTracking()
+                    .Where(s => s.ServiceId == serviceId)
+                    .Select(s => new { s.SubmissionLimitConfig })
+                    .FirstOrDefaultAsync();
+
+                if (service == null)
+                {
+                    return NotFound(new { status = false, message = "Service not found." });
+                }
+
+                try
+                {
+                    var config = JsonConvert.DeserializeObject<dynamic>(service.SubmissionLimitConfig!);
+                    return Ok(new { status = true, config });
+                }
+                catch (JsonException)
+                {
+                    // Return default config if JSON is invalid
+                    return Ok(new
+                    {
+                        status = true,
+                        config = new
+                        {
+                            isLimited = false,
+                            limitType = "",
+                            limitCount = 0
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = $"Error fetching configuration: {ex.Message}" });
+            }
+        }
     }
 }

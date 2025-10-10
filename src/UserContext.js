@@ -24,6 +24,9 @@ export const UserProvider = ({ children }) => {
   const [username, setUsername] = useState(
     () => sessionStorage.getItem("username") || null,
   );
+  const [userId, setUserId] = useState(
+    () => sessionStorage.getItem("userId") || null,
+  );
   const [profile, setProfile] = useState(() => safeParse("profile", null));
   const [verified, setVerified] = useState(() => safeParse("verified", false));
   const [designation, setDesignation] = useState(
@@ -41,35 +44,28 @@ export const UserProvider = ({ children }) => {
 
   // Sync state with sessionStorage
   useEffect(() => {
-    if (userType) {
-      sessionStorage.setItem("userType", userType);
-    } else {
-      sessionStorage.removeItem("userType");
-    }
+    if (userType) sessionStorage.setItem("userType", userType);
+    else sessionStorage.removeItem("userType");
   }, [userType]);
 
   useEffect(() => {
-    if (token) {
-      sessionStorage.setItem("token", token);
-    } else {
-      sessionStorage.removeItem("token");
-    }
+    if (token) sessionStorage.setItem("token", token);
+    else sessionStorage.removeItem("token");
   }, [token]);
 
   useEffect(() => {
-    if (username) {
-      sessionStorage.setItem("username", username);
-    } else {
-      sessionStorage.removeItem("username");
-    }
+    if (username) sessionStorage.setItem("username", username);
+    else sessionStorage.removeItem("username");
   }, [username]);
 
   useEffect(() => {
-    if (profile) {
-      sessionStorage.setItem("profile", JSON.stringify(profile));
-    } else {
-      sessionStorage.removeItem("profile");
-    }
+    if (userId) sessionStorage.setItem("userId", userId);
+    else sessionStorage.removeItem("userId");
+  }, [userId]);
+
+  useEffect(() => {
+    if (profile) sessionStorage.setItem("profile", JSON.stringify(profile));
+    else sessionStorage.removeItem("profile");
   }, [profile]);
 
   useEffect(() => {
@@ -77,11 +73,8 @@ export const UserProvider = ({ children }) => {
   }, [verified]);
 
   useEffect(() => {
-    if (designation) {
-      sessionStorage.setItem("designation", designation);
-    } else {
-      sessionStorage.removeItem("designation");
-    }
+    if (designation) sessionStorage.setItem("designation", designation);
+    else sessionStorage.removeItem("designation");
   }, [designation]);
 
   useEffect(() => {
@@ -96,19 +89,14 @@ export const UserProvider = ({ children }) => {
   }, [officerAuthorities]);
 
   useEffect(() => {
-    if (department) {
-      sessionStorage.setItem("department", department);
-    } else {
-      sessionStorage.removeItem("department");
-    }
+    if (department) sessionStorage.setItem("department", department);
+    else sessionStorage.removeItem("department");
   }, [department]);
 
   useEffect(() => {
-    if (tokenExpiry) {
+    if (tokenExpiry)
       sessionStorage.setItem("tokenExpiry", JSON.stringify(tokenExpiry));
-    } else {
-      sessionStorage.removeItem("tokenExpiry");
-    }
+    else sessionStorage.removeItem("tokenExpiry");
   }, [tokenExpiry]);
 
   return (
@@ -120,6 +108,8 @@ export const UserProvider = ({ children }) => {
         setToken,
         username,
         setUsername,
+        userId,
+        setUserId,
         profile,
         setProfile,
         verified,

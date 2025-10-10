@@ -56,6 +56,7 @@ import AddDesignations from "../screens/admin/AddDesignations";
 import AddDepartment from "../screens/admin/AddDepartment";
 import Feedback from "../screens/Feedback";
 import ViewFeedbacks from "../screens/admin/ViewFeedbacks";
+import SubmissionLimitations from "../screens/designer/SubmissionLimitations";
 
 const RoutesComponent = () => {
   return (
@@ -138,7 +139,11 @@ const RoutesComponent = () => {
           <Route path="dynamicform" element={<DynamicScrollableForm />} />
           <Route path="emailsettings" element={<EmailSettings />} />
           <Route path="corrections" element={<Corrections />} />
-          <Route path="createreports" element={<CreateReports />} />
+          <Route
+            path="submissionlimitations"
+            element={<SubmissionLimitations />}
+          />
+          {/* <Route path="createreports" element={<CreateReports />} /> */}
         </Route>
       </Route>
       <Route

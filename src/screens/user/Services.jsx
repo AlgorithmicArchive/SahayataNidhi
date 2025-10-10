@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { Box, Typography } from "@mui/material";
+import React, { useState, useContext } from "react";
+import { Box, Typography, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import styled from "@emotion/styled";
 import ServerSideTable from "../../components/ServerSideTable";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { fetchData, SetServiceId } from "../../assets/fetch";
+import axiosInstance from "../../axiosConfig";
+import { UserContext } from "../../UserContext";
 
 const MainContainer = styled(Box)`
   min-height: 100vh;
@@ -42,11 +44,50 @@ const TableCard = styled(Box)`
 export default function Services() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { userId } = useContext(UserContext);
+
+  const checkSubmissionLimit = async (serviceId) => {
+    setError("");
+    try {
+      if (!userId) {
+        setError("User not authenticated. Please log in.");
+        return false;
+      }
+
+      const response = await axiosInstance.get("/User/CheckSubmissionLimit", {
+        params: { userId, serviceId },
+      });
+
+      if (response.data.status) {
+        if (!response.data.canSubmit) {
+          const { limitType, limitCount } = response.data;
+          setError(
+            `Submission limit exceeded for this service. You can submit ${limitCount} time${
+              limitCount === 1 ? "" : "s"
+            } ${limitType}.`,
+          );
+        }
+        return response.data.canSubmit;
+      } else {
+        setError(response.data.message || "Failed to check submission limit.");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error checking submission limit:", error);
+      setError("An error occurred while checking submission limits.");
+      return false;
+    }
+  };
 
   const actionFunctions = {
-    OpenForm: (row) => {
+    OpenForm: async (row) => {
       const userdata = row.original;
-      navigate("/user/form", { state: { ServiceId: userdata.serviceId } });
+      const canProceed = await checkSubmissionLimit(userdata.serviceId);
+      console.log("Can proceed:", canProceed);
+      if (canProceed) {
+        navigate("/user/form", { state: { ServiceId: userdata.serviceId } });
+      }
     },
   };
 
@@ -61,6 +102,17 @@ export default function Services() {
   return (
     <MainContainer>
       <TableCard>
+        <Typography
+          variant="h5"
+          sx={{ mb: 2, fontWeight: "bold", color: "grey.800" }}
+        >
+          Available Services
+        </Typography>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         <ServerSideTable
           url="User/GetServices"
           extraParams={{}}
