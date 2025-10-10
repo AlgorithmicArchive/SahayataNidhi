@@ -46,8 +46,8 @@ export default function RegisterScreen() {
     trigger,
     setValue,
   } = useForm({
-    mode: "onChange",
-    reValidateMode: "onChange",
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     defaultValues: {
       fullName: "",
       username: "",
@@ -453,6 +453,10 @@ export default function RegisterScreen() {
                         pattern: {
                           value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                           message: "Invalid email format",
+                        },
+                        maxLength: {
+                          value: 40,
+                          message: "Email must be at most 40 characters",
                         },
                         validate: async (value) => {
                           if (!value) return true; // Email is optional

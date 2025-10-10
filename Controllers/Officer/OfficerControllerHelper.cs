@@ -120,12 +120,16 @@ namespace SahayataNidhi.Controllers.Officer
                     {
                         value = ExtractValueWithSpecials(fieldObj, name);
 
-                        // Check if value is in yyyy-MM-dd format and convert
-                        if (DateTime.TryParseExact(value, "yyyy-MM-dd",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dt))
+                        // Check if value is in either yyyy-MM-dd or dd MMM yyyy hh:mm:ss tt format
+                        if (DateTime.TryParseExact(value,
+                            new[] { "yyyy-MM-dd", "dd MMM yyyy hh:mm:ss tt" },
+                            CultureInfo.InvariantCulture,
+                            DateTimeStyles.None,
+                            out DateTime dt))
                         {
                             value = dt.ToString("dd MMM yyyy");
                         }
+
                     }
 
 
@@ -513,32 +517,38 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
         // Helper method to convert values for display (similar to your existing logic)
-        private string ConvertValueForDisplay(string label, string value)
+        private string ConvertValueForDisplay(string name, string value)
         {
             if (string.IsNullOrEmpty(value)) return value;
 
             // Convert integer values for District and Tehsil fields
-            if (label.Contains("District", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int districtId))
+            if (name.Contains("District", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int districtId))
             {
                 return GetDistrictName(districtId);
             }
-            else if (label.Contains("Tehsil", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int tehsilId))
+            else if (name.Equals("Tehsil", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int tehsilId))
             {
-                return GetTehsilName(tehsilId);
+                return dbcontext.Tswotehsils.FirstOrDefault(m => m.TehsilId == tehsilId)!.TehsilName!;
+
             }
-            else if (label.Contains("Muncipality", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int muncipalityId))
+            else if (name.EndsWith("Tehsil", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int TehsilId))
+            {
+                return GetTehsilName(TehsilId);
+
+            }
+            else if (name.Contains("Muncipality", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int muncipalityId))
             {
                 return dbcontext.Muncipalities.FirstOrDefault(m => m.MuncipalityId == muncipalityId)!.MuncipalityName!;
             }
-            else if (label.Contains("Block", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int BlockId))
+            else if (name.Contains("Block", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int BlockId))
             {
                 return dbcontext.Blocks.FirstOrDefault(m => m.BlockId == BlockId)!.BlockName!;
             }
-            else if (label.Contains("Ward", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int WardId))
+            else if (name.Contains("Ward", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int WardId))
             {
                 return dbcontext.Wards.FirstOrDefault(m => m.WardCode == WardId)!.WardNo.ToString()!;
             }
-            else if (label.Contains("Village", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int VillageId))
+            else if (name.Contains("Village", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out int VillageId))
             {
                 return dbcontext.Villages.FirstOrDefault(m => m.VillageId == VillageId)!.VillageName!;
             }
@@ -1149,6 +1159,6 @@ namespace SahayataNidhi.Controllers.Officer
             _logger.LogInformation("Processed {Count} applications, sent {Mails} mails", applications.Count, mailSentCount);
         }
 
-        
+
     }
 }

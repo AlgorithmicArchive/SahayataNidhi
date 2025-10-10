@@ -242,12 +242,16 @@ namespace SahayataNidhi.Controllers.User
                     {
                         value = ExtractValueWithSpecials(fieldObj, name);
 
-                        // Check if value is in yyyy-MM-dd format and convert
-                        if (DateTime.TryParseExact(value, "yyyy-MM-dd",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dt))
+                        // Check if value is in either yyyy-MM-dd or dd MMM yyyy hh:mm:ss tt format
+                        if (DateTime.TryParseExact(value,
+                            new[] { "yyyy-MM-dd", "dd MMM yyyy hh:mm:ss tt" },
+                            CultureInfo.InvariantCulture,
+                            DateTimeStyles.None,
+                            out DateTime dt))
                         {
                             value = dt.ToString("dd MMM yyyy");
                         }
+
                     }
 
 

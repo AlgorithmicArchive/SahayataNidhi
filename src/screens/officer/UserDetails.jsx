@@ -87,6 +87,7 @@ export default function UserDetails() {
   const [hasPending, setHaspending] = useState(false);
   const [canTakeAction, setCanTakeAction] = useState(true);
   const [currentOfficerDetails, setCurrentOfficerDetails] = useState(null);
+  const [lastActionTaken, setLastActionTaken] = useState(null);
 
   const {
     control,
@@ -97,6 +98,30 @@ export default function UserDetails() {
     formState: { errors },
     unregister,
   } = useForm({ mode: "onChange" });
+
+  const defaultAction = watch("defaultAction");
+  const forwardDeclaration = watch("forwardDeclaration");
+
+  // Clear Remarks when defaultAction changes
+  useEffect(() => {
+    setValue("Remarks", "");
+  }, [defaultAction, setValue]);
+
+  // Update Remarks when forwardDeclaration changes
+  useEffect(() => {
+    if (defaultAction === "Forward" && forwardDeclaration) {
+      const declarationText = `I hereby certify that the beneficiary, namely ${getValueByName(
+        formDetails,
+        "ApplicantName",
+      )} parentage ${getValueByName(
+        formDetails,
+        "Parentage",
+      )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.`;
+      setValue("Remarks", declarationText, { shouldValidate: false });
+    } else {
+      setValue("Remarks", "", { shouldValidate: false });
+    }
+  }, [defaultAction, forwardDeclaration, formDetails, applicationId, setValue]);
 
   useEffect(() => {
     return () => {
@@ -371,6 +396,15 @@ export default function UserDetails() {
         throw new Error(result.response || "Something went wrong");
       } else {
         setCanTakeAction(false);
+        // Map defaultAction to its label
+        const actionField = actionForm.find(
+          (field) => field.name === "defaultAction",
+        );
+        const actionLabel =
+          actionField?.options.find(
+            (option) => option.value === data.defaultAction,
+          )?.label || data.defaultAction;
+        setLastActionTaken(actionLabel);
         toast.success("Action completed successfully!", {
           position: "top-center",
           autoClose: 6000,
@@ -407,12 +441,6 @@ export default function UserDetails() {
         setButtonLoading(false);
         return;
       }
-
-      // const isAppRunning = await checkDesktopApp();
-      // if (!isAppRunning) {
-      //   setButtonLoading(false);
-      //   return;
-      // }
 
       setCertificateDetails(certDetails);
       setPendingFormData(data);
@@ -707,16 +735,11 @@ export default function UserDetails() {
   };
 
   function getValueByName(data, name) {
-    // loop through each section inside "list"
     for (const section of Object.values(data)) {
       for (const field of section) {
-        console.log(field.name, name);
-        // check the current field
         if (field.name === name) {
           return field.value || field.File || field.Enclosure || null;
         }
-
-        // check additionalFields if present
         if (field.additionalFields) {
           for (const subField of field.additionalFields) {
             if (subField.name === name) {
@@ -726,7 +749,7 @@ export default function UserDetails() {
         }
       }
     }
-    return null; // not found
+    return null;
   }
 
   if (loading) {
@@ -870,6 +893,9 @@ export default function UserDetails() {
                                         `I hereby certify that the beneficiary, namely ${getValueByName(
                                           formDetails,
                                           "ApplicantName",
+                                        )} parentage ${getValueByName(
+                                          formDetails,
+                                          "Parentage",
                                         )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.` ||
                                       "You must confirm the declaration to forward.",
                                   }}
@@ -884,22 +910,36 @@ export default function UserDetails() {
                                         control={
                                           <Checkbox
                                             checked={value !== ""}
-                                            onChange={(e) =>
+                                            onChange={(e) => {
+                                              const declarationText = `I hereby certify that the beneficiary, namely ${getValueByName(
+                                                formDetails,
+                                                "ApplicantName",
+                                              )} parentage ${getValueByName(
+                                                formDetails,
+                                                "Parentage",
+                                              )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.`;
                                               onChange(
                                                 e.target.checked
-                                                  ? `I hereby certify that the beneficiary, namely ${getValueByName(
-                                                      formDetails,
-                                                      "ApplicantName",
-                                                    )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.`
+                                                  ? declarationText
                                                   : "",
-                                              )
-                                            }
+                                              );
+                                              setValue(
+                                                "Remarks",
+                                                e.target.checked
+                                                  ? declarationText
+                                                  : "",
+                                                { shouldValidate: false },
+                                              );
+                                            }}
                                             color="primary"
                                           />
                                         }
                                         label={`I hereby certify that the beneficiary, namely ${getValueByName(
                                           formDetails,
                                           "ApplicantName",
+                                        )} parentage ${getValueByName(
+                                          formDetails,
+                                          "Parentage",
                                         )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.`}
                                       />
                                       <FormHelperText
@@ -997,8 +1037,10 @@ export default function UserDetails() {
             )}
           </>
         ) : (
-          <Typography variant="subtitle1" color="success" textAlign={"center"}>
-            Action Taken Successfully.
+          <Typography variant="subtitle1" color="success" textAlign="center">
+            {lastActionTaken
+              ? `Application ${lastActionTaken}`
+              : "Action Taken Successfully."}
           </Typography>
         )}
         <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>

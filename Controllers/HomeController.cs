@@ -67,74 +67,6 @@ namespace SahayataNidhi.Controllers
             return string.Concat(words.Select(w => char.ToUpper(w[0])));
         }
 
-        [HttpPost]
-        public async Task<IActionResult> OfficerRegistration([FromForm] IFormCollection form)
-        {
-            // Extract form fields
-            var fullName = new SqlParameter("@Name", form["fullName"].ToString());
-            var username = new SqlParameter("@Username", form["username"].ToString());
-            var password = new SqlParameter("@Password", form["password"].ToString());
-            var email = new SqlParameter("@Email", form["email"].ToString());
-            var mobileNumber = new SqlParameter("@MobileNumber", form["mobileNumber"].ToString());
-            var department = new SqlParameter("@Department", form["department"].ToString());
-            var designation = new SqlParameter("@Designation", form["designation"].ToString());
-            var profile = new SqlParameter("@Profile", "/assets/images/profile.jpg");
-
-            // Determine UserType based on designation
-            var UserType = new SqlParameter("@UserType", form["designation"].ToString().Contains("Admin") ? "Admin" : "Officer");
-
-            // Handle backup codes
-            var backupCodes = new
-            {
-                unused = _helper.GenerateUniqueRandomCodes(10, 8),
-                used = Array.Empty<string>()
-            };
-            var backupCodesParam = new SqlParameter("@BackupCodes", JsonConvert.SerializeObject(backupCodes));
-
-            // Construct additional details including new fields
-            var additionalDetails = new
-            {
-                Role = form["designation"].ToString(),
-                RoleShort = GetShortTitleFromRole(form["designation"].ToString()),
-                AccessLevel = form["accessLevel"].ToString(),
-                AccessCode = Convert.ToInt32(form["accessCode"].ToString()),
-                Department = form["department"].ToString(),
-                District = form.ContainsKey("District") ? form["District"].ToString() : null,
-                Division = form.ContainsKey("Division") ? form["Division"].ToString() : null,
-                Tehsil = form.ContainsKey("Tehsil") ? form["Tehsil"].ToString() : null,
-                Validate = false
-            };
-            var additionalDetailsParam = new SqlParameter("@AdditionalDetails", JsonConvert.SerializeObject(additionalDetails));
-
-            var registeredDate = new SqlParameter("@RegisteredDate", DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt"));
-
-            // Execute stored procedure with updated parameters
-            var result = _dbContext.Users.FromSqlRaw(
-                "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber, @Department, @Designation, @Profile, @UserType, @BackupCodes, @AdditionalDetails, @RegisteredDate",
-                fullName, username, password, email, mobileNumber, department, designation, profile, UserType, backupCodesParam, additionalDetailsParam, registeredDate
-            ).ToList();
-
-            if (result.Count > 0)
-            {
-                string otp = GenerateOTP(7);
-                _otpStore.StoreOtp("registration", otp);
-                try
-                {
-                    await _emailSender.SendEmail(form["email"].ToString(), "OTP For Registration", otp);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
-                    return Json(new { status = true, userId = result[0].UserId, message = $"Email sending failed. Use this OTP: {otp}" });
-                }
-                return Json(new { status = true, userId = result[0].UserId });
-            }
-            else
-            {
-                return Json(new { status = false, response = "Registration failed." });
-            }
-        }
-
         [HttpGet]
         public async Task<IActionResult> SendLoginOtp(string? username)
         {
@@ -142,7 +74,7 @@ namespace SahayataNidhi.Controllers
             string otp = GenerateOTP(7);
             _otpStore.StoreOtp(otpKey, otp);
 
-            string email = _dbContext.Users.FirstOrDefault(u => u.Username == username)?.Email;
+            string? email = _dbContext.Users.FirstOrDefault(u => u.Username == username)?.Email;
 
             if (string.IsNullOrEmpty(email))
             {
@@ -252,7 +184,7 @@ namespace SahayataNidhi.Controllers
 
             try
             {
-                await _emailSender.SendEmail(email, "OTP for Password Reset", htmlMessage);
+                await _emailSender.SendEmail(email!, "OTP for Password Reset", htmlMessage);
             }
             catch (Exception ex)
             {
@@ -657,6 +589,74 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> OfficerRegistration([FromForm] IFormCollection form)
+        {
+            // Extract form fields
+            var fullName = new SqlParameter("@Name", form["fullName"].ToString());
+            var username = new SqlParameter("@Username", form["username"].ToString());
+            var password = new SqlParameter("@Password", form["password"].ToString());
+            var email = new SqlParameter("@Email", form["email"].ToString());
+            var mobileNumber = new SqlParameter("@MobileNumber", form["mobileNumber"].ToString());
+            var department = new SqlParameter("@Department", form["department"].ToString());
+            var designation = new SqlParameter("@Designation", form["designation"].ToString());
+            var profile = new SqlParameter("@Profile", "/assets/images/profile.jpg");
+
+            // Determine UserType based on designation
+            var UserType = new SqlParameter("@UserType", form["designation"].ToString().Contains("Admin") ? "Admin" : "Officer");
+
+            // Handle backup codes
+            var backupCodes = new
+            {
+                unused = _helper.GenerateUniqueRandomCodes(10, 8),
+                used = Array.Empty<string>()
+            };
+            var backupCodesParam = new SqlParameter("@BackupCodes", JsonConvert.SerializeObject(backupCodes));
+
+            // Construct additional details including new fields
+            var additionalDetails = new
+            {
+                Role = form["designation"].ToString(),
+                RoleShort = GetShortTitleFromRole(form["designation"].ToString()),
+                AccessLevel = form["accessLevel"].ToString(),
+                AccessCode = Convert.ToInt32(form["accessCode"].ToString()),
+                Department = form["department"].ToString(),
+                District = form.ContainsKey("District") ? form["District"].ToString() : null,
+                Division = form.ContainsKey("Division") ? form["Division"].ToString() : null,
+                Tehsil = form.ContainsKey("Tehsil") ? form["Tehsil"].ToString() : null,
+                Validate = false
+            };
+            var additionalDetailsParam = new SqlParameter("@AdditionalDetails", JsonConvert.SerializeObject(additionalDetails));
+
+            var registeredDate = new SqlParameter("@RegisteredDate", DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt"));
+
+            // Execute stored procedure with updated parameters
+            var result = _dbContext.Users.FromSqlRaw(
+                "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber, @Department, @Designation, @Profile, @UserType, @BackupCodes, @AdditionalDetails, @RegisteredDate",
+                fullName, username, password, email, mobileNumber, department, designation, profile, UserType, backupCodesParam, additionalDetailsParam, registeredDate
+            ).ToList();
+
+            if (result.Count > 0)
+            {
+                string otp = GenerateOTP(7);
+                _otpStore.StoreOtp("registration", otp);
+                try
+                {
+                    await _emailSender.SendEmail(form["email"].ToString(), "OTP For Registration", otp);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
+                    return Json(new { status = true, userId = result[0].UserId, message = $"Email sending failed. Use this OTP: {otp}" });
+                }
+                return Json(new { status = true, userId = result[0].UserId });
+            }
+            else
+            {
+                return Json(new { status = false, response = "Registration failed." });
+            }
+        }
+
+        [HttpPost]
         public IActionResult Verification([FromForm] IFormCollection form)
         {
             var authHeader = Request.Headers.Authorization.ToString();
@@ -829,21 +829,155 @@ namespace SahayataNidhi.Controllers
             return Json(new { isUnique });
         }
 
-        [HttpGet]
-        public IActionResult CheckEmail(string email, string UserType)
+        private bool MatchesOfficerDetails(
+    string json,
+    string? divisionId,
+    string? districtId,
+    string? tehsilId,
+    string? departmentId,
+    string? designation)
         {
-            var exists = _dbContext.Users.FirstOrDefault(u => u.Email == email && u.UserType == UserType);
-            bool isUnique = exists == null;
-            return Json(new { isUnique });
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                _logger.LogWarning("MatchesOfficerDetails called with null/empty JSON.");
+                return false;
+            }
+
+            JObject details;
+            try
+            {
+                details = JObject.Parse(json);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to parse JSON: {json}");
+                return false;
+            }
+
+            _logger.LogInformation($"--------- Officer Details JSON: {details} ----------");
+
+            // Role (designation) check
+            if (!string.IsNullOrEmpty(designation))
+            {
+                if (!details.TryGetValue("Role", out var role) || role?.ToString() != designation)
+                {
+                    _logger.LogInformation($"Role mismatch: expected '{designation}', actual '{role}'");
+                    return false;
+                }
+            }
+
+            // Department check
+            if (!string.IsNullOrEmpty(departmentId))
+            {
+                if (!details.TryGetValue("Department", out var dept) || dept?.ToString() != departmentId)
+                {
+                    _logger.LogInformation($"Department mismatch: expected '{departmentId}', actual '{dept}'");
+                    return false;
+                }
+            }
+
+            // AccessLevel / AccessCode check
+            if (details.TryGetValue("AccessLevel", out var accessLevel) && details.TryGetValue("AccessCode", out var accessCode))
+            {
+                string level = accessLevel?.ToString() ?? "";
+                string code = accessCode?.ToString() ?? "";
+
+                if (!string.IsNullOrEmpty(divisionId) && level == "Division" && code != divisionId)
+                {
+                    _logger.LogInformation($"Division mismatch: expected '{divisionId}', actual '{code}'");
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(districtId) && level == "District" && code != districtId)
+                {
+                    _logger.LogInformation($"District mismatch: expected '{districtId}', actual '{code}'");
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(tehsilId) && level == "Tehsil" && code != tehsilId)
+                {
+                    _logger.LogInformation($"Tehsil mismatch: expected '{tehsilId}', actual '{code}'");
+                    return false;
+                }
+            }
+            else
+            {
+                // If AccessLevel/AccessCode is missing, but one of the IDs is provided, treat as mismatch
+                if (!string.IsNullOrEmpty(divisionId) || !string.IsNullOrEmpty(districtId) || !string.IsNullOrEmpty(tehsilId))
+                {
+                    _logger.LogInformation("AccessLevel or AccessCode missing in JSON while division/district/tehsil ID provided.");
+                    return false;
+                }
+            }
+
+            _logger.LogInformation("--------- Officer matches all provided criteria ----------");
+            return true;
+        }
+
+
+
+
+
+        [HttpGet]
+        public IActionResult CheckEmail(string email, string UserType, string? divisionId = null,
+                                string? departmentId = null, string? districtId = null,
+                                string? tehsilId = null, string? designation = null)
+        {
+            bool isUnique = true;
+
+            if (UserType == "Citizen")
+            {
+                isUnique = !_dbContext.Users.Any(u => u.Email == email && u.UserType == UserType);
+            }
+            else if (UserType == "Officer")
+            {
+                isUnique = !_dbContext.Users
+                    .AsEnumerable() // switch to client-side for JSON parsing
+                    .Any(u => u.Email == email &&
+                              u.UserType == UserType &&
+                              u.AdditionalDetails != null &&
+                              MatchesOfficerDetails(u.AdditionalDetails, divisionId, districtId, tehsilId, departmentId, designation));
+            }
+            else
+            {
+                isUnique = !_dbContext.Users.Any(u => u.Email == email);
+            }
+
+            return Json(new { status = true, isUnique });
         }
 
         [HttpGet]
-        public IActionResult CheckMobileNumber(string number, string UserType)
+        public IActionResult CheckMobileNumber(string number, string UserType,
+                                 string? divisionId = null, string? districtId = null,
+                                 string? tehsilId = null, string? departmentId = null,
+                                 string? designation = null)
         {
-            var exists = _dbContext.Users.FirstOrDefault(u => u.MobileNumber == number && u.UserType == UserType);
-            bool isUnique = exists == null;
-            return Json(new { isUnique });
+            bool isUnique = true;
+
+            if (UserType == "Citizen")
+            {
+                // Normal check for citizens
+                isUnique = !_dbContext.Users.Any(u => u.MobileNumber == number && u.UserType == UserType);
+            }
+            else if (UserType == "Officer")
+            {
+                // Officer check with AdditionalDetails JSON matching
+                isUnique = !_dbContext.Users
+                    .AsEnumerable() // Move to client-side for JSON parsing
+                    .Any(u => u.MobileNumber == number &&
+                              u.UserType == UserType &&
+                              u.AdditionalDetails != null &&
+                              MatchesOfficerDetails(u.AdditionalDetails, divisionId, districtId, tehsilId, departmentId, designation));
+            }
+            else
+            {
+                // Fallback for other user types
+                isUnique = !_dbContext.Users.Any(u => u.MobileNumber == number);
+            }
+
+            return Json(new { status = true, isUnique });
         }
+
 
         public dynamic? AadhaarData(string aadhaarNumber)
         {
@@ -896,7 +1030,7 @@ namespace SahayataNidhi.Controllers
 
             try
             {
-                _emailSender.SendEmail(email, "OTP For Aadhaar Verification", htmlMessage);
+                _ = _emailSender.SendEmail(email, "OTP For Aadhaar Verification", htmlMessage);
             }
             catch (Exception ex)
             {

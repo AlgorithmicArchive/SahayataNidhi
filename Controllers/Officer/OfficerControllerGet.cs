@@ -1193,6 +1193,8 @@ namespace SahayataNidhi.Controllers.Officer
         [HttpGet]
         public async Task<IActionResult> GenerateUserDetailsPdf(string applicationId)
         {
+            var officer = GetOfficerDetails();
+            string? username = officer.Username;
             if (string.IsNullOrEmpty(applicationId))
             {
                 return BadRequest("Application ID is required.");
@@ -1202,7 +1204,6 @@ namespace SahayataNidhi.Controllers.Officer
             var application = await dbcontext.CitizenApplications
                 .Where(ca => ca.ReferenceNumber == applicationId)
                 .FirstOrDefaultAsync();
-
 
             if (application == null)
             {
@@ -1215,41 +1216,62 @@ namespace SahayataNidhi.Controllers.Officer
                 var writer = new PdfWriter(memoryStream);
                 var pdf = new PdfDocument(writer);
                 var document = new Document(pdf, PageSize.A4);
-                document.SetMargins(20, 20, 20, 20);
+                document.SetMargins(30, 30, 30, 30);
 
                 string serviceName = dbcontext.Services.FirstOrDefault(s => s.ServiceId == application.ServiceId)!.ServiceName!;
 
                 // Parse FormDetails JSON
                 var formDetails = JObject.Parse(application.FormDetails!);
 
-                // Create a header table for title and applicant image
-                var headerTable = new Table(UnitValue.CreatePercentArray(new float[] { 70, 30 }));
+                // Create a header table for title, metadata, and applicant image
+                var headerTable = new Table(UnitValue.CreatePercentArray(new float[] { 60, 40 }));
                 headerTable.SetWidth(UnitValue.CreatePercentValue(100));
+                headerTable.SetMarginBottom(20);
 
                 // Title cell
                 var titleCell = new Cell(1, 1)
-                .Add(new Paragraph("Citizen Application Details")
-                    .SetFontSize(16)
-                    .SetBold()
-                    .SetTextAlignment(TextAlignment.CENTER)
-                    .SetFontColor(new DeviceRgb(25, 118, 210))
-                    .SetMarginBottom(5)) // Reduced margin to bring serviceName closer
-                .Add(new Paragraph(serviceName)
-                    .SetFontSize(12)
-                    .SetTextAlignment(TextAlignment.CENTER)
-                    .SetFontColor(new DeviceRgb(0, 0, 0)) // Black color for serviceName
-                    .SetMarginBottom(15))
-                .SetBorder(Border.NO_BORDER)
-                .SetVerticalAlignment(VerticalAlignment.MIDDLE);
+                    .Add(new Paragraph("Citizen Application Details")
+                        .SetFontSize(18)
+                        .SetBold()
+                        .SetTextAlignment(TextAlignment.LEFT)
+                        .SetFontColor(new DeviceRgb(25, 118, 210))
+                        .SetMarginBottom(5))
+                    .Add(new Paragraph(serviceName)
+                        .SetFontSize(14)
+                        .SetTextAlignment(TextAlignment.LEFT)
+                        .SetFontColor(new DeviceRgb(51, 51, 51))
+                        .SetMarginBottom(10))
+                    .SetBorder(Border.NO_BORDER)
+                    .SetVerticalAlignment(VerticalAlignment.TOP)
+                    .SetPadding(10)
+                    .SetBackgroundColor(new DeviceRgb(240, 248, 255)); // Light blue background
                 headerTable.AddCell(titleCell);
 
-                // Applicant image cell
-                var imagePath = GetFormFieldValue(formDetails, "ApplicantImage");
-                var imageCell = new Cell(1, 1)
+                // Metadata and image cell
+                var metadataCell = new Cell(1, 1)
                     .SetBorder(Border.NO_BORDER)
-                    .SetVerticalAlignment(VerticalAlignment.MIDDLE)
-                    .SetTextAlignment(TextAlignment.RIGHT);
+                    .SetVerticalAlignment(VerticalAlignment.TOP)
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetPadding(10)
+                    .SetBackgroundColor(new DeviceRgb(240, 248, 255));
 
+                // Add metadata (Login ID, IP Address, Generated At)
+                metadataCell.Add(new Paragraph($"Login ID: {username}")
+                    .SetFontSize(10)
+                    .SetFontColor(new DeviceRgb(51, 51, 51))
+                    .SetTextAlignment(TextAlignment.RIGHT));
+                metadataCell.Add(new Paragraph($"IP Address: {HttpContext.Connection.RemoteIpAddress}")
+                    .SetFontSize(10)
+                    .SetFontColor(new DeviceRgb(51, 51, 51))
+                    .SetTextAlignment(TextAlignment.RIGHT));
+                metadataCell.Add(new Paragraph($"Generated At: {DateTime.Now.ToString("dd MMM yyyy hh:mm:ss", CultureInfo.InvariantCulture)}")
+                    .SetFontSize(10)
+                    .SetFontColor(new DeviceRgb(51, 51, 51))
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetMarginBottom(10));
+
+                // Applicant image
+                var imagePath = GetFormFieldValue(formDetails, "ApplicantImage");
                 if (!string.IsNullOrEmpty(imagePath))
                 {
                     var ImageDetails = dbcontext.UserDocuments.FirstOrDefault(u => u.FileName == imagePath);
@@ -1259,15 +1281,16 @@ namespace SahayataNidhi.Controllers.Officer
                         {
                             var imageData = ImageDataFactory.Create(ImageDetails.FileData);
                             var image = new Image(imageData)
-                                .ScaleToFit(50, 50)
+                                .ScaleToFit(60, 60)
                                 .SetBorder(new SolidBorder(new DeviceRgb(25, 118, 210), 2))
-                                .SetBorderRadius(new BorderRadius(4))
-                                .SetMargins(5, 5, 5, 5);
-                            imageCell.Add(image);
+                                .SetBorderRadius(new BorderRadius(8))
+                                .SetMargins(5, 0, 5, 0)
+                                .SetHorizontalAlignment(HorizontalAlignment.RIGHT);
+                            metadataCell.Add(image);
                         }
                         catch (Exception ex)
                         {
-                            imageCell.Add(new Paragraph($"Image error: {ex.Message}")
+                            metadataCell.Add(new Paragraph($"Image error: {ex.Message}")
                                 .SetFontSize(8)
                                 .SetFontColor(ColorConstants.RED)
                                 .SetTextAlignment(TextAlignment.RIGHT));
@@ -1275,7 +1298,7 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                     else
                     {
-                        imageCell.Add(new Paragraph("Image not found")
+                        metadataCell.Add(new Paragraph("Image not found")
                             .SetFontSize(8)
                             .SetFontColor(ColorConstants.RED)
                             .SetTextAlignment(TextAlignment.RIGHT));
@@ -1283,17 +1306,22 @@ namespace SahayataNidhi.Controllers.Officer
                 }
                 else
                 {
-                    imageCell.Add(new Paragraph("No image")
+                    metadataCell.Add(new Paragraph("No image")
                         .SetFontSize(8)
                         .SetFontColor(ColorConstants.GRAY)
                         .SetTextAlignment(TextAlignment.RIGHT));
                 }
-                headerTable.AddCell(imageCell);
+                headerTable.AddCell(metadataCell);
 
                 document.Add(headerTable);
 
+                // Add a decorative divider
+                document.Add(new Paragraph("")
+                    .SetBorderBottom(new SolidBorder(new DeviceRgb(25, 118, 210), 2))
+                    .SetMarginBottom(20));
+
                 // Create a table for application details
-                var detailsTable = new Table(2);
+                var detailsTable = new Table(UnitValue.CreatePercentArray(new float[] { 40, 60 }));
                 detailsTable.SetWidth(UnitValue.CreatePercentValue(100));
                 detailsTable.SetMarginBottom(20);
 
@@ -1309,10 +1337,11 @@ namespace SahayataNidhi.Controllers.Officer
                             .SetBold()
                             .SetFontColor(new DeviceRgb(242, 140, 56))
                             .SetMarginTop(15)
-                            .SetMarginBottom(10))
-                        .SetBorder(Border.NO_BORDER)
+                            .SetMarginBottom(10)
+                            .SetPadding(8))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), 1))
                         .SetBackgroundColor(new DeviceRgb(245, 245, 245))
-                        .SetBorderRadius(new BorderRadius(5));
+                        .SetBorderRadius(new BorderRadius(6));
                     detailsTable.AddCell(sectionHeader);
 
                     if (section.Value is JArray sectionArray)
@@ -1320,30 +1349,31 @@ namespace SahayataNidhi.Controllers.Officer
                         foreach (var item in sectionArray)
                         {
                             var label = item["label"]?.ToString();
+                            var name = item["name"]?.ToString();
                             var value = item["value"]?.ToString();
 
                             if (!string.IsNullOrEmpty(label) && !string.IsNullOrEmpty(value))
                             {
-                                string displayValue = ConvertValueForDisplay(label, value);
+                                string displayValue = ConvertValueForDisplay(name, value);
 
                                 var labelCell = new Cell()
                                     .Add(new Paragraph(FormatFieldLabel(label))
                                         .SetFontSize(11)
                                         .SetBold()
                                         .SetFontColor(new DeviceRgb(51, 51, 51)))
-                                    .SetBorder(Border.NO_BORDER)
-                                    .SetPadding(8)
-                                    .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                                    .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
+                                    .SetPadding(10)
+                                    .SetBackgroundColor(new DeviceRgb(250, 250, 250))
                                     .SetBorderRadius(new BorderRadius(4));
                                 detailsTable.AddCell(labelCell);
 
                                 var valueCell = new Cell()
                                     .Add(new Paragraph(displayValue)
-                                        .SetFontSize(12)
+                                        .SetFontSize(11)
                                         .SetFontColor(new DeviceRgb(0, 0, 0)))
-                                    .SetBorder(Border.NO_BORDER)
-                                    .SetPadding(8)
-                                    .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                                    .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
+                                    .SetPadding(10)
+                                    .SetBackgroundColor(new DeviceRgb(250, 250, 250))
                                     .SetBorderRadius(new BorderRadius(4));
                                 detailsTable.AddCell(valueCell);
 
@@ -1362,9 +1392,9 @@ namespace SahayataNidhi.Controllers.Officer
                                                     .SetFontSize(10)
                                                     .SetBold()
                                                     .SetFontColor(new DeviceRgb(51, 51, 51)))
-                                                .SetBorder(Border.NO_BORDER)
-                                                .SetPadding(6)
-                                                .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                                                .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
+                                                .SetPadding(8)
+                                                .SetBackgroundColor(new DeviceRgb(250, 250, 250))
                                                 .SetBorderRadius(new BorderRadius(4))
                                                 .SetPaddingLeft(20);
                                             detailsTable.AddCell(addLabelCell);
@@ -1373,9 +1403,9 @@ namespace SahayataNidhi.Controllers.Officer
                                                 .Add(new Paragraph(addDisplayValue)
                                                     .SetFontSize(10)
                                                     .SetFontColor(new DeviceRgb(0, 0, 0)))
-                                                .SetBorder(Border.NO_BORDER)
-                                                .SetPadding(6)
-                                                .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                                                .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
+                                                .SetPadding(8)
+                                                .SetBackgroundColor(new DeviceRgb(250, 250, 250))
                                                 .SetBorderRadius(new BorderRadius(4));
                                             detailsTable.AddCell(addValueCell);
 
@@ -1394,9 +1424,9 @@ namespace SahayataNidhi.Controllers.Officer
                                                                 .SetFontSize(10)
                                                                 .SetBold()
                                                                 .SetFontColor(new DeviceRgb(51, 51, 51)))
-                                                            .SetBorder(Border.NO_BORDER)
-                                                            .SetPadding(6)
-                                                            .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                                                            .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
+                                                            .SetPadding(8)
+                                                            .SetBackgroundColor(new DeviceRgb(250, 250, 250))
                                                             .SetBorderRadius(new BorderRadius(4))
                                                             .SetPaddingLeft(30);
                                                         detailsTable.AddCell(nestedLabelCell);
@@ -1405,9 +1435,9 @@ namespace SahayataNidhi.Controllers.Officer
                                                             .Add(new Paragraph(nestedDisplayValue)
                                                                 .SetFontSize(10)
                                                                 .SetFontColor(new DeviceRgb(0, 0, 0)))
-                                                            .SetBorder(Border.NO_BORDER)
-                                                            .SetPadding(6)
-                                                            .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                                                            .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
+                                                            .SetPadding(8)
+                                                            .SetBackgroundColor(new DeviceRgb(250, 250, 250))
                                                             .SetBorderRadius(new BorderRadius(4));
                                                         detailsTable.AddCell(nestedValueCell);
                                                     }
@@ -1423,11 +1453,21 @@ namespace SahayataNidhi.Controllers.Officer
 
                 document.Add(detailsTable);
 
-                // Add Attached Documents section without header
+                // Add Attached Documents section
                 var documents = formDetails["Documents"] as JArray;
                 bool hasDocuments = documents != null && documents.Any();
                 if (hasDocuments)
                 {
+                    document.Add(new Paragraph("Attached Documents")
+                        .SetFontSize(14)
+                        .SetBold()
+                        .SetFontColor(new DeviceRgb(242, 140, 56))
+                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetMarginTop(20)
+                        .SetMarginBottom(10)
+                        .SetBorderRadius(new BorderRadius(6)));
+
                     foreach (var doc in documents!)
                     {
                         var filePath = doc["File"]?.ToString();
@@ -1465,7 +1505,6 @@ namespace SahayataNidhi.Controllers.Officer
                                     srcPdf.CopyPagesTo(1, documentPageCount, pdf);
                                     srcPdf.Close();
                                     document.Add(new AreaBreak(AreaBreakType.NEXT_PAGE));
-
                                 }
                                 catch (Exception ex)
                                 {
@@ -1551,7 +1590,6 @@ namespace SahayataNidhi.Controllers.Officer
                                         );
                                         corCanvasDoc.Close();
 
-                                        // Re-open the modified PDF to copy pages
                                         using var finalCorReader = new PdfReader(new MemoryStream(corTempMs.ToArray()));
                                         using var finalCorPdf = new PdfDocument(finalCorReader);
                                         int corDocumentPageCount = finalCorPdf.GetNumberOfPages();
@@ -1568,9 +1606,7 @@ namespace SahayataNidhi.Controllers.Officer
                                             .SetMarginBottom(5));
                                     }
                                 }
-
                             }
-
                         }
                         catch (Exception ex)
                         {
@@ -1615,7 +1651,7 @@ namespace SahayataNidhi.Controllers.Officer
                     .SetMarginTop(20)
                     .SetMarginBottom(10)
                     .SetTextAlignment(TextAlignment.LEFT)
-                    .SetBorderRadius(new BorderRadius(5)));
+                    .SetBorderRadius(new BorderRadius(6)));
 
                 var headers = new[] { "S.No", "Action Taker", "Action Taken", "Remarks", "Action Taken On" };
                 foreach (var header in headers)
@@ -1624,10 +1660,10 @@ namespace SahayataNidhi.Controllers.Officer
                         .Add(new Paragraph(header)
                             .SetFontSize(11)
                             .SetBold()
-                            .SetFontColor(new DeviceRgb(51, 51, 51))
+                            .SetFontColor(new DeviceRgb(255, 255, 255))
                             .SetTextAlignment(TextAlignment.CENTER))
-                        .SetBackgroundColor(new DeviceRgb(200, 200, 200))
-                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(25, 118, 210))
+                        .SetPadding(10)
                         .SetBorderRadius(new BorderRadius(4)));
                 }
 
@@ -1640,37 +1676,42 @@ namespace SahayataNidhi.Controllers.Officer
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0))
                             .SetTextAlignment(TextAlignment.CENTER))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                     historyTable.AddCell(new Cell()
                         .Add(new Paragraph(item.ActionTaker != "Citizen" ? $"{item.ActionTaker} {officerArea}" : item.ActionTaker)
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0)))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                     historyTable.AddCell(new Cell()
                         .Add(new Paragraph(item.ActionTaken == "ReturnToCitizen" ? "Returned to citizen for correction" : item.ActionTaken)
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0)))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                     historyTable.AddCell(new Cell()
                         .Add(new Paragraph(item.Remarks ?? "")
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0)))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                     historyTable.AddCell(new Cell()
                         .Add(new Paragraph(item.ActionTakenDate.ToString())
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0))
                             .SetTextAlignment(TextAlignment.CENTER))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                     index++;
                 }
@@ -1685,37 +1726,42 @@ namespace SahayataNidhi.Controllers.Officer
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0))
                             .SetTextAlignment(TextAlignment.CENTER))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                     historyTable.AddCell(new Cell()
                         .Add(new Paragraph($"{currentPlayer["designation"]} {officerArea}")
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0)))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                     historyTable.AddCell(new Cell()
                         .Add(new Paragraph(currentPlayer["status"]!.ToString())
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0)))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                     historyTable.AddCell(new Cell()
                         .Add(new Paragraph("")
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0)))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                     historyTable.AddCell(new Cell()
                         .Add(new Paragraph("")
                             .SetFontSize(10)
                             .SetFontColor(new DeviceRgb(0, 0, 0))
                             .SetTextAlignment(TextAlignment.CENTER))
-                        .SetPadding(6)
-                        .SetBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .SetPadding(8)
+                        .SetBackgroundColor(new DeviceRgb(250, 250, 250))
+                        .SetBorder(new SolidBorder(new DeviceRgb(200, 200, 200), (float)0.5))
                         .SetBorderRadius(new BorderRadius(4)));
                 }
 
@@ -1728,7 +1774,6 @@ namespace SahayataNidhi.Controllers.Officer
                 return File(pdfBytes, "application/pdf", $"{applicationId}_UserDetails.pdf");
             }
         }
-
         [HttpGet]
         public IActionResult RemoveFromPool(int ServiceId, string itemToRemove)
         {
