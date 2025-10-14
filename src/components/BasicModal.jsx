@@ -28,6 +28,8 @@ const BasicModal = ({
   handleActionButton,
   buttonText = "",
   accordion = null,
+  additionalContent = null, // Added prop
+  sx = {}, // Allow custom styles to be passed
 }) => {
   return (
     <Modal open={open} onClose={handleClose}>
@@ -39,6 +41,7 @@ const BasicModal = ({
             overflowY: "scroll",
             width: { xs: "100%", md: "90%" },
           },
+          ...(Array.isArray(sx) ? sx : [sx]), // Merge custom styles
         ]}
       >
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -67,6 +70,9 @@ const BasicModal = ({
           )}
           {pdf != null && <PdfViewer pdfUrl={pdf} width={"50%"} />}
         </Box>
+        {additionalContent && (
+          <Box sx={{ mt: 2, mb: 2 }}>{additionalContent}</Box>
+        )}
         <Box
           sx={{
             display: "flex",

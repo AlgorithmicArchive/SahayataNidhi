@@ -12,6 +12,7 @@ using System.Dynamic;
 using Newtonsoft.Json.Linq;
 using Renci.SshNet;
 using EncryptionHelper;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace SahayataNidhi.Controllers.Officer
 {
@@ -24,7 +25,7 @@ namespace SahayataNidhi.Controllers.Officer
         PdfService pdfService,
         IWebHostEnvironment webHostEnvironment,
         IHubContext<ProgressHub> hubContext,
-        IEncryptionService encryptionService, IAuditLogService auditService) : Controller
+        IEncryptionService encryptionService, IAuditLogService auditService, IConfiguration config, IMemoryCache memoryCache) : Controller
     {
         protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
         protected readonly ILogger<OfficerController> _logger = logger;
@@ -35,6 +36,8 @@ namespace SahayataNidhi.Controllers.Officer
         private readonly IHubContext<ProgressHub> hubContext = hubContext;
         protected readonly IEncryptionService encryptionService = encryptionService;
         private readonly IAuditLogService _auditService = auditService;
+        private readonly IConfiguration _config = config;
+        private readonly IMemoryCache _memoryCache = memoryCache;
 
         public override void OnActionExecuted(ActionExecutedContext context)
         {

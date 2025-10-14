@@ -229,13 +229,13 @@ namespace SahayataNidhi.Controllers.User
                 string template = emailtemplate["Submission"]!.ToString();
 
                 var placeholders = new Dictionary<string, string>
-        {
-            { "ApplicantName", GetFormFieldValue(formDetailsObj, "ApplicantName") ?? "" },
-            { "ServiceName", ServiceName!},
-            { "ReferenceNumber", ReferenceNumber },
-            { "OfficerRole", OfficerRole },
-            { "OfficerArea", OfficerArea }
-        };
+                {
+                    { "ApplicantName", GetFormFieldValue(formDetailsObj, "ApplicantName") ?? "" },
+                    { "ServiceName", ServiceName!},
+                    { "ReferenceNumber", ReferenceNumber },
+                    { "OfficerRole", OfficerRole },
+                    { "OfficerArea", OfficerArea }
+                };
 
                 foreach (var pair in placeholders)
                 {

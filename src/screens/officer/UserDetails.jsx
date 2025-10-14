@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { fetchCertificateDetails, fetchUserDetail } from "../../assets/fetch";
-import { Container, Row } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import {
   Box,
   Button,
@@ -88,6 +88,11 @@ export default function UserDetails() {
   const [canTakeAction, setCanTakeAction] = useState(true);
   const [currentOfficerDetails, setCurrentOfficerDetails] = useState(null);
   const [lastActionTaken, setLastActionTaken] = useState(null);
+  const [signingMethod, setSigningMethod] = useState("dsc");
+  const [esignPageNo, setEsignPageNo] = useState(1);
+  const [esignSignPosition, setEsignSignPosition] = useState("1");
+  const [esignUserName, setEsignUserName] = useState("");
+  const [pollInterval, setPollInterval] = useState(null);
 
   const {
     control,
@@ -99,35 +104,18 @@ export default function UserDetails() {
     unregister,
   } = useForm({ mode: "onChange" });
 
-  const defaultAction = watch("defaultAction");
-  const forwardDeclaration = watch("forwardDeclaration");
-
-  // Clear Remarks when defaultAction changes
   useEffect(() => {
-    setValue("Remarks", "");
-  }, [defaultAction, setValue]);
-
-  // Update Remarks when forwardDeclaration changes
-  useEffect(() => {
-    if (defaultAction === "Forward" && forwardDeclaration) {
-      const declarationText = `I hereby certify that the beneficiary, namely ${getValueByName(
-        formDetails,
-        "ApplicantName",
-      )} parentage ${getValueByName(
-        formDetails,
-        "Parentage",
-      )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.`;
-      setValue("Remarks", declarationText, { shouldValidate: false });
-    } else {
-      setValue("Remarks", "", { shouldValidate: false });
-    }
-  }, [defaultAction, forwardDeclaration, formDetails, applicationId, setValue]);
-
-  useEffect(() => {
+    console.log(
+      "isSanctionLetter:",
+      isSanctionLetter,
+      "isSignedPdf:",
+      isSignedPdf,
+    );
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      if (pollInterval) clearInterval(pollInterval);
     };
-  }, [pdfUrl]);
+  }, [pdfUrl, pollInterval, isSanctionLetter, isSignedPdf]);
 
   useEffect(() => {
     async function loadDetails() {
@@ -222,7 +210,7 @@ export default function UserDetails() {
       throw new Error(
         "Error signing PDF: " +
           error.message +
-          " Check If Desktop App is started.",
+          " Check if Desktop App is started.",
       );
     }
   }
@@ -325,7 +313,6 @@ export default function UserDetails() {
       }
 
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-      const blobUrl = URL.createObjectURL(signedBlob);
       setPdfUrl(updateResponse.data.path);
       setPdfModalOpen(false);
       setTimeout(() => {
@@ -351,28 +338,218 @@ export default function UserDetails() {
     }
   };
 
-  const sanctionAction = async () => {
-    const response = await axiosInstance.get("/Officer/GetSanctionLetter", {
-      params: { applicationId },
-    });
-    const result = response.data;
-    if (!result.status) {
-      throw new Error(result.response || "Something went wrong");
-    }
-    const pdfResponse = await axiosInstance.get(`/Base/DisplayFile`, {
-      params: { filename: result.path },
-      responseType: "blob",
-    });
-    const newPdfBlob = new Blob([pdfResponse.data], {
-      type: "application/pdf",
-    });
+  // Updated handleSign function in UserDetails.jsx
 
-    // Update state for modal display
-    setPdfBlob(newPdfBlob);
-    setPdfUrl(result.path);
-    setIsSignedPdf(false);
-    setIsSanctionLetter(true);
-    setPdfModalOpen(true);
+  const handleSign = async () => {
+    if (signingMethod === "dsc") {
+      const isAppRunning = await checkDesktopApp();
+      if (!isAppRunning) return;
+      setConfirmOpen(true);
+    } else if (signingMethod === "esign") {
+      if (
+        !esignUserName ||
+        esignPageNo < 1 ||
+        !["1", "2"].includes(esignSignPosition)
+      ) {
+        toast.error(
+          "Please provide valid eSign details (Username, Page Number, Sign Position).",
+          {
+            position: "top-center",
+            autoClose: 3000,
+            theme: "colored",
+          },
+        );
+        return;
+      }
+
+      setButtonLoading(true);
+      let popup = null;
+      try {
+        const formData = new FormData();
+        formData.append("applicationId", applicationId);
+        formData.append("pdfBlob", pdfBlob, "sanction_letter.pdf");
+        formData.append("userName", esignUserName);
+        formData.append("signPosition", esignSignPosition);
+        formData.append("pageNo", esignPageNo);
+
+        console.log(
+          "Sending eSign preparation request for applicationId:",
+          applicationId,
+        );
+        const response = await axiosInstance.post(
+          "/Officer/PrepareEsign",
+          formData,
+        );
+
+        if (!response.data.status) {
+          throw new Error(response.data.message || "Failed to prepare eSign");
+        }
+
+        console.log("PrepareEsign response:", {
+          status: response.data.status,
+          txnId: response.data.txnId,
+          signedXmlPreview: response.data.signedXml.substring(0, 100),
+          clientrequestURL: response.data.clientrequestURL,
+        });
+
+        // HTML-escape function
+        const htmlEscape = (str) => {
+          if (!str) return "";
+          return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        };
+
+        const htmlEscapedXml = htmlEscape(response.data.signedXml);
+        const escapedUrl = htmlEscape(response.data.clientrequestURL);
+        const escapedUsername = htmlEscape(response.data.username);
+        const escapedUserId = htmlEscape(response.data.userId);
+        const escapedTxnId = htmlEscape(response.data.txnId);
+
+        // Open popup
+        popup = window.open("", "eSignPopup", "width=800,height=600");
+        if (!popup) {
+          toast.error("Popup blocked. Please allow popups and try again.", {
+            position: "top-center",
+            autoClose: 3000,
+            theme: "colored",
+          });
+          return;
+        }
+
+        // Write form to popup and submit
+        popup.document.open();
+        popup.document.write(`
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <title>eSign Gateway</title>
+                    </head>
+                    <body>
+                        <form id="esignForm" name="esignForm" action="https://esigngw.jk.gov.in/eSign21/acceptClient" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="xml" value="${htmlEscapedXml}" />
+                            <input type="hidden" name="clientrequestURL" value="${escapedUrl}" />
+                            <input type="hidden" name="username" value="${escapedUsername}" />
+                            <input type="hidden" name="userId" value="${escapedUserId}" />
+                            <input type="hidden" name="txn" value="${escapedTxnId}" />
+                        </form>
+                        <script>
+                            console.log('Submitting eSign form with txn: ${escapedTxnId}');
+                            document.getElementById('esignForm').submit();
+                        </script>
+                    </body>
+                </html>
+            `);
+        popup.document.close();
+
+        // Start polling for status
+        const interval = setInterval(async () => {
+          try {
+            const statusRes = await axiosInstance.get(
+              `/Officer/CheckESignStatus?applicationId=${applicationId}`,
+            );
+            console.log("CheckESignStatus response:", statusRes.data);
+            if (statusRes.data.success) {
+              clearInterval(interval);
+              setPollInterval(null);
+              setPdfUrl(statusRes.data.path);
+              setIsSignedPdf(true);
+              setPdfModalOpen(true);
+              if (popup && !popup.closed) {
+                popup.close();
+              }
+              if (pendingFormData) {
+                await handleFinalSubmit(pendingFormData);
+                setPendingFormData(null);
+              }
+              toast.success("eSign completed successfully!", {
+                position: "top-center",
+                autoClose: 3000,
+                theme: "colored",
+              });
+            }
+          } catch (err) {
+            console.error("Polling error:", err);
+            clearInterval(interval);
+            setPollInterval(null);
+            if (popup && !popup.closed) {
+              popup.close();
+            }
+            toast.error("Error checking eSign status: " + err.message, {
+              position: "top-center",
+              autoClose: 3000,
+              theme: "colored",
+            });
+          }
+        }, 5000);
+        setPollInterval(interval);
+
+        // Stop polling after 15 minutes
+        setTimeout(() => {
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            setPollInterval(null);
+            if (popup && !popup.closed) {
+              popup.close();
+            }
+            toast.error("eSign process timed out. Please try again.", {
+              position: "top-center",
+              autoClose: 3000,
+              theme: "colored",
+            });
+          }
+        }, 900000); // 15 minutes
+      } catch (error) {
+        console.error("eSign preparation error:", error);
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+        toast.error("eSign preparation error: " + error.message, {
+          position: "top-center",
+          autoClose: 3000,
+          theme: "colored",
+        });
+      } finally {
+        setButtonLoading(false);
+      }
+    }
+  };
+
+  const sanctionAction = async () => {
+    try {
+      console.log("Fetching sanction letter for applicationId:", applicationId);
+      const response = await axiosInstance.get("/Officer/GetSanctionLetter", {
+        params: { applicationId },
+      });
+      const result = response.data;
+      if (!result.status) {
+        throw new Error(result.response || "Something went wrong");
+      }
+      const pdfResponse = await axiosInstance.get(`/Base/DisplayFile`, {
+        params: { filename: result.path },
+        responseType: "blob",
+      });
+      const newPdfBlob = new Blob([pdfResponse.data], {
+        type: "application/pdf",
+      });
+
+      setPdfBlob(newPdfBlob);
+      setPdfUrl(result.path);
+      setIsSignedPdf(false);
+      setIsSanctionLetter(true);
+      setPdfModalOpen(true);
+      console.log("Sanction letter fetched, opening modal");
+    } catch (error) {
+      console.error("Sanction action error:", error);
+      toast.error("Error fetching sanction letter: " + error.message, {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "colored",
+      });
+    }
   };
 
   const handleFinalSubmit = async (data) => {
@@ -396,7 +573,6 @@ export default function UserDetails() {
         throw new Error(result.response || "Something went wrong");
       } else {
         setCanTakeAction(false);
-        // Map defaultAction to its label
         const actionField = actionForm.find(
           (field) => field.name === "defaultAction",
         );
@@ -459,6 +635,11 @@ export default function UserDetails() {
     setPdfBlob(null);
     setIsSignedPdf(false);
     setIsSanctionLetter(false);
+    setEsignUserName("");
+    setEsignPageNo(1);
+    setEsignSignPosition("1");
+    if (pollInterval) clearInterval(pollInterval);
+    setPollInterval(null);
   };
 
   const renderField = (field, sectionIndex) => {
@@ -1083,7 +1264,7 @@ export default function UserDetails() {
           open={pdfModalOpen}
           handleClose={handleModalClose}
           handleActionButton={
-            isSanctionLetter && !isSignedPdf ? () => setConfirmOpen(true) : null
+            isSanctionLetter && !isSignedPdf ? handleSign : null
           }
           buttonText={isSanctionLetter && !isSignedPdf ? "Sign PDF" : null}
           Title={isSignedPdf ? "Signed Document" : "Document Preview"}
@@ -1096,6 +1277,71 @@ export default function UserDetails() {
               borderRadius: "12px",
             },
           }}
+          additionalContent={
+            isSanctionLetter && !isSignedPdf ? (
+              <Box sx={{ mt: 2, mb: 2 }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Select Signing Method
+                </Typography>
+                <FormControl fullWidth margin="normal" sx={commonStyles}>
+                  <InputLabel id="signing-method-label">
+                    Signing Method
+                  </InputLabel>
+                  <Select
+                    labelId="signing-method-label"
+                    value={signingMethod}
+                    label="Signing Method"
+                    onChange={(e) => setSigningMethod(e.target.value)}
+                  >
+                    <MenuItem value="dsc">DSC (USB Token)</MenuItem>
+                    <MenuItem value="esign">eSign (Aadhaar)</MenuItem>
+                  </Select>
+                </FormControl>
+                {signingMethod === "esign" && (
+                  <>
+                    <TextField
+                      label="User Name for eSign"
+                      value={esignUserName}
+                      onChange={(e) => setEsignUserName(e.target.value)}
+                      fullWidth
+                      margin="normal"
+                      sx={commonStyles}
+                      error={!esignUserName}
+                      helperText={!esignUserName ? "User Name is required" : ""}
+                    />
+                    <TextField
+                      type="number"
+                      label="Page Number"
+                      value={esignPageNo}
+                      onChange={(e) => setEsignPageNo(parseInt(e.target.value))}
+                      fullWidth
+                      margin="normal"
+                      sx={commonStyles}
+                      inputProps={{ min: 1 }}
+                      error={esignPageNo < 1}
+                      helperText={
+                        esignPageNo < 1 ? "Page number must be at least 1" : ""
+                      }
+                    />
+                    <FormControl fullWidth margin="normal" sx={commonStyles}>
+                      <InputLabel id="sign-position-label">
+                        Sign Position
+                      </InputLabel>
+                      <Select
+                        labelId="sign-position-label"
+                        value={esignSignPosition}
+                        label="Sign Position"
+                        onChange={(e) => setEsignSignPosition(e.target.value)}
+                      >
+                        <MenuItem value="1">Left</MenuItem>
+                        <MenuItem value="2">Right</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </>
+                )}
+              </Box>
+            ) : null
+          }
         />
       </Box>
       <ToastContainer />

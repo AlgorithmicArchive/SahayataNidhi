@@ -244,7 +244,7 @@ namespace SahayataNidhi.Controllers.User
 
                         // Check if value is in either yyyy-MM-dd or dd MMM yyyy hh:mm:ss tt format
                         if (DateTime.TryParseExact(value,
-                            new[] { "yyyy-MM-dd", "dd MMM yyyy hh:mm:ss tt" },
+                            new[] { "dd/mm/yyyy", "yyyy-MM-dd", "dd MMM yyyy hh:mm:ss tt" },
                             CultureInfo.InvariantCulture,
                             DateTimeStyles.None,
                             out DateTime dt))

@@ -8,7 +8,13 @@ using SahayataNidhi.Models.Entities;
 using Microsoft.Data.SqlClient; // SqlParameter, SqlException (recommended for .NET Core)
 using System.Data;              // IDataParameter, DbType, etc. (optional but handy)
 using System.Threading.Tasks;   // Task
-using Microsoft.Extensions.Logging; // ILogger<T>
+using Microsoft.Extensions.Logging;
+using System.Text;
+using System.Xml;
+using Formatting = Newtonsoft.Json.Formatting;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Authorization; // ILogger<T>
 
 
 namespace SahayataNidhi.Controllers.Officer
@@ -1274,6 +1280,340 @@ namespace SahayataNidhi.Controllers.Officer
                 return StatusCode(500, new { success = false, message = "Server error." });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> PrepareEsign([FromForm] IFormFile pdfBlob, [FromForm] string userName, [FromForm] string signPosition, [FromForm] int pageNo, [FromForm] string applicationId)
+        {
+            var tempDir = Path.Combine(_webHostEnvironment.WebRootPath, "Temp");
+            Directory.CreateDirectory(tempDir);
+
+            var preparedPdfPath = Path.Combine(tempDir, $"prepared_pdf_{applicationId}_{Guid.NewGuid():N}.pdf");
+            try
+            {
+                _logger.LogInformation("Starting eSign for applicationId: {ApplicationId}, user: {UserName}", applicationId, userName);
+
+                // Input validation
+                if (pdfBlob == null || pdfBlob.Length == 0)
+                    return BadRequest(new { status = false, message = "No PDF uploaded." });
+                if (pageNo < 1)
+                    return BadRequest(new { status = false, message = "Invalid page number." });
+                if (string.IsNullOrEmpty(userName))
+                    return BadRequest(new { status = false, message = "Username is required." });
+                if (!new[] { "1", "2" }.Contains(signPosition))
+                    return BadRequest(new { status = false, message = "Invalid sign position." });
+
+                // Read PDF into memory
+                await using var inputStream = pdfBlob.OpenReadStream();
+                var memoryStream = new MemoryStream();
+                await inputStream.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                var clientCertPath = Path.Combine(_webHostEnvironment.WebRootPath, _config["Certificate:CertPath"] ?? throw new InvalidOperationException("Certificate:CertPath not configured"));
+                var clientCertPassword = _config["Certificate:CertPassword"] ?? throw new InvalidOperationException("Certificate:CertPassword not configured");
+
+                // Dynamic callback
+                var callbackUrl = $"{Request.Scheme}://{Request.Host}/Officer/EsignResponse";
+                var gatewayResponseUrl = $"https://esigngw.jk.gov.in/eSign21/response?rs={Uri.EscapeDataString(callbackUrl)}";
+
+                // Generate transaction ID (ensure unique and not overly truncated)
+                var txnId = $"999-EDJK-{DateTime.Now:yyyyMMddHHmmss}-{Guid.NewGuid():N}".Substring(0, 30); // Max 30 chars for safety
+                _logger.LogInformation("Generated txnId: {TxnId}", txnId);
+
+                // Generate compact XML
+                var sb = new StringBuilder();
+                byte[] preparedPdf = null!;
+                var xmlSettings = new XmlWriterSettings
+                {
+                    Indent = false,
+                    NewLineHandling = NewLineHandling.None,
+                    OmitXmlDeclaration = false
+                };
+
+                using (var writer = XmlWriter.Create(sb, xmlSettings))
+                {
+                    writer.WriteProcessingInstruction("xml", @"version=""1.0"" encoding=""UTF-8""");
+                    writer.WriteStartElement("Esign");
+                    writer.WriteAttributeString("AuthMode", "1");
+                    writer.WriteAttributeString("ver", "2.1");
+                    writer.WriteAttributeString("sc", "Y");
+                    writer.WriteAttributeString("ts", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture));
+                    writer.WriteAttributeString("txn", txnId);
+                    writer.WriteAttributeString("ekycId", "");
+                    writer.WriteAttributeString("aspId", "JKIT-900");
+                    writer.WriteAttributeString("ekycIdType", "A");
+                    writer.WriteAttributeString("responseSigType", "pkcs7");
+                    writer.WriteAttributeString("responseUrl", gatewayResponseUrl);
+
+                    writer.WriteStartElement("Docs");
+                    writer.WriteStartElement("InputHash");
+                    writer.WriteAttributeString("id", "1");
+                    writer.WriteAttributeString("hashAlgorithm", "SHA256");
+                    writer.WriteAttributeString("docInfo", "Sanction Letter");
+
+                    var (documentHash, pdfBytes) = await GetDocumentHashAsync(memoryStream, userName, signPosition, pageNo);
+                    preparedPdf = pdfBytes;
+                    writer.WriteString(documentHash);
+
+                    writer.WriteEndElement(); // InputHash
+                    writer.WriteEndElement(); // Docs
+                    writer.WriteEndElement(); // Esign
+                    writer.Flush();
+                }
+
+                var strxml = sb.ToString().Trim();
+                if (string.IsNullOrEmpty(strxml))
+                    throw new InvalidOperationException("Generated XML is empty");
+
+                _logger.LogDebug("Generated XML preview: {Xml}", strxml.Substring(0, Math.Min(strxml.Length, 500)));
+
+                // Load and validate client certificate
+                if (!System.IO.File.Exists(clientCertPath))
+                    throw new FileNotFoundException("Client certificate not found", clientCertPath);
+
+                var clientCert = new X509Certificate2(clientCertPath, clientCertPassword);
+                if (clientCert.NotAfter < DateTime.Now)
+                    throw new InvalidOperationException("Client certificate has expired");
+
+                _logger.LogInformation("Certificate loaded: Subject={Subject}, Thumbprint={Thumbprint}, ValidFrom={ValidFrom}, ValidTo={ValidTo}",
+                    clientCert.Subject, clientCert.Thumbprint, clientCert.NotBefore, clientCert.NotAfter);
+
+                // Sign XML
+                var signedXml = SignXml(strxml);
+                _logger.LogDebug("Signed XML preview: {SignedXml}", signedXml.Substring(0, Math.Min(signedXml.Length, 500)));
+
+                var xmlFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "Uploads", $"xml_{applicationId}_{txnId}.xml");
+                _logger.LogInformation("Saving XML to path: {Path}", xmlFilePath);
+                await System.IO.File.WriteAllTextAsync(xmlFilePath, signedXml);
+
+                // Save PDF to temp file and verify
+                await System.IO.File.WriteAllBytesAsync(preparedPdfPath, preparedPdf);
+                if (!System.IO.File.Exists(preparedPdfPath))
+                    throw new IOException($"Failed to save temporary PDF at {preparedPdfPath}");
+
+                _logger.LogInformation("Saved temporary PDF at {Path}", preparedPdfPath);
+
+                // Store in cache
+                var cacheEntry = new
+                {
+                    PreparedPdfPath = preparedPdfPath,
+                    ApplicationId = applicationId,
+                    TxnId = txnId
+                };
+                var cacheKey = $"esign_{txnId}";
+                _memoryCache.Set(cacheKey, cacheEntry, TimeSpan.FromHours(1)); // Extend to 1 hour
+                _logger.LogInformation("Cached eSign data with key: {CacheKey}", cacheKey);
+
+                // Return form data for frontend
+                return Ok(new
+                {
+                    status = true,
+                    signedXml = System.IO.File.ReadAllText(xmlFilePath),
+                    clientrequestURL = callbackUrl,
+                    username = userName,
+                    userId = "2",
+                    txnId = txnId
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in PrepareEsign: {Message}", ex.Message);
+                if (System.IO.File.Exists(preparedPdfPath))
+                {
+                    try { System.IO.File.Delete(preparedPdfPath); } catch { }
+                }
+                return StatusCode(500, new { status = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [HttpGet]
+        public IActionResult CheckESignStatus([FromQuery] string applicationId)
+        {
+            try
+            {
+                var signedPdfPath = Path.Combine(_webHostEnvironment.WebRootPath, "Temp", $"signed_pdf_{applicationId}.pdf");
+                var isSigned = System.IO.File.Exists(signedPdfPath);
+                _logger.LogInformation("Checking eSign status for applicationId: {ApplicationId}, Signed PDF exists: {IsSigned}", applicationId, isSigned);
+                var fileName = applicationId.Replace("/", "_") + "_SanctionLetter.pdf";
+                return Ok(new { success = isSigned, path = isSigned ? fileName : null });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CheckESignStatus: {Message}", ex.Message);
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }   // Updated EsignResponse in OfficerController.cs
+
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EsignResponse(IFormCollection form)
+        {
+            string? preparedPath = null;
+            try
+            {
+                _logger.LogInformation("Processing EsignResponse action");
+                _logger.LogInformation("Response headers: {Headers}", string.Join(", ", Request.Headers.Select(h => $"{h.Key}: {h.Value}")));
+                _logger.LogInformation("Response form data: {FormData}", string.Join(", ", form.Select(f => $"{f.Key}: {f.Value.ToString().Substring(0, Math.Min(f.Value.ToString().Length, 100))}")));
+
+                var resp = form["respon"];
+                if (string.IsNullOrEmpty(resp))
+                {
+                    _logger.LogWarning("No response XML received");
+                    return Json(new { success = false, message = "No response received from eSign service." });
+                }
+
+                // Extract transaction ID from response XML
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(resp);
+                var txnId = xmlDoc.SelectSingleNode("/EsignResp/@txn")?.Value;
+                if (string.IsNullOrEmpty(txnId))
+                {
+                    _logger.LogWarning("No transaction ID in response XML");
+                    return Json(new { success = false, message = "Invalid response: No transaction ID." });
+                }
+                _logger.LogInformation("Received txnId: {TxnId}", txnId);
+
+                // Retrieve from cache
+                var cacheKey = $"esign_{txnId}";
+                if (!_memoryCache.TryGetValue(cacheKey, out dynamic cacheEntry))
+                {
+                    _logger.LogWarning("No cache entry found for key: {CacheKey}", cacheKey);
+                    return Json(new { success = false, message = "Invalid session data or temporary PDF not found. Cache key missing." });
+                }
+
+                preparedPath = cacheEntry.PreparedPdfPath as string;
+                var applicationId = cacheEntry.ApplicationId as string;
+                var cachedTxnId = cacheEntry.TxnId as string;
+
+                if (string.IsNullOrEmpty(applicationId) || string.IsNullOrEmpty(preparedPath))
+                {
+                    _logger.LogWarning("Invalid cache data: ApplicationId={ApplicationId}, PreparedPdfPath={PreparedPdfPath}", applicationId, preparedPath);
+                    return Json(new { success = false, message = "Invalid cache data." });
+                }
+
+                if (cachedTxnId != txnId)
+                {
+                    _logger.LogWarning("Transaction ID mismatch: Cached={CachedTxnId}, Received={ReceivedTxnId}", cachedTxnId, txnId);
+                    return Json(new { success = false, message = "Transaction ID mismatch." });
+                }
+
+                if (!System.IO.File.Exists(preparedPath))
+                {
+                    _logger.LogWarning("Temporary PDF not found at {PreparedPath}", preparedPath);
+                    return Json(new { success = false, message = "Temporary PDF not found." });
+                }
+
+                if (!CheckESignUserName(resp))
+                {
+                    _logger.LogWarning("Invalid user certificate");
+                    return Json(new { success = false, message = "Invalid user certificate." });
+                }
+
+                var signedPdfPath = Path.Combine(_webHostEnvironment.WebRootPath, "Temp", $"signed_pdf_{applicationId}.pdf");
+
+                // Read PDF into MemoryStream
+                byte[] pdfBytes;
+                using (var fileStream = new FileStream(preparedPath, FileMode.Open, FileAccess.Read))
+                {
+                    pdfBytes = new byte[fileStream.Length];
+                    await fileStream.ReadAsync(pdfBytes, 0, pdfBytes.Length);
+                }
+
+                // Process signing in memory with an expandable MemoryStream
+                using (var memoryStream = new MemoryStream())
+                {
+                    await memoryStream.WriteAsync(pdfBytes, 0, pdfBytes.Length);
+                    memoryStream.Position = 0;
+
+                    _logger.LogDebug("Embedding signature into PDF for applicationId: {ApplicationId}", applicationId);
+                    EmbedSignature(resp, memoryStream); // Embed signature
+                    await memoryStream.FlushAsync();
+
+                    // Save signed PDF
+                    await System.IO.File.WriteAllBytesAsync(signedPdfPath, memoryStream.ToArray());
+                }
+
+                // Delete original prepared PDF
+                try
+                {
+                    System.IO.File.Delete(preparedPath);
+                    _logger.LogInformation("Deleted temporary PDF at {PreparedPath}", preparedPath);
+                }
+                catch (IOException ex)
+                {
+                    _logger.LogWarning("Failed to delete temporary PDF at {PreparedPath}: {Message}", preparedPath, ex.Message);
+                }
+
+                var node = xmlDoc.SelectSingleNode("/EsignResp");
+                var esign_status = node?.Attributes?["status"]?.Value ?? "";
+                var interrorCode = node?.Attributes?["errCode"]?.Value ?? "";
+                var strmsg = node?.Attributes?["errMsg"]?.Value ?? "";
+                if (esign_status != "1")
+                {
+                    _logger.LogWarning("eSign failed: {ErrorMsg} ({ErrorCode})", strmsg, interrorCode);
+                    return Json(new { success = false, message = $"eSign failed: {strmsg} ({interrorCode})" });
+                }
+
+                // Clean up XML files
+                var xmlFilePathPattern = Path.Combine(_webHostEnvironment.WebRootPath, "Uploads", $"xml_{applicationId}_*.xml");
+                foreach (var file in System.IO.Directory.GetFiles(Path.GetDirectoryName(xmlFilePathPattern) ?? "", Path.GetFileName(xmlFilePathPattern)))
+                {
+                    _logger.LogInformation("Cleaning up XML file at {Path}", file);
+                    try
+                    {
+                        System.IO.File.Delete(file);
+                    }
+                    catch (IOException ex)
+                    {
+                        _logger.LogWarning("Failed to delete XML file at {Path}: {Message}", file, ex.Message);
+                    }
+                }
+
+                byte[] signedBytes;
+                using (var fs = new FileStream(signedPdfPath, FileMode.Open, FileAccess.Read))
+                {
+                    signedBytes = new byte[fs.Length];
+                    await fs.ReadAsync(signedBytes, 0, signedBytes.Length);
+                }
+
+                var fileName = applicationId.Replace("/", "_") + "_SanctionLetter.pdf";
+                var existingFile = await dbcontext.UserDocuments.FirstOrDefaultAsync(f => f.FileName == fileName);
+                if (existingFile != null)
+                {
+                    existingFile.FileData = signedBytes;
+                    existingFile.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    dbcontext.UserDocuments.Add(new UserDocument
+                    {
+                        FileName = fileName,
+                        FileData = signedBytes,
+                        FileType = "application/pdf",
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+                await dbcontext.SaveChangesAsync();
+
+                // Remove cache entry
+                _memoryCache.Remove(cacheKey);
+                _logger.LogInformation("Removed cache entry for key: {CacheKey}", cacheKey);
+
+                _logger.LogInformation("eSign completed successfully for applicationId: {ApplicationId}", applicationId);
+                return Json(new { success = true, message = "PDF signed successfully.", path = fileName });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in EsignResponse: {Message}", ex.Message);
+                if (!string.IsNullOrEmpty(preparedPath) && System.IO.File.Exists(preparedPath))
+                {
+                    try { System.IO.File.Delete(preparedPath); } catch { }
+                }
+                return Json(new { success = false, message = $"Error processing response: {ex.Message}" });
+            }
+        }
+
 
 
     }

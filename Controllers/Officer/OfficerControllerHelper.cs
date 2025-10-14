@@ -1,12 +1,24 @@
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
+using iText.Forms.Form.Element;
+using iText.Kernel.Geom;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf.Canvas.Parser.Data;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
+using iText.Signatures;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
+using Path = System.IO.Path;
 
 namespace SahayataNidhi.Controllers.Officer
 {
@@ -1157,6 +1169,416 @@ namespace SahayataNidhi.Controllers.Officer
             }
 
             _logger.LogInformation("Processed {Count} applications, sent {Mails} mails", applications.Count, mailSentCount);
+        }
+
+        private string SignXml(string strxml)
+        {
+            try
+            {
+                var xmlDoc = new XmlDocument { PreserveWhitespace = true };
+                xmlDoc.LoadXml(strxml);
+
+                var certPath = Path.Combine(_webHostEnvironment.WebRootPath, _config["Certificate:CertPath"] ?? throw new InvalidOperationException("Certificate:CertPath not configured"));
+                var certPassword = _config["Certificate:CertPassword"] ?? throw new InvalidOperationException("Certificate:CertPassword not configured");
+                _logger.LogDebug("Loading certificate from {CertPath}", certPath);
+                if (!System.IO.File.Exists(certPath))
+                {
+                    _logger.LogError("Certificate file not found at {CertPath}", certPath);
+                    throw new FileNotFoundException("Certificate file not found", certPath);
+                }
+                using var cert = new X509Certificate2(certPath, certPassword);
+                _logger.LogDebug("Certificate loaded: Subject={Subject}, HasPrivateKey={HasPrivateKey}", cert.Subject, cert.HasPrivateKey);
+
+                var signedXml = new SignedXml(xmlDoc) { SigningKey = cert.GetRSAPrivateKey() ?? throw new InvalidOperationException("No private key") };
+                var reference = new Reference { Uri = "" };
+                reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+                signedXml.AddReference(reference);
+
+                var keyInfo = new KeyInfo();
+                keyInfo.AddClause(new KeyInfoX509Data(cert));
+                signedXml.KeyInfo = keyInfo;
+                signedXml.ComputeSignature();
+
+                var xmlDigitalSignature = signedXml.GetXml();
+                xmlDoc.DocumentElement?.AppendChild(xmlDoc.ImportNode(xmlDigitalSignature, true));
+
+                return xmlDoc.InnerXml;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SignXml: {Message}", ex.Message);
+                throw;
+            }
+        }
+
+        private async Task<(string DocumentHash, byte[] PreparedPdf)> GetDocumentHashAsync(Stream inputStream, string userName, string signPos, int pageNo)
+        {
+            try
+            {
+                _logger.LogDebug("Processing PDF for hash, page: {PageNo}, position: {SignPos}", pageNo, signPos);
+                if (signPos != "1" && signPos != "2")
+                {
+                    _logger.LogWarning("Invalid sign position: {SignPos}", signPos);
+                    throw new ArgumentException("Sign position must be '1' (Left) or '2' (Right)");
+                }
+
+                inputStream.Position = 0;
+                _logger.LogDebug("Creating PdfReader with input stream of length: {Length}, CanRead: {CanRead}", inputStream.Length, inputStream.CanRead);
+                if (!inputStream.CanRead)
+                {
+                    _logger.LogError("Input PDF stream is not readable");
+                    throw new InvalidOperationException("Input PDF stream is not readable");
+                }
+
+                using var pdfReader = new PdfReader(inputStream);
+                using var tempOutputStream = new MemoryStream();
+                var stampingProps = new StampingProperties().UseAppendMode();
+                _logger.LogDebug("Creating PdfSigner");
+
+                var signer = new PdfSigner(pdfReader, tempOutputStream, stampingProps);
+                var pdfDoc = signer.GetDocument();
+                _logger.LogDebug("PDF has {TotalPages} pages", pdfDoc.GetNumberOfPages());
+                if (pageNo < 1 || pageNo > pdfDoc.GetNumberOfPages())
+                {
+                    _logger.LogWarning("Invalid page number: {PageNo}, total pages: {TotalPages}", pageNo, pdfDoc.GetNumberOfPages());
+                    pdfReader.Close();
+                    throw new ArgumentException($"Invalid page number: {pageNo}. PDF has {pdfDoc.GetNumberOfPages()} pages.");
+                }
+
+                // Find coordinates of "ISSUING AUTHORITY"
+                float[] coordinates = FindTextCoordinates(pdfDoc, "ISSUING AUTHORITY", pageNo);
+                float xPos, yPos, signatureWidth = 200f, signatureHeight = 50f;
+                if (coordinates != null)
+                {
+                    _logger.LogDebug("Found 'ISSUING AUTHORITY' at coordinates: X={X}, Y={Y}", coordinates[0], coordinates[1]);
+                    xPos = coordinates[0];
+                    yPos = coordinates[1] + 10; // Place signature above text
+                }
+                else
+                {
+                    _logger.LogWarning("Text 'ISSUING AUTHORITY' not found, using default position");
+                    var page = pdfDoc.GetPage(pageNo);
+                    var pageSize = page.GetPageSize();
+                    float margin = 20f;
+                    xPos = signPos == "2" ? pageSize.GetWidth() - signatureWidth - margin : margin;
+                    yPos = margin;
+                }
+
+                var rect = new Rectangle(xPos, yPos, signatureWidth, signatureHeight);
+                _logger.LogDebug("Signature rectangle: {Rect}", rect);
+
+                var appearance = new SignatureFieldAppearance("Signature1")
+                    .SetContent($"Signed By: {userName}\nDate: {DateTime.Now:yyyy-MM-dd}")
+                    .SetFontSize(10f)
+                    .SetInteractive(false);
+                signer.SetFieldName("Signature1");
+                signer.SetPageNumber(pageNo);
+                signer.SetPageRect(rect);
+                signer.SetReason("Document Approval");
+                signer.SetLocation("India");
+                signer.SetSignatureCreator(userName);
+                signer.SetSignatureAppearance((SignatureFieldAppearance)appearance);
+
+                var signatureField = signer.GetSignatureField();
+                if (signatureField != null)
+                {
+                    signatureField.SetReuseAppearance(false);
+                    _logger.LogDebug("Signature field configured: {FieldName}", signatureField.GetFieldName());
+                }
+
+                var external = new BlankSignatureContainer(PdfName.Adobe_PPKLite, PdfName.Adbe_pkcs7_detached);
+                _logger.LogDebug("Preparing PDF with external container, estimated size: 16384");
+
+                await Task.Run(() => signer.SignExternalContainer(external, 16384));
+
+                var preparedPdf = tempOutputStream.ToArray();
+                _logger.LogDebug("Prepared PDF bytes length: {Length}", preparedPdf.Length);
+
+                var data = await external.GetDataAsync() ?? throw new InvalidOperationException("No hash data");
+                _logger.LogDebug("Extracted data for hashing, length: {Length}", data.Length);
+                using var sha256 = SHA256.Create();
+                var hashBytes = sha256.ComputeHash(data);
+                var hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                _logger.LogInformation("Generated document hash: {Hash}", hash);
+
+                return (hash, preparedPdf);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetDocumentHashAsync: {Message}", ex.Message);
+                throw;
+            }
+        }
+
+        private void EmbedSignature(string xmlResponse, Stream pdfStream)
+        {
+            try
+            {
+                if (!pdfStream.CanRead || !pdfStream.CanWrite)
+                {
+                    _logger.LogError("PDF stream is not readable or writable.");
+                    throw new InvalidOperationException("PDF stream is not readable or writable.");
+                }
+
+                // Parse signature from XML
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlResponse);
+                var signatureNode = xmlDoc.SelectSingleNode("//DocSignature");
+                if (signatureNode == null)
+                    throw new InvalidOperationException("No DocSignature found in response XML.");
+
+                var sigBytes = Convert.FromBase64String(signatureNode.InnerText);
+                _logger.LogDebug("Signature bytes length: {Length}", sigBytes.Length);
+
+                // Copy original PDF into a new MemoryStream (expandable)
+                pdfStream.Position = 0;
+                using (MemoryStream inputStream = new MemoryStream())
+                {
+                    pdfStream.CopyTo(inputStream);
+                    inputStream.Position = 0;
+
+                    using (var outputStream = new MemoryStream())
+                    using (var reader = new PdfReader(inputStream))
+                    using (var writer = new PdfWriter(outputStream))
+                    {
+                        reader.SetCloseStream(false);
+                        writer.SetCloseStream(false);
+
+                        using (var pdfDoc = new PdfDocument(reader, writer))
+                        {
+                            var external = new ExternalSignatureContainer(sigBytes);
+                            PdfSigner.SignDeferred(pdfDoc, "Signature1", outputStream, external);
+                        }
+
+                        // Write signed content back to original stream
+                        outputStream.Position = 0;
+                        pdfStream.SetLength(0);
+                        outputStream.CopyTo(pdfStream);
+                        pdfStream.Position = 0;
+                    }
+                }
+
+                _logger.LogInformation("Successfully embedded signature into PDF stream.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to embed signature: {Message}", ex.Message);
+                throw new InvalidOperationException($"Failed to embed signature: {ex.Message}", ex);
+            }
+        }
+
+        private float[] FindTextCoordinates(PdfDocument pdfDoc, string targetText, int pageNumber)
+        {
+            var page = pdfDoc.GetPage(pageNumber);
+            if (page == null)
+            {
+                _logger.LogWarning("Page {PageNumber} not found in PDF.", pageNumber);
+                return null;
+            }
+
+            var rect = PdfTextLocator.GetTextCoordinates(page, targetText);
+            if (rect != null)
+            {
+                _logger.LogDebug("Found '{TargetText}' at X={X}, Y={Y}", targetText, rect.GetX(), rect.GetY());
+                return new float[] { rect.GetX(), rect.GetY() };
+            }
+
+            _logger.LogWarning("Text '{TargetText}' not found on page {PageNumber}", targetText, pageNumber);
+            return null;
+        }
+
+        private class PdfTextLocator : LocationTextExtractionStrategy
+        {
+            public string TextToSearchFor { get; set; }
+            public List<TextChunk> ResultCoordinates { get; set; }
+
+            public static Rectangle GetTextCoordinates(PdfPage page, string s)
+            {
+                PdfTextLocator strat = new PdfTextLocator(s);
+                PdfTextExtractor.GetTextFromPage(page, strat);
+                foreach (TextChunk c in strat.ResultCoordinates)
+                {
+                    if (c.Text == s)
+                        return c.ResultCoordinates;
+                }
+                return null;
+            }
+
+            public PdfTextLocator(string textToSearchFor)
+            {
+                this.TextToSearchFor = textToSearchFor;
+                ResultCoordinates = new List<TextChunk>();
+            }
+
+            public override void EventOccurred(IEventData data, EventType type)
+            {
+                if (!type.Equals(EventType.RENDER_TEXT))
+                    return;
+
+                TextRenderInfo renderInfo = (TextRenderInfo)data;
+                IList<TextRenderInfo> text = renderInfo.GetCharacterRenderInfos();
+                for (int i = 0; i < text.Count; i++)
+                {
+                    if (text[i].GetText() == TextToSearchFor[0].ToString())
+                    {
+                        string word = "";
+                        for (int j = i; j < i + TextToSearchFor.Length && j < text.Count; j++)
+                        {
+                            word = word + text[j].GetText();
+                        }
+
+                        if (word == TextToSearchFor)
+                        {
+                            float startX = text[i].GetBaseline().GetStartPoint().Get(0);
+                            float startY = text[i].GetBaseline().GetStartPoint().Get(1);
+                            float endX = text[i + TextToSearchFor.Length - 1].GetAscentLine().GetEndPoint().Get(0);
+                            float endY = text[i + TextToSearchFor.Length - 1].GetAscentLine().GetEndPoint().Get(1);
+                            Rectangle rect = new Rectangle(startX, startY, endX - startX, endY - startY);
+                            ResultCoordinates.Add(new TextChunk(word, rect));
+                        }
+                    }
+                }
+            }
+        }
+
+        private class TextChunk
+        {
+            public string Text { get; set; }
+            public Rectangle ResultCoordinates { get; set; }
+
+            public TextChunk(string s, Rectangle r)
+            {
+                Text = s;
+                ResultCoordinates = r;
+            }
+        }
+
+        private bool CheckESignUserName(string xml)
+        {
+            try
+            {
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xml);
+                var userCertNode = xmlDoc.SelectSingleNode("//UserX509Certificate");
+                if (userCertNode == null || string.IsNullOrEmpty(userCertNode.InnerText))
+                {
+                    _logger.LogWarning("No UserX509Certificate found in XML response");
+                    throw new InvalidOperationException("No certificate found in XML response");
+                }
+
+                var txnNode = xmlDoc.SelectSingleNode("/EsignResp/@txn");
+                var txnId = txnNode?.Value ?? "";
+                if (string.IsNullOrEmpty(txnId))
+                {
+                    _logger.LogWarning("No transaction ID found in XML response");
+                    throw new InvalidOperationException("No transaction ID found in XML response");
+                }
+                _logger.LogDebug("Extracted transaction ID: {TxnId}", txnId);
+
+                string expectedUserName = "Person One Name"; // TODO: Fetch from database or frontend
+                _logger.LogDebug("Retrieved username for txn {TxnId}: {ExpectedUserName}", txnId, expectedUserName);
+
+                var userCertBytes = Convert.FromBase64String(userCertNode.InnerText);
+                using var cert = new X509Certificate2(userCertBytes);
+                _logger.LogInformation("Certificate details: Subject={Subject}, FriendlyName={FriendlyName}, Thumbprint={Thumbprint}, Issuer={Issuer}",
+                    cert.Subject, cert.FriendlyName, cert.Thumbprint, cert.Issuer);
+
+                string certCN = cert.Subject.Split(new[] { ", " }, StringSplitOptions.None)
+                    .FirstOrDefault(part => part.StartsWith("CN="))?.Substring(3) ?? "";
+                _logger.LogDebug("Extracted CN from certificate: {CertCN}", certCN);
+
+                var nameParts = expectedUserName.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                bool isValidCN = !string.IsNullOrEmpty(certCN) && nameParts.Any(part => certCN.ToLower().Contains(part));
+                _logger.LogDebug("CN validation result: isValidCN={IsValidCN}, CN={CertCN}, Expected={ExpectedUserName}", isValidCN, certCN, expectedUserName);
+                if (!isValidCN)
+                {
+                    _logger.LogWarning("Certificate CN '{CertCN}' does not match expected username '{ExpectedUserName}'", certCN, expectedUserName);
+                }
+
+                string expectedIssuer = "Test C-DAC Sub CA for eKYC 2022";
+                bool isValidIssuer = !string.IsNullOrEmpty(cert.Issuer) && cert.Issuer.Contains(expectedIssuer, StringComparison.OrdinalIgnoreCase);
+                _logger.LogDebug("Issuer validation result: isValidIssuer={IsValidIssuer}, Issuer={Issuer}, Expected={ExpectedIssuer}", isValidIssuer, cert.Issuer, expectedIssuer);
+                if (!isValidIssuer)
+                {
+                    _logger.LogWarning("Certificate issuer '{Issuer}' does not contain expected '{ExpectedIssuer}'", cert.Issuer, expectedIssuer);
+                }
+
+                bool isValid = isValidCN && isValidIssuer;
+                if (isValid)
+                {
+                    _logger.LogInformation("Certificate validation successful for user: {ExpectedUserName}", expectedUserName);
+                }
+                else
+                {
+                    _logger.LogWarning("Certificate validation failed: CNMatch={IsValidCN}, IssuerValid={IsValidIssuer}", isValidCN, isValidIssuer);
+                    throw new InvalidOperationException($"Certificate validation failed: CN='{certCN}', Expected='{expectedUserName}', Issuer='{cert.Issuer}'");
+                }
+
+                return isValid;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to verify user certificate: {Message}", ex.Message);
+                throw new InvalidOperationException($"Failed to verify user certificate: {ex.Message}", ex);
+            }
+        }
+
+        private class BlankSignatureContainer : IExternalSignatureContainer
+        {
+            private readonly PdfName _filter;
+            private readonly PdfName _subFilter;
+            private byte[]? _data;
+
+            public BlankSignatureContainer(PdfName filter, PdfName subFilter)
+            {
+                _filter = filter;
+                _subFilter = subFilter;
+            }
+
+            public async Task<byte[]?> GetDataAsync()
+            {
+                return await Task.FromResult(_data);
+            }
+
+            public byte[] Sign(Stream data)
+            {
+                using var memoryStream = new MemoryStream();
+                data.CopyTo(memoryStream);
+                _data = memoryStream.ToArray();
+                return [];
+            }
+
+            public void ModifySigningDictionary(PdfDictionary signDic)
+            {
+                signDic.Put(PdfName.Filter, _filter);
+                signDic.Put(PdfName.SubFilter, _subFilter);
+            }
+        }
+
+        private class ExternalSignatureContainer : IExternalSignatureContainer
+        {
+            private readonly byte[] _signature;
+
+            public ExternalSignatureContainer(byte[] signature)
+            {
+                _signature = signature;
+            }
+
+            public async Task<byte[]?> GetDataAsync()
+            {
+                return await Task.FromResult<byte[]?>(null);
+            }
+
+            public byte[] Sign(Stream data)
+            {
+                return _signature;
+            }
+
+            public void ModifySigningDictionary(PdfDictionary signDic)
+            {
+                signDic.Put(PdfName.Filter, PdfName.Adobe_PPKLite);
+                signDic.Put(PdfName.SubFilter, PdfName.Adbe_pkcs7_detached);
+            }
         }
 
 
