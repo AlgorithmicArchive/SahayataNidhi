@@ -18,3 +18,29 @@ html,body,#root{
 .goog-te-gadget-simple{
   border-radius: 25px !important;
 }
+
+/* Container adjustments */
+#google_translate_element {
+  font-size: 0.9rem;
+  color: #1D4ED8;
+}
+
+/* Hide the "Powered by Google" text */
+#google_translate_element .goog-logo-link {
+  display: none !important;
+}
+
+/* Style the dropdown */
+#google_translate_element select.goog-te-combo {
+  border: 1px solid #1D4ED8;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: white;
+  color: #1D4ED8;
+  font-weight: bold;
+}
+
+/* Optional: Remove iframe border */
+.goog-te-banner-frame {
+  display: none !important;
+}

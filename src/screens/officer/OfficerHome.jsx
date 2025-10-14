@@ -23,6 +23,8 @@ import {
   Tooltip as MuiTooltip,
   CardContent,
   Divider,
+  Container as MuiContainer,
+  IconButton,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import axiosInstance from "../../axiosConfig";
@@ -38,6 +40,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  ResponsiveContainer,
 } from "recharts";
 import ServerSideTable from "../../components/ServerSideTable";
 import { useNavigate } from "react-router-dom";
@@ -67,7 +70,10 @@ import {
   DoNotDisturbAlt,
   Person,
   SwapHoriz,
+  ExpandMore,
+  ExpandLess,
 } from "@mui/icons-material";
+import CustomLegend from "../../components/CustomLegend";
 
 // Styled components
 const StatCard = styled(Card)(({ theme }) => ({
@@ -149,6 +155,7 @@ const CardGrid = styled(Box)(({ theme }) => ({
   gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
   justifyContent: "center",
   marginBottom: theme.spacing(4),
+  alignItems: "start",
   [theme.breakpoints.down("sm")]: {
     gridTemplateColumns: "1fr",
     gap: theme.spacing(2),
@@ -230,9 +237,9 @@ export default function OfficerHome() {
       "Total Correction": "#374151",
       "Total Amendment": "#374151",
       "Total Withheld Applications": "#374151",
-      Pending: "#f59e0b",
+      Pending: "#F76F15",
       "Pending With Citizen": "#a855f7",
-      "Withheld Pending": "#f59e0b",
+      "Withheld Pending": "#F76F15",
       "Withheld Forwarded": "#0ea5e9",
       "Withheld Approved": "#10b981",
       Forwarded: "#0ea5e9",
@@ -240,7 +247,7 @@ export default function OfficerHome() {
       Returned: "#f97316",
       Rejected: "#ef4444",
       "Permanent Withheld": "#b91c1c",
-      "Temporary Withheld": "#f59e0b",
+      "Temporary Withheld": "#F76F15",
       Sanctioned: "#10b981",
       Issued: "#059669",
       "PCP-UDID Expires 3 Months": "#14b8a6",
@@ -257,7 +264,7 @@ export default function OfficerHome() {
       "Total Corrigendum": "#FFFFFF",
       "Total Correction": "#FFFFFF",
       "Total Withheld Applications": "#FFFFFF",
-      Pending: "#000000",
+      Pending: "#FFFF",
       Forwarded: "#FFFFFF",
       Returned: "#FFFFFF",
       "Pending With Citizen": "#FFFFFF",
@@ -268,7 +275,7 @@ export default function OfficerHome() {
       "Pension's Stopped": "#FFFFFF",
       "PCP Applications": "#FFFFFF",
       "PCP-UDID Expires 3 Months": "#FFFFFF",
-      "Temporary Withheld": "#000000",
+      "Temporary Withheld": "#FFFF",
       "Permanent Withheld": "#FFFFFF",
     }),
     [],
@@ -500,7 +507,7 @@ export default function OfficerHome() {
     setDataType(isLegacy ? "legacy" : "new");
 
     const url =
-      type === "Corrigendum" || type === "Correction" || type === "Amendment"
+      type === "Corrigendum" || type === "Correction"
         ? "/Officer/GetCorrigendumApplications"
         : statusName === "PCP-UDID Expires 3 Months" ||
           statusName === "PCP Applications"
@@ -995,7 +1002,6 @@ export default function OfficerHome() {
         if (expiration < now) {
           throw new Error("The registered certificate has expired");
         }
-
         const signedBlob = await signPdf(pdfBlob, pinToUse);
         const updateFormData = new FormData();
         updateFormData.append("signedPdf", signedBlob, "signed.pdf");
@@ -1184,8 +1190,8 @@ export default function OfficerHome() {
   const barData = useMemo(() => {
     const labels = ["Total", "Pending"];
     const data = [Math.max(counts.total, 0), Math.max(counts.pending, 0)];
-    const backgroundColor = ["#374151", "#f59e0b"];
-    const borderColor = ["#374151", "#f59e0b"];
+    const backgroundColor = ["#374151", "#F76F15"];
+    const borderColor = ["#374151", "#F76F15"];
     console.log("Officer Authorities in barData:", officerAuthorities);
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
@@ -1237,7 +1243,7 @@ export default function OfficerHome() {
   const pieData = useMemo(() => {
     const labels = ["Pending"];
     const data = [Math.max(counts.pending, 0)];
-    const backgroundColor = ["#f59e0b"];
+    const backgroundColor = ["#F76F15"];
 
     if (officerAuthorities.canForwardToPlayer) {
       labels.push("Forwarded");
@@ -1319,13 +1325,6 @@ export default function OfficerHome() {
   }, [serviceId, type, applicationType, dataType]);
 
   useEffect(() => {
-    console.log("Counts:", counts);
-    console.log("Officer Authorities:", officerAuthorities);
-    console.log("Bar Data:", barData);
-    console.log("Pie Data:", pieData);
-  }, [counts, officerAuthorities, barData, pieData]);
-
-  useEffect(() => {
     const fetchServices = async () => {
       setLoading(true);
       setError(null);
@@ -1345,50 +1344,62 @@ export default function OfficerHome() {
     fetchServices();
   }, []);
 
-  const renderConsolidatedStatCard = (
+  const ConsolidatedStatCard = ({
     title,
     items,
     type,
     sectionTooltip = "",
-  ) => {
+  }) => {
+    const [expanded, setExpanded] = React.useState(false);
+
     if (!items || items.length === 0) return null;
+
     const sortedItems = [...items].sort((a, b) => {
-      if (a.label.startsWith("Total")) return 1;
-      if (b.label.startsWith("Total")) return -1;
+      if (a.label.startsWith("Total")) return -1;
+      if (b.label.startsWith("Total")) return 1;
       return 0;
     });
 
+    const toggleExpanded = () => setExpanded((prev) => !prev);
+    const itemsToShow = expanded ? sortedItems : [sortedItems[0]];
+
     return (
-      <StatCard
-        sx={{
-          padding: "24px",
-          minHeight: "200px",
-          borderRadius: "12px",
-        }}
-      >
-        <MuiTooltip title={sectionTooltip} arrow>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 800,
-              color: "#2d3748",
-              mb: 2,
-              fontFamily: "'Inter', sans-serif",
-            }}
-          >
-            {title}
-          </Typography>
-        </MuiTooltip>
+      <StatCard sx={{ padding: "24px", borderRadius: "12px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 2,
+          }}
+        >
+          <MuiTooltip title={sectionTooltip} arrow>
+            <Typography
+              sx={{
+                fontSize: "1rem",
+                fontWeight: 800,
+                color: "#2d3748",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              {title}
+            </Typography>
+          </MuiTooltip>
+
+          {/* Always show collapse icon */}
+          <IconButton size="small" onClick={toggleExpanded}>
+            {expanded ? <ExpandLess /> : <ExpandMore />}
+          </IconButton>
+        </Box>
+
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-          {sortedItems.map((item, index) => (
+          {itemsToShow.map((item, index) => (
             <Box
               key={index}
               sx={{
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
+                flexDirection: "column", // column for main + forwarded row
                 cursor: "pointer",
-                padding: "8px 12px",
                 borderRadius: "8px",
                 backgroundColor: statusColors[item.label] || "#1976d2",
                 transition: "all 0.2s ease",
@@ -1396,78 +1407,91 @@ export default function OfficerHome() {
                   transform: "translateX(4px)",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                 },
+                "&:hover .forwarded-row": {
+                  display: "flex", // show forwarded row on hover
+                },
               }}
               onClick={() => handleCardClick(item.label, type, item.tableTitle)}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                {iconMap[item.label] || (
-                  <AssignmentTurnedIn sx={{ fontSize: 18, color: "#FFFFFF" }} />
-                )}
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 700,
-                    color: textColors[item.label] || "#FFFFFF",
-                    fontSize: "0.9rem",
-                    fontFamily: "'Inter', sans-serif",
-                  }}
-                >
-                  {item.label}
-                </Typography>
-              </Box>
-              <Typography
-                variant="body1"
-                sx={{
-                  fontWeight: 700,
-                  color: textColors[item.label] || "#FFFFFF",
-                  fontSize: "1rem",
-                  fontFamily: "'Inter', sans-serif",
-                }}
-              >
-                {item.count || 0}
-              </Typography>
-            </Box>
-          ))}
-          {sortedItems.find((item) => item.label === "Total Applications") &&
-            legacyCountList.length > 0 && (
+              {/* Main row */}
               <Box
                 sx={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  mt: 1,
                   padding: "8px 12px",
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  {iconMap["Total Applications"] || (
+                  {iconMap[item.label] || (
                     <AssignmentTurnedIn
-                      sx={{ fontSize: 18, color: "#2d3748" }}
+                      sx={{ fontSize: 18, color: "#FFFFFF" }}
                     />
                   )}
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 700,
+                      color: textColors[item.label] || "#FFFFFF",
+                      fontSize: "0.9rem",
+                      fontFamily: "'Inter', sans-serif",
+                    }}
+                  >
+                    {item.label}
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 700,
+                    color: textColors[item.label] || "#FFFFFF",
+                    fontSize: "1rem",
+                    fontFamily: "'Inter', sans-serif",
+                  }}
+                >
+                  {item.count || 0}
+                </Typography>
+              </Box>
+
+              {/* Forwarded/Sanctioned row (hidden by default, shows on hover) */}
+              {item.forwardedSanctionedCount != null && (
+                <Box
+                  className="forwarded-row"
+                  sx={{
+                    display: "none", // hidden initially
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "4px 12px",
+                    backgroundColor: "rgba(0,0,0,0.1)", // optional highlight
+                    borderRadius: "0 0 8px 8px",
+                  }}
+                >
                   <Typography
                     variant="body2"
                     sx={{
                       fontWeight: 600,
+                      color: textColors[item.label] || "#FFFFFF",
                       fontSize: "0.8rem",
-                      color: "#2d3748",
+                      fontFamily: "'Inter', sans-serif",
                     }}
                   >
-                    Legacy Total
+                    {title.includes("Applications") ? "Sanctioned" : "Issued"}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 700,
+                      color: textColors[item.label] || "#FFFFFF",
+                      fontSize: "0.8rem",
+                      fontFamily: "'Inter', sans-serif",
+                    }}
+                  >
+                    {item.forwardedSanctionedCount || 0}
                   </Typography>
                 </Box>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: "0.8rem",
-                    color: "#2d3748",
-                  }}
-                >
-                  {legacyCountList[0]?.count || 0}
-                </Typography>
-              </Box>
-            )}
+              )}
+            </Box>
+          ))}
         </Box>
       </StatCard>
     );
@@ -1521,30 +1545,58 @@ export default function OfficerHome() {
       sx={{
         width: "100%",
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #f5f5f5, #eceff1)",
+        background:
+          "linear-gradient(to bottom right, #F4F9FF 0%, #F9F3EC 100%)",
         pb: 6,
       }}
     >
       <Box
         sx={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          py: 6,
+          background: "linear-gradient(135deg, #F67015 0%, #0FB282 100%)",
+          py: { xs: 4, md: 6 },
           mb: 6,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "200px",
         }}
       >
-        <Container>
-          <Typography
-            variant="h3"
+        <MuiContainer maxWidth="lg">
+          <Box
             sx={{
-              fontWeight: 700,
-              color: "#FFFFFF",
-              textAlign: "center",
-              fontFamily: "'Inter', sans-serif",
-              textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              alignItems: "center",
+              justifyContent: "center",
+              gap: { xs: 0, md: 2 },
+              mb: 1,
             }}
           >
-            {officerRole} Dashboard
-          </Typography>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                color: "#FFFFFF",
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
+                textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {officerRole}
+            </Typography>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                color: "#FFFFFF",
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
+                textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              Dashboard
+            </Typography>
+          </Box>
           <Typography
             variant="h6"
             sx={{
@@ -1552,16 +1604,15 @@ export default function OfficerHome() {
               color: "rgba(255, 255, 255, 0.9)",
               textAlign: "center",
               fontFamily: "'Inter', sans-serif",
-              mt: 1,
             }}
           >
             {officerArea}
           </Typography>
-        </Container>
+        </MuiContainer>
       </Box>
 
       <SectionContainer>
-        <Box sx={{ mb: 6 }}>
+        <Box sx={{ mb: 6, width: "100%" }}>
           <ServiceSelectionForm
             services={services}
             errors={errors}
@@ -1579,77 +1630,85 @@ export default function OfficerHome() {
         </Box>
 
         <CardGrid>
-          {counts &&
-            countList?.length > 0 &&
-            renderConsolidatedStatCard(
-              "Applications Overview",
-              countList,
-              "application",
-              "Overview of all application statuses",
-            )}
+          {counts && countList?.length > 0 && (
+            <ConsolidatedStatCard
+              title="Applications Overview"
+              items={countList}
+              type="application"
+              sectionTooltip="Overview of all application statuses"
+            />
+          )}
 
           {!officerAuthorities.canReturnToCitizen &&
-            citizenPendingList.length > 0 &&
-            renderConsolidatedStatCard(
-              "Pending With Citizens",
-              citizenPendingList,
-              "application",
-              "Applications pending with citizens",
+            citizenPendingList.length > 0 && (
+              <ConsolidatedStatCard
+                title="Pending With Citizens"
+                items={citizenPendingList}
+                type="application"
+                sectionTooltip="Applications pending with citizens"
+              />
             )}
 
-          {withheldCountList.length > 0 &&
-            renderConsolidatedStatCard(
-              "Withheld Payments",
-              withheldCountList,
-              "withheld",
-              "Applications withheld after sanction",
-            )}
+          {withheldCountList.length > 0 && (
+            <ConsolidatedStatCard
+              title="Withheld Payments"
+              items={withheldCountList}
+              type="withheld"
+              sectionTooltip="Applications withheld after sanction"
+            />
+          )}
 
-          {temporaryCountList.length > 0 &&
-            renderConsolidatedStatCard(
-              "Physically Challenged",
-              temporaryCountList,
-              "application",
-              "Physically challenged applications",
-            )}
+          {temporaryCountList.length > 0 && (
+            <ConsolidatedStatCard
+              title="Physically Challenged"
+              items={temporaryCountList}
+              type="application"
+              sectionTooltip="Physically challenged applications"
+            />
+          )}
 
-          {corrigendumList?.length > 0 &&
-            renderConsolidatedStatCard(
-              "Corrigendums",
-              corrigendumList,
-              "Corrigendum",
-              "Corrigendums issued after cases are sanctioned",
-            )}
+          {corrigendumList?.length > 0 && (
+            <ConsolidatedStatCard
+              title="Corrigendums"
+              items={corrigendumList}
+              type="Corrigendum"
+              sectionTooltip="Corrigendums issued after cases are sanctioned"
+            />
+          )}
 
-          {amendmentList?.length > 0 &&
-            renderConsolidatedStatCard(
-              "Datat Updations",
-              amendmentList,
-              "Amendments",
-              "Amendments issued after cases are sanctioned",
-            )}
+          {/* {amendmentList?.length > 0 && (
+            <ConsolidatedStatCard
+              title="Data Updations"
+              items={amendmentList}
+              type="Amendments"
+              sectionTooltip="Amendments issued after cases are sanctioned"
+            />
+          )} */}
 
-          {correctionList?.length > 0 &&
-            renderConsolidatedStatCard(
-              "Corrections",
-              correctionList,
-              "Correction",
-              "Corrections made before cases are sanctioned",
-            )}
+          {correctionList?.length > 0 && (
+            <ConsolidatedStatCard
+              title="Corrections"
+              items={correctionList}
+              type="Correction"
+              sectionTooltip="Corrections made before cases are sanctioned"
+            />
+          )}
 
-          {legacyCountList?.length > 0 &&
-            renderConsolidatedStatCard(
-              "Legacy Applications",
-              legacyCountList,
-              "Legacy",
-              "Legacy applications overview",
-            )}
+          {legacyCountList?.length > 0 && (
+            <ConsolidatedStatCard
+              title="Legacy Applications"
+              items={legacyCountList}
+              type="Legacy"
+              sectionTooltip="Legacy applications overview"
+            />
+          )}
         </CardGrid>
 
         <Divider sx={{ borderColor: "#d1d5db", borderBottomWidth: 2, my: 6 }} />
 
         {counts && countList?.length > 0 && (
           <Row>
+            {/* Pie / Donut Chart */}
             <Col xs={12} lg={6} className="mb-4">
               <StyledCard>
                 <CardContent sx={{ p: 4 }}>
@@ -1664,6 +1723,7 @@ export default function OfficerHome() {
                   >
                     Application Status Distribution
                   </Typography>
+
                   <Box
                     sx={{
                       height: "400px",
@@ -1672,30 +1732,36 @@ export default function OfficerHome() {
                     }}
                   >
                     {pieData.datasets[0].data.some((value) => value > 0) ? (
-                      <PieChart width={600} height={400}>
-                        <Pie
-                          data={pieData.labels.map((label, index) => ({
-                            name: label,
-                            value: pieData.datasets[0].data[index],
-                          }))}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={150}
-                          fill="#8884d8"
-                          label
-                        >
-                          {pieData.labels.map((_, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={pieData.datasets[0].backgroundColor[index]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={pieData.labels.map((label, index) => ({
+                              name: label,
+                              value: pieData.datasets[0].data[index],
+                            }))}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius="80%" // relative to container
+                            innerRadius="50%" // donut hole
+                            paddingAngle={2} // gap between slices
+                            cornerRadius={5} // rounded edges
+                            label
+                          >
+                            {pieData.labels.map((_, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={
+                                  pieData.datasets[0].backgroundColor[index]
+                                }
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend content={<CustomLegend />} />
+                        </PieChart>
+                      </ResponsiveContainer>
                     ) : (
                       <Typography>No data available for pie chart</Typography>
                     )}
@@ -1703,6 +1769,8 @@ export default function OfficerHome() {
                 </CardContent>
               </StyledCard>
             </Col>
+
+            {/* Bar Chart */}
             <Col xs={12} lg={6} className="mb-4">
               <StyledCard>
                 <CardContent sx={{ p: 4 }}>
@@ -1717,6 +1785,7 @@ export default function OfficerHome() {
                   >
                     Applications Count Overview
                   </Typography>
+
                   <Box
                     sx={{
                       height: "400px",
@@ -1725,36 +1794,38 @@ export default function OfficerHome() {
                     }}
                   >
                     {barData.datasets[0].data.some((value) => value > 0) ? (
-                      <BarChart
-                        width={600}
-                        height={400}
-                        data={barData.labels.map((label, index) => ({
-                          name: label,
-                          value: barData.datasets[0].data[index],
-                        }))}
-                        margin={barChartOptions.margin}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="name"
-                          angle={-45}
-                          textAnchor="end"
-                          interval={0}
-                          height={60}
-                          tick={{ fontSize: 12 }}
-                        />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#8884d8">
-                          {barData.labels.map((_, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={barData.datasets[0].backgroundColor[index]}
-                            />
-                          ))}
-                        </Bar>
-                      </BarChart>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={barData.labels.map((label, index) => ({
+                            name: label,
+                            value: barData.datasets[0].data[index],
+                          }))}
+                          margin={barChartOptions.margin}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="name"
+                            angle={-45}
+                            textAnchor="end"
+                            interval={0}
+                            height={60}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="value" radius={[10, 10, 0, 0]}>
+                            {barData.labels.map((_, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={
+                                  barData.datasets[0].backgroundColor[index]
+                                }
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
                     ) : (
                       <Typography>No data available for bar chart</Typography>
                     )}

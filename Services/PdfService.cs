@@ -231,32 +231,25 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
         Table footerTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 }))
             .UseAllAvailableWidth();
         footerTable.AddCell(new Cell()
-            .Add(new Paragraph($"Date: {DateTime.Today:dd/MM/yyyy}")
-                .SetFontSize(8)
-                .SetFontColor(ColorConstants.BLUE)
-                .SetBold())
             .SetBorder(Border.NO_BORDER)
             .SetTextAlignment(TextAlignment.LEFT));
         footerTable.AddCell(new Cell()
-            .Add(new Paragraph($"{Officer.Role}, {GetArreaName(Officer.AccessLevel, Officer.AccessCode)}")
+            .Add(new Paragraph("ISSUING AUTHORITY")
                 .SetFontSize(10)
                 .SetBold())
             .SetBorder(Border.NO_BORDER)
-            .SetTextAlignment(TextAlignment.RIGHT));
+            .SetTextAlignment(TextAlignment.RIGHT)
+            .Add(new Paragraph($"{Officer.Role}, {GetArreaName(Officer.AccessLevel, Officer.AccessCode)}")
+                .SetFontSize(10)
+                .SetBold()));
+
         document.Add(footerTable);
 
         document.Close();
         await helper.GetFilePath(null, memoryStream.ToArray(), ApplicationId.Replace("/", "_") + "_SanctionLetter.pdf");
     }
 
-    public async Task CreateCorrigendumSanctionPdf(
-     string corrigendumFieldsJson,
-     string applicationId,
-     OfficerDetailsModal officer,
-     string serviceName,
-     string corrigendumId,
-     string sanctionedDate,
-     string type)
+    public async Task CreateCorrigendumSanctionPdf(string corrigendumFieldsJson, string applicationId, OfficerDetailsModal officer, string serviceName, string corrigendumId, string sanctionedDate, string type)
     {
         if (string.IsNullOrEmpty(corrigendumFieldsJson))
             throw new ArgumentException($"{type} fields JSON cannot be null or empty.");
@@ -378,13 +371,17 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
         // --- Footer ---
         Table footerTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 })).UseAllAvailableWidth();
         footerTable.AddCell(new Cell()
-            .Add(new Paragraph($"Date: {DateTime.Today:dd/MM/yyyy}").SetFontSize(8).SetFontColor(ColorConstants.BLUE).SetBold())
             .SetBorder(Border.NO_BORDER)
             .SetTextAlignment(TextAlignment.LEFT));
         footerTable.AddCell(new Cell()
-            .Add(new Paragraph($"{officer.Role}, {GetArreaName(officer.AccessLevel, officer.AccessCode)}").SetFontSize(10).SetBold())
+            .Add(new Paragraph("ISSUING AUTHORITY")
+                .SetFontSize(10)
+                .SetBold())
             .SetBorder(Border.NO_BORDER)
-            .SetTextAlignment(TextAlignment.RIGHT));
+            .SetTextAlignment(TextAlignment.RIGHT)
+            .Add(new Paragraph($"{officer.Role}, {GetArreaName(officer.AccessLevel, officer.AccessCode)}")
+                .SetFontSize(10)
+                .SetBold()));
 
         Div div = new Div().SetKeepTogether(true);
         div.Add(table);
@@ -395,6 +392,6 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
         document.Add(div);
         document.Close();
 
-        await helper.GetFilePath(null, memoryStream.ToArray(), corrigendumId.Replace("/", "_") + $"_{type}SanctionLetter.pdf");
+        await helper.GetFilePath(null, memoryStream.ToArray(), corrigendumId.Replace("/", "_") + $"_{type}_SanctionLetter.pdf");
     }
 }

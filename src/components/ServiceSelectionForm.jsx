@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Box } from "@mui/material";
-import { useForm } from "react-hook-form";
-import CustomSelectField from "./form/CustomSelectField";
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+} from "@mui/material";
+import { useForm, Controller } from "react-hook-form";
 import CustomButton from "./CustomButton";
 
 const ServiceSelectionForm = ({ services, errors, onServiceSelect }) => {
@@ -14,12 +20,12 @@ const ServiceSelectionForm = ({ services, errors, onServiceSelect }) => {
 
   useEffect(() => {
     if (services.length > 0) {
-      // Always select the first service by default
+      // Default to first service
       const defaultService = services[0].value;
       setSelectedValue(defaultService);
       setValue("Service", defaultService);
 
-      // If there's only one service, auto-submit
+      // Auto-submit if only one service
       if (services.length === 1) {
         handleSubmit(onSubmit)();
       }
@@ -28,29 +34,52 @@ const ServiceSelectionForm = ({ services, errors, onServiceSelect }) => {
 
   return (
     <Box
+      component="form"
+      onSubmit={handleSubmit(onSubmit)}
       sx={{
         margin: "0 auto",
         color: "primary.main",
+        width: "100%",
       }}
     >
-      <CustomSelectField
-        control={control}
-        options={services}
-        value={selectedValue}
-        label="Select Service"
-        name="Service"
-        rules={{ required: "This field is required" }}
-        errors={errors}
-        onChange={(e) => setSelectedValue(e.target.value)}
-      />
+      <FormControl fullWidth margin="normal" error={!!errors?.Service}>
+        <InputLabel id="service-select-label">Select Service</InputLabel>
+        <Controller
+          name="Service"
+          control={control}
+          rules={{ required: "This field is required" }}
+          render={({ field }) => (
+            <Select
+              {...field}
+              labelId="service-select-label"
+              value={selectedValue}
+              label="Select Service"
+              onChange={(e) => {
+                field.onChange(e);
+                setSelectedValue(e.target.value);
+              }}
+            >
+              {services.map((service) => (
+                <MenuItem key={service.value} value={service.value}>
+                  {service.label}
+                </MenuItem>
+              ))}
+            </Select>
+          )}
+        />
+        {errors?.Service && (
+          <FormHelperText>{errors.Service.message}</FormHelperText>
+        )}
+      </FormControl>
+
       {services.length > 1 && (
         <CustomButton
           type="submit"
-          onClick={handleSubmit(onSubmit)}
           text="Get Details"
           bgColor="primary.main"
           color="background.paper"
           width="50%"
+          sx={{ mt: 2 }}
         />
       )}
     </Box>

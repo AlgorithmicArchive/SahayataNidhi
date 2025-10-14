@@ -213,7 +213,7 @@ namespace SahayataNidhi.Controllers.Officer
             // Build count lists using a helper function
             var countList = BuildMainApplicationCounts(counts, officerAuthorities);
             var corrigendumList = BuildCorrigendumCounts(counts, officerAuthorities);
-            var amendmentList = BuildAmendmentCounts(counts, officerAuthorities);
+            // var amendmentList = BuildAmendmentCounts(counts, officerAuthorities);
             var correctionList = BuildCorrectionCounts(counts, officerAuthorities);
             var temporaryCountList = new List<dynamic>();
             var withheldCountList = new List<dynamic>();
@@ -337,7 +337,7 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 countList,
                 corrigendumList,
-                amendmentList,
+                // amendmentList,
                 correctionList,
                 temporaryCountList,
                 withheldCountList,
@@ -3347,7 +3347,7 @@ namespace SahayataNidhi.Controllers.Officer
                 message = $"You don't have access of this application. This application belongs to District: {district!.DistrictName}, Tehsil: {tehsil!.TehsilName}",
             });
         }
-  
-        
+
+
     }
 }

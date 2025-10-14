@@ -217,7 +217,7 @@ export default function LoginScreen() {
         alignItems: "center",
         minHeight: { xs: "90vh", lg: "80vh" },
         background:
-          "linear-gradient(135deg,rgb(252, 252, 252) 0%,rgb(240, 236, 236) 100%)",
+          "linear-gradient(to bottom right, #F4F9FF 0%, #F9F3EC 100%)",
         padding: { xs: 2, md: 4 },
       }}
     >
@@ -240,7 +240,13 @@ export default function LoginScreen() {
             variant="h4"
             component="h1"
             id="login-title"
-            sx={{ fontWeight: 700, color: "primary.main", mb: 1 }}
+            sx={{
+              fontWeight: 700,
+              mb: 1,
+              background: "linear-gradient(to bottom right, #2561E8, #1F43B4)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
           >
             Login
           </Typography>
@@ -376,8 +382,8 @@ export default function LoginScreen() {
 
           <CustomButton
             text={buttonLoading ? "Logging In..." : "Log In"}
-            bgColor="primary.main"
-            color="background.default"
+            bgColor="linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)"
+            color="#FDF6F0"
             type="submit"
             width="100%"
             disabled={buttonLoading}
@@ -389,7 +395,6 @@ export default function LoginScreen() {
               fontWeight: 600,
               textTransform: "none",
               "&:hover": {
-                backgroundColor: "primary.dark",
                 transform: "scale(1.02)",
                 transition: "all 0.2s ease",
               },
@@ -457,6 +462,11 @@ export default function LoginScreen() {
             onClick={handleOtpVerify}
             disabled={buttonLoading}
             aria-label="Verify OTP"
+            sx={{
+              background:
+                "linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)",
+              color: "#FDF6F0",
+            }}
           >
             Verify
           </Button>

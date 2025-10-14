@@ -5,54 +5,67 @@ import CustomCard from "../../components/CustomCard";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import {
+  GirlSharp,
+  FavoriteBorderOutlined,
+  AccountBalanceSharp,
+} from "@mui/icons-material";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function HomeScreen() {
   const navigate = useNavigate();
-  const section1Ref = useRef();
-  const card1Ref = useRef();
-  const card2Ref = useRef();
-  const card3Ref = useRef();
+  const section1Ref = useRef(null); // Ensure ref is initialized as null
+  const card1Ref = useRef(null);
+  const card2Ref = useRef(null);
+  const card3Ref = useRef(null);
 
   useEffect(() => {
-    gsap.fromTo(
-      section1Ref.current,
-      { opacity: 1 },
-      {
-        opacity: 0,
-        duration: 1,
-        scrollTrigger: {
-          trigger: section1Ref.current,
-          start: "bottom 90%",
-          scrub: true,
-          toggleActions: "restart none none none",
-        },
-      },
+    // Check if refs are attached to DOM elements before animating
+    const section1 = section1Ref.current;
+    const cards = [card1Ref.current, card2Ref.current, card3Ref.current].filter(
+      (ref) => ref !== null,
     );
 
-    gsap.fromTo(
-      [card1Ref.current, card2Ref.current, card3Ref.current],
-      {
-        x: -200,
-        opacity: 0,
-      },
-      {
-        x: 0,
-        opacity: 1,
-        duration: 1,
-        delay: 0.2,
-        stagger: 0.2,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: card1Ref.current,
-          start: "top 80%",
-          end: "bottom 20%",
-          toggleActions: "play reverse play reverse",
+    if (section1) {
+      gsap.fromTo(
+        section1,
+        { opacity: 1 },
+        {
+          opacity: 1,
+          duration: 1,
+          scrollTrigger: {
+            trigger: section1,
+            start: "bottom 90%",
+            scrub: true,
+            toggleActions: "restart none none none",
+          },
         },
-      },
-    );
+      );
+    }
 
+    if (cards.length > 0) {
+      gsap.fromTo(
+        cards,
+        { x: -200, opacity: 0 },
+        {
+          x: 0,
+          opacity: 1,
+          duration: 1,
+          delay: 0.2,
+          stagger: 0.2,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: card1Ref.current,
+            start: "top 80%",
+            end: "bottom 20%",
+            toggleActions: "play reverse play reverse",
+          },
+        },
+      );
+    }
+
+    // Cleanup ScrollTriggers on unmount
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
@@ -69,6 +82,8 @@ export default function HomeScreen() {
           display: "flex",
           alignItems: "center",
           py: { xs: 4, sm: 6, md: 8 },
+          background:
+            "linear-gradient(to bottom right, #F4F9FF 0%, #F9F3EC 100%)",
         }}
       >
         <Container>
@@ -82,33 +97,92 @@ export default function HomeScreen() {
                   px: { xs: 2, sm: 3 },
                 }}
               >
-                <Typography
+                <Box
                   sx={{
-                    fontWeight: "bold",
+                    display: "flex",
+                    flexDirection: "column",
                     wordBreak: "break-word",
                     maxWidth: { xs: "100%", md: "500px" },
-                    fontSize: {
-                      xs: "clamp(2rem, 8vw, 2.5rem)",
-                      sm: "clamp(2.5rem, 7vw, 3rem)",
-                      md: "clamp(3rem, 6vw, 3.75rem)",
-                    },
-                    lineHeight: 1.2,
+                    fontFamily:
+                      "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif",
                   }}
                 >
-                  Facilitating Financial Assistance for Every Citizen
-                </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: {
+                        xs: "clamp(2.5rem, 6vw, 4.5rem)",
+                        sm: "clamp(3rem, 7vw, 5.5rem)",
+                        md: "72px",
+                      },
+                      color: "#F67015",
+                      m: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Facilitating
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: {
+                        xs: "clamp(2.5rem, 6vw, 4.5rem)",
+                        sm: "clamp(3rem, 7vw, 5.5rem)",
+                        md: "72px",
+                      },
+                      color: "#235BDE",
+                      m: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Financial
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: {
+                        xs: "clamp(2.5rem, 6vw, 4.5rem)",
+                        sm: "clamp(3rem, 7vw, 5.5rem)",
+                        md: "72px",
+                      },
+                      color: "#0FB282",
+                      m: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Assistance
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: {
+                        xs: "clamp(1.5rem, 5vw, 2rem)",
+                        sm: "clamp(1.75rem, 5vw, 2.5rem)",
+                        md: "2.5rem",
+                      },
+                      m: 1,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    for Every Citizen
+                  </Typography>
+                </Box>
 
                 <Typography
                   variant="subtitle1"
                   sx={{
-                    color: "text.secondary",
-                    maxWidth: { xs: "100%", md: "500px" },
+                    backgroundColor: "#fff",
+                    borderRadius: 3,
+                    p: 3,
+                    color: "#1e1e1eff",
+                    maxWidth: { xs: "100%", md: "800px" },
                     wordBreak: "break-word",
                     fontSize: {
                       xs: "clamp(0.9rem, 3vw, 1rem)",
                       sm: "clamp(1rem, 2.5vw, 1.1rem)",
                       md: "clamp(1.1rem, 2vw, 1.2rem)",
                     },
+                    boxShadow: 3,
                   }}
                 >
                   Submit your application for welfare schemes through a
@@ -121,12 +195,14 @@ export default function HomeScreen() {
                   component="button"
                   sx={{
                     border: "none",
-                    backgroundColor: "primary.main",
+                    background:
+                      "linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)",
                     padding: { xs: "0.5rem 1rem", sm: "0.75rem 1.5rem" },
-                    width: { xs: "100%", sm: "50%", md: "40%" },
+                    width: { xs: "100%", sm: "50%", md: "30%" },
                     color: "#FDF6F0",
                     fontWeight: "bold",
-                    borderRadius: 1,
+                    borderRadius: 3,
+                    padding: 2,
                     fontSize: {
                       xs: "clamp(0.9rem, 3vw, 1rem)",
                       sm: "clamp(1rem, 2.5vw, 1.1rem)",
@@ -173,7 +249,8 @@ export default function HomeScreen() {
         sx={{
           minHeight: { xs: "auto", sm: "80vh", md: "90vh" },
           width: "100%",
-          backgroundColor: "background.default",
+          background:
+            "linear-gradient(to bottom right, #F0F7FE 0%, #FDF7F0 100%)",
           py: { xs: 4, sm: 6, md: 8 },
         }}
       >
@@ -191,17 +268,36 @@ export default function HomeScreen() {
                 <Typography
                   sx={{
                     textAlign: "center",
-                    fontSize: {
-                      xs: "clamp(1.5rem, 6vw, 2rem)",
-                      sm: "clamp(2rem, 8vw, 3rem)",
-                      md: "clamp(3rem, 10vw, 6rem)",
-                    },
+                    fontSize: { xs: "clamp(3rem, 5vw, 3rem)" },
                     lineHeight: 1.4,
                     fontWeight: "bold",
                   }}
                 >
-                  Services Provided
+                  <Box
+                    component="span"
+                    sx={{
+                      background:
+                        "linear-gradient(to bottom right, #2561E8, #1F43B4)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      mr: 1,
+                    }}
+                  >
+                    Services
+                  </Box>
+                  <Box
+                    component="span"
+                    sx={{
+                      background:
+                        "linear-gradient(to bottom right, #E4630A, #F9A825)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    Provided
+                  </Box>
                 </Typography>
+
                 <Typography
                   sx={{
                     textAlign: "center",
@@ -216,45 +312,38 @@ export default function HomeScreen() {
                     mt: 2,
                   }}
                 >
-                  Our platform offers a wide array of government-backed
-                  financial assistance services designed to support economically
-                  and socially vulnerable citizens. From scheme-specific
-                  applications to transparent processing and sanctioning, each
-                  service is aimed at promoting inclusive development and
-                  ensuring timely support reaches those who need it most.
+                  Government-backed financial assistance services for
+                  economically and socially vulnerable citizens.
                 </Typography>
               </Col>
             </Row>
             <Row className="g-4">
-              <Col xs={12} sm={6} md={4}>
-                <div ref={card1Ref}>
-                  <CustomCard
-                    heading={"Ladli Beti"}
-                    discription={
-                      "Aimed at promoting the education and well-being of the girl child, this scheme provides financial support to families for the upbringing and education of daughters. Eligible beneficiaries receive structured monetary assistance at different stages of the child's development to reduce gender disparity and encourage empowerment."
-                    }
-                  />
-                </div>
+              <Col xs={12} sm={6} md={4} style={{ display: "flex" }}>
+                <CustomCard
+                  ref={card1Ref}
+                  heading="Ladli Beti"
+                  description="Aimed at promoting the education and well-being of the girl child, this scheme provides financial support to families for the upbringing and education of daughters. Eligible beneficiaries receive structured monetary assistance at different stages of the child's development to reduce gender disparity and encourage empowerment."
+                  gradient="linear-gradient(to bottom right, #F44336, #E91E63)"
+                  icon={<GirlSharp fontSize="large" />}
+                />
               </Col>
-              <Col xs={12} sm={6} md={4}>
-                <div ref={card2Ref}>
-                  <CustomCard
-                    heading={"Marriage Assistance"}
-                    discription={
-                      "This scheme extends financial assistance to economically disadvantaged women at the time of their marriage. It is intended to support families facing financial constraints, ensuring dignity and reducing the economic burden associated with marriage expenses."
-                    }
-                  />
-                </div>
+              <Col xs={12} sm={6} md={4} style={{ display: "flex" }}>
+                <CustomCard
+                  ref={card2Ref}
+                  heading="Marriage Assistance"
+                  description="This scheme extends financial assistance to economically disadvantaged women at the time of their marriage. It is intended to support families facing financial constraints, ensuring dignity and reducing the economic burden associated with marriage expenses."
+                  gradient="linear-gradient(to bottom right, #4CAF50, #81C784)"
+                  icon={<FavoriteBorderOutlined fontSize="large" />}
+                />
               </Col>
-              <Col xs={12} sm={6} md={4}>
-                <div ref={card3Ref}>
-                  <CustomCard
-                    heading={"JK-ISSS Pension"}
-                    discription={
-                      "This comprehensive pension program offers financial security to senior citizens, persons with disabilities, women in distress, and transgender individuals. Monthly pension support ensures dignity, inclusion, and sustenance for those in need, contributing to social justice and welfare."
-                    }
-                  />
-                </div>
+              <Col xs={12} sm={6} md={4} style={{ display: "flex" }}>
+                <CustomCard
+                  ref={card3Ref}
+                  heading="JK-ISSS Pension"
+                  description="This comprehensive pension program offers financial security to senior citizens, persons with disabilities, women in distress, and transgender individuals. Monthly pension support ensures dignity, inclusion, and sustenance for those in need, contributing to social justice and welfare."
+                  gradient="linear-gradient(to bottom right, #2561E8, #1F43B4)"
+                  icon={<AccountBalanceSharp fontSize="large" />}
+                />
               </Col>
             </Row>
           </Box>

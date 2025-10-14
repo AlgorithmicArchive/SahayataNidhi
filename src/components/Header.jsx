@@ -55,7 +55,7 @@ const Header = () => {
       {/* Banner with Marquee Effect */}
       <Box
         sx={{
-          backgroundColor: "#FFF3CD",
+          backgroundColor: "#0C7F6D",
           borderBottom: "2px solid #333333",
           overflow: "hidden",
         }}
@@ -63,10 +63,11 @@ const Header = () => {
         <Container>
           <Typography
             sx={{
-              py: 1,
-              px: { xs: 2, md: 6 },
-              color: "#856404",
-              fontSize: { xs: "0.9rem", md: "1rem" },
+              color: "#fff",
+              fontSize: { xs: "0.9rem", md: "0.8rem" },
+              fontWeight: "500",
+              fontFamily:
+                "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif",
               whiteSpace: "nowrap",
               display: "inline-block",
               animation: "marquee 20s linear infinite",
@@ -80,36 +81,130 @@ const Header = () => {
           >
             This is a demo portal for testing only. Data entered here will not
             be transferred to the working portal. Send suggestion / feedback to{" "}
-            <a href="mailto:anil.abrol@nic.in">anil.abrol@nic.in</a>.
+            <a
+              href="mailto:anil.abrol@nic.in"
+              style={{ color: "#fef3c7", fontWeight: "bold" }}
+            >
+              anil.abrol@nic.in
+            </a>
+            .
           </Typography>
         </Container>
       </Box>
 
       {/* Top Row */}
-      <Box sx={{ borderBottom: "2px solid #333333" }}>
-        <Container>
+      <Box sx={{ borderBottom: "1px solid #ccc", backgroundColor: "#eff6ff" }}>
+        <Container maxWidth={false} disableGutters>
           <Box
             sx={{
-              backgroundColor: "#FFFFFF",
-              color: "#333333",
-              py: 1,
-              px: { xs: 2, md: 6 },
-              display: { xs: "none", md: "flex" },
-              justifyContent: "center",
+              display: "flex", // Always flex, no block on xs
+              flexWrap: "nowrap", // Prevent wrapping
+              justifyContent: "space-between",
               alignItems: "center",
-              gap: 3,
+              overflowX: "auto", // allow scroll on very small screens instead of wrapping
+              whiteSpace: "nowrap",
+              py: 0.5,
+              px: { xs: 2, md: 10, lg: 20 },
+              color: "#1a237e",
+              fontSize: { xs: "0.7rem", md: "0.875rem" },
+              gap: { xs: 1, md: 2 },
+              "&::-webkit-scrollbar": { display: "none" }, // hide scrollbar for clean look
             }}
             translate="no"
             className="notranslate"
           >
-            <Typography>जम्मू और कश्मीर सरकार</Typography>
-            <Typography>GOVERNMENT OF JAMMU AND KASHMIR</Typography>
-            <Typography>حکومت جموں و کشمیر</Typography>
-
+            {/* Left multilingual text */}
             <Box
-              sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 3 }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                flexShrink: 0,
+                gap: { xs: 1, sm: 2 },
+              }}
             >
-              <Select displayEmpty size="small" sx={{ minWidth: 60 }}>
+              <Typography
+                sx={{
+                  color: "#1D4ED8",
+                  fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                  fontWeight: "bold",
+                }}
+              >
+                जम्मू और कश्मीर सरकार
+              </Typography>
+
+              <Box
+                sx={{
+                  width: "1px",
+                  backgroundColor: "black",
+                  height: "18px",
+                  display: { xs: "none", sm: "block" },
+                }}
+              />
+
+              <Typography
+                sx={{
+                  color: "#1E3A8A",
+                  fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                  fontWeight: "bold",
+                }}
+              >
+                GOVERNMENT OF JAMMU AND KASHMIR
+              </Typography>
+
+              <Box
+                sx={{
+                  width: "1px",
+                  backgroundColor: "black",
+                  height: "18px",
+                  display: { xs: "none", sm: "block" },
+                }}
+              />
+
+              <Typography
+                sx={{
+                  color: "#1D4ED8",
+                  fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                  fontWeight: "bold",
+                }}
+              >
+                حکومت جموں و کشمیر
+              </Typography>
+            </Box>
+
+            {/* Right-side controls */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                flexShrink: 0,
+                gap: { xs: 1, sm: 2 },
+              }}
+            >
+              <Select
+                displayEmpty
+                size="small"
+                sx={{
+                  width: "auto",
+                  minWidth: "unset",
+                  border: "1px solid #1D4ED8",
+                  borderRadius: "8px",
+                  fontSize: "0.75rem",
+                  "& .MuiSelect-select": {
+                    pl: 1,
+                    pr: "8px !important",
+                    py: 0.25,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                  "&:hover": { borderColor: "#1E40AF" },
+                  "& .MuiSvgIcon-root": { display: "none" },
+                }}
+                MenuProps={{
+                  PaperProps: { sx: { borderRadius: "8px" } },
+                }}
+              >
                 <MenuItem onClick={decreaseFont}>A-</MenuItem>
                 <MenuItem onClick={resetFont}>A</MenuItem>
                 <MenuItem onClick={increaseFont}>A+</MenuItem>
@@ -122,66 +217,131 @@ const Header = () => {
       </Box>
 
       {/* Middle Row */}
-      <Box sx={{ borderBottom: "2px solid #333333" }}>
-        <Container>
+      <Box sx={{ borderBottom: "1px solid #ccc", backgroundColor: "#F7FBFF" }}>
+        <Container maxWidth={false} disableGutters>
           <Box
             sx={{
-              backgroundColor: "#FFFFFF",
               display: "flex",
+              flexWrap: "nowrap", // prevent wrapping
               justifyContent: "space-between",
               alignItems: "center",
-              py: 1,
-              px: { xs: 2, md: 6 },
-              flexDirection: { xs: "column", md: "row" },
-              gap: { xs: 2, md: 0 },
+              overflowX: "auto", // scroll on very small screens
+              whiteSpace: "nowrap",
+              py: 0.5,
+              px: { xs: 2, md: 10, lg: 20 },
+              color: "#1a237e",
+              fontSize: { xs: "0.7rem", md: "0.875rem" },
+              gap: { xs: 1, md: 2 },
+              "&::-webkit-scrollbar": { display: "none" }, // hide scrollbar
             }}
             translate="no"
             className="notranslate"
           >
+            {/* Left: Emblem + Text */}
             <Box
               sx={{
                 display: "flex",
-                justifyContent: { xs: "center", md: "flex-start" },
                 alignItems: "center",
                 gap: 2,
-                flexDirection: { xs: "column", md: "row" },
+                flexDirection: "row", // always row
+                textAlign: "left", // always left
               }}
             >
               <Box
-                component="img"
-                src="/assets/images/emblem.png"
-                alt="Gov Emblem"
-                sx={{ width: { xs: "15vw", md: "5vw" }, maxWidth: "80px" }}
-              />
-              <Typography
-                variant="h6"
                 sx={{
-                  textAlign: "center",
-                  fontWeight: "bold",
-                  color: "text.primary",
-                  fontSize: { xs: "1rem", md: "1.25rem" },
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: { xs: "40px", sm: "50px", md: "4vw" },
+                  height: { xs: "40px", sm: "50px", md: "4vw" },
+                  backgroundColor: "rgba(255, 255, 255, 0.2)", // translucent background
+                  backdropFilter: "blur(6px)", // optional glassy effect
+                  borderRadius: 2, // rounded corners
+                  padding: 1,
+                  border: "1px solid rgba(0,0,0,0.1)", // subtle border
+                  flexShrink: 0,
                 }}
               >
-                समाज कल्याण विभाग
-                <br />
-                DEPARTMENT OF SOCIAL WELFARE
-                <br />
-                محکمہ سوشیل ویلفیئر
-              </Typography>
+                <Box
+                  component="img"
+                  src="/assets/images/emblem.png"
+                  alt="Gov Emblem"
+                  sx={{
+                    width: "70%", // scale inside shaded box
+                    height: "70%",
+                    objectFit: "contain",
+                  }}
+                />
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.5, // spacing between lines
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#E4630A",
+                    fontSize: { xs: "0.65rem", sm: "0.75rem", md: "0.75rem" },
+                    lineHeight: 1.3,
+                    paddingLeft: 1,
+                    borderLeft: "3px solid #E4630A",
+                  }}
+                >
+                  समाज कल्याण विभाग
+                </Typography>
+
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#1E3267",
+                    fontSize: { xs: "0.65rem", sm: "0.75rem", md: "0.75rem" },
+                    lineHeight: 1.3,
+                    paddingLeft: 1,
+                    borderLeft: "3px solid #1E3267",
+                  }}
+                >
+                  DEPARTMENT OF SOCIAL WELFARE
+                </Typography>
+
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#0E766D",
+                    fontSize: { xs: "0.65rem", sm: "0.75rem", md: "0.75rem" },
+                    lineHeight: 1.3,
+                    paddingLeft: 1,
+                    borderLeft: "3px solid #0E766D",
+                  }}
+                >
+                  محکمہ سوشیل ویلفیئر
+                </Typography>
+              </Box>
             </Box>
 
+            {/* Right: Swachh Bharat Logo */}
             <Box
               sx={{
                 display: "flex",
-                justifyContent: { xs: "center", md: "flex-end" },
+                justifyContent: "flex-end",
                 alignItems: "center",
+                flexShrink: 0, // prevent shrinking
+                ml: 2,
               }}
             >
               <Box
                 component="img"
                 src="/assets/images/swach-bharat.png"
                 alt="Swachh Bharat"
-                sx={{ height: { xs: "80px", md: "100px" } }}
+                sx={{
+                  height: { xs: "50px", sm: "60px", md: "100px" }, // responsive heights
+                }}
               />
             </Box>
           </Box>
@@ -189,8 +349,34 @@ const Header = () => {
       </Box>
 
       {/* Navbar Row */}
-      <Box>
-        <MyNavbar />
+      <Box
+        sx={{
+          borderBottom: "3px solid",
+          borderImage: "linear-gradient(to right, #43CDB1, #E19A4D) 1",
+        }}
+      >
+        <Container maxWidth={false} disableGutters>
+          <Box
+            sx={{
+              display: "flex", // Always flex, no block on xs
+              flexWrap: "nowrap", // Prevent wrapping
+              justifyContent: "space-between",
+              alignItems: "center",
+              overflowX: "auto", // allow scroll on very small screens instead of wrapping
+              whiteSpace: "nowrap",
+              py: 0.5,
+              px: { xs: 2, md: 10, lg: 20 },
+              color: "#1a237e",
+              fontSize: { xs: "0.7rem", md: "0.875rem" },
+              gap: { xs: 1, md: 2 },
+              "&::-webkit-scrollbar": { display: "none" }, // hide scrollbar for clean look
+            }}
+            translate="no"
+            className="notranslate"
+          >
+            <MyNavbar />
+          </Box>
+        </Container>
       </Box>
     </Box>
   );
