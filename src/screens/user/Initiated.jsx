@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 
 const MainContainer = styled(Box)`
   min-height: 100vh;
-  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);
+  background: linear-gradient(to bottom right, #f4f9ff 0%, #f9f3ec 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -155,14 +155,12 @@ export default function Initiated() {
 
   return (
     <MainContainer>
-      <TableCard>
-        <ServerSideTable
-          url="/User/GetInitiatedApplications"
-          extraParams={{}}
-          actionFunctions={actionFunctions}
-          Title={"Initiated Applications"}
-        />
-      </TableCard>
+      <ServerSideTable
+        url="/User/GetInitiatedApplications"
+        extraParams={{}}
+        actionFunctions={actionFunctions}
+        Title={"Initiated Applications"}
+      />
       <BasicModal
         open={open}
         handleClose={handleClose}

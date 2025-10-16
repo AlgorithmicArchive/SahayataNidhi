@@ -684,6 +684,8 @@ export default function Form() {
         justifyContent: { xs: "center" }, // Center content vertically
         alignItems: { xs: "center", lg: "start" }, // Center content horizontally
         boxSizing: "border-box",
+        background:
+          "linear-gradient(to bottom right, #f4f9ff 0%, #f9f3ec 100%)",
       }}
     >
       <DynamicScrollableForm data={{}} />

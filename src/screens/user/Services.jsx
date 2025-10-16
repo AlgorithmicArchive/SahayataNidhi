@@ -10,7 +10,7 @@ import { UserContext } from "../../UserContext";
 
 const MainContainer = styled(Box)`
   min-height: 100vh;
-  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);
+  background: linear-gradient(to bottom right, #f4f9ff 0%, #f9f3ec 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -101,25 +101,17 @@ export default function Services() {
 
   return (
     <MainContainer>
-      <TableCard>
-        <Typography
-          variant="h5"
-          sx={{ mb: 2, fontWeight: "bold", color: "grey.800" }}
-        >
-          Available Services
-        </Typography>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        <ServerSideTable
-          url="User/GetServices"
-          extraParams={{}}
-          actionFunctions={actionFunctions}
-          Title={"Available Services"}
-        />
-      </TableCard>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      <ServerSideTable
+        url="User/GetServices"
+        extraParams={{}}
+        actionFunctions={actionFunctions}
+        Title={"Available Services"}
+      />
     </MainContainer>
   );
 }

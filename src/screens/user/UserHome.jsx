@@ -20,7 +20,7 @@ import styled from "@emotion/styled";
 
 const MainContainer = styled(Box)`
   min-height: 100vh;
-  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);
+  background: linear-gradient(to bottom right, #f4f9ff 0%, #f9f3ec 100%);
   display: flex;
   justify-content: center;
   padding: 3rem 1rem; /* Reduced padding for smaller screens */
@@ -54,8 +54,8 @@ const ProfileCard = styled(Box)`
 const StyledAvatar = styled(Avatar)`
   width: 100px; /* Slightly smaller for mobile */
   height: 100px;
-  border: 3px solid #1e88e5;
-  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+  border: 3px solid #235bde;
+  box-shadow: 0 4px 12px rgba(35, 91, 222, 0.3);
   transition: transform 0.3s ease;
   margin: 0 auto;
   &:hover {
@@ -69,7 +69,7 @@ const StyledAvatar = styled(Avatar)`
 `;
 
 const UploadButton = styled(IconButton)`
-  background: #1e88e5;
+  background: linear-gradient(to bottom, #2562e9 0%, #1f43b5 100%);
   color: #ffffff;
   position: absolute;
   bottom: -8px;
@@ -77,7 +77,7 @@ const UploadButton = styled(IconButton)`
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   &:hover {
-    background: #1565c0;
+    background: linear-gradient(to bottom, #1f43b5 0%, #1565c0 100%);
     transform: scale(1.1);
   }
 
@@ -102,11 +102,11 @@ const StatContainer = styled(Box)`
 
 const StatBox = styled(Box)`
   flex: 1;
-  background: #e6f0fa;
+  background: #f4f9ff;
   border-radius: 10px;
   padding: 1rem;
   text-align: center;
-  border: 1px solid #b3cde0;
+  border: 1px solid #e0e7ff;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   &:hover {
     transform: translateY(-4px);
@@ -123,7 +123,7 @@ const InfoItem = styled(Box)`
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #b3cde0;
+  border-bottom: 1px solid #e0e7ff;
   &:last-of-type {
     border-bottom: none;
   }
@@ -136,8 +136,8 @@ const InfoItem = styled(Box)`
 `;
 
 const ActionButton = styled(Button)`
-  background: linear-gradient(45deg, #1e88e5, #4fc3f7);
-  color: #ffffff;
+  background: linear-gradient(to bottom, #2562e9 0%, #1f43b5 100%);
+  color: #fdf6f0;
   font-weight: 600;
   text-transform: none;
   border-radius: 10px;
@@ -146,8 +146,8 @@ const ActionButton = styled(Button)`
   width: 100%;
   transition: all 0.3s ease;
   &:hover {
-    background: linear-gradient(45deg, #1565c0, #039be5);
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+    background: linear-gradient(to bottom, #1f43b5 0%, #1565c0 100%);
+    box-shadow: 0 4px 12px rgba(35, 91, 222, 0.3);
   }
 
   @media (max-width: 600px) {
@@ -246,14 +246,14 @@ export default function UserHome() {
           justifyContent: "center",
           alignItems: "center",
           minHeight: "100vh",
-          bgcolor: "#ffd7c4",
+          bgcolor: "#F9F3EC",
         }}
         aria-live="polite"
       >
         <CircularProgress
           color="inherit"
           size={40}
-          sx={{ color: "#8b5cf6" }}
+          sx={{ color: "#235BDE" }}
           aria-label="Loading user profile"
         />
       </Box>
@@ -274,7 +274,7 @@ export default function UserHome() {
             variant="h4"
             sx={{
               fontWeight: 700,
-              color: "#1f2937",
+              color: "#1e1e1eff",
               fontFamily: "'Inter', sans-serif",
               mt: 2,
               fontSize: { xs: "1.5rem", sm: "2rem" } /* Responsive font size */,
@@ -294,7 +294,7 @@ export default function UserHome() {
             {userDetails?.location || "Jammu, Jammu"}
           </Typography>
         </Box>
-        <Divider sx={{ my: 2, borderColor: "#e5e7eb" }} />
+        <Divider sx={{ my: 2, borderColor: "#E0E7FF" }} />
         <StatContainer>
           <StatBox
             sx={{ cursor: "pointer" }}
@@ -304,7 +304,7 @@ export default function UserHome() {
               variant="caption"
               sx={{
                 fontWeight: 600,
-                color: "#8b5cf6",
+                color: "#0FB282",
                 fontSize: { xs: "0.75rem", sm: "0.875rem" },
               }}
             >
@@ -314,7 +314,7 @@ export default function UserHome() {
               variant="h5"
               sx={{
                 fontWeight: 700,
-                color: "#1f2937",
+                color: "#1e1e1eff",
                 fontSize: { xs: "1.25rem", sm: "1.5rem" },
               }}
             >
@@ -329,7 +329,7 @@ export default function UserHome() {
               variant="caption"
               sx={{
                 fontWeight: 600,
-                color: "#ec4899",
+                color: "#F67015",
                 fontSize: { xs: "0.75rem", sm: "0.875rem" },
               }}
             >
@@ -339,7 +339,7 @@ export default function UserHome() {
               variant="h5"
               sx={{
                 fontWeight: 700,
-                color: "#1f2937",
+                color: "#1e1e1eff",
                 fontSize: { xs: "1.25rem", sm: "1.5rem" },
               }}
             >
@@ -347,7 +347,7 @@ export default function UserHome() {
             </Typography>
           </StatBox>
         </StatContainer>
-        <Divider sx={{ my: 2, borderColor: "#e5e7eb" }} />
+        <Divider sx={{ my: 2, borderColor: "#E0E7FF" }} />
         <Box>
           <InfoItem>
             <Typography
@@ -364,7 +364,7 @@ export default function UserHome() {
               variant="body1"
               sx={{
                 fontWeight: 500,
-                color: "#1f2937",
+                color: "#1e1e1eff",
                 fontSize: { xs: "0.875rem", sm: "1rem" },
               }}
             >
@@ -387,7 +387,7 @@ export default function UserHome() {
                 variant="body1"
                 sx={{
                   fontWeight: 500,
-                  color: "#1f2937",
+                  color: "#1e1e1eff",
                   wordBreak: "break-word",
                   fontSize: { xs: "0.875rem", sm: "1rem" },
                 }}
@@ -400,7 +400,7 @@ export default function UserHome() {
                 <IconButton
                   onClick={toggleEmailVisibility}
                   aria-label={showEmail ? "Hide email" : "Show email"}
-                  sx={{ color: "#1e88e5", padding: { xs: "4px", sm: "8px" } }}
+                  sx={{ color: "#235BDE", padding: { xs: "4px", sm: "8px" } }}
                 >
                   {showEmail ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
@@ -423,7 +423,7 @@ export default function UserHome() {
                 variant="body1"
                 sx={{
                   fontWeight: 500,
-                  color: "#1f2937",
+                  color: "#1e1e1eff",
                   fontSize: { xs: "0.875rem", sm: "1rem" },
                 }}
               >
@@ -444,7 +444,7 @@ export default function UserHome() {
                       ? "Hide mobile number"
                       : "Show mobile number"
                   }
-                  sx={{ color: "#1e88e5", padding: { xs: "4px", sm: "8px" } }}
+                  sx={{ color: "#235BDE", padding: { xs: "4px", sm: "8px" } }}
                 >
                   {showMobileNumber ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
@@ -464,7 +464,7 @@ export default function UserHome() {
       <ToastContainer
         toastStyle={{
           background: "white",
-          color: "#1f2937",
+          color: "#1e1e1eff",
           borderRadius: 8,
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
           fontSize: { xs: "0.875rem", sm: "1rem" },

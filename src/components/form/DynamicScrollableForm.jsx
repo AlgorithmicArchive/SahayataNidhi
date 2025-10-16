@@ -2336,10 +2336,10 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       sx={{
         maxWidth: "90%",
         margin: "2rem auto",
-        background: "linear-gradient(to bottom, #E0F2FE, #BAE6FD)",
+        background:
+          "linear-gradient(to bottom right, #f4f9ff 0%, #f9f3ec 100%)",
         borderRadius: "16px",
         padding: { xs: "1.5rem", md: "3rem" },
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
         minHeight: "100vh",
         overflowY: "auto",
         "&::-webkit-scrollbar": {
@@ -2499,7 +2499,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   sx={{
                     position: "sticky",
                     bottom: 0,
-                    background: "linear-gradient(to top, #E0F2FE, #BAE6FD)",
+                    backgroundColor: "#FFF",
                     padding: "1.5rem",
                     borderTop: "1px solid #A5B4FC",
                     boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.1)",
@@ -2513,7 +2513,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     <Button
                       sx={{
                         background:
-                          "linear-gradient(to right, #F59E0B, #D97706)",
+                          "linear-gradient(to bottom right, #E4630A, #F9A825)",
                         color: "#FFFFFF",
                         fontSize: { xs: "0.9rem", md: "1rem" },
                         fontWeight: "600",
@@ -2522,7 +2522,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                         textTransform: "none",
                         "&:hover": {
                           background:
-                            "linear-gradient(to right, #D97706, #B45309)",
+                            "linear-gradient(to bottom right, #E4630A, #F9A825)",
                         },
                         "&.Mui-disabled": {
                           background: "#D1D5DB",
@@ -2538,7 +2538,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   <Button
                     type="submit" // ✅ use form submit here
                     sx={{
-                      background: "linear-gradient(to right, #10B981, #059669)",
+                      background:
+                        "linear-gradient(to bottom right, #4CAF50, #81C784)",
                       color: "#FFFFFF",
                       fontSize: { xs: "0.9rem", md: "1rem" },
                       fontWeight: "600",
@@ -2547,7 +2548,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       textTransform: "none",
                       "&:hover": {
                         background:
-                          "linear-gradient(to right, #059669, #047857)",
+                          "linear-gradient(to bottom right, #4CAF50, #81C784)",
                       },
                       "&.Mui-disabled": {
                         background: "#D1D5DB",

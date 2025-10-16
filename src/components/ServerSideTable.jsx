@@ -26,13 +26,13 @@ import axiosInstance from "../axiosConfig";
 import styled from "@emotion/styled";
 
 const TableContainer = styled(Box)`
-  background: linear-gradient(180deg, #e6f0fa 0%, #b3cde0 100%);
+  background: linear-gradient(to bottom right, #f4f9ff 0%, #f9f3ec 100%);
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 2rem 1rem; /* Reduced padding for smaller screens */
   box-sizing: border-box;
-  min-height: 100vh;
+  min-height: 50vh;
   width: 100%;
 
   @media (max-width: 600px) {
@@ -798,9 +798,14 @@ const ServerSideTable = React.forwardRef(
                   {Array.isArray(row.original.customActions) ? (
                     (row.original.customActions || []).map((action, index) => (
                       <Tooltip key={index} title={action.tooltipText} arrow>
-                        <ActionButton
-                          variant="contained"
-                          sx={{ width: "max-content" }}
+                        <Button
+                          sx={{
+                            width: "max-content",
+                            background:
+                              "linear-gradient(to right, #10B582, #0D9588)",
+                            color: "#fff", // make sure text is visible
+                            fontWeight: 600,
+                          }}
                           onClick={() =>
                             actionFunctions[action.actionFunction]?.(
                               row,
@@ -816,7 +821,7 @@ const ServerSideTable = React.forwardRef(
                           } for row ${row.original.sno}`}
                         >
                           {action.name || action.tooltip}
-                        </ActionButton>
+                        </Button>
                       </Tooltip>
                     ))
                   ) : (

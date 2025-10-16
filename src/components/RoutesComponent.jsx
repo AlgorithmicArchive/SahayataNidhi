@@ -149,7 +149,13 @@ const RoutesComponent = () => {
       <Route
         element={
           <ProtectedRoute
-            requiredRoles={["Citizen", "Officer", "Admin", "Designer"]}
+            requiredRoles={[
+              "Citizen",
+              "Officer",
+              "Admin",
+              "Designer",
+              "Viewer",
+            ]}
           />
         }
       >

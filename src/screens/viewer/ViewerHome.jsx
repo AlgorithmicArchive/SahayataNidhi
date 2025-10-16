@@ -49,43 +49,32 @@ const float = keyframes`
 `;
 
 // Styled components
-const GradientCard = styled(Card)(
-  ({ theme, bgcolor, gradientstart, gradientend }) => ({
-    borderRadius: theme.spacing(2),
-    background: bgcolor,
-    border: `1px solid ${alpha(gradientstart, 0.1)}`,
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    cursor: "pointer",
-    position: "relative",
-    overflow: "hidden",
-    height: "100%",
-    "&::before": {
-      content: '""',
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: `linear-gradient(135deg, ${gradientstart}08 0%, ${gradientend}05 100%)`,
-      opacity: 0,
-      transition: "opacity 0.3s ease",
-    },
-    "&:hover": {
-      transform: "translateY(-4px)",
-      boxShadow: `0 12px 24px ${alpha(gradientstart, 0.15)}`,
-      "&::before": { opacity: 1 },
-    },
-  }),
-);
+const SolidCard = styled(Card)(({ theme, bgcolor, iconColor }) => ({
+  borderRadius: theme.spacing(3),
+  backgroundColor: bgcolor,
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  cursor: "pointer",
+  position: "relative",
+  overflow: "hidden",
+  height: "100%",
+  border: `1px solid ${alpha(iconColor || theme.palette.grey[300], 0.1)}`,
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow: `0 8px 25px ${alpha(
+      iconColor || theme.palette.grey[300],
+      0.15,
+    )}`,
+  },
+}));
 
-const IconAvatar = styled(Avatar)(({ theme, gradientstart, gradientend }) => ({
-  background: `linear-gradient(135deg, ${gradientstart} 0%, ${gradientend} 100%)`,
-  width: 48,
-  height: 48,
-  boxShadow: `0 4px 12px ${alpha(gradientstart, 0.25)}`,
-  animation: `${float} 6s ease-in-out infinite`,
+const IconAvatar = styled(Avatar)(({ theme, iconColor }) => ({
+  backgroundColor: iconColor,
+  width: 56,
+  height: 56,
+  border: `2px solid ${alpha("#fff", 0.2)}`,
+  boxShadow: `0 4px 12px ${alpha(iconColor, 0.25)}`,
   "& .MuiSvgIcon-root": {
-    fontSize: "1.3rem",
+    fontSize: "1.5rem",
     color: "#ffffff",
   },
 }));
@@ -123,8 +112,7 @@ const defaultCardData = [
     category: "application",
     color: "primary",
     bgColor: "#f8faff",
-    gradientStart: "#4f46e5",
-    gradientEnd: "#3b82f6",
+    iconColor: "#4f46e5",
   },
   {
     title: "Sanctioned",
@@ -132,8 +120,7 @@ const defaultCardData = [
     category: "application",
     color: "success",
     bgColor: "#f0fdf4",
-    gradientStart: "#059669",
-    gradientEnd: "#10b981",
+    iconColor: "#10b981",
   },
   {
     title: "Under Process",
@@ -141,8 +128,7 @@ const defaultCardData = [
     category: "application",
     color: "warning",
     bgColor: "#fffbeb",
-    gradientStart: "#f59e0b",
-    gradientEnd: "#fbbf24",
+    iconColor: "#f59e0b",
   },
   {
     title: "Pending with Citizen",
@@ -150,8 +136,7 @@ const defaultCardData = [
     category: "application",
     color: "info",
     bgColor: "#f0f9ff",
-    gradientStart: "#0ea5e9",
-    gradientEnd: "#38bdf8",
+    iconColor: "#3b82f6",
   },
   {
     title: "Rejected",
@@ -159,16 +144,15 @@ const defaultCardData = [
     category: "application",
     color: "error",
     bgColor: "#fef2f2",
-    gradientStart: "#ef4444",
-    gradientEnd: "#f87171",
+    iconColor: "#ef4444",
   },
 ];
 
 const defaultCategoryData = [
   { name: "Old Age Pension", value: 0, color: "#4f46e5" },
-  { name: "Women In Distress", value: 0, color: "#059669" },
+  { name: "Women In Distress", value: 0, color: "#10b981" },
   { name: "Physically Challenged Person", value: 0, color: "#f59e0b" },
-  { name: "Transgender", value: 0, color: "#0ea5e9" },
+  { name: "Transgender", value: 0, color: "#3b82f6" },
 ];
 
 const iconMap = {
@@ -177,6 +161,17 @@ const iconMap = {
   "Under Process": HourglassEmpty,
   "Pending with Citizen": Group,
   Rejected: Cancel,
+};
+
+const getIconColor = (title) => {
+  const colorMap = {
+    "Applications Received": "#4f46e5",
+    Sanctioned: "#10b981",
+    "Under Process": "#f59e0b",
+    "Pending with Citizen": "#3b82f6",
+    Rejected: "#ef4444",
+  };
+  return colorMap[title] || "#4f46e5";
 };
 
 // Custom Hook for Filter Management
@@ -345,7 +340,19 @@ const useDashboardData = (category, filters) => {
       const response = await axiosInstance.get("/Viewer/GetApplicationStatus", {
         params,
       });
-      setData(response.data.dataList.filter((c) => c.category === category));
+      const filteredData = response.data.dataList.filter(
+        (c) => c.category === category,
+      );
+      setData(
+        filteredData.map((card) => ({
+          ...card,
+          iconColor: getIconColor(card.title),
+          bgColor:
+            card.bgColor ||
+            defaultCardData.find((d) => d.title === card.title)?.bgColor ||
+            "#f8faff",
+        })),
+      );
       setCategoryData(response.data.categoryData || defaultCategoryData);
       setLocationData(response.data.locationData || []);
     } catch (err) {
@@ -365,107 +372,141 @@ const useDashboardData = (category, filters) => {
   return { data, categoryData, locationData, isLoading, error };
 };
 
-// Donut Chart Component
-const DonutChart = ({ data, chartTitle }) => {
+// Updated DonutChart Component
+const DonutChart = ({ pieData, chartTitle }) => {
   const theme = useTheme();
 
+  const hasData =
+    pieData?.datasets?.[0]?.data?.some((value) => value > 0) ?? false;
+
+  if (!hasData) {
+    return (
+      <Typography
+        variant="body1"
+        color="text.secondary"
+        align="center"
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
+      >
+        No data available for {chartTitle}
+      </Typography>
+    );
+  }
+
+  // Filter out data points with zero values
+  const filteredChartData = pieData.labels
+    .map((label, index) => ({
+      name: label,
+      value: pieData.datasets[0].data[index],
+      color: pieData.datasets[0].backgroundColor[index],
+    }))
+    .filter((entry) => entry.value > 0);
+
+  if (filteredChartData.length === 0) {
+    return (
+      <Typography
+        variant="body1"
+        color="text.secondary"
+        align="center"
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
+      >
+        No non-zero data available for {chartTitle}
+      </Typography>
+    );
+  }
+
+  const renderCustomLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    name,
+    value,
+  }) => {
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius + 20; // Position labels outside the pie
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    const textAnchor = x > cx ? "start" : "end";
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill={theme.palette.text.primary}
+        textAnchor={textAnchor}
+        dominantBaseline="central"
+        fontSize={12}
+        style={{
+          whiteSpace: "pre-wrap",
+          maxWidth: "100px",
+        }}
+      >
+        {`${name}: ${value.toLocaleString("en-IN")}`}
+      </text>
+    );
+  };
+
   return (
-    <Box sx={{ width: "100%", height: 350, position: "relative" }}>
-      {data && data.length > 0 ? (
-        <ResponsiveContainer width="100%" height="100%">
-          {(() => {
-            try {
-              const total = data.reduce((sum, item) => sum + item.value, 0);
-              return (
-                <RechartsPieChart>
-                  <Pie
-                    data={data}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    innerRadius={65}
-                    paddingAngle={0.5}
-                    cornerRadius={3}
-                    label={({ value }) =>
-                      `${((value / total) * 100).toFixed(1)}%`
-                    }
-                    labelLine={false}
-                  >
-                    {data.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        stroke={alpha(entry.color, 0.3)}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(255, 255, 255, 0.95)",
-                      color: "#374151",
-                      border: `1px solid #e5e7eb`,
-                      borderRadius: 8,
-                    }}
-                    formatter={(value, name) =>
-                      `${name}: ${value.toLocaleString("en-IN")}`
-                    }
-                  />
-                  <Legend
-                    layout="horizontal"
-                    align="center"
-                    verticalAlign="bottom"
-                    iconSize={10}
-                    iconType="circle"
-                    wrapperStyle={{
-                      fontSize: 11,
-                      fontFamily: theme.typography.fontFamily,
-                      color: theme.palette.text.primary,
-                      paddingTop: 15,
-                    }}
-                  />
-                </RechartsPieChart>
-              );
-            } catch (error) {
-              console.error(
-                `Recharts Rendering Error for ${chartTitle}:`,
-                error,
-              );
-              return (
-                <Typography
-                  variant="body1"
-                  color="error"
-                  align="center"
-                  sx={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                  }}
-                >
-                  Failed to render chart
-                </Typography>
-              );
-            }
-          })()}
-        </ResponsiveContainer>
-      ) : (
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          align="center"
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
+    <ResponsiveContainer width="100%" height={400}>
+      <RechartsPieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+        <Pie
+          data={filteredChartData}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          outerRadius="70%"
+          innerRadius="40%"
+          paddingAngle={3}
+          cornerRadius={5}
+          label={renderCustomLabel}
+          labelLine={{ stroke: theme.palette.text.secondary, strokeWidth: 1 }}
         >
-          No data available
-        </Typography>
-      )}
-    </Box>
+          {filteredChartData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Pie>
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            color: "#374151",
+            border: `1px solid #e5e7eb`,
+            borderRadius: 8,
+            padding: theme.spacing(1),
+          }}
+          formatter={(value, name) =>
+            `${name}: ${value.toLocaleString("en-IN")}`
+          }
+        />
+        <Legend
+          layout="horizontal"
+          align="center"
+          verticalAlign="bottom"
+          iconSize={10}
+          iconType="circle"
+          wrapperStyle={{
+            fontSize: 12,
+            fontFamily: theme.typography.fontFamily,
+            color: theme.palette.text.primary,
+            paddingTop: 20,
+            maxWidth: "100%",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        />
+      </RechartsPieChart>
+    </ResponsiveContainer>
   );
 };
 
@@ -475,18 +516,14 @@ const ModernStatCard = ({ card, onCardClick }) => {
   const IconComponent = iconMap[card.title] || AssignmentTurnedIn;
 
   return (
-    <GradientCard
+    <SolidCard
       onClick={() => onCardClick(card.title, card.category)}
       bgcolor={card.bgColor}
-      gradientstart={card.gradientStart}
-      gradientend={card.gradientEnd}
+      iconColor={card.iconColor}
     >
       <CardContent sx={{ p: 3, zIndex: 1, height: "100%" }}>
         <Stack spacing={2} sx={{ height: "100%" }}>
-          <IconAvatar
-            gradientstart={card.gradientStart}
-            gradientend={card.gradientEnd}
-          >
+          <IconAvatar iconColor={card.bgColor}>
             <IconComponent />
           </IconAvatar>
           <Box
@@ -499,7 +536,7 @@ const ModernStatCard = ({ card, onCardClick }) => {
           >
             <Typography
               variant="body2"
-              color="text.secondary"
+              color="#FFF"
               fontWeight="medium"
               sx={{
                 fontSize: "1.3rem",
@@ -518,10 +555,7 @@ const ModernStatCard = ({ card, onCardClick }) => {
               variant="h4"
               fontWeight="bold"
               sx={{
-                background: `linear-gradient(135deg, ${card.gradientStart}, ${card.gradientEnd})`,
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+                color: "#FFF",
                 fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
                 wordBreak: "break-all",
               }}
@@ -533,7 +567,7 @@ const ModernStatCard = ({ card, onCardClick }) => {
           <Typography
             variant="caption"
             sx={{
-              color: card.gradientStart,
+              color: "#FFF",
               fontWeight: 600,
               display: "flex",
               alignItems: "center",
@@ -547,7 +581,7 @@ const ModernStatCard = ({ card, onCardClick }) => {
           </Typography>
         </Stack>
       </CardContent>
-    </GradientCard>
+    </SolidCard>
   );
 };
 
@@ -609,7 +643,7 @@ const FilterSection = ({ category, filters, filterLoading }) => {
             options: tehsils,
           },
         ].map(({ label, value, onChange, options }, index) => (
-          <Grid item xs={12} sm={6} md={2.4} key={index}>
+          <Grid item xs={12} sm={6} md={3} key={index}>
             <TextField
               select
               fullWidth
@@ -628,6 +662,8 @@ const FilterSection = ({ category, filters, filterLoading }) => {
             </TextField>
           </Grid>
         ))}
+      </Grid>
+      <Grid container spacing={2} sx={{ mt: 2, justifyContent: "flex-end" }}>
         <Grid item xs={12} sm={6} md={2.4}>
           <Button
             fullWidth
@@ -640,6 +676,8 @@ const FilterSection = ({ category, filters, filterLoading }) => {
               "&:hover": {
                 background: "linear-gradient(135deg, #4338ca 0%, #2563eb 100%)",
               },
+              color: "#ffffff",
+              fontWeight: "bold",
             }}
           >
             Reset
@@ -666,7 +704,6 @@ export default function ModernMUIDashboard() {
   const tableRef = useRef(null);
 
   const handleCardClick = useCallback((title, category) => {
-    // Map card title to type parameter for GetMainApplicationStatusData
     const titleToTypeMap = {
       "Applications Received": "total",
       Sanctioned: "sanctioned",
@@ -674,8 +711,7 @@ export default function ModernMUIDashboard() {
       "Pending with Citizen": "returntoedit",
       Rejected: "rejected",
     };
-    const type = titleToTypeMap[title] || "total"; // Default to "total" if no match
-
+    const type = titleToTypeMap[title] || "total";
     setSelectedTable({ title, category, type });
     setTimeout(() => {
       tableRef.current?.scrollIntoView({
@@ -685,21 +721,62 @@ export default function ModernMUIDashboard() {
     }, 100);
   }, []);
 
-  const statusDistributionData = appData
-    .filter((card) =>
-      [
-        "Sanctioned",
-        "Under Process",
-        "Pending with Citizen",
-        "Rejected",
-      ].includes(card.title),
-    )
-    .map((card) => ({
-      name: card.title,
-      value: parseInt(card.value.replace(/[^0-9]/g, ""), 10) || 0,
-      color: card.gradientStart,
-    }))
-    .filter((item) => item.value > 0);
+  const statusDistributionData = {
+    labels: appData
+      .filter((card) =>
+        [
+          "Sanctioned",
+          "Under Process",
+          "Pending with Citizen",
+          "Rejected",
+        ].includes(card.title),
+      )
+      .map((card) => card.title),
+    datasets: [
+      {
+        data: appData
+          .filter((card) =>
+            [
+              "Sanctioned",
+              "Under Process",
+              "Pending with Citizen",
+              "Rejected",
+            ].includes(card.title),
+          )
+          .map((card) => parseInt(card.value.replace(/[^0-9]/g, ""), 10) || 0),
+        backgroundColor: appData
+          .filter((card) =>
+            [
+              "Sanctioned",
+              "Under Process",
+              "Pending with Citizen",
+              "Rejected",
+            ].includes(card.title),
+          )
+          .map((card) => card.iconColor),
+      },
+    ],
+  };
+
+  const categoryPieData = {
+    labels: categoryData.map((item) => item.name),
+    datasets: [
+      {
+        data: categoryData.map((item) => item.value),
+        backgroundColor: categoryData.map((item) => item.color),
+      },
+    ],
+  };
+
+  const locationPieData = {
+    labels: locationData.map((item) => item.name),
+    datasets: [
+      {
+        data: locationData.map((item) => item.value),
+        backgroundColor: locationData.map((item) => item.color),
+      },
+    ],
+  };
 
   const appDynamicTitle = `${
     appFilters.wise === "State"
@@ -800,15 +877,28 @@ export default function ModernMUIDashboard() {
                       alignItems="center"
                       spacing={2}
                       mb={2}
+                      sx={{
+                        flexWrap: "wrap",
+                        gap: 1,
+                      }}
                     >
                       <PieChart sx={{ color: "#4f46e5" }} />
-                      <Typography variant="subtitle1" fontWeight="medium">
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="medium"
+                        sx={{
+                          maxWidth: "100%",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "normal",
+                        }}
+                      >
                         Status of Applications ({appFilters.wise}-
                         {appFilters.wiseName})
                       </Typography>
                     </Stack>
                     <DonutChart
-                      data={statusDistributionData}
+                      pieData={statusDistributionData}
                       chartTitle="Application Status"
                     />
                   </Grid>
@@ -818,15 +908,28 @@ export default function ModernMUIDashboard() {
                       alignItems="center"
                       spacing={2}
                       mb={2}
+                      sx={{
+                        flexWrap: "wrap",
+                        gap: 1,
+                      }}
                     >
-                      <PieChart sx={{ color: "#059669" }} />
-                      <Typography variant="subtitle1" fontWeight="medium">
+                      <PieChart sx={{ color: "#10b981" }} />
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="medium"
+                        sx={{
+                          maxWidth: "100%",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "normal",
+                        }}
+                      >
                         Category-wise Sanctioned Applications ({appFilters.wise}
                         -{appFilters.wiseName})
                       </Typography>
                     </Stack>
                     <DonutChart
-                      data={categoryData}
+                      pieData={categoryPieData}
                       chartTitle="Category-wise Sanctioned Applications"
                     />
                   </Grid>
@@ -837,14 +940,27 @@ export default function ModernMUIDashboard() {
                         alignItems="center"
                         spacing={2}
                         mb={2}
+                        sx={{
+                          flexWrap: "wrap",
+                          gap: 1,
+                        }}
                       >
-                        <PieChart sx={{ color: "#0ea5e9" }} />
-                        <Typography variant="subtitle1" fontWeight="medium">
+                        <PieChart sx={{ color: "#3b82f6" }} />
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight="medium"
+                          sx={{
+                            maxWidth: "100%",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "normal",
+                          }}
+                        >
                           {appDynamicTitle}
                         </Typography>
                       </Stack>
                       <DonutChart
-                        data={locationData}
+                        pieData={locationPieData}
                         chartTitle={appDynamicTitle}
                       />
                     </Grid>
@@ -857,7 +973,6 @@ export default function ModernMUIDashboard() {
               {selectedTable && (
                 <>
                   <Divider sx={{ my: 3 }} />
-                  {/* Temporarily commented out to test if ServerSideTable is the issue */}
                   <ServerSideTable
                     ref={tableRef}
                     url={`/Viewer/GetMainApplicationStatusData?serviceId=1&type=${encodeURIComponent(

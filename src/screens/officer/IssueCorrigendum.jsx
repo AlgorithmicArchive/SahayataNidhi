@@ -601,9 +601,7 @@ export default function IssueDocumentChange() {
       setIsEdit(true);
       setReferenceNumber(ReferenceNumber);
       setServiceId(ServiceId);
-      setType(
-        corrigendumType == "Amendment" ? "Date Updation" : corrigendumType,
-      );
+      setType(corrigendumType);
       setIsInitialLoad(false);
       handleCheckIfDocumentChange();
     } else {
@@ -979,7 +977,7 @@ export default function IssueDocumentChange() {
   }, []);
 
   const validateType = useCallback((value) => {
-    return ["Corrigendum", "Correction", "Amendment"].includes(value)
+    return ["Corrigendum", "Correction"].includes(value)
       ? null
       : "Please select a valid type (Corrigendum, Correction, or Data Updation)";
   }, []);
@@ -1150,11 +1148,7 @@ export default function IssueDocumentChange() {
           setColumns(result.columns || []);
           setData(result.data || []);
           setServerFiles(result.files || []);
-          setType(
-            result.corrigendumType == "Amendment"
-              ? "Date Updation"
-              : result.corrigendumType,
-          );
+          setType(result.corrigendumType);
           const words = result.remarks
             ? result.remarks
                 .trim()
@@ -2266,7 +2260,6 @@ export default function IssueDocumentChange() {
               </MenuItem>
               <MenuItem value="Corrigendum">Corrigendum</MenuItem>
               <MenuItem value="Correction">Correction</MenuItem>
-              <MenuItem value="Amendment">Document Updation</MenuItem>
             </Select>
             {errors.type && (
               <FormHelperText error>{errors.type}</FormHelperText>
