@@ -9,9 +9,7 @@ public partial class Offices
 
     public int DepartmentId { get; set; }
 
-    public string OfficeName { get; set; } = null!;
-
-    public string OfficeShort { get; set; } = null!;
+    public string OfficeType { get; set; } = null!;
 
     public string AccessLevel { get; set; } = null!;
 }

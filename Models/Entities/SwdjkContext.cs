@@ -379,8 +379,7 @@ public partial class SwdjkContext : DbContext
             entity.HasKey(e => e.OfficeId);
 
             entity.Property(e => e.AccessLevel).HasMaxLength(50);
-            entity.Property(e => e.OfficeName).HasMaxLength(255);
-            entity.Property(e => e.OfficeShort).HasMaxLength(50);
+            entity.Property(e => e.OfficeType).HasMaxLength(50);
         });
 
         modelBuilder.Entity<OfficesDetails>(entity =>
@@ -389,6 +388,11 @@ public partial class SwdjkContext : DbContext
 
             entity.Property(e => e.AreaName).HasMaxLength(50);
             entity.Property(e => e.OfficeName).HasMaxLength(255);
+
+            entity.HasOne(d => d.OfficeTypeNavigation).WithMany()
+                .HasForeignKey(d => d.OfficeType)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_OfficesDetails_Offices");
         });
 
         modelBuilder.Entity<PensionPayments>(entity =>

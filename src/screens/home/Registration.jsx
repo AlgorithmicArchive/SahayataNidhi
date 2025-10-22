@@ -592,12 +592,12 @@ export default function RegisterScreen() {
                         message: "Password must be at least 6 characters",
                       },
                       maxLength: {
-                        value: 12,
-                        message: "Password must be at most 12 characters",
+                        value: 20,
+                        message: "Password must be at most 20 characters",
                       },
                       pattern: {
                         value:
-                          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,12}$/,
+                          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,20}$/,
                         message:
                           "Password must include uppercase, lowercase, number, and special character",
                       },

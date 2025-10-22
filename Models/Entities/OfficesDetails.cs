@@ -18,4 +18,6 @@ public partial class OfficesDetails
     public string OfficeName { get; set; } = null!;
 
     public int OfficeType { get; set; }
+
+    public virtual Offices OfficeTypeNavigation { get; set; } = null!;
 }

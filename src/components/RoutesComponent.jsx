@@ -57,6 +57,8 @@ import AddDepartment from "../screens/admin/AddDepartment";
 import Feedback from "../screens/Feedback";
 import ViewFeedbacks from "../screens/admin/ViewFeedbacks";
 import SubmissionLimitations from "../screens/designer/SubmissionLimitations";
+import AddOffices from "../screens/admin/AddOffices";
+import AddOfficeDetails from "../screens/admin/AddOfficeDetails";
 
 const RoutesComponent = () => {
   return (
@@ -125,6 +127,8 @@ const RoutesComponent = () => {
           <Route path="addadmin" element={<AddAdmin />} />
           <Route path="addDesignations" element={<AddDesignations />} />
           <Route path="addDepartment" element={<AddDepartment />} />
+          <Route path="addOffices" element={<AddOffices />} />
+          <Route path="addOfficeDetails" element={<AddOfficeDetails />} />
           <Route path="viewFeedbacks" element={<ViewFeedbacks />} />
           <Route path="validateofficer" element={<ValidateOfficer />} />
         </Route>
