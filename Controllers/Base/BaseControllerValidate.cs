@@ -69,7 +69,7 @@ namespace SahayataNidhi.Controllers
                 new SqlParameter("@IfscCode", ifscCode)
             };
 
-            var applications = dbcontext.CitizenApplicationss
+            var applications = dbcontext.CitizenApplications
                 .FromSqlRaw("EXEC GetDuplicateAccNo @AccountNumber, @BankName, @IfscCode", parameters)
                 .ToList();
 

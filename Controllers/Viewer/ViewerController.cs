@@ -374,7 +374,7 @@ namespace SahayataNidhi.Controllers.Officer
             };
 
             // Fetch application data
-            var response = dbcontext.CitizenApplicationss
+            var response = dbcontext.CitizenApplications
                 .FromSqlRaw(
                     "EXEC GetAadhaarValidationData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @AadhaarFilter, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
                     parameters.ToArray()
@@ -506,7 +506,7 @@ namespace SahayataNidhi.Controllers.Officer
             };
 
             // Fetch application data
-            var response = dbcontext.CitizenApplicationss
+            var response = dbcontext.CitizenApplications
                 .FromSqlRaw(
                     "EXEC GetMainApplicationStatusData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @ApplicationStatus, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
                     parameters.ToArray()

@@ -44,7 +44,7 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SwdjkContext dbc
 
     public string GetBranchOffice(string applicationId)
     {
-        var citizenDetails = dbcontext.CitizenApplicationss
+        var citizenDetails = dbcontext.CitizenApplications
             .FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
 
         if (citizenDetails == null || string.IsNullOrEmpty(citizenDetails.FormDetails))

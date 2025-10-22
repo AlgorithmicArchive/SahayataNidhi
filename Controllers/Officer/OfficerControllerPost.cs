@@ -195,7 +195,7 @@ namespace SahayataNidhi.Controllers.Officer
                     return BadRequest($"Service with ID {serviceId} not found.");
                 }
 
-                var application = dbcontext.CitizenApplicationss.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+                var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
                 if (application == null)
                 {
                     return BadRequest($"Application with reference number '{referenceNumber}' not found.");
@@ -512,7 +512,7 @@ namespace SahayataNidhi.Controllers.Officer
                     return NotFound($"{type} not found.");
                 }
 
-                var CitizenApplications = dbcontext.CitizenApplicationss
+                var CitizenApplications = dbcontext.CitizenApplications
                     .FirstOrDefault(c => c.ReferenceNumber == referenceNumber);
                 if (CitizenApplications == null)
                 {
@@ -794,7 +794,7 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 string referenceNumber = form["referenceNumber"].ToString();
                 string expirationDate = form["expirationDate"].ToString();
-                var application = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+                var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
                 var formDetailsJson = JObject.Parse(application!.FormDetails!);
                 string email = GetFieldValue("Email", formDetailsJson);
                 string applicantName = GetFieldValue("ApplicantName", formDetailsJson);
@@ -892,7 +892,7 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                 }
 
-                var CitizenApplications = dbcontext.CitizenApplicationss
+                var CitizenApplications = dbcontext.CitizenApplications
                     .FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
 
                 var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
@@ -1059,7 +1059,7 @@ namespace SahayataNidhi.Controllers.Officer
                     return NotFound(new { status = false, message = "Application not found." });
 
                 // 🔹 Validate citizen application and service
-                var CitizenApplications = dbcontext.CitizenApplicationss
+                var CitizenApplications = dbcontext.CitizenApplications
                     .FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber.ToString());
 
                 var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);

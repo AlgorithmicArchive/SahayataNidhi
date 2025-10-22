@@ -423,7 +423,7 @@ namespace SahayataNidhi.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
 
-            var newSession = new UserSessionss
+            var newSession = new UserSessions
             {
                 SessionId = Guid.NewGuid(),
                 UserId = user.UserId,
@@ -588,24 +588,22 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, response = "Registration failed." });
             }
         }
-
         [HttpPost]
         public async Task<IActionResult> OfficerRegistration([FromForm] IFormCollection form)
         {
-            // Extract form fields
+            // Extract form fields and map to stored procedure parameters
             var fullName = new SqlParameter("@Name", form["fullName"].ToString());
             var username = new SqlParameter("@Username", form["username"].ToString());
-            var password = new SqlParameter("@Password", form["password"].ToString());
+            var password = new SqlParameter("@Password", form["password"].ToString()); // Will be hashed in SQL
             var email = new SqlParameter("@Email", form["email"].ToString());
             var mobileNumber = new SqlParameter("@MobileNumber", form["mobileNumber"].ToString());
-            var department = new SqlParameter("@Department", form["department"].ToString());
-            var designation = new SqlParameter("@Designation", form["designation"].ToString());
-            var profile = new SqlParameter("@Profile", "/assets/images/profile.jpg");
+            var profile = new SqlParameter("@Profile", "/assets/images/profile.jpg"); // Default profile image
 
-            // Determine UserType based on designation
-            var UserType = new SqlParameter("@UserType", form["designation"].ToString().Contains("Admin") ? "Admin" : "Officer");
+            // Determine UserType
+            var userType = new SqlParameter("@UserType",
+                form["designation"].ToString().Contains("Admin") ? "Admin" : "Officer");
 
-            // Handle backup codes
+            // Backup codes (stored as JSON string in NVARCHAR(MAX))
             var backupCodes = new
             {
                 unused = _helper.GenerateUniqueRandomCodes(10, 8),
@@ -613,7 +611,7 @@ namespace SahayataNidhi.Controllers
             };
             var backupCodesParam = new SqlParameter("@BackupCodes", JsonConvert.SerializeObject(backupCodes));
 
-            // Construct additional details including new fields
+            // Additional details JSON
             var additionalDetails = new
             {
                 Role = form["designation"].ToString(),
@@ -626,36 +624,27 @@ namespace SahayataNidhi.Controllers
                 Tehsil = form.ContainsKey("Tehsil") ? form["Tehsil"].ToString() : null,
                 Validate = false
             };
-            var additionalDetailsParam = new SqlParameter("@AdditionalDetails", JsonConvert.SerializeObject(additionalDetails));
+            var additionalDetailsParam = new SqlParameter("@AddtionalDetails", JsonConvert.SerializeObject(additionalDetails));
 
-            var registeredDate = new SqlParameter("@RegisteredDate", DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt"));
+            // Date of registration (as NVARCHAR to match SP definition)
+            var registeredDate = new SqlParameter("@RegisteredDate",
+                DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt"));
 
-            // Execute stored procedure with updated parameters
+            // 🔹 Execute Stored Procedure (parameter names must match exactly)
             var result = _dbContext.Users.FromSqlRaw(
-                "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber, @Department, @Designation, @Profile, @UserType, @BackupCodes, @AdditionalDetails, @RegisteredDate",
-                fullName, username, password, email, mobileNumber, department, designation, profile, UserType, backupCodesParam, additionalDetailsParam, registeredDate
+                "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber, @Profile, @UserType, @BackupCodes, @AddtionalDetails, @RegisteredDate",
+                fullName, username, password, email, mobileNumber, profile, userType, backupCodesParam, additionalDetailsParam, registeredDate
             ).ToList();
 
+            // Handle result
             if (result.Count > 0)
             {
-                string otp = GenerateOTP(7);
-                _otpStore.StoreOtp("registration", otp);
-                try
-                {
-                    await _emailSender.SendEmail(form["email"].ToString(), "OTP For Registration", otp);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
-                    return Json(new { status = true, userId = result[0].UserId, message = $"Email sending failed. Use this OTP: {otp}" });
-                }
-                return Json(new { status = true, userId = result[0].UserId });
+                return Json(new { status = true, userId = result[0].UserId, message = "Registration successful." });
             }
-            else
-            {
-                return Json(new { status = false, response = "Registration failed." });
-            }
+
+            return Json(new { status = false, message = "Registration failed." });
         }
+
 
         [HttpPost]
         public IActionResult Verification([FromForm] IFormCollection form)
@@ -843,21 +832,13 @@ namespace SahayataNidhi.Controllers
             return Json(new { isUnique });
         }
 
-        private bool MatchesOfficerDetails(
-    string json,
-    string? divisionId,
-    string? districtId,
-    string? tehsilId,
-    string? departmentId,
-    string? designation)
+        private bool MatchesOfficerDetails(string json, string? divisionId, string? districtId, string? tehsilId, string? departmentId, string? designation)
         {
             if (string.IsNullOrWhiteSpace(json))
-            {
-                _logger.LogWarning("MatchesOfficerDetails called with null/empty JSON.");
                 return false;
-            }
 
             JObject details;
+
             try
             {
                 details = JObject.Parse(json);
@@ -868,130 +849,100 @@ namespace SahayataNidhi.Controllers
                 return false;
             }
 
-            _logger.LogInformation($"--------- Officer Details JSON: {details} ----------");
+            bool filterApplied = !string.IsNullOrEmpty(divisionId) ||
+                                 !string.IsNullOrEmpty(districtId) ||
+                                 !string.IsNullOrEmpty(tehsilId) ||
+                                 !string.IsNullOrEmpty(departmentId) ||
+                                 !string.IsNullOrEmpty(designation);
 
-            // Role (designation) check
-            if (!string.IsNullOrEmpty(designation))
-            {
-                if (!details.TryGetValue("Role", out var role) || role?.ToString() != designation)
-                {
-                    _logger.LogInformation($"Role mismatch: expected '{designation}', actual '{role}'");
-                    return false;
-                }
-            }
+            if (!filterApplied)
+                return false;
 
-            // Department check
-            if (!string.IsNullOrEmpty(departmentId))
-            {
-                if (!details.TryGetValue("Department", out var dept) || dept?.ToString() != departmentId)
-                {
-                    _logger.LogInformation($"Department mismatch: expected '{departmentId}', actual '{dept}'");
-                    return false;
-                }
-            }
+            if (!string.IsNullOrEmpty(designation) &&
+                (!details.TryGetValue("Role", out var role) || role?.ToString() != designation))
+                return false;
 
-            // AccessLevel / AccessCode check
-            if (details.TryGetValue("AccessLevel", out var accessLevel) && details.TryGetValue("AccessCode", out var accessCode))
+            if (!string.IsNullOrEmpty(departmentId) &&
+                (!details.TryGetValue("Department", out var dept) || dept?.ToString() != departmentId))
+                return false;
+
+            if (details.TryGetValue("AccessLevel", out var accessLevel) &&
+                details.TryGetValue("AccessCode", out var accessCode))
             {
                 string level = accessLevel?.ToString() ?? "";
                 string code = accessCode?.ToString() ?? "";
 
-                if (!string.IsNullOrEmpty(divisionId) && level == "Division" && code != divisionId)
-                {
-                    _logger.LogInformation($"Division mismatch: expected '{divisionId}', actual '{code}'");
-                    return false;
-                }
-
-                if (!string.IsNullOrEmpty(districtId) && level == "District" && code != districtId)
-                {
-                    _logger.LogInformation($"District mismatch: expected '{districtId}', actual '{code}'");
-                    return false;
-                }
-
-                if (!string.IsNullOrEmpty(tehsilId) && level == "Tehsil" && code != tehsilId)
-                {
-                    _logger.LogInformation($"Tehsil mismatch: expected '{tehsilId}', actual '{code}'");
-                    return false;
-                }
-            }
-            else
-            {
-                // If AccessLevel/AccessCode is missing, but one of the IDs is provided, treat as mismatch
-                if (!string.IsNullOrEmpty(divisionId) || !string.IsNullOrEmpty(districtId) || !string.IsNullOrEmpty(tehsilId))
-                {
-                    _logger.LogInformation("AccessLevel or AccessCode missing in JSON while division/district/tehsil ID provided.");
-                    return false;
-                }
+                if (!string.IsNullOrEmpty(divisionId) && level == "Division" && code != divisionId) return false;
+                if (!string.IsNullOrEmpty(districtId) && level == "District" && code != districtId) return false;
+                if (!string.IsNullOrEmpty(tehsilId) && level == "Tehsil" && code != tehsilId) return false;
             }
 
-            _logger.LogInformation("--------- Officer matches all provided criteria ----------");
             return true;
         }
 
-
-
-
-
         [HttpGet]
-        public IActionResult CheckEmail(string email, string UserType, string? divisionId = null,
-                                string? departmentId = null, string? districtId = null,
-                                string? tehsilId = null, string? designation = null)
+        public IActionResult CheckEmail(string email, string UserType, string? divisionId = null, string? departmentId = null, string? districtId = null, string? tehsilId = null, string? designation = null)
         {
-            bool isUnique = true;
+            bool exists;
 
             if (UserType == "Citizen")
             {
-                isUnique = !_dbContext.Users.Any(u => u.Email == email && u.UserType == UserType);
+                exists = _dbContext.Users.Any(u => u.Email == email && u.UserType == UserType);
             }
             else if (UserType == "Officer")
             {
-                isUnique = !_dbContext.Users
-                    .AsEnumerable() // switch to client-side for JSON parsing
-                    .Any(u => u.Email == email &&
-                              u.UserType == UserType &&
-                              u.AdditionalDetails != null &&
-                              MatchesOfficerDetails(u.AdditionalDetails, divisionId, districtId, tehsilId, departmentId, designation));
+                // First, check if email already exists for officer
+                exists = _dbContext.Users.Any(u => u.Email == email && u.UserType == UserType);
+
+                if (exists)
+                {
+                    // Now match with JSON details only if email exists
+                    exists = _dbContext.Users
+                        .AsEnumerable()
+                        .Any(u => u.Email == email &&
+                                  u.UserType == UserType &&
+                                  u.AdditionalDetails != null &&
+                                  MatchesOfficerDetails(u.AdditionalDetails, divisionId, districtId, tehsilId, departmentId, designation));
+                }
             }
             else
             {
-                isUnique = !_dbContext.Users.Any(u => u.Email == email);
+                exists = _dbContext.Users.Any(u => u.Email == email);
             }
 
-            return Json(new { status = true, isUnique });
+            return Json(new { status = true, isUnique = !exists });
         }
 
         [HttpGet]
-        public IActionResult CheckMobileNumber(string number, string UserType,
-                                 string? divisionId = null, string? districtId = null,
-                                 string? tehsilId = null, string? departmentId = null,
-                                 string? designation = null)
+        public IActionResult CheckMobileNumber(string number, string UserType, string? divisionId = null, string? districtId = null, string? tehsilId = null, string? departmentId = null, string? designation = null)
         {
-            bool isUnique = true;
+            bool exists;
 
             if (UserType == "Citizen")
             {
-                // Normal check for citizens
-                isUnique = !_dbContext.Users.Any(u => u.MobileNumber == number && u.UserType == UserType);
+                exists = _dbContext.Users.Any(u => u.MobileNumber == number && u.UserType == UserType);
             }
             else if (UserType == "Officer")
             {
-                // Officer check with AdditionalDetails JSON matching
-                isUnique = !_dbContext.Users
-                    .AsEnumerable() // Move to client-side for JSON parsing
-                    .Any(u => u.MobileNumber == number &&
-                              u.UserType == UserType &&
-                              u.AdditionalDetails != null &&
-                              MatchesOfficerDetails(u.AdditionalDetails, divisionId, districtId, tehsilId, departmentId, designation));
+                exists = _dbContext.Users.Any(u => u.MobileNumber == number && u.UserType == UserType);
+
+                if (exists)
+                {
+                    exists = _dbContext.Users
+                        .AsEnumerable()
+                        .Any(u => u.MobileNumber == number &&
+                                  u.UserType == UserType &&
+                                  u.AdditionalDetails != null &&
+                                  MatchesOfficerDetails(u.AdditionalDetails, divisionId, districtId, tehsilId, departmentId, designation));
+                }
             }
             else
             {
-                // Fallback for other user types
-                isUnique = !_dbContext.Users.Any(u => u.MobileNumber == number);
+                exists = _dbContext.Users.Any(u => u.MobileNumber == number);
             }
 
-            return Json(new { status = true, isUnique });
+            return Json(new { status = true, isUnique = !exists });
         }
-
 
         public dynamic? AadhaarData(string aadhaarNumber)
         {

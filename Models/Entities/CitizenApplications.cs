@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SahayataNidhi.Models.Entities;
 
-public partial class CitizenApplicationss
+public partial class CitizenApplications
 {
     public string ReferenceNumber { get; set; } = null!;
 

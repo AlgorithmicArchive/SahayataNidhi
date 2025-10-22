@@ -44,7 +44,7 @@ public class CronServices
         string resultType = "expiringeligibility";
         int pageIndex = 0, pageSize = 10;
 
-        var applications = await _dbcontext.CitizenApplicationss
+        var applications = await _dbcontext.CitizenApplications
             .FromSqlRaw(
                 "EXEC [dbo].[GetDisabilityApplications] @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode, @ResultType, @PageNumber, @PageSize",
                 new SqlParameter("@AccessLevel", accessLevel),

@@ -106,7 +106,7 @@ namespace SahayataNidhi.Controllers.Officer
         public async Task<IActionResult> PullApplication(string applicationId)
         {
             var officer = GetOfficerDetails();
-            var details = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
+            var details = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
             var players = JsonConvert.DeserializeObject<dynamic>(details?.WorkFlow!) as JArray;
             var currentPlayer = players?.FirstOrDefault(p => (string)p["designation"]! == officer.Role);
             string status = (string)currentPlayer?["status"]!;
@@ -172,7 +172,7 @@ namespace SahayataNidhi.Controllers.Officer
 
             try
             {
-                var formdetails = dbcontext.CitizenApplicationss.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
+                var formdetails = dbcontext.CitizenApplications.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
                 var formDetailsObj = JObject.Parse(formdetails!.FormDetails!);
                 var workFlow = formdetails!.WorkFlow;
                 var officerArray = JsonConvert.DeserializeObject<JArray>(workFlow!);

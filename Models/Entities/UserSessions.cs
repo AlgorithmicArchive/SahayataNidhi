@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SahayataNidhi.Models.Entities;
 
-public partial class UserSessionss
+public partial class UserSessions
 {
     public Guid SessionId { get; set; }
 

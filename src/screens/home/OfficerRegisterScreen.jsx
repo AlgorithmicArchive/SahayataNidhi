@@ -80,6 +80,7 @@ export default function OfficerRegisterScreen() {
   const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isReady, setIsReady] = useState(false); // To prevent FOUC
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedDepartment = watch("department");
   const selectedDesignation = watch("designation");
@@ -442,6 +443,7 @@ export default function OfficerRegisterScreen() {
       return;
     }
 
+    setIsSubmitting(true);
     setLoading(true);
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -481,6 +483,7 @@ export default function OfficerRegisterScreen() {
       });
     } finally {
       setLoading(false);
+      setIsSubmitting(false);
       setCaptcha(generateCaptcha());
     }
   };
@@ -998,7 +1001,11 @@ export default function OfficerRegisterScreen() {
                       error={!!errors.email}
                       helperText={errors.email?.message}
                       variant="outlined"
-                      onBlur={() => trigger("email")} // Trigger validation on blur
+                      onBlur={() => {
+                        if (!isSubmitting) {
+                          trigger("email");
+                        }
+                      }} // Trigger validation on blur
                     />
                   )}
                 />
@@ -1057,7 +1064,11 @@ export default function OfficerRegisterScreen() {
                       error={!!errors.mobileNumber}
                       helperText={errors.mobileNumber?.message}
                       variant="outlined"
-                      onBlur={() => trigger("mobileNumber")} // Trigger validation on blur
+                      onBlur={() => {
+                        if (!isSubmitting) {
+                          trigger("mobileNumber");
+                        }
+                      }} // Trigger validation on blur
                     />
                   )}
                 />
@@ -1312,24 +1323,20 @@ export default function OfficerRegisterScreen() {
           </Box>
         </Container>
 
-        <OtpModal
-          open={isOtpModalOpen}
-          onClose={() => {
-            setIsOtpModalOpen(false);
-            setOtpType(null);
-          }}
-          onSubmit={handleOtpSubmit}
-          errorMessage={errorMessage}
-          title={`Enter ${otpType === "email" ? "Email" : "Mobile"} OTP`}
-          aria-labelledby="otp-modal-title"
-          sx={{
-            maxWidth: 400,
-            mx: "auto",
-            p: 3,
-            bgcolor: "background.default",
-            borderRadius: 3,
-          }}
-        />
+        {OtpModal && (
+          <OtpModal
+            open={isOtpModalOpen}
+            onClose={() => {
+              console.log("OtpModal onClose triggered");
+              setIsOtpModalOpen(false);
+              setOtpType(null);
+            }}
+            erorrMessage={errorMessage}
+            onSubmit={handleOtpSubmit}
+            registeredAt={otpType}
+            title={`Enter ${otpType === "email" ? "Email" : "Mobile"} OTP`}
+          />
+        )}
 
         <ToastContainer />
       </Box>

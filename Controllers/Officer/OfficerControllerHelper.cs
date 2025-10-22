@@ -1113,7 +1113,7 @@ namespace SahayataNidhi.Controllers.Officer
             if (pageIndex < 0) pageIndex = 0;
             if (pageSize < 1) pageSize = 10;
 
-            var applications = await dbcontext.CitizenApplicationss
+            var applications = await dbcontext.CitizenApplications
                 .FromSqlRaw("EXEC [dbo].[GetDisabilityApplications] @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode, @ResultType, @PageNumber, @PageSize",
                     new SqlParameter("@AccessLevel", accessLevel),
                     new SqlParameter("@AccessCode", accessCode ?? (object)DBNull.Value),

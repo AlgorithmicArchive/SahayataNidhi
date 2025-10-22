@@ -289,7 +289,7 @@ namespace SahayataNidhi.Controllers
             }
 
             // Get column names from DbContext
-            var entityType = dbcontext.Model.FindEntityType(typeof(CitizenApplicationss));
+            var entityType = dbcontext.Model.FindEntityType(typeof(CitizenApplications));
             if (entityType == null)
             {
                 return BadRequest(new { status = false, message = "Entity not found in DbContext." });

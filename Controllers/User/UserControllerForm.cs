@@ -153,7 +153,7 @@ namespace SahayataNidhi.Controllers.User
                 var createdAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
 
                 // Store the updated JSON (with file paths) in the database.
-                var newFormDetails = new CitizenApplicationss
+                var newFormDetails = new CitizenApplications
                 {
                     ReferenceNumber = ReferenceNumber,
                     ReferenceNumberAlphaNumeric = ReferenceNumberAlphaNumber,
@@ -167,11 +167,11 @@ namespace SahayataNidhi.Controllers.User
                     CreatedAt = createdAt
                 };
 
-                dbcontext.CitizenApplicationss.Add(newFormDetails);
+                dbcontext.CitizenApplications.Add(newFormDetails);
             }
             else
             {
-                var application = dbcontext.CitizenApplicationss.FirstOrDefault(a => a.ReferenceNumber == ReferenceNumber);
+                var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == ReferenceNumber);
                 application!.FormDetails = formDetailsObj.ToString();
 
                 if (application.Status != status)
@@ -354,7 +354,7 @@ namespace SahayataNidhi.Controllers.User
             var submittedFormDetails = JObject.Parse(formDetailsJson);
 
             // Fetch existing application
-            var application = dbcontext.CitizenApplicationss.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+            var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
             if (application == null)
             {
                 return Json(new { status = false, message = "Application not found" });
@@ -526,7 +526,7 @@ namespace SahayataNidhi.Controllers.User
                 if (service == null)
                     return BadRequest(new { status = false, message = $"Service with ID {serviceId} not found." });
 
-                var application = dbcontext.CitizenApplicationss.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+                var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
                 if (application == null)
                     return BadRequest(new { status = false, message = $"Application with reference number '{referenceNumber}' not found." });
 

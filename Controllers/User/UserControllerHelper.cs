@@ -217,7 +217,7 @@ namespace SahayataNidhi.Controllers.User
             }
             return "";
         }
-        private dynamic GetFormattedValue(dynamic item, JObject data, CitizenApplicationss details)
+        private dynamic GetFormattedValue(dynamic item, JObject data, CitizenApplications details)
         {
             if (item == null)
                 return new { Label = "[No Label]", Value = "[Item is null]" };
@@ -402,7 +402,7 @@ namespace SahayataNidhi.Controllers.User
         }
         public dynamic GetSanctionDetails(string applicationId, string serviceId)
         {
-            var formdetails = dbcontext.CitizenApplicationss.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
+            var formdetails = dbcontext.CitizenApplications.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
             // Get the Letters JSON string
             var lettersJson = dbcontext.Services
                          .FirstOrDefault(s => s.ServiceId == Convert.ToInt32(formdetails!.ServiceId))?.Letters;
@@ -412,7 +412,7 @@ namespace SahayataNidhi.Controllers.User
             var tableFields = sanctionSection!.tableFields;
             var sanctionLetterFor = sanctionSection.sanctionLetterFor;
 
-            var details = dbcontext.CitizenApplicationss
+            var details = dbcontext.CitizenApplications
                 .FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
 
 
@@ -434,7 +434,7 @@ namespace SahayataNidhi.Controllers.User
         private async Task<string> FetchAcknowledgementDetails(string applicationId)
         {
             // 1) Load the application record
-            var details = dbcontext.CitizenApplicationss
+            var details = dbcontext.CitizenApplications
                 .FirstOrDefault(ca => ca.ReferenceNumber == applicationId)
                 ?? throw new InvalidOperationException("Application not found.");
 

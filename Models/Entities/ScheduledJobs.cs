@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SahayataNidhi.Models.Entities;
 
-public partial class ScheduledJobss
+public partial class ScheduledJobs
 {
     public Guid Id { get; set; }
 

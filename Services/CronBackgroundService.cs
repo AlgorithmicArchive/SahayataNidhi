@@ -16,7 +16,7 @@ public interface ICronScheduler
 {
     Task ScheduleTaskAsync(string cronExpression, string actionType, Func<CancellationToken, Task> action);
     Task RegisterActionAsync(string actionType, Func<CancellationToken, Task> action); // New: Dynamic action registration
-    Task<List<ScheduledJobss>> GetAllJobsAsync(); // New: For monitoring
+    Task<List<ScheduledJobs>> GetAllJobsAsync(); // New: For monitoring
     Task UnscheduleTaskAsync(string taskId); // New: For dynamic removal
 }
 
@@ -48,7 +48,7 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
             using var scope = _serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
 
-            db.ScheduledJobss.Add(new ScheduledJobss
+            db.ScheduledJobs.Add(new ScheduledJobs
             {
                 Id = Guid.Parse(taskId),
                 CronExpression = cronExpression,
@@ -81,11 +81,11 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
         return Task.CompletedTask;
     }
 
-    public async Task<List<ScheduledJobss>> GetAllJobsAsync()
+    public async Task<List<ScheduledJobs>> GetAllJobsAsync()
     {
         using var scope = _serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
-        return await db.ScheduledJobss.ToListAsync();
+        return await db.ScheduledJobs.ToListAsync();
     }
 
     public async Task UnscheduleTaskAsync(string taskId)
@@ -94,10 +94,10 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
         {
             using var scope = _serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
-            var job = await db.ScheduledJobss.FindAsync(Guid.Parse(taskId));
+            var job = await db.ScheduledJobs.FindAsync(Guid.Parse(taskId));
             if (job != null)
             {
-                db.ScheduledJobss.Remove(job);
+                db.ScheduledJobs.Remove(job);
                 await db.SaveChangesAsync();
             }
             _logger.LogInformation($"✅ Unscheduled task {taskId}");
@@ -166,7 +166,7 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
                                 // Update last executed time in DB
                                 using var scope = _serviceProvider.CreateScope();
                                 var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
-                                var dbJob = await db.ScheduledJobss.FindAsync(Guid.Parse(task.Key));
+                                var dbJob = await db.ScheduledJobs.FindAsync(Guid.Parse(task.Key));
                                 if (dbJob != null)
                                 {
                                     dbJob.LastExecutedAt = DateTime.UtcNow;
@@ -202,7 +202,7 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
     {
         using var scope = _serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
-        var persistedJobs = await db.ScheduledJobss.ToListAsync(cancellationToken);
+        var persistedJobs = await db.ScheduledJobs.ToListAsync(cancellationToken);
 
         foreach (var job in persistedJobs)
         {
@@ -228,7 +228,7 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
         }
     }
 
-    Task<List<ScheduledJobss>> ICronScheduler.GetAllJobsAsync()
+    Task<List<ScheduledJobs>> ICronScheduler.GetAllJobsAsync()
     {
         throw new NotImplementedException();
     }

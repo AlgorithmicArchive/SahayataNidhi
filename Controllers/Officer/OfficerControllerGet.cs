@@ -397,11 +397,11 @@ namespace SahayataNidhi.Controllers.Officer
                 return Json(new { countList = new List<dynamic>(), canSanction = false });
             }
 
-            List<CitizenApplicationss> response;
+            List<CitizenApplications> response;
 
             if (type == "shifted")
             {
-                response = dbcontext.CitizenApplicationss
+                response = dbcontext.CitizenApplications
                     .FromSqlRaw("EXEC GetShiftedApplications @Role, @AccessLevel, @AccessCode, @ServiceId",
                         role, accessLevel, accessCode, serviceId)
                     .ToList();
@@ -421,7 +421,7 @@ namespace SahayataNidhi.Controllers.Officer
             }
             else
             {
-                response = dbcontext.CitizenApplicationss
+                response = dbcontext.CitizenApplications
                  .FromSqlRaw(
                      "EXEC GetApplicationsForOfficer @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @TotalRecords OUTPUT",
                      role, accessLevel, accessCode, applicationStatus, serviceId,
@@ -794,7 +794,7 @@ namespace SahayataNidhi.Controllers.Officer
             if (pageSize < 1) pageSize = 10;
 
             // Execute stored procedure
-            var applications = await dbcontext.CitizenApplicationss
+            var applications = await dbcontext.CitizenApplications
                 .FromSqlRaw("EXEC [dbo].[GetDisabilityApplications] @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode, @ResultType, @PageNumber, @PageSize",
                     new SqlParameter("@AccessLevel", accessLevel),
                     new SqlParameter("@AccessCode", accessCode),
@@ -1016,7 +1016,7 @@ namespace SahayataNidhi.Controllers.Officer
         public IActionResult GetUserDetails(string applicationId)
         {
             var officer = GetOfficerDetails();
-            var details = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
+            var details = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
             if (details == null)
                 return Json(new { error = "Application not found" });
 
@@ -1106,7 +1106,7 @@ namespace SahayataNidhi.Controllers.Officer
         public async Task<IActionResult> GetSanctionLetter(string applicationId)
         {
             OfficerDetailsModal officer = GetOfficerDetails();
-            var formdetails = dbcontext.CitizenApplicationss.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
+            var formdetails = dbcontext.CitizenApplications.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
             var lettersJson = dbcontext.Services
                        .FirstOrDefault(s => s.ServiceId == Convert.ToInt32(formdetails!.ServiceId))?.Letters;
 
@@ -1116,7 +1116,7 @@ namespace SahayataNidhi.Controllers.Officer
             var sanctionLetterFor = sanctionSection.letterFor;
             var information = sanctionSection.information;
 
-            var details = dbcontext.CitizenApplicationss
+            var details = dbcontext.CitizenApplications
                 .FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
 
 
@@ -1155,7 +1155,7 @@ namespace SahayataNidhi.Controllers.Officer
             }
 
             var parameter = new SqlParameter("@ApplicationId", ApplicationId);
-            var application = await dbcontext.CitizenApplicationss.FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
+            var application = await dbcontext.CitizenApplications.FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
             var players = JsonConvert.DeserializeObject<dynamic>(application!.WorkFlow!) as JArray;
             int currentPlayerIndex = application.CurrentPlayer;
             var currentPlayer = players!.FirstOrDefault(o => (int)o["playerId"]! == currentPlayerIndex);
@@ -1214,7 +1214,7 @@ namespace SahayataNidhi.Controllers.Officer
             }
 
             // Retrieve application details
-            var application = await dbcontext.CitizenApplicationss
+            var application = await dbcontext.CitizenApplications
                 .Where(ca => ca.ReferenceNumber == applicationId)
                 .FirstOrDefaultAsync();
 
@@ -1878,7 +1878,7 @@ namespace SahayataNidhi.Controllers.Officer
                         return Json(new { status = false, message = $"A {type} is already in progress for this Application Id." });
                 }
 
-                var result = dbcontext.CitizenApplicationss
+                var result = dbcontext.CitizenApplications
                     .FromSqlRaw("EXEC GetApplicationForCorrigendum @ReferenceNumber, @Role, @OfficerAccessLevel, @OfficerAccessCode, @ServiceId, @Type, @Message OUTPUT",
                         ReferenceNumber, Role, OfficerAccessLevel, OfficerAccessCode, ServiceId, Type, Message)
                     .ToList();
@@ -2170,7 +2170,7 @@ namespace SahayataNidhi.Controllers.Officer
 
         public IActionResult GetIfSameUdidNumber(string referenceNumber, string udidNumber)
         {
-            var application = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
             var formDetails = JToken.Parse(application!.FormDetails!);
             var UdidNumber = FindFieldRecursively(formDetails, "UdidCardNumber");
             if (udidNumber == (string)UdidNumber!["value"]!)
@@ -2221,7 +2221,7 @@ namespace SahayataNidhi.Controllers.Officer
                 .ToList();
 
             var applicationReferenceNumbers = applications.Select(c => c.ReferenceNumber).ToList();
-            var CitizenApplicationss = dbcontext.CitizenApplicationss
+            var CitizenApplications = dbcontext.CitizenApplications
                 .Where(ca => applicationReferenceNumbers.Contains(ca.ReferenceNumber))
                 .ToDictionary(ca => ca.ReferenceNumber!, ca => ca);
 
@@ -2243,7 +2243,7 @@ namespace SahayataNidhi.Controllers.Officer
 
             foreach (var application in pagedData)
             {
-                if (CitizenApplicationss.TryGetValue(application.ReferenceNumber!, out var citizenApp))
+                if (CitizenApplications.TryGetValue(application.ReferenceNumber!, out var citizenApp))
                 {
                     var formDetails = JsonConvert.DeserializeObject<dynamic>(citizenApp.FormDetails!);
                     var workFlow = JsonConvert.DeserializeObject<JArray>(application.WorkFlow!);
@@ -2368,7 +2368,7 @@ namespace SahayataNidhi.Controllers.Officer
                 ? []
                 : JsonConvert.DeserializeObject<List<dynamic>>(corrigendumApplication.History);
 
-            var application = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
             if (application == null)
             {
                 return NotFound("Citizen application not found.");
@@ -2631,7 +2631,7 @@ namespace SahayataNidhi.Controllers.Officer
                     return NotFound("Corrigendum not found.");
                 }
 
-                var application = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+                var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
                 if (application == null)
                 {
                     return NotFound("Citizen application not found.");
@@ -2709,7 +2709,7 @@ namespace SahayataNidhi.Controllers.Officer
             var withheldApplication = dbcontext.WithheldApplications
                 .FirstOrDefault(wa => wa.ReferenceNumber == referenceNumber && wa.ServiceId == parsedServiceId);
 
-            var CitizenApplications = dbcontext.CitizenApplicationss
+            var CitizenApplications = dbcontext.CitizenApplications
                 .FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
 
             var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == parsedServiceId);
@@ -2909,7 +2909,7 @@ namespace SahayataNidhi.Controllers.Officer
                 Direction = ParameterDirection.Output
             };
 
-            var response = dbcontext.CitizenApplicationss
+            var response = dbcontext.CitizenApplications
                  .FromSqlRaw(
                      "EXEC GetApplicationForAadhaarValidation @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @AadhaarFilter, @TotalRecords OUTPUT",
                      role, accessLevel, accessCode, applicationStatus, ServiceId,
@@ -2988,7 +2988,7 @@ namespace SahayataNidhi.Controllers.Officer
                 Direction = ParameterDirection.Output
             };
 
-            var response = dbcontext.CitizenApplicationss
+            var response = dbcontext.CitizenApplications
                 .FromSqlRaw(
                     "EXEC GetApplicationForAadhaarValidation @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @AadhaarFilter, @TotalRecords OUTPUT",
                     role, accessLevel, accessCode, applicationStatus, ServiceId,
@@ -3246,7 +3246,7 @@ namespace SahayataNidhi.Controllers.Officer
             };
 
             // Fetch application data
-            var response = dbcontext.CitizenApplicationss
+            var response = dbcontext.CitizenApplications
                 .FromSqlRaw(
                     "EXEC GetAadhaarValidationData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @AadhaarFilter, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
                     parameters.ToArray()
@@ -3311,7 +3311,7 @@ namespace SahayataNidhi.Controllers.Officer
             var officer = GetOfficerDetails();
             int serviceId = Convert.ToInt32(ServiceId);
 
-            var application = dbcontext.CitizenApplicationss
+            var application = dbcontext.CitizenApplications
                 .FirstOrDefault(ca => ca.ServiceId == serviceId && ca.ReferenceNumber == ReferenceNumber);
 
             if (application == null)

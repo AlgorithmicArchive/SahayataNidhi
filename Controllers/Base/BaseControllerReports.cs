@@ -86,7 +86,7 @@ namespace SahayataNidhi.Controllers
                 Direction = System.Data.ParameterDirection.Output
             };
 
-            List<CitizenApplicationss> response;
+            List<CitizenApplications> response;
 
             var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == ServiceId);
             if (service == null) return JsonConvert.SerializeObject(new { data = new List<dynamic>(), columns = new List<dynamic>(), poolData = new List<dynamic>(), totalRecords = 0 });
@@ -96,14 +96,14 @@ namespace SahayataNidhi.Controllers
 
             if (type == "shifted")
             {
-                response = dbcontext.CitizenApplicationss
+                response = dbcontext.CitizenApplications
                     .FromSqlRaw("EXEC GetShiftedApplications @Role, @AccessLevel, @AccessCode, @ServiceId",
                                 role, accessLevel, accessCode, serviceId)
                     .ToList();
             }
             else
             {
-                response = dbcontext.CitizenApplicationss
+                response = dbcontext.CitizenApplications
                     .FromSqlRaw(
                         "EXEC GetApplicationsForOfficer @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @TotalRecords OUTPUT",
                         role, accessLevel, accessCode, applicationStatus, serviceId,
@@ -235,7 +235,7 @@ namespace SahayataNidhi.Controllers
 
         public async Task<string> GetApplicationHistory(string? scope, string? columnOrder, string? columnVisibility, string ApplicationId, int page, int size)
         {
-            var application = await dbcontext.CitizenApplicationss.FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
+            var application = await dbcontext.CitizenApplications.FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
 
             var players = JsonConvert.DeserializeObject<JArray>(application!.WorkFlow!);
             var formDetails = JsonConvert.DeserializeObject<dynamic>(application.FormDetails!);
@@ -336,7 +336,7 @@ namespace SahayataNidhi.Controllers
             var TotalRecords = new SqlParameter("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
             // Execute stored procedure
-            var applications = dbcontext.CitizenApplicationss
+            var applications = dbcontext.CitizenApplications
                 .FromSqlRaw("EXEC GetInitiatedApplications @UserId, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
                     UserId, PageIndex, PageSize, IsPaginated, TotalRecords)
                 .ToList();

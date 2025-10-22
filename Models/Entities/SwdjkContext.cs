@@ -31,7 +31,7 @@ public partial class SwdjkContext : DbContext
 
     public virtual DbSet<Certificates> Certificates { get; set; }
 
-    public virtual DbSet<CitizenApplicationss> CitizenApplicationss { get; set; }
+    public virtual DbSet<CitizenApplications> CitizenApplications { get; set; }
 
     public virtual DbSet<Corrigendum> Corrigendum { get; set; }
 
@@ -59,7 +59,7 @@ public partial class SwdjkContext : DbContext
 
     public virtual DbSet<Pool> Pool { get; set; }
 
-    public virtual DbSet<ScheduledJobss> ScheduledJobss { get; set; }
+    public virtual DbSet<ScheduledJobs> ScheduledJobs { get; set; }
 
     public virtual DbSet<Services> Services { get; set; }
 
@@ -69,7 +69,7 @@ public partial class SwdjkContext : DbContext
 
     public virtual DbSet<UserDocuments> UserDocuments { get; set; }
 
-    public virtual DbSet<UserSessionss> UserSessionss { get; set; }
+    public virtual DbSet<UserSessions> UserSessions { get; set; }
 
     public virtual DbSet<Users> Users { get; set; }
 
@@ -233,7 +233,7 @@ public partial class SwdjkContext : DbContext
             entity.Property(e => e.SerialNumber).HasColumnName("serialNumber");
         });
 
-        modelBuilder.Entity<CitizenApplicationss>(entity =>
+        modelBuilder.Entity<CitizenApplications>(entity =>
         {
             entity.HasKey(e => e.ReferenceNumber);
 
@@ -514,7 +514,7 @@ public partial class SwdjkContext : DbContext
                 .HasConstraintName("FK_Pool_Services");
         });
 
-        modelBuilder.Entity<ScheduledJobss>(entity =>
+        modelBuilder.Entity<ScheduledJobs>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Schedule__3214EC07F114B2BF");
 
@@ -587,7 +587,7 @@ public partial class SwdjkContext : DbContext
                 .HasColumnType("datetime");
         });
 
-        modelBuilder.Entity<UserSessionss>(entity =>
+        modelBuilder.Entity<UserSessions>(entity =>
         {
             entity.HasKey(e => e.SessionId).HasName("PK__UserSess__C9F4929013FD5ADB");
 
