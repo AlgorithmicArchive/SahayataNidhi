@@ -24,7 +24,7 @@ namespace SahayataNidhi.Controllers.Officer
         public IActionResult UpdatePool(int ServiceId, string list)
         {
             var officer = GetOfficerDetails();
-            var PoolList = dbcontext.Pools.FirstOrDefault(p => p.ServiceId == Convert.ToInt32(ServiceId) && p.ListType == "Pool" && p.AccessLevel == officer.AccessLevel && p.AccessCode == officer.AccessCode);
+            var PoolList = dbcontext.Pool.FirstOrDefault(p => p.ServiceId == Convert.ToInt32(ServiceId) && p.ListType == "Pool" && p.AccessLevel == officer.AccessLevel && p.AccessCode == officer.AccessCode);
             var pool = PoolList != null && !string.IsNullOrWhiteSpace(PoolList!.List) ? JsonConvert.DeserializeObject<List<string>>(PoolList.List) : [];
             var poolList = JsonConvert.DeserializeObject<List<string>>(list);
             foreach (var item in poolList!)
@@ -42,7 +42,7 @@ namespace SahayataNidhi.Controllers.Officer
                     List = JsonConvert.SerializeObject(pool),
                     ListType = "Pool"
                 };
-                dbcontext.Pools.Add(newPool);
+                dbcontext.Pool.Add(newPool);
             }
             else
                 PoolList!.List = JsonConvert.SerializeObject(pool);
@@ -93,7 +93,7 @@ namespace SahayataNidhi.Controllers.Officer
                 else
                 {
                     // Create new record
-                    dbcontext.UserDocuments.Add(new UserDocument
+                    dbcontext.UserDocuments.Add(new UserDocuments
                     {
                         FileName = fileName,
                         FileData = fileData,
@@ -195,7 +195,7 @@ namespace SahayataNidhi.Controllers.Officer
                     return BadRequest($"Service with ID {serviceId} not found.");
                 }
 
-                var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+                var application = dbcontext.CitizenApplicationss.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
                 if (application == null)
                 {
                     return BadRequest($"Application with reference number '{referenceNumber}' not found.");
@@ -204,7 +204,7 @@ namespace SahayataNidhi.Controllers.Officer
                 if (type == "Correction")
                 {
                     var workFlow = JArray.Parse(application.WorkFlow ?? "[]");
-                    if (workFlow.Count <= application.CurrentPlayer || workFlow[application.CurrentPlayer]["designation"]?.ToString() != officer.Role)
+                    if (workFlow.Count <= application.CurrentPlayer || workFlow[application.CurrentPlayer!]!["designation"]?.ToString() != officer.Role)
                     {
                         return Json(new { status = false, message = "You are not the current officer authorized to perform a Correction." });
                     }
@@ -274,7 +274,7 @@ namespace SahayataNidhi.Controllers.Officer
 
                 if (applicationId != null)
                 {
-                    var corrigendum = dbcontext.Corrigenda.FirstOrDefault(c => c.CorrigendumId == applicationId && c.Type == type);
+                    var corrigendum = dbcontext.Corrigendum.FirstOrDefault(c => c.CorrigendumId == applicationId && c.Type == type);
                     if (corrigendum == null)
                     {
                         return BadRequest($"{type} with ID {applicationId} not found.");
@@ -358,7 +358,7 @@ namespace SahayataNidhi.Controllers.Officer
                     corrigendum.History = JsonConvert.SerializeObject(history);
                     corrigendum.Type = type;
 
-                    dbcontext.Corrigenda.Update(corrigendum);
+                    dbcontext.Corrigendum.Update(corrigendum);
                     CorrigendumNumber = corrigendum.CorrigendumId;
                 }
                 else
@@ -366,7 +366,7 @@ namespace SahayataNidhi.Controllers.Officer
                     var Location = formDetailsJObject["Location"];
                     int DistrictId = Convert.ToInt32(Location!.FirstOrDefault(l => l["name"]!.ToString() == "District")!["value"]);
                     var finYear = helper.GetCurrentFinancialYear();
-                    var districtDetails = dbcontext.Districts.FirstOrDefault(s => s.DistrictId == DistrictId);
+                    var districtDetails = dbcontext.District.FirstOrDefault(s => s.DistrictId == DistrictId);
                     string districtShort = districtDetails!.DistrictShort!;
                     int count = GetCountPerDistrict(DistrictId, serviceId);
 
@@ -449,7 +449,7 @@ namespace SahayataNidhi.Controllers.Officer
                         Type = type
                     };
 
-                    dbcontext.Corrigenda.Add(corrigendum);
+                    dbcontext.Corrigendum.Add(corrigendum);
                 }
 
                 dbcontext.SaveChanges();
@@ -505,16 +505,16 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                 }
 
-                var corrigendum = dbcontext.Corrigenda
+                var corrigendum = dbcontext.Corrigendum
                     .FirstOrDefault(c => c.ReferenceNumber == referenceNumber && c.CorrigendumId == corrigendumId && c.Type == type);
                 if (corrigendum == null)
                 {
                     return NotFound($"{type} not found.");
                 }
 
-                var citizenApplication = dbcontext.CitizenApplications
+                var CitizenApplications = dbcontext.CitizenApplicationss
                     .FirstOrDefault(c => c.ReferenceNumber == referenceNumber);
-                if (citizenApplication == null)
+                if (CitizenApplications == null)
                 {
                     return NotFound("Citizen application not found.");
                 }
@@ -528,7 +528,7 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                 }
 
-                var formDetails = JObject.Parse(citizenApplication.FormDetails!);
+                var formDetails = JObject.Parse(CitizenApplications.FormDetails!);
 
                 int currentPlayer = corrigendum.CurrentPlayer;
                 var workFlowCorrigendum = JArray.Parse(corrigendum.WorkFlow ?? "[]");
@@ -600,7 +600,7 @@ namespace SahayataNidhi.Controllers.Officer
 
                     if (!string.IsNullOrWhiteSpace(newValue))
                     {
-                        var expiring = dbcontext.ApplicationsWithExpiringEligibilities
+                        var expiring = dbcontext.ApplicationsWithExpiringEligibility
                             .FirstOrDefault(ae => ae.ReferenceNumber == referenceNumber);
 
                         if (expiring != null)
@@ -634,7 +634,7 @@ namespace SahayataNidhi.Controllers.Officer
                 }
                 try
                 {
-                    var getServices = dbcontext.WebServices.FirstOrDefault(ws => ws.ServiceId == citizenApplication.ServiceId && ws.IsActive);
+                    var getServices = dbcontext.WebService.FirstOrDefault(ws => ws.ServiceId == CitizenApplications.ServiceId && ws.IsActive);
                     if (getServices != null)
                     {
                         var onAction = JsonConvert.DeserializeObject<List<string>>(getServices.OnAction);
@@ -671,7 +671,7 @@ namespace SahayataNidhi.Controllers.Officer
                 corrigendum.CorrigendumFields = corrigendumFields.ToString(Formatting.None);
                 corrigendum.Type = type;
 
-                dbcontext.Corrigenda.Update(corrigendum);
+                dbcontext.Corrigendum.Update(corrigendum);
                 dbcontext.SaveChanges();
 
                 return Json(new { status = true });
@@ -723,7 +723,7 @@ namespace SahayataNidhi.Controllers.Officer
                     return BadRequest(new { status = false, response = "Invalid file type. Only PDF files are allowed." });
                 }
 
-                var corrigendum = await dbcontext.Corrigenda
+                var corrigendum = await dbcontext.Corrigendum
                     .FirstOrDefaultAsync(c => c.ReferenceNumber == applicationId && c.CorrigendumId == corrigendumId && c.Type == type);
                 if (corrigendum == null)
                 {
@@ -755,7 +755,7 @@ namespace SahayataNidhi.Controllers.Officer
                 }
                 else
                 {
-                    dbcontext.UserDocuments.Add(new UserDocument
+                    dbcontext.UserDocuments.Add(new UserDocuments
                     {
                         FileName = fileName,
                         FileData = fileData,
@@ -773,7 +773,7 @@ namespace SahayataNidhi.Controllers.Officer
                     corrigendum.Status = "Sanctioned";
                 }
 
-                dbcontext.Corrigenda.Update(corrigendum);
+                dbcontext.Corrigendum.Update(corrigendum);
                 await dbcontext.SaveChangesAsync();
 
                 _logger.LogInformation("{Type} PDF updated and status set to sanctioned for applicationId: {ApplicationId}, corrigendumId: {CorrigendumId}", type, applicationId, corrigendumId);
@@ -794,7 +794,7 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 string referenceNumber = form["referenceNumber"].ToString();
                 string expirationDate = form["expirationDate"].ToString();
-                var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+                var application = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
                 var formDetailsJson = JObject.Parse(application!.FormDetails!);
                 string email = GetFieldValue("Email", formDetailsJson);
                 string applicantName = GetFieldValue("ApplicantName", formDetailsJson);
@@ -825,7 +825,7 @@ namespace SahayataNidhi.Controllers.Officer
                 <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
             </div>";
 
-                var expiringApplications = dbcontext.ApplicationsWithExpiringEligibilities.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+                var expiringApplications = dbcontext.ApplicationsWithExpiringEligibility.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
                 expiringApplications!.MailSent = expiringApplications.MailSent + 1;
                 dbcontext.SaveChanges();
 
@@ -892,18 +892,18 @@ namespace SahayataNidhi.Controllers.Officer
                     }
                 }
 
-                var citizenApplication = dbcontext.CitizenApplications
+                var CitizenApplications = dbcontext.CitizenApplicationss
                     .FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
 
                 var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
 
-                if (citizenApplication == null || service == null)
+                if (CitizenApplications == null || service == null)
                     return BadRequest(new { status = false, message = "Invalid application or service." });
 
                 JObject formDetailsJObject;
                 try
                 {
-                    formDetailsJObject = JObject.Parse(citizenApplication.FormDetails!);
+                    formDetailsJObject = JObject.Parse(CitizenApplications.FormDetails!);
                 }
                 catch (JsonException ex)
                 {
@@ -998,7 +998,7 @@ namespace SahayataNidhi.Controllers.Officer
                 }
 
                 // 🔹 Create new withheld application
-                var newApplication = new WithheldApplication
+                var newApplication = new WithheldApplications
                 {
                     ServiceId = serviceId,
                     ReferenceNumber = referenceNumber,
@@ -1059,19 +1059,19 @@ namespace SahayataNidhi.Controllers.Officer
                     return NotFound(new { status = false, message = "Application not found." });
 
                 // 🔹 Validate citizen application and service
-                var citizenApplication = dbcontext.CitizenApplications
+                var CitizenApplications = dbcontext.CitizenApplicationss
                     .FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber.ToString());
 
                 var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
 
-                if (citizenApplication == null || service == null)
+                if (CitizenApplications == null || service == null)
                     return BadRequest(new { status = false, message = "Invalid application or service." });
 
                 // 🔹 Parse form details
                 JObject formDetailsJObject;
                 try
                 {
-                    formDetailsJObject = JObject.Parse(citizenApplication.FormDetails!);
+                    formDetailsJObject = JObject.Parse(CitizenApplications.FormDetails!);
                 }
                 catch (JsonException ex)
                 {
@@ -1465,7 +1465,7 @@ namespace SahayataNidhi.Controllers.Officer
 
                 // Extract transaction ID from response XML
                 var xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml(resp);
+                xmlDoc.LoadXml(resp!);
                 var txnId = xmlDoc.SelectSingleNode("/EsignResp/@txn")?.Value;
                 if (string.IsNullOrEmpty(txnId))
                 {
@@ -1482,7 +1482,7 @@ namespace SahayataNidhi.Controllers.Officer
                     return Json(new { success = false, message = "Invalid session data or temporary PDF not found. Cache key missing." });
                 }
 
-                preparedPath = cacheEntry.PreparedPdfPath as string;
+                preparedPath = cacheEntry!.PreparedPdfPath as string;
                 var applicationId = cacheEntry.ApplicationId as string;
                 var cachedTxnId = cacheEntry.TxnId as string;
 
@@ -1504,7 +1504,7 @@ namespace SahayataNidhi.Controllers.Officer
                     return Json(new { success = false, message = "Temporary PDF not found." });
                 }
 
-                if (!CheckESignUserName(resp))
+                if (!CheckESignUserName(resp!))
                 {
                     _logger.LogWarning("Invalid user certificate");
                     return Json(new { success = false, message = "Invalid user certificate." });
@@ -1527,7 +1527,7 @@ namespace SahayataNidhi.Controllers.Officer
                     memoryStream.Position = 0;
 
                     _logger.LogDebug("Embedding signature into PDF for applicationId: {ApplicationId}", applicationId);
-                    EmbedSignature(resp, memoryStream); // Embed signature
+                    EmbedSignature(resp!, memoryStream); // Embed signature
                     await memoryStream.FlushAsync();
 
                     // Save signed PDF
@@ -1586,7 +1586,7 @@ namespace SahayataNidhi.Controllers.Officer
                 }
                 else
                 {
-                    dbcontext.UserDocuments.Add(new UserDocument
+                    dbcontext.UserDocuments.Add(new UserDocuments
                     {
                         FileName = fileName,
                         FileData = signedBytes,

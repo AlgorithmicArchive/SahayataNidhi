@@ -311,15 +311,15 @@ namespace SahayataNidhi.Controllers
             var officer = GetOfficerDetails();
             if (officer == null)
             {
-                var Districts = dbcontext.Districts.ToList();
-                return Json(new { status = true, districts = Districts });
+                var District = dbcontext.District.ToList();
+                return Json(new { status = true, districts = District });
             }
             if (officer!.AccessLevel == "Tehsil")
             {
-                var tehsils = dbcontext.Tswotehsils.Where(t => t.TehsilId == officer.AccessCode).ToList();
+                var tehsils = dbcontext.Tswotehsil.Where(t => t.TehsilId == officer.AccessCode).ToList();
                 return Json(new { status = true, tehsils });
             }
-            var districts = dbcontext.Districts.Where(d => (officer.AccessLevel == "State") || (officer!.AccessLevel == "Division" && d.Division == officer.AccessCode) || (officer.AccessLevel == "District" && d.DistrictId == officer.AccessCode)).ToList();
+            var districts = dbcontext.District.Where(d => (officer.AccessLevel == "State") || (officer!.AccessLevel == "Division" && d.Division == officer.AccessCode) || (officer.AccessLevel == "District" && d.DistrictId == officer.AccessCode)).ToList();
             return Json(new { status = true, districts });
         }
 
@@ -329,10 +329,10 @@ namespace SahayataNidhi.Controllers
             List<District> districts;
             if (division != null)
             {
-                districts = dbcontext.Districts.Where(d => d.Division == Convert.ToInt32(division)).ToList();
+                districts = dbcontext.District.Where(d => d.Division == Convert.ToInt32(division)).ToList();
                 return Json(new { status = true, districts });
             }
-            districts = dbcontext.Districts.ToList();
+            districts = dbcontext.District.ToList();
             return Json(new { status = true, districts });
         }
 
@@ -340,7 +340,7 @@ namespace SahayataNidhi.Controllers
         public IActionResult GetTeshilForDistrict(string districtId)
         {
             int DistrictId = Convert.ToInt32(districtId);
-            var tehsils = dbcontext.Tswotehsils.Where(u => u.DistrictId == DistrictId).ToList();
+            var tehsils = dbcontext.Tswotehsil.Where(u => u.DistrictId == DistrictId).ToList();
             return Json(new { status = true, tehsils });
         }
 
@@ -398,13 +398,13 @@ namespace SahayataNidhi.Controllers
             switch (table)
             {
                 case "TehsilAll":
-                    data = dbcontext.Tehsils
+                    data = dbcontext.Tehsil
                      .Where(t => t.DistrictId == parentId)
                      .Select(t => new { value = t.TehsilId, label = t.TehsilName }) // Optional: project only needed fields
                      .ToList();
                     break;
                 case "Tehsil":
-                    data = dbcontext.Tswotehsils
+                    data = dbcontext.Tswotehsil
                         .Where(t => t.DistrictId == parentId)
                         .Select(t => new { value = t.TehsilId, label = t.TehsilName }) // Optional: project only needed fields
                         .ToList();
@@ -436,7 +436,7 @@ namespace SahayataNidhi.Controllers
                     break;
 
                 case "HalqaPanchayat":
-                    data = dbcontext.HalqaPanchayats.Where(m => m.BlockId == parentId)
+                    data = dbcontext.HalqaPanchayat.Where(m => m.BlockId == parentId)
                             .Select(m => new { value = m.HalqaPanchayatId, label = m.HalqaPanchayatName })
                             .ToList();
                     break;
@@ -571,7 +571,7 @@ namespace SahayataNidhi.Controllers
         {
             try
             {
-                var banks = await dbcontext.Banks
+                var banks = await dbcontext.Bank
                     .ToListAsync();
                 return Ok(new { status = true, data = banks });
             }
@@ -587,7 +587,7 @@ namespace SahayataNidhi.Controllers
             try
             {
                 int BankId = Convert.ToInt32(bankId);
-                var bank = dbcontext.Banks
+                var bank = dbcontext.Bank
                     .FirstOrDefault(b => b.Id == BankId);
 
                 if (bank != null)
@@ -610,7 +610,7 @@ namespace SahayataNidhi.Controllers
         {
             try
             {
-                string bankName = dbcontext.Banks
+                string bankName = dbcontext.Bank
                  .FirstOrDefault(b => b.Id == BankId)?.BankName ?? string.Empty;
 
                 var pattern = $"%{bankName}%";

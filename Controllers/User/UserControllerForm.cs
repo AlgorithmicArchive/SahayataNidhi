@@ -28,7 +28,7 @@ namespace SahayataNidhi.Controllers.User
                         ExpirationDate = ExpirationDate,
                         ReferenceNumber = ReferenceNumber,
                     };
-                    dbcontext.ApplicationsWithExpiringEligibilities.Add(expiringEligibility);
+                    dbcontext.ApplicationsWithExpiringEligibility.Add(expiringEligibility);
                     dbcontext.SaveChanges();
                 }
             }
@@ -98,7 +98,7 @@ namespace SahayataNidhi.Controllers.User
             {
                 int count = GetCountPerDistrict(districtId, serviceId);
                 var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
-                var districtDetails = dbcontext.Districts.FirstOrDefault(s => s.DistrictId == districtId);
+                var districtDetails = dbcontext.District.FirstOrDefault(s => s.DistrictId == districtId);
                 string districtShort = districtDetails!.DistrictShort!;
                 OfficerArea = districtDetails.DistrictName!;
                 var officerEditableField = service!.OfficerEditableField;
@@ -153,7 +153,7 @@ namespace SahayataNidhi.Controllers.User
                 var createdAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
 
                 // Store the updated JSON (with file paths) in the database.
-                var newFormDetails = new CitizenApplication
+                var newFormDetails = new CitizenApplicationss
                 {
                     ReferenceNumber = ReferenceNumber,
                     ReferenceNumberAlphaNumeric = ReferenceNumberAlphaNumber,
@@ -167,11 +167,11 @@ namespace SahayataNidhi.Controllers.User
                     CreatedAt = createdAt
                 };
 
-                dbcontext.CitizenApplications.Add(newFormDetails);
+                dbcontext.CitizenApplicationss.Add(newFormDetails);
             }
             else
             {
-                var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == ReferenceNumber);
+                var application = dbcontext.CitizenApplicationss.FirstOrDefault(a => a.ReferenceNumber == ReferenceNumber);
                 application!.FormDetails = formDetailsObj.ToString();
 
                 if (application.Status != status)
@@ -187,7 +187,7 @@ namespace SahayataNidhi.Controllers.User
             {
                 try
                 {
-                    var getServices = dbcontext.WebServices.FirstOrDefault(ws => ws.ServiceId == serviceId && ws.IsActive);
+                    var getServices = dbcontext.WebService.FirstOrDefault(ws => ws.ServiceId == serviceId && ws.IsActive);
                     if (getServices != null)
                     {
                         var onAction = JsonConvert.DeserializeObject<List<string>>(getServices.OnAction);
@@ -197,7 +197,7 @@ namespace SahayataNidhi.Controllers.User
                             _taskQueue.QueueBackgroundWorkItem(async token =>
                             {
                                 using var scope = _serviceScopeFactory.CreateScope();
-                                var dbcontext = scope.ServiceProvider.GetRequiredService<SocialWelfareDepartmentContext>();
+                                var dbcontext = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
 
                                 try
                                 {
@@ -354,7 +354,7 @@ namespace SahayataNidhi.Controllers.User
             var submittedFormDetails = JObject.Parse(formDetailsJson);
 
             // Fetch existing application
-            var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+            var application = dbcontext.CitizenApplicationss.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
             if (application == null)
             {
                 return Json(new { status = false, message = "Application not found" });
@@ -526,7 +526,7 @@ namespace SahayataNidhi.Controllers.User
                 if (service == null)
                     return BadRequest(new { status = false, message = $"Service with ID {serviceId} not found." });
 
-                var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+                var application = dbcontext.CitizenApplicationss.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
                 if (application == null)
                     return BadRequest(new { status = false, message = $"Application with reference number '{referenceNumber}' not found." });
 
@@ -658,7 +658,7 @@ namespace SahayataNidhi.Controllers.User
                 var locationObj = JArray.Parse(location);
                 int districtId = Convert.ToInt32(locationObj.First(l => l["name"]!.ToString() == "District")!["value"]);
                 var finYear = helper.GetCurrentFinancialYear();
-                var districtDetails = dbcontext.Districts.FirstOrDefault(s => s.DistrictId == districtId);
+                var districtDetails = dbcontext.District.FirstOrDefault(s => s.DistrictId == districtId);
                 if (districtDetails == null)
                     return BadRequest(new { status = false, message = $"District with ID {districtId} not found." });
 
@@ -723,7 +723,7 @@ namespace SahayataNidhi.Controllers.User
                     Type = "Amendment",
                 };
 
-                dbcontext.Corrigenda.Add(corrigendum);
+                dbcontext.Corrigendum.Add(corrigendum);
                 await dbcontext.SaveChangesAsync();
 
                 return Json(new

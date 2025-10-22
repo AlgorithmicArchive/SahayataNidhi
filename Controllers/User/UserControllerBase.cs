@@ -13,7 +13,7 @@ namespace SahayataNidhi.Controllers.User
 {
     [Authorize(Roles = "Citizen")]
     public partial class UserController(
-    SocialWelfareDepartmentContext dbcontext,
+    SwdjkContext dbcontext,
     IAuditLogService auditService,
     ILogger<UserController> logger,
     UserHelperFunctions helper,
@@ -25,7 +25,7 @@ namespace SahayataNidhi.Controllers.User
     IServiceScopeFactory serviceScopeFactory
 ) : Controller
     {
-        protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
+        protected readonly SwdjkContext dbcontext = dbcontext;
         private readonly IAuditLogService _auditService = auditService;
         protected readonly ILogger<UserController> _logger = logger;
         protected readonly UserHelperFunctions helper = helper;

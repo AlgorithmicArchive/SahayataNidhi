@@ -266,7 +266,7 @@ namespace SahayataNidhi.Controllers.Officer
         //     var bankFile = await dbcontext.BankFiles
         //         .FirstOrDefaultAsync(bf => bf.ServiceId == serviceIdInt && bf.DistrictId == districtIdInt && bf.FileSent == false);
 
-        //     var district = await dbcontext.Districts
+        //     var district = await dbcontext.District
         //         .FirstOrDefaultAsync(d => d.DistrictId == districtIdInt);
 
 
@@ -604,7 +604,7 @@ namespace SahayataNidhi.Controllers.Officer
         public IActionResult ExportBankFileCsv(int AccessCode, int ServiceId, string type, int Month, int Year)
         {
             // Fetch district short name from DB based on AccessCode
-            var districtShortName = dbcontext.Districts
+            var districtShortName = dbcontext.District
                 .Where(d => d.DistrictId == AccessCode)
                 .Select(d => d.DistrictShort) // ensure this column exists
                 .FirstOrDefault();

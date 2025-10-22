@@ -1335,13 +1335,14 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
   const handleEmailAlertCancel = () => {
     setEmailAlertModalOpen(false);
   };
+  const aadhaarExists = watch("AadharNumber") !== undefined;
 
   const onSubmit = async (data, operationType) => {
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
     data = getValues();
 
-    if (!aadhaarValid && operationType !== "save") {
+    if (aadhaarExists && !aadhaarValid && operationType !== "save") {
       alert("Aadhaar Number is not validated.");
       return;
     }
@@ -1443,7 +1444,10 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         } else {
           setReferenceNumber(result.referenceNumber);
           toast.success(
-            "Form details have been saved as a draft. If you don’t submit the form, you will need to re-verify your Aadhaar number when you edit it later.",
+            `Form details have been saved as a draft. ${
+              aadhaarExists &&
+              "If you don’t submit the form, you will need to re-verify your Aadhaar number when you edit it later"
+            }.`,
           );
           if (formRef.current) {
             formRef.current.scrollIntoView({
@@ -2363,7 +2367,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               {formSections.map((section, index) => {
                 const isFullRow =
                   section.section === "Applicant Details" ||
-                  section.section === "Declearation";
+                  section.section === "Declearation" ||
+                  selectedServiceId != 1;
 
                 return (
                   <Grid

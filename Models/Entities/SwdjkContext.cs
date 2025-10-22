@@ -6,7 +6,7 @@ namespace SahayataNidhi.Models.Entities;
 
 public partial class SwdjkContext : DbContext
 {
-    public SwdjkContext()
+    public SwdjkContext(System.Data.Common.DbConnection dbConnection)
     {
     }
 
@@ -15,67 +15,71 @@ public partial class SwdjkContext : DbContext
     {
     }
 
-    public virtual DbSet<ActionHistory> ActionHistories { get; set; }
+    public virtual DbSet<ActionHistory> ActionHistory { get; set; }
 
-    public virtual DbSet<ApplicationPerDistrict> ApplicationPerDistricts { get; set; }
+    public virtual DbSet<ApplicationPerDistrict> ApplicationPerDistrict { get; set; }
 
-    public virtual DbSet<ApplicationsWithExpiringEligibility> ApplicationsWithExpiringEligibilities { get; set; }
+    public virtual DbSet<ApplicationsWithExpiringEligibility> ApplicationsWithExpiringEligibility { get; set; }
 
-    public virtual DbSet<AuditLog> AuditLogs { get; set; }
+    public virtual DbSet<AuditLogs> AuditLogs { get; set; }
 
-    public virtual DbSet<Bank> Banks { get; set; }
+    public virtual DbSet<Bank> Bank { get; set; }
 
-    public virtual DbSet<BankDetail> BankDetails { get; set; }
+    public virtual DbSet<BankDetails> BankDetails { get; set; }
 
-    public virtual DbSet<Block> Blocks { get; set; }
+    public virtual DbSet<Blocks> Blocks { get; set; }
 
-    public virtual DbSet<Certificate> Certificates { get; set; }
+    public virtual DbSet<Certificates> Certificates { get; set; }
 
-    public virtual DbSet<CitizenApplication> CitizenApplications { get; set; }
+    public virtual DbSet<CitizenApplicationss> CitizenApplicationss { get; set; }
 
-    public virtual DbSet<Corrigendum> Corrigenda { get; set; }
+    public virtual DbSet<Corrigendum> Corrigendum { get; set; }
 
-    public virtual DbSet<Department> Departments { get; set; }
+    public virtual DbSet<Departments> Departments { get; set; }
 
-    public virtual DbSet<District> Districts { get; set; }
+    public virtual DbSet<District> District { get; set; }
 
-    public virtual DbSet<EmailSetting> EmailSettings { get; set; }
+    public virtual DbSet<EmailSettings> EmailSettings { get; set; }
 
-    public virtual DbSet<Feedback> Feedbacks { get; set; }
+    public virtual DbSet<Feedback> Feedback { get; set; }
 
-    public virtual DbSet<HalqaPanchayat> HalqaPanchayats { get; set; }
+    public virtual DbSet<HalqaPanchayat> HalqaPanchayat { get; set; }
 
-    public virtual DbSet<Muncipality> Muncipalities { get; set; }
+    public virtual DbSet<Muncipalities> Muncipalities { get; set; }
 
-    public virtual DbSet<MuncipalityType> MuncipalityTypes { get; set; }
+    public virtual DbSet<MuncipalityTypes> MuncipalityTypes { get; set; }
 
-    public virtual DbSet<OfficersDesignation> OfficersDesignations { get; set; }
+    public virtual DbSet<OfficersDesignations> OfficersDesignations { get; set; }
 
-    public virtual DbSet<PensionPayment> PensionPayments { get; set; }
+    public virtual DbSet<Offices> Offices { get; set; }
 
-    public virtual DbSet<Pool> Pools { get; set; }
+    public virtual DbSet<OfficesDetails> OfficesDetails { get; set; }
 
-    public virtual DbSet<ScheduledJob> ScheduledJobs { get; set; }
+    public virtual DbSet<PensionPayments> PensionPayments { get; set; }
 
-    public virtual DbSet<Service> Services { get; set; }
+    public virtual DbSet<Pool> Pool { get; set; }
 
-    public virtual DbSet<Tehsil> Tehsils { get; set; }
+    public virtual DbSet<ScheduledJobss> ScheduledJobss { get; set; }
 
-    public virtual DbSet<Tswotehsil> Tswotehsils { get; set; }
+    public virtual DbSet<Services> Services { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<Tehsil> Tehsil { get; set; }
 
-    public virtual DbSet<UserDocument> UserDocuments { get; set; }
+    public virtual DbSet<Tswotehsil> Tswotehsil { get; set; }
 
-    public virtual DbSet<UserSession> UserSessions { get; set; }
+    public virtual DbSet<UserDocuments> UserDocuments { get; set; }
 
-    public virtual DbSet<Village> Villages { get; set; }
+    public virtual DbSet<UserSessionss> UserSessionss { get; set; }
 
-    public virtual DbSet<Ward> Wards { get; set; }
+    public virtual DbSet<Users> Users { get; set; }
 
-    public virtual DbSet<WebService> WebServices { get; set; }
+    public virtual DbSet<Villages> Villages { get; set; }
 
-    public virtual DbSet<WithheldApplication> WithheldApplications { get; set; }
+    public virtual DbSet<Wards> Wards { get; set; }
+
+    public virtual DbSet<WebService> WebService { get; set; }
+
+    public virtual DbSet<WithheldApplications> WithheldApplications { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=DefaultConnection");
@@ -85,8 +89,6 @@ public partial class SwdjkContext : DbContext
         modelBuilder.Entity<ActionHistory>(entity =>
         {
             entity.HasKey(e => e.HistoryId).HasName("ActionHistory_PK");
-
-            entity.ToTable("ActionHistory");
 
             entity.Property(e => e.HistoryId).HasColumnName("history_id");
             entity.Property(e => e.ActionTaken)
@@ -114,8 +116,6 @@ public partial class SwdjkContext : DbContext
         {
             entity.HasKey(e => e.Uuid);
 
-            entity.ToTable("ApplicationPerDistrict");
-
             entity.Property(e => e.Uuid).HasColumnName("UUID");
             entity.Property(e => e.FinancialYear)
                 .HasMaxLength(50)
@@ -126,8 +126,6 @@ public partial class SwdjkContext : DbContext
         modelBuilder.Entity<ApplicationsWithExpiringEligibility>(entity =>
         {
             entity.HasKey(e => e.ExpiringId);
-
-            entity.ToTable("ApplicationsWithExpiringEligibility");
 
             entity.Property(e => e.ExpiringId).HasColumnName("Expiring_Id");
             entity.Property(e => e.CreatedAt)
@@ -140,7 +138,7 @@ public partial class SwdjkContext : DbContext
             entity.Property(e => e.ReferenceNumber).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<AuditLog>(entity =>
+        modelBuilder.Entity<AuditLogs>(entity =>
         {
             entity.HasKey(e => e.LogId);
 
@@ -166,7 +164,7 @@ public partial class SwdjkContext : DbContext
             entity.Property(e => e.BankName).HasMaxLength(255);
         });
 
-        modelBuilder.Entity<BankDetail>(entity =>
+        modelBuilder.Entity<BankDetails>(entity =>
         {
             entity.HasNoKey();
 
@@ -208,7 +206,7 @@ public partial class SwdjkContext : DbContext
                 .HasColumnName("STD CODE");
         });
 
-        modelBuilder.Entity<Block>(entity =>
+        modelBuilder.Entity<Blocks>(entity =>
         {
             entity.HasKey(e => e.Uuid);
 
@@ -218,7 +216,7 @@ public partial class SwdjkContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<Certificate>(entity =>
+        modelBuilder.Entity<Certificates>(entity =>
         {
             entity.HasKey(e => e.Uuid);
 
@@ -235,7 +233,7 @@ public partial class SwdjkContext : DbContext
             entity.Property(e => e.SerialNumber).HasColumnName("serialNumber");
         });
 
-        modelBuilder.Entity<CitizenApplication>(entity =>
+        modelBuilder.Entity<CitizenApplicationss>(entity =>
         {
             entity.HasKey(e => e.ReferenceNumber);
 
@@ -260,8 +258,6 @@ public partial class SwdjkContext : DbContext
 
         modelBuilder.Entity<Corrigendum>(entity =>
         {
-            entity.ToTable("Corrigendum");
-
             entity.Property(e => e.CorrigendumId)
                 .HasMaxLength(60)
                 .IsUnicode(false);
@@ -278,17 +274,20 @@ public partial class SwdjkContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("type");
 
-            entity.HasOne(d => d.ReferenceNumberNavigation).WithMany(p => p.Corrigenda)
+            entity.HasOne(d => d.ReferenceNumberNavigation).WithMany(p => p.Corrigendum)
                 .HasForeignKey(d => d.ReferenceNumber)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Corrigendum_Citizen_Applications");
         });
 
+        modelBuilder.Entity<Departments>(entity =>
+        {
+            entity.HasKey(e => e.DepartmentId);
+        });
+
         modelBuilder.Entity<District>(entity =>
         {
             entity.HasKey(e => e.DistrictId).HasName("District_PK");
-
-            entity.ToTable("District");
 
             entity.Property(e => e.DistrictId)
                 .ValueGeneratedNever()
@@ -302,7 +301,7 @@ public partial class SwdjkContext : DbContext
             entity.Property(e => e.Uuid).HasColumnName("UUID");
         });
 
-        modelBuilder.Entity<EmailSetting>(entity =>
+        modelBuilder.Entity<EmailSettings>(entity =>
         {
             entity.Property(e => e.Password).HasColumnType("text");
             entity.Property(e => e.SenderEmail)
@@ -318,8 +317,6 @@ public partial class SwdjkContext : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.ToTable("Feedback");
-
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -333,9 +330,7 @@ public partial class SwdjkContext : DbContext
 
         modelBuilder.Entity<HalqaPanchayat>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("HalqaPanchayat");
+            entity.HasNoKey();
 
             entity.Property(e => e.HalqaPanchayatName)
                 .HasMaxLength(255)
@@ -345,7 +340,7 @@ public partial class SwdjkContext : DbContext
                 .HasColumnName("UUID");
         });
 
-        modelBuilder.Entity<Muncipality>(entity =>
+        modelBuilder.Entity<Muncipalities>(entity =>
         {
             entity.HasKey(e => e.Uuid);
 
@@ -355,7 +350,7 @@ public partial class SwdjkContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<MuncipalityType>(entity =>
+        modelBuilder.Entity<MuncipalityTypes>(entity =>
         {
             entity.HasKey(e => e.Uuid);
 
@@ -365,7 +360,7 @@ public partial class SwdjkContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<OfficersDesignation>(entity =>
+        modelBuilder.Entity<OfficersDesignations>(entity =>
         {
             entity.HasKey(e => e.Uuid).HasName("OfficersDesignations_PK");
 
@@ -379,7 +374,24 @@ public partial class SwdjkContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<PensionPayment>(entity =>
+        modelBuilder.Entity<Offices>(entity =>
+        {
+            entity.HasKey(e => e.OfficeId);
+
+            entity.Property(e => e.AccessLevel).HasMaxLength(50);
+            entity.Property(e => e.OfficeName).HasMaxLength(255);
+            entity.Property(e => e.OfficeShort).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<OfficesDetails>(entity =>
+        {
+            entity.HasNoKey();
+
+            entity.Property(e => e.AreaName).HasMaxLength(50);
+            entity.Property(e => e.OfficeName).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<PensionPayments>(entity =>
         {
             entity.HasNoKey();
 
@@ -487,8 +499,6 @@ public partial class SwdjkContext : DbContext
 
         modelBuilder.Entity<Pool>(entity =>
         {
-            entity.ToTable("Pool");
-
             entity.HasIndex(e => e.ServiceId, "IX_Pool_ServiceId").HasFillFactor(100);
 
             entity.Property(e => e.AccessLevel)
@@ -498,13 +508,13 @@ public partial class SwdjkContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.Service).WithMany(p => p.Pools)
+            entity.HasOne(d => d.Service).WithMany(p => p.Pool)
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Pool_Services");
         });
 
-        modelBuilder.Entity<ScheduledJob>(entity =>
+        modelBuilder.Entity<ScheduledJobss>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Schedule__3214EC07F114B2BF");
 
@@ -514,8 +524,10 @@ public partial class SwdjkContext : DbContext
             entity.Property(e => e.CronExpression).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<Service>(entity =>
+        modelBuilder.Entity<Services>(entity =>
         {
+            entity.HasKey(e => e.ServiceId);
+
             entity.Property(e => e.BankDetails).IsUnicode(false);
             entity.Property(e => e.CreatedAt)
                 .HasMaxLength(50)
@@ -529,14 +541,11 @@ public partial class SwdjkContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.SubmissionLimitConfig).HasDefaultValue("{\"isLimited\": false, \"limitType\": \"\", \"limitCount\": 0}");
-            entity.Property(e => e.WebService).HasColumnName("webService");
         });
 
         modelBuilder.Entity<Tehsil>(entity =>
         {
             entity.HasKey(e => new { e.TehsilId, e.Uuid }).HasName("Tehsil_PK");
-
-            entity.ToTable("Tehsil");
 
             entity.Property(e => e.Uuid)
                 .ValueGeneratedOnAdd()
@@ -565,8 +574,36 @@ public partial class SwdjkContext : DbContext
                 .HasColumnName("tswoOfficeName");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<UserDocuments>(entity =>
         {
+            entity.HasKey(e => e.FileId);
+
+            entity.Property(e => e.FileId).HasColumnName("fileId");
+            entity.Property(e => e.DocumentType).HasMaxLength(50);
+            entity.Property(e => e.FileName).HasMaxLength(255);
+            entity.Property(e => e.FileType).HasMaxLength(50);
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<UserSessionss>(entity =>
+        {
+            entity.HasKey(e => e.SessionId).HasName("PK__UserSess__C9F4929013FD5ADB");
+
+            entity.Property(e => e.SessionId).ValueGeneratedNever();
+            entity.Property(e => e.LastActivityTime)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.LoginTime)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<Users>(entity =>
+        {
+            entity.HasKey(e => e.UserId);
+
             entity.Property(e => e.BackupCodes).IsUnicode(false);
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
@@ -590,33 +627,7 @@ public partial class SwdjkContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<UserDocument>(entity =>
-        {
-            entity.HasKey(e => e.FileId);
-
-            entity.Property(e => e.FileId).HasColumnName("fileId");
-            entity.Property(e => e.DocumentType).HasMaxLength(50);
-            entity.Property(e => e.FileName).HasMaxLength(255);
-            entity.Property(e => e.FileType).HasMaxLength(50);
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<UserSession>(entity =>
-        {
-            entity.HasKey(e => e.SessionId).HasName("PK__UserSess__C9F4929013FD5ADB");
-
-            entity.Property(e => e.SessionId).ValueGeneratedNever();
-            entity.Property(e => e.LastActivityTime)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.LoginTime)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<Village>(entity =>
+        modelBuilder.Entity<Villages>(entity =>
         {
             entity.HasKey(e => e.Uuid);
 
@@ -626,7 +637,7 @@ public partial class SwdjkContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<Ward>(entity =>
+        modelBuilder.Entity<Wards>(entity =>
         {
             entity.HasKey(e => e.Uuid);
 
@@ -635,8 +646,6 @@ public partial class SwdjkContext : DbContext
 
         modelBuilder.Entity<WebService>(entity =>
         {
-            entity.ToTable("WebService");
-
             entity.Property(e => e.ApiEndPoint).HasColumnName("apiEndPoint");
             entity.Property(e => e.CreatedAt)
                 .HasMaxLength(100)
@@ -655,13 +664,13 @@ public partial class SwdjkContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("webServiceName");
 
-            entity.HasOne(d => d.Service).WithMany(p => p.WebServices)
+            entity.HasOne(d => d.Service).WithMany(p => p.WebService)
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_WebService_Services");
         });
 
-        modelBuilder.Entity<WithheldApplication>(entity =>
+        modelBuilder.Entity<WithheldApplications>(entity =>
         {
             entity.HasKey(e => e.WithheldId);
 

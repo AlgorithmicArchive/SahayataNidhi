@@ -23,5 +23,5 @@ public partial class WebService
 
     public bool IsActive { get; set; }
 
-    public virtual Service Service { get; set; } = null!;
+    public virtual Services Service { get; set; } = null!;
 }

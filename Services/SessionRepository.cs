@@ -3,37 +3,37 @@ using SahayataNidhi.Models.Entities;
 
 public class SessionRepository
 {
-    private readonly SocialWelfareDepartmentContext _dbContext;
+    private readonly SwdjkContext _dbContext;
     private readonly ILogger<SessionRepository> _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<SessionRepository>();
 
-    public SessionRepository(SocialWelfareDepartmentContext dbContext)
+    public SessionRepository(SwdjkContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<UserSession?> GetActiveSessionAsync(int userId)
+    public async Task<UserSessionss> GetActiveSessionAsync(int userId)
     {
         _logger.LogInformation($"=---------- Checking for active session for user ID: {userId} --------------------------");
-        using var debugContext = new SocialWelfareDepartmentContext(_dbContext.Database.GetDbConnection());
+        using var debugContext = new SwdjkContext(_dbContext.Database.GetDbConnection());
         var threshold = DateTime.UtcNow.AddMinutes(-30);
-        return await _dbContext.UserSessions
+        return await _dbContext.UserSessionss
             .Where(s => s.UserId == userId && s.LastActivityTime > threshold)
             .FirstOrDefaultAsync();
     }
 
-    public async Task AddSessionAsync(UserSession session)
+    public async Task AddSessionAsync(UserSessionss session)
     {
-        _dbContext.UserSessions.Add(session);
+        _dbContext.UserSessionss.Add(session);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task RemoveSessionAsync(UserSession session)
+    public async Task RemoveSessionAsync(UserSessionss session)
     {
-        _dbContext.UserSessions.Remove(session);
+        _dbContext.UserSessionss.Remove(session);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task UpdateLastActivityAsync(UserSession session)
+    public async Task UpdateLastActivityAsync(UserSessionss session)
     {
         session.LastActivityTime = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();

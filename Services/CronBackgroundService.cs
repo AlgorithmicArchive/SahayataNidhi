@@ -16,7 +16,7 @@ public interface ICronScheduler
 {
     Task ScheduleTaskAsync(string cronExpression, string actionType, Func<CancellationToken, Task> action);
     Task RegisterActionAsync(string actionType, Func<CancellationToken, Task> action); // New: Dynamic action registration
-    Task<List<ScheduledJob>> GetAllJobsAsync(); // New: For monitoring
+    Task<List<ScheduledJobss>> GetAllJobsAsync(); // New: For monitoring
     Task UnscheduleTaskAsync(string taskId); // New: For dynamic removal
 }
 
@@ -46,9 +46,9 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
 
             // Persist to DB (action is not persisted; resolved via registry for loaded jobs)
             using var scope = _serviceProvider.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<SocialWelfareDepartmentContext>();
+            var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
 
-            db.ScheduledJobs.Add(new ScheduledJob
+            db.ScheduledJobss.Add(new ScheduledJobss
             {
                 Id = Guid.Parse(taskId),
                 CronExpression = cronExpression,
@@ -81,11 +81,11 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
         return Task.CompletedTask;
     }
 
-    public async Task<List<ScheduledJob>> GetAllJobsAsync()
+    public async Task<List<ScheduledJobss>> GetAllJobsAsync()
     {
         using var scope = _serviceProvider.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SocialWelfareDepartmentContext>();
-        return await db.ScheduledJobs.ToListAsync();
+        var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
+        return await db.ScheduledJobss.ToListAsync();
     }
 
     public async Task UnscheduleTaskAsync(string taskId)
@@ -93,11 +93,11 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
         if (_scheduledTasks.TryRemove(taskId, out _))
         {
             using var scope = _serviceProvider.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<SocialWelfareDepartmentContext>();
-            var job = await db.ScheduledJobs.FindAsync(Guid.Parse(taskId));
+            var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
+            var job = await db.ScheduledJobss.FindAsync(Guid.Parse(taskId));
             if (job != null)
             {
-                db.ScheduledJobs.Remove(job);
+                db.ScheduledJobss.Remove(job);
                 await db.SaveChangesAsync();
             }
             _logger.LogInformation($"✅ Unscheduled task {taskId}");
@@ -165,8 +165,8 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
 
                                 // Update last executed time in DB
                                 using var scope = _serviceProvider.CreateScope();
-                                var db = scope.ServiceProvider.GetRequiredService<SocialWelfareDepartmentContext>();
-                                var dbJob = await db.ScheduledJobs.FindAsync(Guid.Parse(task.Key));
+                                var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
+                                var dbJob = await db.ScheduledJobss.FindAsync(Guid.Parse(task.Key));
                                 if (dbJob != null)
                                 {
                                     dbJob.LastExecutedAt = DateTime.UtcNow;
@@ -201,8 +201,8 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
     private async Task LoadPersistedJobsAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SocialWelfareDepartmentContext>();
-        var persistedJobs = await db.ScheduledJobs.ToListAsync(cancellationToken);
+        var db = scope.ServiceProvider.GetRequiredService<SwdjkContext>();
+        var persistedJobs = await db.ScheduledJobss.ToListAsync(cancellationToken);
 
         foreach (var job in persistedJobs)
         {
@@ -226,5 +226,10 @@ public class CronScheduler(IServiceProvider serviceProvider, ILogger<CronSchedul
                 _logger.LogError(ex, "❌ Failed to load persisted dynamic job {JobId}", job.Id);
             }
         }
+    }
+
+    Task<List<ScheduledJobss>> ICronScheduler.GetAllJobsAsync()
+    {
+        throw new NotImplementedException();
     }
 }

@@ -13,9 +13,9 @@ using SahayataNidhi.Models.Entities;
 namespace SahayataNidhi.Controllers.Profile
 {
     [Authorize(Roles = "Citizen,Officer,Admin,Viewer")]
-    public class ProfileController(SocialWelfareDepartmentContext dbcontext, ILogger<ProfileController> logger, UserHelperFunctions helper, IWebHostEnvironment webHostEnvironment, IAuditLogService auditService) : Controller
+    public class ProfileController(SwdjkContext dbcontext, ILogger<ProfileController> logger, UserHelperFunctions helper, IWebHostEnvironment webHostEnvironment, IAuditLogService auditService) : Controller
     {
-        private readonly SocialWelfareDepartmentContext _dbcontext = dbcontext;
+        private readonly SwdjkContext _dbcontext = dbcontext;
         private readonly ILogger<ProfileController> _logger = logger;
         private readonly UserHelperFunctions _helper = helper;
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
@@ -300,7 +300,7 @@ namespace SahayataNidhi.Controllers.Profile
                     CreatedOn = DateTime.Now
                 };
 
-                _dbcontext.Feedbacks.Add(feedback);
+                _dbcontext.Feedback.Add(feedback);
                 await _dbcontext.SaveChangesAsync();
 
                 return Ok(new { message = "Feedback submitted successfully" });
@@ -317,7 +317,7 @@ namespace SahayataNidhi.Controllers.Profile
             try
             {
                 // Fetch all feedbacks
-                var feedbacks = await _dbcontext.Feedbacks
+                var feedbacks = await _dbcontext.Feedback
                 .Select(f => new
                 {
                     f.Id,
@@ -402,7 +402,7 @@ namespace SahayataNidhi.Controllers.Profile
                 var feedbackId = Convert.ToInt32(form["feedbackId"]);
                 _logger.LogInformation($"---------- Updating status for feedback ID: {feedbackId} ---------");
 
-                var feedback = _dbcontext.Feedbacks.FirstOrDefault(f => f.Id == feedbackId);
+                var feedback = _dbcontext.Feedback.FirstOrDefault(f => f.Id == feedbackId);
                 if (feedback == null)
                 {
                     return Json(new { isValid = false, errorMessage = "Feedback not found." });

@@ -22,10 +22,10 @@ using SendEmails;
 
 namespace SahayataNidhi.Controllers
 {
-    public class HomeController(ILogger<HomeController> logger, SocialWelfareDepartmentContext dbContext, OtpStore otpStore, EmailSender emailSender, UserHelperFunctions helper, PdfService pdfService, IConfiguration configuration, IAuditLogService auditService, SessionRepository sessionRepo) : Controller
+    public class HomeController(ILogger<HomeController> logger, SwdjkContext dbContext, OtpStore otpStore, EmailSender emailSender, UserHelperFunctions helper, PdfService pdfService, IConfiguration configuration, IAuditLogService auditService, SessionRepository sessionRepo) : Controller
     {
         private readonly ILogger<HomeController> _logger = logger;
-        private readonly SocialWelfareDepartmentContext _dbContext = dbContext;
+        private readonly SwdjkContext _dbContext = dbContext;
         private readonly OtpStore _otpStore = otpStore;
         private readonly EmailSender _emailSender = emailSender;
         private readonly UserHelperFunctions _helper = helper;
@@ -423,7 +423,7 @@ namespace SahayataNidhi.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
 
-            var newSession = new UserSession
+            var newSession = new UserSessionss
             {
                 SessionId = Guid.NewGuid(),
                 UserId = user.UserId,
@@ -806,7 +806,7 @@ namespace SahayataNidhi.Controllers
         [HttpGet]
         public IActionResult GetDistricts()
         {
-            var districts = _dbContext.Districts.ToList();
+            var districts = _dbContext.District.ToList();
             return Json(new { status = true, districts });
         }
 
@@ -815,7 +815,7 @@ namespace SahayataNidhi.Controllers
         {
             if (int.TryParse(districtId, out int districtIdParsed))
             {
-                var tehsils = _dbContext.Tehsils.Where(u => u.DistrictId == districtIdParsed).ToList();
+                var tehsils = _dbContext.Tehsil.Where(u => u.DistrictId == districtIdParsed).ToList();
                 return Json(new { status = true, tehsils });
             }
             return Json(new { status = false, response = "Invalid district ID." });

@@ -11,9 +11,9 @@ public interface IAuditLogService
 public class AuditLogService : IAuditLogService
 {
     private readonly IDetectionService _detection;
-    private readonly SocialWelfareDepartmentContext _dbcontext;
+    private readonly SwdjkContext _dbcontext;
 
-    public AuditLogService(IDetectionService detection, SocialWelfareDepartmentContext dbcontext)
+    public AuditLogService(IDetectionService detection, SwdjkContext dbcontext)
     {
         _detection = detection;
         _dbcontext = dbcontext;
@@ -38,7 +38,7 @@ public class AuditLogService : IAuditLogService
             string device = _detection.Device.Type.ToString();
             string platform = _detection.Platform.Name.ToString();
 
-            var log = new AuditLog
+            var log = new AuditLogs
             {
                 UserId = userId ?? 0,
                 Action = action,

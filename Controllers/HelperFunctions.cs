@@ -7,10 +7,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
 
-public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SocialWelfareDepartmentContext dbcontext, ILogger<UserHelperFunctions> logger)
+public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SwdjkContext dbcontext, ILogger<UserHelperFunctions> logger)
 {
     private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
-    private readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
+    private readonly SwdjkContext dbcontext = dbcontext;
 
     private readonly ILogger<UserHelperFunctions> _logger = logger;
 
@@ -75,7 +75,7 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SocialW
         }
 
         // Save to database to generate FileId
-        var fileModel = new UserDocument
+        var fileModel = new UserDocuments
         {
             FileName = fileName ?? uniqueName, // Temporary placeholder
             FileType = contentType,
@@ -104,13 +104,13 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SocialW
 
 
 
-    public string GenerateApplicationId(int districtId, SocialWelfareDepartmentContext dbcontext)
+    public string GenerateApplicationId(int districtId, SwdjkContext dbcontext)
     {
-        string? districtShort = dbcontext.Districts.FirstOrDefault(u => u.DistrictId == districtId)?.DistrictShort;
+        string? districtShort = dbcontext.District.FirstOrDefault(u => u.DistrictId == districtId)?.DistrictShort;
 
         string financialYear = GetCurrentFinancialYear();
 
-        var result = dbcontext.ApplicationPerDistricts.FirstOrDefault(a => a.DistrictId == districtId && a.FinancialYear == financialYear);
+        var result = dbcontext.ApplicationPerDistrict.FirstOrDefault(a => a.DistrictId == districtId && a.FinancialYear == financialYear);
 
         int countPerDistrict = result?.CountValue ?? 0;
 
@@ -198,7 +198,7 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SocialW
             LocationValue = LocationValue,
             ActionTakenDate = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture)
         };
-        dbcontext.ActionHistories.Add(history);
+        dbcontext.ActionHistory.Add(history);
         dbcontext.SaveChanges();
     }
 

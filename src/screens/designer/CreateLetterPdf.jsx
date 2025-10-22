@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useMemo, memo, useContext } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  memo,
+  useContext,
+  useCallback,
+} from "react";
 import {
   Container,
   Typography,
@@ -336,13 +343,12 @@ const CreateLetterPdf = () => {
                 label: name, // Use name as label since no separate label is provided
               }))
             : [];
-          // Combine and remove duplicates based on name
-          const allFields = [
-            ...sectionFields,
-            ...columnFields.filter(
-              (col) => !sectionFields.some((field) => field.name === col.name),
-            ),
-          ];
+          // Combine and ensure uniqueness by name using Map
+          const uniqueFieldsMap = new Map();
+          [...sectionFields, ...columnFields].forEach((field) => {
+            uniqueFieldsMap.set(field.name, field);
+          });
+          const allFields = Array.from(uniqueFieldsMap.values());
           setFormFields(allFields);
           if (allFields.length === 0) {
             setFetchFieldsError(
@@ -502,15 +508,14 @@ const CreateLetterPdf = () => {
     setRows(rows.filter((_, i) => i !== index));
   };
 
-  const getPreview = (row) => {
-    return useMemo(() => {
-      let preview = row.transformString;
-      row.selectedFields.forEach((field, index) => {
-        preview = preview.replace(`{${index}}`, `{${field}}`);
-      });
-      return preview;
-    }, [row.transformString, row.selectedFields]);
-  };
+  // Fixed: Pure function without hooks
+  const getPreview = useCallback((row) => {
+    let preview = row.transformString;
+    row.selectedFields.forEach((field, index) => {
+      preview = preview.replace(`{${index}}`, `{${field}}`);
+    });
+    return preview;
+  }, []);
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
@@ -1001,7 +1006,10 @@ const CreateLetterPdf = () => {
                           Select a Field
                         </MenuItem>
                         {formFields.map((formField) => (
-                          <MenuItem key={formField.name} value={formField.name}>
+                          <MenuItem
+                            key={`${formField.name}-${formField.label}`}
+                            value={formField.name}
+                          >
                             {formField.label} ({formField.name})
                           </MenuItem>
                         ))}

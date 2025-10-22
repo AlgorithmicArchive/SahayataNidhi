@@ -12,9 +12,9 @@ using Wangkanai.Detection.Services;
 
 namespace SahayataNidhi.Controllers
 {
-    public partial class BaseController(SocialWelfareDepartmentContext dbcontext, ILogger<BaseController> logger, IDetectionService detection, IWebHostEnvironment webHostEnvironment) : Controller
+    public partial class BaseController(SwdjkContext dbcontext, ILogger<BaseController> logger, IDetectionService detection, IWebHostEnvironment webHostEnvironment) : Controller
     {
-        protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
+        protected readonly SwdjkContext dbcontext = dbcontext;
         protected readonly ILogger<BaseController> _logger = logger;
         private readonly IDetectionService _detection = detection;
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;

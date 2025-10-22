@@ -18,7 +18,7 @@ namespace SahayataNidhi.Controllers.Officer
 {
     [Authorize(Roles = "Officer")]
     public partial class OfficerController(
-        SocialWelfareDepartmentContext dbcontext,
+        SwdjkContext dbcontext,
         ILogger<OfficerController> logger,
         UserHelperFunctions helper,
         EmailSender emailSender,
@@ -27,7 +27,7 @@ namespace SahayataNidhi.Controllers.Officer
         IHubContext<ProgressHub> hubContext,
         IEncryptionService encryptionService, IAuditLogService auditService, IConfiguration config, IMemoryCache memoryCache) : Controller
     {
-        protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
+        protected readonly SwdjkContext dbcontext = dbcontext;
         protected readonly ILogger<OfficerController> _logger = logger;
         protected readonly UserHelperFunctions helper = helper;
         protected readonly EmailSender emailSender = emailSender;
@@ -71,12 +71,12 @@ namespace SahayataNidhi.Controllers.Officer
         {
             if (AccessLevel == "Tehsil")
             {
-                var tehsil = dbcontext.Tswotehsils.Where(t => t.TehsilId == AccessCode).FirstOrDefault();
+                var tehsil = dbcontext.Tswotehsil.Where(t => t.TehsilId == AccessCode).FirstOrDefault();
                 return tehsil!.TehsilName!;
             }
             else if (AccessLevel == "District")
             {
-                var district = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == AccessCode);
+                var district = dbcontext.District.FirstOrDefault(d => d.DistrictId == AccessCode);
                 return district!.DistrictName!;
             }
             else if (AccessLevel == "Division")
@@ -106,7 +106,7 @@ namespace SahayataNidhi.Controllers.Officer
         public async Task<IActionResult> PullApplication(string applicationId)
         {
             var officer = GetOfficerDetails();
-            var details = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
+            var details = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
             var players = JsonConvert.DeserializeObject<dynamic>(details?.WorkFlow!) as JArray;
             var currentPlayer = players?.FirstOrDefault(p => (string)p["designation"]! == officer.Role);
             string status = (string)currentPlayer?["status"]!;
@@ -132,7 +132,7 @@ namespace SahayataNidhi.Controllers.Officer
 
             try
             {
-                var getServices = dbcontext.WebServices.FirstOrDefault(ws => ws.ServiceId == details!.ServiceId && ws.IsActive);
+                var getServices = dbcontext.WebService.FirstOrDefault(ws => ws.ServiceId == details!.ServiceId && ws.IsActive);
                 if (getServices != null)
                 {
                     var onAction = JsonConvert.DeserializeObject<List<string>>(getServices.OnAction);
@@ -172,7 +172,7 @@ namespace SahayataNidhi.Controllers.Officer
 
             try
             {
-                var formdetails = dbcontext.CitizenApplications.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
+                var formdetails = dbcontext.CitizenApplicationss.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
                 var formDetailsObj = JObject.Parse(formdetails!.FormDetails!);
                 var workFlow = formdetails!.WorkFlow;
                 var officerArray = JsonConvert.DeserializeObject<JArray>(workFlow!);
@@ -238,7 +238,7 @@ namespace SahayataNidhi.Controllers.Officer
 
                 try
                 {
-                    var getServices = dbcontext.WebServices.FirstOrDefault(ws => ws.ServiceId == formdetails.ServiceId && ws.IsActive);
+                    var getServices = dbcontext.WebService.FirstOrDefault(ws => ws.ServiceId == formdetails.ServiceId && ws.IsActive);
                     if (getServices != null)
                     {
                         var onAction = JsonConvert.DeserializeObject<List<string>>(getServices.OnAction);
@@ -263,14 +263,14 @@ namespace SahayataNidhi.Controllers.Officer
                 string appliedTehsilId = GetFieldValue("Tehsil", formDetailsObj);
 
                 // Get district name safely
-                string districtName = dbcontext.Districts
+                string districtName = dbcontext.District
                     .FirstOrDefault(d => d.DistrictId == Convert.ToInt32(appliedDistrictId))?.DistrictName ?? "Unknown District";
 
                 // Get tehsil name safely if provided
                 string? tehsilName = null;
                 if (!string.IsNullOrWhiteSpace(appliedTehsilId) && int.TryParse(appliedTehsilId, out int tehsilId))
                 {
-                    tehsilName = dbcontext.Tswotehsils
+                    tehsilName = dbcontext.Tswotehsil
                         .FirstOrDefault(t => t.TehsilId == tehsilId)?.TehsilName;
                 }
 
@@ -433,7 +433,7 @@ namespace SahayataNidhi.Controllers.Officer
                 }
 
                 // Fetch district short name
-                var districtShortName = dbcontext.Districts
+                var districtShortName = dbcontext.District
                     .Where(d => d.DistrictId == accessCode)
                     .Select(d => d.DistrictShort)
                     .FirstOrDefault();

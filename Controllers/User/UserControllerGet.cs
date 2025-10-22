@@ -28,14 +28,14 @@ namespace SahayataNidhi.Controllers.User
 
         public IActionResult GetFormFields(string referenceNumber)
         {
-            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            var application = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
             return Json(new { status = true, formDetails = JsonConvert.DeserializeObject<dynamic>(application!.FormDetails!) });
         }
 
         [HttpGet]
         public IActionResult GetFormDetails(string applicationId)
         {
-            var details = dbcontext.CitizenApplications
+            var details = dbcontext.CitizenApplicationss
                           .FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
 
             if (details == null)
@@ -87,7 +87,7 @@ namespace SahayataNidhi.Controllers.User
             var TotalRecords = new SqlParameter("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
             // Execute stored procedure
-            var applications = dbcontext.CitizenApplications
+            var applications = dbcontext.CitizenApplicationss
                 .FromSqlRaw("EXEC GetInitiatedApplications @UserId, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
                     UserId, PageIndex, PageSize, IsPaginated, TotalRecords)
                 .ToList();
@@ -132,9 +132,9 @@ namespace SahayataNidhi.Controllers.User
                 string officerDesignation = (string)officers![currentPlayer!]!["designation"]!;
                 string officerAccessLevel = (string)officers[currentPlayer!]!["accessLevel"]!;
                 string serviceName = dbcontext.Services.FirstOrDefault(s => s.ServiceId == application.ServiceId)!.ServiceName!;
-                var Corrigendum = dbcontext.Corrigenda.Where(co => co.ReferenceNumber == application.ReferenceNumber).ToList();
+                var Corrigendum = dbcontext.Corrigendum.Where(co => co.ReferenceNumber == application.ReferenceNumber).ToList();
                 List<string> corrigendumIds = [];
-                var expiringEligibility = dbcontext.ApplicationsWithExpiringEligibilities.FirstOrDefault(aee => aee.ReferenceNumber == application.ReferenceNumber);
+                var expiringEligibility = dbcontext.ApplicationsWithExpiringEligibility.FirstOrDefault(aee => aee.ReferenceNumber == application.ReferenceNumber);
 
                 // Process corrigendum IDs
                 int corrigendumIndex = 1; // Separate index for corrigendum actions
@@ -173,7 +173,7 @@ namespace SahayataNidhi.Controllers.User
                 if (expiringEligibility != null && !string.IsNullOrWhiteSpace(expiringEligibility.ExpirationDate))
                 {
                     // Check if there is any "Initiated" corrigendum for this reference
-                    bool hasInitiatedCorrection = dbcontext.Corrigenda
+                    bool hasInitiatedCorrection = dbcontext.Corrigendum
                         .Any(co => co.ReferenceNumber == application.ReferenceNumber && co.Status == "Initiated");
 
                     _logger.LogInformation(
@@ -240,7 +240,7 @@ namespace SahayataNidhi.Controllers.User
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             // Ensure that you filter by the correct "Initiated" status
-            var applications = dbcontext.CitizenApplications
+            var applications = dbcontext.CitizenApplicationss
                                         .Where(u => u.CitizenId.ToString() == userIdClaim && u.Status == "Incomplete")
                                         .ToList();
 
@@ -292,11 +292,11 @@ namespace SahayataNidhi.Controllers.User
             }
 
             var parameter = new SqlParameter("@ApplicationId", ApplicationId);
-            var application = await dbcontext.CitizenApplications.FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
+            var application = await dbcontext.CitizenApplicationss.FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
             var players = JsonConvert.DeserializeObject<dynamic>(application!.WorkFlow!) as JArray;
             int currentPlayerIndex = (int)application.CurrentPlayer!;
             var currentPlayer = players!.FirstOrDefault(o => (int)o["playerId"]! == currentPlayerIndex);
-            var history = await dbcontext.ActionHistories.Where(ah => ah.ReferenceNumber == ApplicationId && !ah.ActionTaken.Contains("Withheld")).ToListAsync();
+            var history = await dbcontext.ActionHistory.Where(ah => ah.ReferenceNumber == ApplicationId && !ah.ActionTaken.Contains("Withheld")).ToListAsync();
             var formDetails = JsonConvert.DeserializeObject<dynamic>(application.FormDetails!);
             int totalRecords = history.Count;
 
@@ -417,10 +417,10 @@ namespace SahayataNidhi.Controllers.User
                 return null; // Handle case where userId is not available
             }
 
-            int initiated = dbcontext.CitizenApplications
+            int initiated = dbcontext.CitizenApplicationss
                 .Where(u => u.CitizenId.ToString() == userId && u.Status != "Incomplete")
                 .Count();
-            int incomplete = dbcontext.CitizenApplications
+            int incomplete = dbcontext.CitizenApplicationss
                 .Where(u => u.CitizenId.ToString() == userId && u.Status == "Incomplete")
                 .Count();
 
@@ -493,7 +493,7 @@ namespace SahayataNidhi.Controllers.User
             }
 
             // Validate referenceNumber
-            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            var application = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
             if (application == null)
             {
                 _logger.LogError($"Application not found for ReferenceNumber: {referenceNumber}");
@@ -648,7 +648,7 @@ namespace SahayataNidhi.Controllers.User
         [HttpGet]
         public IActionResult GetIfSameUdidNumber(string referenceNumber, string udidNumber)
         {
-            var application = dbcontext.CitizenApplications.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
+            var application = dbcontext.CitizenApplicationss.FirstOrDefault(ca => ca.ReferenceNumber == referenceNumber);
             var formDetails = JToken.Parse(application!.FormDetails!);
             var UdidNumber = FindFieldRecursively(formDetails, "UdidCardNumber");
             if (udidNumber == (string)UdidNumber!["value"]!)
@@ -735,7 +735,7 @@ namespace SahayataNidhi.Controllers.User
                 }
 
                 // Fetch submissions
-                var submissions = await dbcontext.CitizenApplications
+                var submissions = await dbcontext.CitizenApplicationss
                     .AsNoTracking()
                     .Where(s => s.ServiceId == serviceId && s.CitizenId == Convert.ToInt32(userId))
                     .Select(s => new { s.CreatedAt })

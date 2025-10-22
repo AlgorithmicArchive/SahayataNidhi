@@ -10,9 +10,9 @@ using SahayataNidhi.Models.Entities;
 namespace SahayataNidhi.Controllers.Admin
 {
     [Authorize(Roles = "Admin")]
-    public partial class AdminController(SocialWelfareDepartmentContext dbcontext, ILogger<AdminController> logger, UserHelperFunctions helper) : Controller
+    public partial class AdminController(SwdjkContext dbcontext, ILogger<AdminController> logger, UserHelperFunctions helper) : Controller
     {
-        protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
+        protected readonly SwdjkContext dbcontext = dbcontext;
         protected readonly ILogger<AdminController> _logger = logger;
         protected readonly UserHelperFunctions helper = helper;
 

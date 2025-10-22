@@ -145,8 +145,8 @@ namespace SahayataNidhi.Controllers.Admin
         {
             if (AccessLevel == "State") return "Jammu & Kashmir";
             else if (AccessLevel == "Division") return AccessCode == 1 ? "Jammu" : "Kashmir";
-            else if (AccessLevel == "District") return dbcontext.Districts.FirstOrDefault(d => d.DistrictId == AccessCode)!.DistrictName!;
-            else return dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == AccessCode)!.TehsilName!;
+            else if (AccessLevel == "District") return dbcontext.District.FirstOrDefault(d => d.DistrictId == AccessCode)!.DistrictName!;
+            else return dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == AccessCode)!.TehsilName!;
         }
 
         [HttpGet]
@@ -306,15 +306,15 @@ namespace SahayataNidhi.Controllers.Admin
         {
             if (fieldName == "Tehsil")
             {
-                return dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == id)!.TehsilName!;
+                return dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == id)!.TehsilName!;
             }
             else if (fieldName.EndsWith("Tehsil"))
             {
-                return dbcontext.Tehsils.FirstOrDefault(t => t.TehsilId == id)!.TehsilName!;
+                return dbcontext.Tehsil.FirstOrDefault(t => t.TehsilId == id)!.TehsilName!;
             }
             else if (fieldName.Contains("District"))
             {
-                return dbcontext.Districts.FirstOrDefault(d => d.DistrictId == id)!.DistrictName!;
+                return dbcontext.District.FirstOrDefault(d => d.DistrictId == id)!.DistrictName!;
             }
             else if (fieldName.Contains("Muncipality"))
             {
@@ -623,21 +623,21 @@ namespace SahayataNidhi.Controllers.Admin
             if (officer.AccessLevel == "System")
             {
                 // System Admins can access all districts
-                districts = dbcontext.Districts
+                districts = dbcontext.District
                     .Select(d => new { d.DistrictId, d.DistrictName })
                     .ToList();
             }
             else if (officer.AccessLevel == "State")
             {
                 // State-level officers can access all districts
-                districts = dbcontext.Districts
+                districts = dbcontext.District
                     .Select(d => new { d.DistrictId, d.DistrictName })
                     .ToList();
             }
             else if (officer.AccessLevel == "Division")
             {
                 // Division-level officers can access only their own districts
-                districts = dbcontext.Districts
+                districts = dbcontext.District
                     .Select(d => new { d.DistrictId, d.DistrictName })
                     .ToList();
             }

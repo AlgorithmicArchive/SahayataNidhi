@@ -21,7 +21,7 @@ builder.Services.AddSignalR();
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
     options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
-builder.Services.AddDbContext<SocialWelfareDepartmentContext>(options =>
+builder.Services.AddDbContext<SwdjkContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });

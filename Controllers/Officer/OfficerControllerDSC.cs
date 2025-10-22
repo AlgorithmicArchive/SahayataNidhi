@@ -48,7 +48,7 @@ namespace SahayataNidhi.Controllers.Officer
                     ? parsedDate
                     : (DateTime?)null;
 
-                var cert = new Models.Entities.Certificate
+                var cert = new Models.Entities.Certificates
                 {
                     OfficerId = Convert.ToInt32(officer.UserId),
                     SerialNumber = serialBytes,

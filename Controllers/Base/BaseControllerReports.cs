@@ -20,15 +20,15 @@ namespace SahayataNidhi.Controllers
             switch (accessLevel)
             {
                 case "Tehsil":
-                    var tehsil = dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == accessCode);
+                    var tehsil = dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == accessCode);
                     return tehsil?.TehsilName ?? string.Empty;
 
                 case "District":
-                    var district = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == accessCode);
+                    var district = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
                     return district?.DistrictName ?? string.Empty;
 
                 case "Division":
-                    var districtForDivision = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == accessCode);
+                    var districtForDivision = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
                     if (districtForDivision == null)
                         return string.Empty;
                     return districtForDivision.Division == 1 ? "Jammu" : "Kashmir";
@@ -46,17 +46,17 @@ namespace SahayataNidhi.Controllers
             {
                 case "Tehsil":
                     accessCode = Convert.ToInt32(GetFieldValue("Tehsil", formDetails));
-                    var tehsil = dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == accessCode);
+                    var tehsil = dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == accessCode);
                     return tehsil?.TehsilName ?? string.Empty;
 
                 case "District":
                     accessCode = Convert.ToInt32(GetFieldValue("District", formDetails));
-                    var district = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == accessCode);
+                    var district = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
                     return district?.DistrictName ?? string.Empty;
 
                 case "Division":
                     accessCode = Convert.ToInt32(GetFieldValue("District", formDetails));
-                    var districtForDivision = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == accessCode);
+                    var districtForDivision = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
                     if (districtForDivision == null)
                         return string.Empty;
                     return districtForDivision.Division == 1 ? "Jammu" : "Kashmir";
@@ -86,7 +86,7 @@ namespace SahayataNidhi.Controllers
                 Direction = System.Data.ParameterDirection.Output
             };
 
-            List<CitizenApplication> response;
+            List<CitizenApplicationss> response;
 
             var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == ServiceId);
             if (service == null) return JsonConvert.SerializeObject(new { data = new List<dynamic>(), columns = new List<dynamic>(), poolData = new List<dynamic>(), totalRecords = 0 });
@@ -96,14 +96,14 @@ namespace SahayataNidhi.Controllers
 
             if (type == "shifted")
             {
-                response = dbcontext.CitizenApplications
+                response = dbcontext.CitizenApplicationss
                     .FromSqlRaw("EXEC GetShiftedApplications @Role, @AccessLevel, @AccessCode, @ServiceId",
                                 role, accessLevel, accessCode, serviceId)
                     .ToList();
             }
             else
             {
-                response = dbcontext.CitizenApplications
+                response = dbcontext.CitizenApplicationss
                     .FromSqlRaw(
                         "EXEC GetApplicationsForOfficer @Role, @AccessLevel, @AccessCode, @ApplicationStatus, @ServiceId, @PageIndex, @PageSize, @IsPaginated, @DataType, @TotalRecords OUTPUT",
                         role, accessLevel, accessCode, applicationStatus, serviceId,
@@ -159,7 +159,7 @@ namespace SahayataNidhi.Controllers
             List<dynamic> data = new List<dynamic>();
             List<dynamic> poolData = new List<dynamic>();
 
-            var poolList = dbcontext.Pools.FirstOrDefault(p =>
+            var poolList = dbcontext.Pool.FirstOrDefault(p =>
                 p.ServiceId == ServiceId &&
                 p.AccessLevel == officerDetails.AccessLevel &&
                 p.AccessCode == officerDetails.AccessCode
@@ -177,7 +177,7 @@ namespace SahayataNidhi.Controllers
                 var officers = JsonConvert.DeserializeObject<JArray>(details.WorkFlow!);
                 var currentPlayer = details.CurrentPlayer;
 
-                var latestHistory = dbcontext.ActionHistories
+                var latestHistory = dbcontext.ActionHistory
                     .Where(h => h.ReferenceNumber == details.ReferenceNumber)
                     .AsEnumerable()
                     .OrderByDescending(h => DateTime.ParseExact(h.ActionTakenDate, "dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture))
@@ -235,14 +235,14 @@ namespace SahayataNidhi.Controllers
 
         public async Task<string> GetApplicationHistory(string? scope, string? columnOrder, string? columnVisibility, string ApplicationId, int page, int size)
         {
-            var application = await dbcontext.CitizenApplications.FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
+            var application = await dbcontext.CitizenApplicationss.FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
 
             var players = JsonConvert.DeserializeObject<JArray>(application!.WorkFlow!);
             var formDetails = JsonConvert.DeserializeObject<dynamic>(application.FormDetails!);
             int currentPlayerIndex = (int)application.CurrentPlayer!;
             var currentPlayer = players?.FirstOrDefault(o => (int)o["playerId"]! == currentPlayerIndex);
 
-            var fullHistory = await dbcontext.ActionHistories
+            var fullHistory = await dbcontext.ActionHistory
                 .Where(ah => ah.ReferenceNumber == ApplicationId)
                 .ToListAsync();
 
@@ -336,7 +336,7 @@ namespace SahayataNidhi.Controllers
             var TotalRecords = new SqlParameter("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
             // Execute stored procedure
-            var applications = dbcontext.CitizenApplications
+            var applications = dbcontext.CitizenApplicationss
                 .FromSqlRaw("EXEC GetInitiatedApplications @UserId, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
                     UserId, PageIndex, PageSize, IsPaginated, TotalRecords)
                 .ToList();

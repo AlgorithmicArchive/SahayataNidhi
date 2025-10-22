@@ -12,10 +12,10 @@ using SahayataNidhi.Models.Entities;
 namespace SahayataNidhi.Controllers.Officer
 {
     [Authorize(Roles = "Viewer")]
-    public partial class ViewerController(SocialWelfareDepartmentContext dbcontext, ILogger<ViewerController> logger,
+    public partial class ViewerController(SwdjkContext dbcontext, ILogger<ViewerController> logger,
         UserHelperFunctions helper) : Controller
     {
-        protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
+        protected readonly SwdjkContext dbcontext = dbcontext;
         protected readonly ILogger<ViewerController> _logger = logger;
         protected readonly UserHelperFunctions helper = helper;
 
@@ -374,7 +374,7 @@ namespace SahayataNidhi.Controllers.Officer
             };
 
             // Fetch application data
-            var response = dbcontext.CitizenApplications
+            var response = dbcontext.CitizenApplicationss
                 .FromSqlRaw(
                     "EXEC GetAadhaarValidationData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @AadhaarFilter, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
                     parameters.ToArray()
@@ -506,7 +506,7 @@ namespace SahayataNidhi.Controllers.Officer
             };
 
             // Fetch application data
-            var response = dbcontext.CitizenApplications
+            var response = dbcontext.CitizenApplicationss
                 .FromSqlRaw(
                     "EXEC GetMainApplicationStatusData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @ApplicationStatus, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
                     parameters.ToArray()

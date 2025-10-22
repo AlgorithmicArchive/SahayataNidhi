@@ -6,9 +6,9 @@ using SahayataNidhi.Models.Entities;
 
 namespace SendEmails
 {
-    public class EmailSender(ILogger<EmailSender> logger, SocialWelfareDepartmentContext dbcontext, IEncryptionService encryptionService, IConfiguration configuration) : IEmailSender
+    public class EmailSender(ILogger<EmailSender> logger, SwdjkContext dbcontext, IEncryptionService encryptionService, IConfiguration configuration) : IEmailSender
     {
-        protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
+        protected readonly SwdjkContext dbcontext = dbcontext;
         private readonly ILogger<EmailSender> _logger = logger;
 
         private readonly IEncryptionService _encryptionService = encryptionService;

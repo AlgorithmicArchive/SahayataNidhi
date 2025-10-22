@@ -32,7 +32,7 @@ namespace SahayataNidhi.Controllers
                 int webserviceId = Convert.ToInt32(form["webserviceId"].ToString());
                 bool active = Convert.ToBoolean(form["active"]);
 
-                var svc = dbcontext.WebServices.FirstOrDefault(s => s.Id == webserviceId);
+                var svc = dbcontext.WebService.FirstOrDefault(s => s.Id == webserviceId);
                 if (svc == null)
                 {
                     return Json(new { status = false, message = "Web service not found" });
@@ -41,7 +41,7 @@ namespace SahayataNidhi.Controllers
                 if (active)
                 {
                     // Check for other active web services for the same ServiceId
-                    var otherActiveWebService = dbcontext.WebServices
+                    var otherActiveWebService = dbcontext.WebService
                         .FirstOrDefault(ws => ws.ServiceId == svc.ServiceId && ws.Id != webserviceId && ws.IsActive);
 
                     if (otherActiveWebService != null)
@@ -94,7 +94,7 @@ namespace SahayataNidhi.Controllers
                 if (int.TryParse(webServiceId, out int parsedWebServiceId))
                 {
                     // Update existing web service
-                    webService = dbcontext.WebServices
+                    webService = dbcontext.WebService
                         .FirstOrDefault(ws => ws.Id == parsedWebServiceId)!;
 
                     if (webService != null)
@@ -130,7 +130,7 @@ namespace SahayataNidhi.Controllers
                         IsActive = true
                     };
 
-                    dbcontext.WebServices.Add(webService);
+                    dbcontext.WebService.Add(webService);
                 }
 
                 dbcontext.SaveChanges();
@@ -249,7 +249,7 @@ namespace SahayataNidhi.Controllers
             }
             else
             {
-                var newService = new Service
+                var newService = new Services
                 {
                     FormElement = formElement,
                     ServiceName = serviceName,
@@ -283,7 +283,7 @@ namespace SahayataNidhi.Controllers
             }
             else
             {
-                var newService = new Service
+                var newService = new Services
                 {
                     OfficerEditableField = workFlowPlayers
                 };
@@ -316,7 +316,7 @@ namespace SahayataNidhi.Controllers
 
                 string encryptedPassword = _encryptionService.Encrypt(password, key);
 
-                var emailSetting = new EmailSetting
+                var emailSetting = new Models.Entities.EmailSettings
                 {
                     SenderName = senderName,
                     SenderEmail = senderEmail,

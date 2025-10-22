@@ -77,7 +77,7 @@ namespace SahayataNidhi.Controllers
         public IActionResult GetWebServicesDashboard(int pageIndex = 0, int pageSize = 10)
         {
             // Fetch all services from the database
-            var webServices = dbcontext.WebServices
+            var webServices = dbcontext.WebService
                                        .Include(ws => ws.Service) // Assuming navigation property
                                        .ToList();
 
@@ -142,7 +142,7 @@ namespace SahayataNidhi.Controllers
         {
             try
             {
-                var webService = dbcontext.WebServices
+                var webService = dbcontext.WebService
                     .FirstOrDefault(ws => ws.ServiceId == serviceId);
 
                 if (webService == null)
@@ -289,7 +289,7 @@ namespace SahayataNidhi.Controllers
             }
 
             // Get column names from DbContext
-            var entityType = dbcontext.Model.FindEntityType(typeof(CitizenApplication));
+            var entityType = dbcontext.Model.FindEntityType(typeof(CitizenApplicationss));
             if (entityType == null)
             {
                 return BadRequest(new { status = false, message = "Entity not found in DbContext." });

@@ -162,7 +162,7 @@ namespace SahayataNidhi.Controllers.Admin
                     return BadRequest(new { error = "All fields are required" });
                 }
 
-                var newDesignation = new OfficersDesignation
+                var newDesignation = new OfficersDesignations
                 {
                     Designation = designation,
                     DesignationShort = designationShort,
@@ -309,7 +309,7 @@ namespace SahayataNidhi.Controllers.Admin
         {
             try
             {
-                var department = new Department { DepartmentName = DepartmentName };
+                var department = new Departments { DepartmentName = DepartmentName };
                 dbcontext.Departments.Add(department);
                 dbcontext.SaveChanges();
                 return Json(new { status = true });

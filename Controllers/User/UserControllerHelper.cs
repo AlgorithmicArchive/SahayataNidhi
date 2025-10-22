@@ -36,7 +36,7 @@ namespace SahayataNidhi.Controllers.User
         [HttpGet]
         public IActionResult GetDistricts()
         {
-            var districts = dbcontext.Districts.ToList();
+            var districts = dbcontext.District.ToList();
             return Json(new { status = true, districts });
         }
         [HttpGet]
@@ -60,7 +60,7 @@ namespace SahayataNidhi.Controllers.User
                 .ToList();
 
             // Fetch matched districts
-            var districts = dbcontext.Districts
+            var districts = dbcontext.District
                 .Where(d => districtIds.Contains(d.DistrictId))
                 .ToList();
 
@@ -70,19 +70,19 @@ namespace SahayataNidhi.Controllers.User
         public IActionResult GetTehsils(string districtId)
         {
             int.TryParse(districtId, out int DistrictId);
-            var tehsils = dbcontext.Tehsils.Where(u => u.DistrictId == DistrictId).ToList();
+            var tehsils = dbcontext.Tehsil.Where(u => u.DistrictId == DistrictId).ToList();
             return Json(new { status = true, tehsils });
         }
         [HttpGet]
         public string GetDistrictName(int districtId)
         {
-            string? districtName = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == districtId)!.DistrictName;
+            string? districtName = dbcontext.District.FirstOrDefault(d => d.DistrictId == districtId)!.DistrictName;
             return districtName!;
         }
         [HttpGet]
         public string GetTehsilName(int tehsilId)
         {
-            string? tehsilName = dbcontext.Tehsils.FirstOrDefault(d => d.TehsilId == tehsilId)!.TehsilName;
+            string? tehsilName = dbcontext.Tehsil.FirstOrDefault(d => d.TehsilId == tehsilId)!.TehsilName;
             return tehsilName!;
         }
 
@@ -116,17 +116,17 @@ namespace SahayataNidhi.Controllers.User
             {
                 case "Tehsil":
                     accessCode = Convert.ToInt32(GetFieldValue("Tehsil", formDetails));
-                    var tehsil = dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == accessCode);
+                    var tehsil = dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == accessCode);
                     return tehsil?.TehsilName ?? string.Empty;
 
                 case "District":
                     accessCode = Convert.ToInt32(GetFieldValue("District", formDetails));
-                    var district = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == accessCode);
+                    var district = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
                     return district?.DistrictName ?? string.Empty;
 
                 case "Division":
                     accessCode = Convert.ToInt32(GetFieldValue("District", formDetails));
-                    var districtForDivision = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == accessCode);
+                    var districtForDivision = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
                     if (districtForDivision == null)
                         return string.Empty;
                     return districtForDivision.Division == 1 ? "Jammu" : "Kashmir";
@@ -144,15 +144,15 @@ namespace SahayataNidhi.Controllers.User
             switch (accessLevel)
             {
                 case "Tehsil":
-                    var tehsil = dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == accessCode);
+                    var tehsil = dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == accessCode);
                     return tehsil?.TehsilName ?? string.Empty;
 
                 case "District":
-                    var district = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == accessCode);
+                    var district = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
                     return district?.DistrictName ?? string.Empty;
 
                 case "Division":
-                    var districtForDivision = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == accessCode);
+                    var districtForDivision = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
                     if (districtForDivision == null)
                         return string.Empty;
                     return districtForDivision.Division == 1 ? "Jammu" : "Kashmir";
@@ -217,7 +217,7 @@ namespace SahayataNidhi.Controllers.User
             }
             return "";
         }
-        private dynamic GetFormattedValue(dynamic item, JObject data)
+        private dynamic GetFormattedValue(dynamic item, JObject data, CitizenApplicationss details)
         {
             if (item == null)
                 return new { Label = "[No Label]", Value = "[Item is null]" };
@@ -228,38 +228,54 @@ namespace SahayataNidhi.Controllers.User
             if (!Regex.IsMatch(fmt, @"\{\d+\}"))
                 return new { Label = label, Value = fmt };
 
-            // Build rawValues, ensuring empty or missing fields are represented as empty strings
             var rawValues = (item.selectedFields as IEnumerable<object> ?? Enumerable.Empty<object>())
                 .Select(sf =>
                 {
-                    var name = sf?.ToString() ?? "";
-                    if (string.IsNullOrWhiteSpace(name)) return "";
+                    string fieldName = sf?.ToString() ?? "";
+                    if (string.IsNullOrWhiteSpace(fieldName))
+                        return "";
 
-                    var fieldObj = FindFieldRecursively(data, name);
                     string value = "";
+                    // ✅ Step 1: Check if field is a property of 'details'
+                    var property = details.GetType().GetProperties()
+                    .FirstOrDefault(p =>
+                        string.Equals(
+                            p.Name.Replace("_", ""),
+                            fieldName.Replace("_", ""),
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    );
 
-                    if (fieldObj != null)
+                    _logger.LogInformation($"--- Property: {property} -----");
+                    if (property != null)
                     {
-                        value = ExtractValueWithSpecials(fieldObj, name);
-
-                        // Check if value is in either yyyy-MM-dd or dd MMM yyyy hh:mm:ss tt format
-                        if (DateTime.TryParseExact(value,
-                            new[] { "dd/mm/yyyy", "yyyy-MM-dd", "dd MMM yyyy hh:mm:ss tt" },
-                            CultureInfo.InvariantCulture,
-                            DateTimeStyles.None,
-                            out DateTime dt))
+                        value = property.GetValue(details)?.ToString() ?? "";
+                    }
+                    else
+                    {
+                        // ✅ Step 2: If not found in 'details', continue JSON lookup
+                        var fieldObj = FindFieldRecursively(data, fieldName);
+                        if (fieldObj != null)
                         {
-                            value = dt.ToString("dd MMM yyyy");
+                            value = ExtractValueWithSpecials(fieldObj, fieldName);
                         }
-
                     }
 
+                    // ✅ Step 3: Format date values (optional)
+                    if (DateTime.TryParseExact(value,
+                        new[] { "dd/mm/yyyy", "yyyy-MM-dd", "dd MMM yyyy hh:mm:ss tt" },
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.None,
+                        out DateTime dt))
+                    {
+                        value = dt.ToString("dd MMM yyyy");
+                    }
 
                     return string.IsNullOrWhiteSpace(value) ? "" : value;
                 })
                 .ToList();
 
-            // Tokenize fmt into literals and placeholders
+            // ✅ Formatting logic remains the same...
             var tokens = Regex.Split(fmt, @"(\{\d+\})").Where(t => !string.IsNullOrEmpty(t)).ToList();
 
             var outputParts = new List<string>();
@@ -268,39 +284,28 @@ namespace SahayataNidhi.Controllers.User
             for (int i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
-
                 if (Regex.IsMatch(token, @"^\{\d+\}$"))
                 {
-                    // It's a placeholder
                     var indexStr = token.Substring(1, token.Length - 2);
                     if (int.TryParse(indexStr, out int index) && index < rawValues.Count && !string.IsNullOrWhiteSpace(rawValues[index]))
                     {
-                        // Append accumulated literal and the placeholder's value
                         outputParts.Add(literalAccumulator);
                         outputParts.Add(rawValues[index]);
                     }
-                    // Reset accumulator regardless of whether the placeholder was valid
                     literalAccumulator = "";
                 }
                 else
                 {
-                    // Accumulate literal, but don't append yet
                     literalAccumulator += token;
                 }
             }
 
-            // Join the output parts
             var result = string.Join("", outputParts);
-
-            // Clean up multiple commas and trailing commas/spaces
             result = Regex.Replace(result, @",(\s*,)*\s*$", "");
             result = Regex.Replace(result, @"\s*,\s*,", ",").Trim();
 
-            _logger.LogInformation($"---------- Result: {JsonConvert.SerializeObject(result)} --------------------");
-
             return new { Label = label, Value = result };
         }
-
 
         // Recursive search for a JObject with ["name"] == fieldName
         private static JObject? FindFieldRecursively(JToken token, string fieldName)
@@ -355,13 +360,13 @@ namespace SahayataNidhi.Controllers.User
                 return dbcontext.Blocks.FirstOrDefault(m => m.BlockId == BlockId)!.BlockName!;
             if (fieldName.Contains("HalqaPanchayat", StringComparison.OrdinalIgnoreCase)
                  && int.TryParse(s, out int HalqaPanchayatId))
-                return dbcontext.HalqaPanchayats.FirstOrDefault(m => m.HalqaPanchayatId == HalqaPanchayatId)!.HalqaPanchayatName!;
+                return dbcontext.HalqaPanchayat.FirstOrDefault(m => m.HalqaPanchayatId == HalqaPanchayatId)!.HalqaPanchayatName!;
             if (fieldName.Contains("Village", StringComparison.OrdinalIgnoreCase)
                  && int.TryParse(s, out int VillageId))
                 return dbcontext.Villages.FirstOrDefault(m => m.VillageId == VillageId)!.VillageName!;
             if (fieldName.Contains("BankName", StringComparison.OrdinalIgnoreCase)
                 && int.TryParse(s, out int BankId))
-                return dbcontext.Banks.FirstOrDefault(b => b.Id == BankId)?.BankName ?? "Unknown Bank";
+                return dbcontext.Bank.FirstOrDefault(b => b.Id == BankId)?.BankName ?? "Unknown Bank";
 
             return s;
         }
@@ -378,13 +383,13 @@ namespace SahayataNidhi.Controllers.User
                             int value = Convert.ToInt32(field["value"]);
 
                             if (fieldName == "Tehsil")
-                                return dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == value)?.TehsilName ?? "Unknown Tehsil";
+                                return dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == value)?.TehsilName ?? "Unknown Tehsil";
 
                             else if (fieldName == "District")
-                                return dbcontext.Districts.FirstOrDefault(d => d.DistrictId == value)?.DistrictName ?? "Unknown District";
+                                return dbcontext.District.FirstOrDefault(d => d.DistrictId == value)?.DistrictName ?? "Unknown District";
 
                             else if (fieldName.EndsWith("Tehsil"))
-                                return dbcontext.Tehsils.FirstOrDefault(t => t.TehsilId == value)?.TehsilName ?? "Unknown Tehsil";
+                                return dbcontext.Tehsil.FirstOrDefault(t => t.TehsilId == value)?.TehsilName ?? "Unknown Tehsil";
 
 
                             else
@@ -397,7 +402,7 @@ namespace SahayataNidhi.Controllers.User
         }
         public dynamic GetSanctionDetails(string applicationId, string serviceId)
         {
-            var formdetails = dbcontext.CitizenApplications.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
+            var formdetails = dbcontext.CitizenApplicationss.FirstOrDefault(fd => fd.ReferenceNumber == applicationId);
             // Get the Letters JSON string
             var lettersJson = dbcontext.Services
                          .FirstOrDefault(s => s.ServiceId == Convert.ToInt32(formdetails!.ServiceId))?.Letters;
@@ -407,7 +412,7 @@ namespace SahayataNidhi.Controllers.User
             var tableFields = sanctionSection!.tableFields;
             var sanctionLetterFor = sanctionSection.sanctionLetterFor;
 
-            var details = dbcontext.CitizenApplications
+            var details = dbcontext.CitizenApplicationss
                 .FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
 
 
@@ -418,7 +423,7 @@ namespace SahayataNidhi.Controllers.User
 
             foreach (var item in tableFields)
             {
-                var formatted = GetFormattedValue(item, formData);
+                var formatted = GetFormattedValue(item, formData, formdetails);
                 string label = formatted.Label ?? "[Label Missing]";
                 string value = formatted.Value ?? "";
 
@@ -429,7 +434,7 @@ namespace SahayataNidhi.Controllers.User
         private async Task<string> FetchAcknowledgementDetails(string applicationId)
         {
             // 1) Load the application record
-            var details = dbcontext.CitizenApplications
+            var details = dbcontext.CitizenApplicationss
                 .FirstOrDefault(ca => ca.ReferenceNumber == applicationId)
                 ?? throw new InvalidOperationException("Application not found.");
 
@@ -453,20 +458,20 @@ namespace SahayataNidhi.Controllers.User
             // 5) Build the key-value list for the PDF
             var acknowledgementDetails = new OrderedDictionary();
 
-
+            // Add Reference Number explicitly
+            // acknowledgementDetails["REFERENCE NUMBER"] = details.ReferenceNumber;
 
             // Add all fields from tableFields config (replace if duplicate keys)
             foreach (var fieldConfig in tableFields)
             {
-                var formatted = GetFormattedValue(fieldConfig, formData);
+                var formatted = GetFormattedValue(fieldConfig, formData, details);
                 acknowledgementDetails[formatted.Label] = formatted.Value;
             }
 
-            // Add Reference Number explicitly
-            acknowledgementDetails["REFERENCE NUMBER"] = details.ReferenceNumber;
+
 
             // Add Date of Submission explicitly (replace if duplicate key)
-            acknowledgementDetails["DATE OF SUBMISSION"] = details.CreatedAt?.ToString() ?? string.Empty;
+            // acknowledgementDetails["DATE OF SUBMISSION"] = details.CreatedAt?.ToString() ?? string.Empty;
 
             // 6) Generate the PDF
             await _pdfService.CreateAcknowledgement(acknowledgementDetails, applicationId, serviceName);
@@ -524,15 +529,15 @@ namespace SahayataNidhi.Controllers.User
                         {
                             if (lookupKey.Equals("District", StringComparison.OrdinalIgnoreCase) && int.TryParse(rawValue, out int districtId))
                             {
-                                actualValue = dbcontext.Districts.FirstOrDefault(d => d.DistrictId == districtId)?.DistrictName;
+                                actualValue = dbcontext.District.FirstOrDefault(d => d.DistrictId == districtId)?.DistrictName;
                             }
                             else if (lookupKey.Equals("Tehsil", StringComparison.OrdinalIgnoreCase) && int.TryParse(rawValue, out int tehsilId))
                             {
-                                actualValue = dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == tehsilId)?.TehsilName;
+                                actualValue = dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == tehsilId)?.TehsilName;
                             }
                             else if (lookupKey.EndsWith("Tehsil", StringComparison.OrdinalIgnoreCase) && int.TryParse(rawValue, out int otherTehsilId))
                             {
-                                actualValue = dbcontext.Tehsils.FirstOrDefault(t => t.TehsilId == otherTehsilId)?.TehsilName;
+                                actualValue = dbcontext.Tehsil.FirstOrDefault(t => t.TehsilId == otherTehsilId)?.TehsilName;
                             }
                             else
                             {

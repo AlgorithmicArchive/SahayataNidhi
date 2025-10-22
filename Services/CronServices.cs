@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 public class CronServices
 {
-    private readonly SocialWelfareDepartmentContext _dbcontext;
+    private readonly SwdjkContext _dbcontext;
     private readonly IEmailSender _emailSender;
     private readonly ILogger<CronServices> _logger;
     private readonly ICronScheduler _scheduler;
 
     public CronServices(
-        SocialWelfareDepartmentContext dbcontext,
+        SwdjkContext dbcontext,
         IEmailSender emailSender,
         ILogger<CronServices> logger,
         ICronScheduler scheduler)
@@ -44,7 +44,7 @@ public class CronServices
         string resultType = "expiringeligibility";
         int pageIndex = 0, pageSize = 10;
 
-        var applications = await _dbcontext.CitizenApplications
+        var applications = await _dbcontext.CitizenApplicationss
             .FromSqlRaw(
                 "EXEC [dbo].[GetDisabilityApplications] @AccessLevel, @AccessCode, @ServiceId, @TakenBy, @DivisionCode, @ResultType, @PageNumber, @PageSize",
                 new SqlParameter("@AccessLevel", accessLevel),
@@ -65,7 +65,7 @@ public class CronServices
             string applicantName = formDetailsObj["ApplicantName"]?.ToString() ?? "";
             string email = formDetailsObj["Email"]?.ToString() ?? "";
 
-            var expiringApplication = await _dbcontext.ApplicationsWithExpiringEligibilities
+            var expiringApplication = await _dbcontext.ApplicationsWithExpiringEligibility
                 .FirstOrDefaultAsync(ae => ae.ReferenceNumber == application.ReferenceNumber);
 
             if (expiringApplication != null && !string.IsNullOrEmpty(email))

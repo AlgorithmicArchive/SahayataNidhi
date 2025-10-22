@@ -6,29 +6,31 @@ import {
   Select,
   MenuItem,
   FormHelperText,
+  Button,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
-import CustomButton from "./CustomButton";
 
 const ServiceSelectionForm = ({ services, errors, onServiceSelect }) => {
   const { control, handleSubmit, setValue } = useForm();
   const [selectedValue, setSelectedValue] = useState("");
 
   const onSubmit = (data) => {
-    onServiceSelect(data.Service);
+    if (data.Service) {
+      onServiceSelect(data.Service);
+    }
   };
 
   useEffect(() => {
-    if (services.length > 0) {
-      // Default to first service
+    if (services.length === 1) {
+      // Only one service: select automatically
       const defaultService = services[0].value;
       setSelectedValue(defaultService);
       setValue("Service", defaultService);
-
-      // Auto-submit if only one service
-      if (services.length === 1) {
-        handleSubmit(onSubmit)();
-      }
+      handleSubmit(onSubmit)();
+    } else if (selectedValue === "") {
+      // More than one service: default to "Please Select"
+      setSelectedValue("");
+      setValue("Service", "");
     }
   }, [services]);
 
@@ -40,6 +42,9 @@ const ServiceSelectionForm = ({ services, errors, onServiceSelect }) => {
         margin: "0 auto",
         color: "primary.main",
         width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
       }}
     >
       <FormControl fullWidth margin="normal" error={!!errors?.Service}>
@@ -59,6 +64,11 @@ const ServiceSelectionForm = ({ services, errors, onServiceSelect }) => {
                 setSelectedValue(e.target.value);
               }}
             >
+              {services.length > 1 && (
+                <MenuItem value="">
+                  <em>Please Select</em>
+                </MenuItem>
+              )}
               {services.map((service) => (
                 <MenuItem key={service.value} value={service.value}>
                   {service.label}
@@ -73,14 +83,21 @@ const ServiceSelectionForm = ({ services, errors, onServiceSelect }) => {
       </FormControl>
 
       {services.length > 1 && (
-        <CustomButton
+        <Button
           type="submit"
-          text="Get Details"
-          bgColor="primary.main"
-          color="background.paper"
-          width="50%"
-          sx={{ mt: 2 }}
-        />
+          variant="contained"
+          color="primary"
+          sx={{
+            mt: 2,
+            width: "20%",
+            background: "linear-gradient(to bottom right, #2561E8, #1F43B4)",
+            color: "background.paper",
+            margin: "0 auto",
+            fontSize: 24,
+          }}
+        >
+          Get Details
+        </Button>
       )}
     </Box>
   );

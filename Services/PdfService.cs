@@ -17,10 +17,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
 
-public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDepartmentContext dbcontext, UserHelperFunctions helper)
+public class PdfService(IWebHostEnvironment webHostEnvironment, SwdjkContext dbcontext, UserHelperFunctions helper)
 {
     private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
-    protected readonly SocialWelfareDepartmentContext dbcontext = dbcontext;
+    protected readonly SwdjkContext dbcontext = dbcontext;
     protected readonly UserHelperFunctions helper = helper;
 
     public string GetArreaName(string? accessLevel, int? accessCode)
@@ -29,11 +29,11 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
 
         if (accessLevel == "Tehsil")
         {
-            areaName = dbcontext.Tswotehsils.FirstOrDefault(t => t.TehsilId == accessCode)!.TehsilName!;
+            areaName = dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == accessCode)!.TehsilName!;
         }
         else if (accessLevel == "District")
         {
-            areaName = dbcontext.Districts.FirstOrDefault(t => t.DistrictId == accessCode)!.DistrictName!;
+            areaName = dbcontext.District.FirstOrDefault(t => t.DistrictId == accessCode)!.DistrictName!;
         }
         else if (accessLevel == "Division")
         {
@@ -44,7 +44,7 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
 
     public string GetBranchOffice(string applicationId)
     {
-        var citizenDetails = dbcontext.CitizenApplications
+        var citizenDetails = dbcontext.CitizenApplicationss
             .FirstOrDefault(ca => ca.ReferenceNumber == applicationId);
 
         if (citizenDetails == null || string.IsNullOrEmpty(citizenDetails.FormDetails))
@@ -63,7 +63,7 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SocialWelfareDep
         if (districtValue == null)
             throw new Exception("District not found in form data.");
 
-        string division = dbcontext.Districts
+        string division = dbcontext.District
             .FirstOrDefault(d => d.DistrictId == districtValue)!.Division == 1 ? "Jammu" : "Kashmir";
 
         // Get bank details JSON

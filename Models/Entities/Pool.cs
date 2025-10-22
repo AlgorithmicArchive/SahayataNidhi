@@ -17,5 +17,5 @@ public partial class Pool
 
     public string? List { get; set; }
 
-    public virtual Service Service { get; set; } = null!;
+    public virtual Services Service { get; set; } = null!;
 }

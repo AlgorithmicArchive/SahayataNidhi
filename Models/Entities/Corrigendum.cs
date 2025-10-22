@@ -25,5 +25,5 @@ public partial class Corrigendum
 
     public DateTime CreatedAt { get; set; }
 
-    public virtual CitizenApplication ReferenceNumberNavigation { get; set; } = null!;
+    public virtual CitizenApplicationss ReferenceNumberNavigation { get; set; } = null!;
 }
