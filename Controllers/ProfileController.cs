@@ -418,5 +418,63 @@ namespace SahayataNidhi.Controllers.Profile
                 return Json(new { isValid = false, errorMessage = "Error updating feedback status: " + ex.Message });
             }
         }
+
+        private int GetCurrentUserId()
+        {
+            // Example: Extract from HttpContext.User (e.g., JWT claims)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out int userId))
+            {
+                return userId;
+            }
+            throw new UnauthorizedAccessException("User ID not found.");
+        }
+
+        public class PasswordChangeResult
+        {
+            public bool IsValid { get; set; }
+            public string ErrorMessage { get; set; } = string.Empty;
+        }
+
+        public async Task<IActionResult> ChangePassword([FromForm] IFormCollection form)
+        {
+            var currentPassword = new SqlParameter("@CurrentPassword", form["CurrentPassword"].ToString());
+            var newPassword = new SqlParameter("@NewPassword", form["NewPassword"].ToString());
+            var confirmNewPassword = new SqlParameter("@ConfirmNewPassword", form["ConfirmNewPassword"].ToString());
+            var userId = new SqlParameter("@UserId", GetCurrentUserId());
+
+            // Server-side validation
+            if (string.IsNullOrEmpty(form["CurrentPassword"]) || string.IsNullOrEmpty(form["NewPassword"]) || string.IsNullOrEmpty(form["ConfirmNewPassword"]))
+            {
+                return BadRequest(new { status = false, response = "All password fields are required." });
+            }
+
+            if (form["NewPassword"] != form["ConfirmNewPassword"])
+            {
+                return BadRequest(new { status = false, response = "New password and confirmation do not match." });
+            }
+
+            if (form["NewPassword"].ToString().Length < 8)
+            {
+                return BadRequest(new { status = false, response = "New password must be at least 8 characters long." });
+            }
+
+            var result = await _dbcontext.Database.ExecuteSqlRawAsync(
+                "EXEC ChangePassword @UserId, @CurrentPassword, @NewPassword",
+                userId, currentPassword, newPassword
+            );
+
+
+            if (result != null)
+            {
+                return Json(new { status = true, response = "Password changed successfully." });
+            }
+            else
+            {
+                return Json(new { status = false, response = "Failed to change password." });
+            }
+        }
+
+
     }
 }

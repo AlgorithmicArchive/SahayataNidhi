@@ -889,7 +889,7 @@ namespace SahayataNidhi.Controllers
             {
                 exists = _dbContext.Users.Any(u => u.Email == email && u.UserType == UserType);
             }
-            else if (UserType == "Officer")
+            else if (UserType != "Citizen")
             {
                 // First, check if email already exists for officer
                 exists = _dbContext.Users.Any(u => u.Email == email && u.UserType == UserType);

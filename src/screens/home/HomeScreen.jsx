@@ -343,6 +343,7 @@ export default function HomeScreen() {
                   description="This comprehensive pension program offers financial security to senior citizens, persons with disabilities, women in distress, and transgender individuals. Monthly pension support ensures dignity, inclusion, and sustenance for those in need, contributing to social justice and welfare."
                   gradient="linear-gradient(to bottom right, #2561E8, #1F43B4)"
                   icon={<AccountBalanceSharp fontSize="large" />}
+                  showApplicationFlow={true}
                 />
               </Col>
             </Row>

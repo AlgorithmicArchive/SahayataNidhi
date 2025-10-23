@@ -10,6 +10,8 @@ import {
   FormControl,
   Button,
   FormHelperText,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { Container, Row, Col } from "react-bootstrap";
 import axiosInstance from "../axiosConfig";
@@ -20,6 +22,8 @@ import "react-toastify/dist/ReactToastify.css";
 import LockIcon from "@mui/icons-material/Lock";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 export default function Settings() {
   const { setProfile, userType } = useContext(UserContext);
@@ -38,6 +42,15 @@ export default function Settings() {
   const [ageProof, setAgeProof] = useState({ file: null });
   const [loading, setLoading] = useState(true);
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [passwordSave, setPasswordSave] = useState(false);
+  const [passwordFields, setPasswordFields] = useState({
+    CurrentPassword: "",
+    NewPassword: "",
+    ConfirmNewPassword: "",
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const profileRef = useRef(null);
   const ageProofRef = useRef(null);
 
@@ -46,6 +59,59 @@ export default function Settings() {
     const { name, value } = e.target;
     setUserDetails((prev) => ({ ...prev, [name]: value }));
     setSave(true);
+  };
+
+  // Handle password input changes
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordFields((prev) => ({ ...prev, [name]: value }));
+    setPasswordSave(true);
+  };
+
+  // Toggle password visibility
+  const togglePasswordVisibility = (field) => {
+    switch (field) {
+      case "current":
+        setShowCurrentPassword(!showCurrentPassword);
+        break;
+      case "new":
+        setShowNewPassword(!showNewPassword);
+        break;
+      case "confirm":
+        setShowConfirmPassword(!showConfirmPassword);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Validate passwords
+  const validatePasswords = () => {
+    if (!passwordFields.CurrentPassword) {
+      toast.error("Current password is required.", {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "colored",
+      });
+      return false;
+    }
+    if (passwordFields.NewPassword !== passwordFields.ConfirmNewPassword) {
+      toast.error("New password and confirm password do not match.", {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "colored",
+      });
+      return false;
+    }
+    if (passwordFields.NewPassword.length < 8) {
+      toast.error("New password must be at least 8 characters long.", {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "colored",
+      });
+      return false;
+    }
+    return true;
   };
 
   // Handle profile image change
@@ -163,6 +229,54 @@ export default function Settings() {
     }
   };
 
+  // Change password
+  const handleChangePassword = async () => {
+    if (!validatePasswords()) return;
+    setButtonLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("CurrentPassword", passwordFields.CurrentPassword);
+      formData.append("NewPassword", passwordFields.NewPassword);
+      formData.append("ConfirmNewPassword", passwordFields.ConfirmNewPassword);
+
+      const response = await axiosInstance.post(
+        "/Profile/ChangePassword",
+        formData,
+      );
+      if (response.data.status) {
+        setPasswordFields({
+          CurrentPassword: "",
+          NewPassword: "",
+          ConfirmNewPassword: "",
+        });
+        setPasswordSave(false);
+        setShowCurrentPassword(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+        toast.success("Password changed successfully!", {
+          position: "top-center",
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else {
+        throw new Error(response.data.response || "Failed to change password.");
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast.error(
+        error.response?.data?.response ||
+          "Failed to change password. Please try again.",
+        {
+          position: "top-center",
+          autoClose: 3000,
+          theme: "colored",
+        },
+      );
+    } finally {
+      setButtonLoading(false);
+    }
+  };
+
   // Generate new backup codes
   const handleNewCodes = async () => {
     setButtonLoading(true);
@@ -272,7 +386,7 @@ export default function Settings() {
       style={{
         maxWidth: 800,
         padding: 0,
-        height: userType !== "Citizen" ? "150vh" : "120vh",
+        height: userType !== "Citizen" ? "200vh" : "150vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -479,6 +593,150 @@ export default function Settings() {
               aria-label="Save user details"
             />
           )}
+        </Box>
+
+        <Divider
+          sx={{
+            my: 4,
+            borderColor: "#90CAF9",
+            borderWidth: "1px",
+          }}
+        />
+
+        {/* Change Password Section */}
+        <Box
+          sx={{
+            mb: 4,
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              fontFamily: "'Playfair Display', serif",
+              color: "#0D47A1",
+              fontWeight: 700,
+              mb: 2,
+            }}
+          >
+            Change Password
+          </Typography>
+          <Box
+            sx={{
+              display: "grid",
+              gap: 2,
+              gridTemplateColumns: { xs: "1fr", md: "1fr" },
+            }}
+          >
+            <TextField
+              label="Current Password"
+              name="CurrentPassword"
+              type={showCurrentPassword ? "text" : "password"}
+              value={passwordFields.CurrentPassword}
+              onChange={handlePasswordChange}
+              fullWidth
+              variant="outlined"
+              aria-label="Current password"
+              autoComplete="new-password"
+              inputProps={{
+                autoComplete: "off",
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle current password visibility"
+                      onClick={() => togglePasswordVisibility("current")}
+                      edge="end"
+                    >
+                      {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "#90CAF9" },
+                  "&:hover fieldset": { borderColor: "#42A5F5" },
+                  "&.Mui-focused fieldset": { borderColor: "#1E88E5" },
+                },
+              }}
+            />
+            <TextField
+              label="New Password"
+              name="NewPassword"
+              type={showNewPassword ? "text" : "password"}
+              value={passwordFields.NewPassword}
+              onChange={handlePasswordChange}
+              fullWidth
+              variant="outlined"
+              aria-label="New password"
+              helperText="Password must be at least 8 characters long"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle new password visibility"
+                      onClick={() => togglePasswordVisibility("new")}
+                      edge="end"
+                    >
+                      {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "#90CAF9" },
+                  "&:hover fieldset": { borderColor: "#42A5F5" },
+                  "&.Mui-focused fieldset": { borderColor: "#1E88E5" },
+                },
+              }}
+            />
+            <TextField
+              label="Confirm New Password"
+              name="ConfirmNewPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              value={passwordFields.ConfirmNewPassword}
+              onChange={handlePasswordChange}
+              fullWidth
+              variant="outlined"
+              aria-label="Confirm new password"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={() => togglePasswordVisibility("confirm")}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "#90CAF9" },
+                  "&:hover fieldset": { borderColor: "#42A5F5" },
+                  "&.Mui-focused fieldset": { borderColor: "#1E88E5" },
+                },
+              }}
+            />
+            {passwordSave && (
+              <CustomButton
+                text="Change Password"
+                onClick={handleChangePassword}
+                sx={buttonStyles}
+                disabled={buttonLoading}
+                startIcon={
+                  buttonLoading && (
+                    <CircularProgress size={20} color="inherit" />
+                  )
+                }
+                aria-label="Change password"
+              />
+            )}
+          </Box>
         </Box>
 
         <Divider

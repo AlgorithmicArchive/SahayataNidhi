@@ -65,7 +65,7 @@ namespace SahayataNidhi.Controllers.Admin
         {
             try
             {
-                // Validate required fields
+                // ✅ Validate required fields
                 if (string.IsNullOrEmpty(form["name"]) || string.IsNullOrEmpty(form["username"]) ||
                     string.IsNullOrEmpty(form["password"]) || string.IsNullOrEmpty(form["email"]) ||
                     string.IsNullOrEmpty(form["mobileNumber"]) || string.IsNullOrEmpty(form["role"]))
@@ -73,68 +73,50 @@ namespace SahayataNidhi.Controllers.Admin
                     return Json(new { status = false, response = "Missing required fields" });
                 }
 
-                // Validate department if provided (required for System Admin)
-                if (!string.IsNullOrEmpty(form["department"]))
-                {
-                    if (!int.TryParse(form["department"], out int departmentId) ||
-                        !dbcontext.Departments.Any(d => d.DepartmentId == departmentId))
-                    {
-                        return Json(new { status = false, response = "Invalid department" });
-                    }
-                }
-
-                // Prepare SQL parameters
+                // ✅ Prepare SQL parameters (in correct order)
                 var fullName = new SqlParameter("@Name", form["name"].ToString());
                 var username = new SqlParameter("@Username", form["username"].ToString());
-                var password = new SqlParameter("@Password", form["password"].ToString()); // Note: Should be hashed in production
+                var password = new SqlParameter("@Password", form["password"].ToString()); // Should be hashed
                 var email = new SqlParameter("@Email", form["email"].ToString());
                 var mobileNumber = new SqlParameter("@MobileNumber", form["mobileNumber"].ToString());
                 var profile = new SqlParameter("@Profile", "/assets/images/profile.jpg");
                 var userType = new SqlParameter("@UserType", form["role"].ToString().Contains("Admin") ? "Admin" : "Officer");
 
-                // Generate backup codes
+                // ✅ Backup codes
                 var backupCodes = new
                 {
                     unused = helper.GenerateUniqueRandomCodes(10, 8),
-                    used = Array.Empty<string>(),
+                    used = Array.Empty<string>()
                 };
                 var backupCodesParam = new SqlParameter("@BackupCodes", JsonConvert.SerializeObject(backupCodes));
 
-                // Parse and validate AdditionalDetails
+                // ✅ AdditionalDetails (ensure Department if required)
                 var additionalDetailsJson = form["AdditionalDetails"].ToString();
                 if (string.IsNullOrEmpty(additionalDetailsJson))
                 {
                     return Json(new { status = false, response = "AdditionalDetails is required" });
                 }
 
-                // Ensure AdditionalDetails includes Department
                 dynamic additionalDetails = JsonConvert.DeserializeObject(additionalDetailsJson)!;
-                if (additionalDetails == null)
-                {
-                    return Json(new { status = false, response = "Invalid AdditionalDetails format" });
-                }
-
-                // Add Department to AdditionalDetails if provided
                 if (!string.IsNullOrEmpty(form["department"]))
                 {
                     additionalDetails.Department = int.Parse(form["department"]!);
                 }
 
-                var additionalDetailsParam = new SqlParameter("@AdditionalDetails", JsonConvert.SerializeObject(additionalDetails));
+                var additionalDetailsParam = new SqlParameter("@AddtionalDetails", JsonConvert.SerializeObject(additionalDetails));
+
+                // ✅ Registered Date
                 var registeredDate = new SqlParameter("@RegisteredDate", DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt"));
 
-                // Add Department parameter for stored procedure
-                var departmentParam = new SqlParameter("@DepartmentId", string.IsNullOrEmpty(form["department"]) ? DBNull.Value : (object)int.Parse(form["department"]!));
-
-                // Execute stored procedure
+                // ✅ Execute Stored Procedure (NO extra parameters, correct order)
                 var result = dbcontext.Users.FromSqlRaw(
-                    "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber, @Profile, @UserType, @BackupCodes, @AdditionalDetails, @RegisteredDate, @DepartmentId",
-                    fullName, username, password, email, mobileNumber, profile, userType, backupCodesParam, additionalDetailsParam, registeredDate, departmentParam
+                    "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber, @Profile, @UserType, @BackupCodes, @AddtionalDetails, @RegisteredDate",
+                    fullName, username, password, email, mobileNumber, profile, userType,
+                    backupCodesParam, additionalDetailsParam, registeredDate
                 ).ToList();
 
                 if (result.Count > 0)
                 {
-                    var userId = new SqlParameter("@OfficerId", result[0].UserId);
                     return Json(new { status = true, userId = result[0].UserId });
                 }
                 else
@@ -147,6 +129,7 @@ namespace SahayataNidhi.Controllers.Admin
                 return Json(new { status = false, response = $"Error creating admin: {ex.Message}" });
             }
         }
+
         [HttpPost]
         public IActionResult AddDesignation()
         {
