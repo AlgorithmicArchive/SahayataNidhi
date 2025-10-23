@@ -532,6 +532,8 @@ public partial class SwdjkContext : DbContext
         {
             entity.HasKey(e => e.ServiceId);
 
+            entity.Property(e => e.Active).HasDefaultValue(false);
+            entity.Property(e => e.ActiveForOfficers).HasDefaultValue(true);
             entity.Property(e => e.BankDetails).IsUnicode(false);
             entity.Property(e => e.CreatedAt)
                 .HasMaxLength(50)

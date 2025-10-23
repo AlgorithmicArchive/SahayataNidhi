@@ -24,6 +24,22 @@ namespace SahayataNidhi.Controllers
             dbcontext.SaveChanges();
             return Json(new { status = true, active = svc.Active });
         }
+
+        [HttpPost]
+        public IActionResult ToggleServiceActiveForOfficers([FromForm] IFormCollection form)
+        {
+            int serviceId = Convert.ToInt32(form["serviceId"].ToString());
+            bool activeForOfficers = Convert.ToBoolean(form["activeForOfficers"]);
+
+            var svc = dbcontext.Services.FirstOrDefault(s => s.ServiceId == serviceId);
+            if (svc == null)
+                return Json(new { status = false, message = "Not found" });
+
+            svc.ActiveForOfficers = activeForOfficers;
+            dbcontext.SaveChanges();
+            return Json(new { status = true, activeForOfficers = svc.ActiveForOfficers });
+        }
+
         [HttpPost]
         public IActionResult ToggleWebServiceActive([FromForm] IFormCollection form)
         {

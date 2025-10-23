@@ -26,7 +26,7 @@ namespace SahayataNidhi.Controllers
                 .Take(pageSize)
                 .ToList();
 
-            // Define columns (Actions column can be added if needed)
+            // Define columns
             var columns = new List<dynamic>
             {
                 new { header = "S.No", accessorKey = "sno" },
@@ -40,15 +40,29 @@ namespace SahayataNidhi.Controllers
 
             foreach (var item in pagedData)
             {
-                var department = dbcontext.Departments.FirstOrDefault(d => d.DepartmentId == item.DepartmentId)?.DepartmentName ?? "N/A";
+                // Safely handle nullable DepartmentId
+                var department = "N/A";
+                if (item.DepartmentId.HasValue)
+                {
+                    var dept = dbcontext.Departments.FirstOrDefault(d => d.DepartmentId == item.DepartmentId.Value);
+                    department = dept?.DepartmentName ?? "N/A";
+                }
+
                 var actions = new List<dynamic>
                 {
                     new
                     {
                         id = (pageIndex * pageSize) + index + 1,
-                        tooltip = item.Active ? "Deactivate" : "Activate",
+                        tooltip = (bool)item.Active! ? "Deactivate" : "Activate",
                         color = "#F0C38E",
                         actionFunction = "ToggleServiceActivation"
+                    },
+                    new
+                    {
+                        id = (pageIndex * pageSize) + index + 2,
+                        tooltip = (bool)item.ActiveForOfficers! ? "Deactivate for Officers" : "Activate for Officers",
+                        color = "#A8E6CF",
+                        actionFunction = "ToggleServiceActiveForOfficers"
                     }
                 };
 
@@ -59,6 +73,7 @@ namespace SahayataNidhi.Controllers
                     department = department,
                     serviceId = item.ServiceId,
                     isActive = item.Active,
+                    isActiveForOfficers = item.ActiveForOfficers,
                     customActions = actions,
                 });
 

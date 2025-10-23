@@ -26,13 +26,13 @@ export default function Dashboard() {
         formdata.append("active", isActive);
         const response = await axiosInstance.post(
           "/Designer/ToggleServiceActive",
-          formdata
+          formdata,
         );
 
         if (response.data.status) {
           toast.success(
             response.data.message ||
-              `Service ${isActive ? "activated" : "deactivated"} successfully`
+              `Service ${isActive ? "activated" : "deactivated"} successfully`,
           );
           setServicesRefreshTrigger((r) => r + 1);
         } else {
@@ -42,9 +42,47 @@ export default function Dashboard() {
         return response.data;
       } catch (error) {
         toast.error(
-          error.response?.data?.message || "Failed to toggle service activation"
+          error.response?.data?.message ||
+            "Failed to toggle service activation",
         );
         console.error("ToggleServiceActivation error:", error);
+        throw error;
+      }
+    },
+    ToggleServiceActiveForOfficers: async (row) => {
+      const userdata = row.original;
+      const serviceId = userdata.serviceId;
+      const isActiveForOfficers = !userdata.isActiveForOfficers;
+      try {
+        const formdata = new FormData();
+        formdata.append("serviceId", serviceId);
+        formdata.append("activeForOfficers", isActiveForOfficers);
+        const response = await axiosInstance.post(
+          "/Designer/ToggleServiceActiveForOfficers",
+          formdata,
+        );
+
+        if (response.data.status) {
+          toast.success(
+            response.data.message ||
+              `Service ${
+                isActiveForOfficers
+                  ? "activated for officers"
+                  : "deactivated for officers"
+              } successfully`,
+          );
+          setServicesRefreshTrigger((r) => r + 1);
+        } else {
+          toast.error(response.data.message || "Something went wrong");
+        }
+
+        return response.data;
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message ||
+            "Failed to toggle service activation for officers",
+        );
+        console.error("ToggleServiceActiveForOfficers error:", error);
         throw error;
       }
     },
@@ -58,7 +96,7 @@ export default function Dashboard() {
         formdata.append("active", isActive);
         const response = await axiosInstance.post(
           "/Designer/ToggleWebServiceActive",
-          formdata
+          formdata,
         );
 
         if (response.data.status) {
@@ -66,7 +104,7 @@ export default function Dashboard() {
             response.data.message ||
               `Web Service ${
                 isActive ? "activated" : "deactivated"
-              } successfully`
+              } successfully`,
           );
           setWebServicesRefreshTrigger((r) => r + 1);
         } else {
@@ -77,7 +115,7 @@ export default function Dashboard() {
       } catch (error) {
         toast.error(
           error.response?.data?.message ||
-            "Failed to toggle web service activation"
+            "Failed to toggle web service activation",
         );
         console.error("ToggleWebServiceActivation error:", error);
         throw error;
