@@ -232,11 +232,11 @@ export default function OfficerHome() {
 
   const statusColors = useMemo(
     () => ({
-      "Total Applications": "#374151",
-      "Total Corrigendum": "#374151",
-      "Total Correction": "#374151",
-      "Total Amendment": "#374151",
-      "Total Withheld Applications": "#374151",
+      "Total Applications": "#6B7280", // Neutral Gray: Distinct, professional, contrasts vibrant statuses
+      "Total Corrigendum": "#5B21B6", // Deep Violet: Unique for revisions, pairs with greens
+      "Total Correction": "#0D9488", // Teal: Fresh for fixes, balances warm tones
+      "Total Amendment": "#15803D", // Forest Green: Growth vibe, distinct from Sanctioned
+      "Total Withheld Applications": "#B45309", // Warm Ochre: Cautionary, softer than Pending orange
       Pending: "#F76F15",
       "Pending With Citizen": "#a855f7",
       "Withheld Pending": "#F76F15",
@@ -259,12 +259,12 @@ export default function OfficerHome() {
 
   const textColors = useMemo(
     () => ({
-      "Total Applications": "#FFFFFF",
-      "Total Amendment": "#FFFFFF",
-      "Total Corrigendum": "#FFFFFF",
-      "Total Correction": "#FFFFFF",
-      "Total Withheld Applications": "#FFFFFF",
-      Pending: "#FFFF",
+      "Total Applications": "#FFFFFF", // White for high contrast on gray
+      "Total Amendment": "#FFFFFF", // White for forest green
+      "Total Corrigendum": "#FFFFFF", // White for violet
+      "Total Correction": "#FFFFFF", // White for teal
+      "Total Withheld Applications": "#FFFFFF", // White for ochre
+      Pending: "#FFFFFF",
       Forwarded: "#FFFFFF",
       Returned: "#FFFFFF",
       "Pending With Citizen": "#FFFFFF",
@@ -275,7 +275,7 @@ export default function OfficerHome() {
       "Pension's Stopped": "#FFFFFF",
       "PCP Applications": "#FFFFFF",
       "PCP-UDID Expires 3 Months": "#FFFFFF",
-      "Temporary Withheld": "#FFFF",
+      "Temporary Withheld": "#FFFFFF",
       "Permanent Withheld": "#FFFFFF",
     }),
     [],

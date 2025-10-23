@@ -12,7 +12,7 @@ using SahayataNidhi.Models.Entities;
 
 namespace SahayataNidhi.Controllers.Profile
 {
-    [Authorize(Roles = "Citizen,Officer,Admin,Viewer")]
+    [Authorize(Roles = "Citizen,Officer,Admin,Viewer,Designer")]
     public class ProfileController(SwdjkContext dbcontext, ILogger<ProfileController> logger, UserHelperFunctions helper, IWebHostEnvironment webHostEnvironment, IAuditLogService auditService) : Controller
     {
         private readonly SwdjkContext _dbcontext = dbcontext;

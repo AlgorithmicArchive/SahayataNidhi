@@ -880,13 +880,18 @@ const MyNavbar = () => {
                 >
                   <IconButton onClick={handleMenuOpen} sx={{ padding: 0 }}>
                     <img
-                      src={
-                        `/Base/DisplayFile?fileName=${profile}` ||
-                        "/assets/images/profile.jpg"
-                      }
+                      src={`/Base/DisplayFile?fileName=${profile}`}
                       alt="Profile"
                       className="rounded-circle"
-                      style={{ width: "30px" }}
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        objectFit: "cover",
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null; // stop infinite loop
+                        e.currentTarget.src = "/assets/images/profile.jpg"; // fallback
+                      }}
                     />
                   </IconButton>
                   <Menu

@@ -151,8 +151,15 @@ namespace SahayataNidhi.Controllers
             }
         }
 
+        private string MaskUsername(string username)
+        {
+            if (string.IsNullOrEmpty(username) || username.Length <= 6)
+                return username; // Return as is if too short
+            return $"{username.Substring(0, 3)}***{username.Substring(username.Length - 3)}";
+        }
+
         [HttpPost]
-        public async Task<IActionResult> SendPasswordResetOtp([FromForm] IFormCollection form)
+        public IActionResult GetAccountsForPasswordReset([FromForm] IFormCollection form)
         {
             string email = form["email"].ToString();
             if (string.IsNullOrEmpty(email) || !Regex.IsMatch(email?.Trim()!, @"^[\w\.-]+@([\w-]+\.)+[\w-]{2,}$"))
@@ -160,27 +167,88 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = "Please provide a valid email address." });
             }
 
-            var user = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            if (user == null)
+            var users = _dbContext.Users.Where(u => u.Email == email).ToList();
+            if (!users.Any())
             {
                 return Json(new { status = false, message = "No account found with this email." });
             }
 
+            var accounts = users.Select(u => new
+            {
+                userId = u.UserId,
+                username = u.Username,
+                maskedUsername = MaskUsername(u.Username!),
+                userType = u.UserType
+            }).ToList();
+
+            string fullName = users.First().Name ?? "User";
+            string currentDateTime = DateTime.UtcNow.AddHours(5.5)
+                .ToString("dd MMM yyyy, hh:mm tt") + " IST";
+            string accountsList = string.Join(", ", users.Select(u => $"{MaskUsername(u.Username!)} (Type: {u.UserType})"));
+
+            string htmlMessage = $@"
+            <div style='font-family: Arial, sans-serif;'>
+                <h2 style='color: #2e6c80;'>Your Accounts for Password Reset</h2>
+                <p>Dear {fullName},</p>
+                <p>The following accounts are associated with your email:</p>
+                <ul>
+                    {string.Join("", users.Select(u => $"<li><strong>{MaskUsername(u.Username!)}</strong> (Type: {u.UserType})</li>"))}
+                </ul>
+                <p>Please select an account in the application to proceed with the password reset.</p>
+                <p>This information was requested on {currentDateTime}.</p>
+                <p>If you did not request this, please contact support immediately.</p>
+                <br />
+                <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
+            </div>";
+
+            try
+            {
+                _emailSender.SendEmail(email!, "Your Accounts for Password Reset", htmlMessage).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to send email: {ex.Message}. Accounts: {accountsList}");
+                return Json(new { status = true, message = $"Email sending is not working on demo portal. Your accounts are: {accountsList}", accounts });
+            }
+
+            return Json(new { status = true, message = "Accounts found. Please select an account to reset the password.", accounts });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendPasswordResetOtp([FromForm] IFormCollection form)
+        {
+            string email = form["email"].ToString();
+            string userId = form["userId"].ToString();
+            if (string.IsNullOrEmpty(email) || !Regex.IsMatch(email?.Trim()!, @"^[\w\.-]+@([\w-]+\.)+[\w-]{2,}$"))
+            {
+                return Json(new { status = false, message = "Please provide a valid email address." });
+            }
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { status = false, message = "User ID is required." });
+            }
+
+            var user = _dbContext.Users.FirstOrDefault(u => u.Email == email && u.UserId == Convert.ToInt32(userId));
+            if (user == null)
+            {
+                return Json(new { status = false, message = "No account found with this email and user ID." });
+            }
+
             string otpKey = $"otp:{user.UserId}";
             string userName = user.Name ?? "User";
-            string otp = GenerateOTP(7);
+            string otp = GenerateOTP(6);
             _otpStore.StoreOtp(otpKey, otp);
 
             string htmlMessage = $@"
-                <div style='font-family: Arial, sans-serif;'>
-                    <h2 style='color: #2e6c80;'>Your OTP Code for Password Reset</h2>
-                    <p>Dear {userName},</p>
-                    <p>Use the following One-Time Password (OTP) to reset your password. It is valid for <strong>5 minutes</strong>.</p>
-                    <div style='font-size: 24px; font-weight: bold; color: #333; margin: 20px 0;'>{otp}</div>
-                    <p>If you did not request a password reset, please ignore this email.</p>
-                    <br />
-                    <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
-                </div>";
+            <div style='font-family: Arial, sans-serif;'>
+                <h2 style='color: #2e6c80;'>Your OTP Code for Password Reset</h2>
+                <p>Dear {userName},</p>
+                <p>Use the following One-Time Password (OTP) to reset your password for account with Username: {MaskUsername(user.Username!)} (Type: {user.UserType}). It is valid for <strong>5 minutes</strong>.</p>
+                <div style='font-size: 24px; font-weight: bold; color: #333; margin: 20px 0;'>{otp}</div>
+                <p>If you did not request a password reset, please ignore this email.</p>
+                <br />
+                <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
+            </div>";
 
             try
             {
@@ -189,7 +257,7 @@ namespace SahayataNidhi.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Failed to send email: {ex.Message}. OTP: {otp}");
-                return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Use this OTP: {otp}" });
+                return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Use this OTP: {otp} for Username: {MaskUsername(user.Username!)}" });
             }
             return Json(new { status = true, message = "OTP sent to your email." });
         }
@@ -203,22 +271,26 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = "Please provide a valid email address." });
             }
 
-            var user = _dbContext.Users.FirstOrDefault(u => u.Email == email);
-            if (user == null)
+            var users = _dbContext.Users.Where(u => u.Email == email).ToList();
+            if (!users.Any())
             {
                 return Json(new { status = false, message = "No account found with this email." });
             }
 
-            string fullName = user.Name!;
-            string username = user.Username ?? "User";
+            string fullName = users.First().Name ?? "User";
             string currentDateTime = DateTime.UtcNow.AddHours(5.5)
                 .ToString("dd MMM yyyy, hh:mm tt") + " IST";
+            string usernamesList = string.Join(", ", users.Select(u => $"{u.Username} (Type: {u.UserType})"));
 
             string htmlMessage = $@"
             <div style='font-family: Arial, sans-serif;'>
                 <h2 style='color: #2e6c80;'>Your Username Retrieval</h2>
                 <p>{fullName},</p>
-                <p>Your username is: <strong>{username}</strong>. This information was requested on {currentDateTime}.</p>
+                <p>Your usernames are:</p>
+                <ul>
+                    {string.Join("", users.Select(u => $"<li><strong>{u.Username}</strong> (Type: {u.UserType})</li>"))}
+                </ul>
+                <p>This information was requested on {currentDateTime}.</p>
                 <p>If you did not request this, please contact support immediately.</p>
                 <br />
                 <p style='font-size: 12px; color: #888;'>Thank you,<br />Your Application Team</p>
@@ -230,12 +302,11 @@ namespace SahayataNidhi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Failed to send email: {ex.Message}. Username: {username}");
-                return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Your username is: {username}" });
+                _logger.LogWarning($"Failed to send email: {ex.Message}. Usernames: {usernamesList}");
+                return Json(new { status = true, message = $"Email and Mobile OTP sending is not working on demo portal. Your usernames are: {usernamesList}", usernames = usernamesList });
             }
-            return Json(new { status = true, message = "Username has been sent to your email." });
+            return Json(new { status = true, message = "Usernames have been sent to your email.", usernames = usernamesList });
         }
-
         public class ResetPasswordResult
         {
             public int Result { get; set; }
@@ -247,13 +318,19 @@ namespace SahayataNidhi.Controllers
         public async Task<IActionResult> ValidateOtpAndResetPassword([FromForm] IFormCollection form)
         {
             string email = form["email"].ToString();
+            string userId = form["userId"].ToString();
             string otp = form["otp"].ToString();
             string newPassword = form["newPassword"].ToString();
-            _logger.LogInformation($"------------------ Email: {email} OTP: {otp}  PASSWORD: {newPassword}-------------------------------");
+            _logger.LogInformation($"------------------ Email: {email} UserId: {userId} OTP: {otp} PASSWORD: {newPassword} -------------------------------");
 
             if (string.IsNullOrEmpty(email) || !Regex.IsMatch(email, @"^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$"))
             {
                 return Json(new { status = false, message = "Please provide a valid email address." });
+            }
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { status = false, message = "User ID is required." });
             }
 
             if (string.IsNullOrEmpty(otp) || !Regex.IsMatch(otp, @"^\d{6}$"))
@@ -266,10 +343,10 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = "Password must be at least 8 characters long." });
             }
 
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.UserId == Convert.ToInt32(userId));
             if (user == null)
             {
-                return Json(new { status = false, message = "No account found with this email." });
+                return Json(new { status = false, message = "No account found with this email and user ID." });
             }
 
             string otpKey = $"otp:{user.UserId}";
@@ -285,32 +362,34 @@ namespace SahayataNidhi.Controllers
                 // Execute the ResetUserPassword stored procedure
                 var parameters = new[]
                 {
-                    new SqlParameter("@Email", email),
-                    new SqlParameter("@NewPassword", newPassword)
-                };
+                new SqlParameter("@Email", email),
+                new SqlParameter("@UserId", Convert.ToInt32(userId)),
+                new SqlParameter("@NewPassword", newPassword)
+            };
 
                 var result = await _dbContext.Database
-                .SqlQueryRaw<ResetPasswordResult>("EXEC ResetUserPassword @Email, @NewPassword", parameters)
-                .ToListAsync();
+                    .SqlQueryRaw<ResetPasswordResult>("EXEC ResetUserPassword @Email, @UserId, @NewPassword", parameters)
+                    .ToListAsync();
 
                 var resetResult = result.FirstOrDefault();
                 if (resetResult != null && resetResult.Result == 1)
                 {
-                    _auditService.InsertLog(HttpContext, "Reset Password", "Password reseted successfully.", user!.UserId, "Success");
+                    _otpStore.RetrieveOtp(otpKey); // Clear OTP after successful reset
+                    _auditService.InsertLog(HttpContext, "Reset Password", "Password reset successfully.", user.UserId, "Success");
                     return Json(new { status = true, message = resetResult.Message });
                 }
                 else
                 {
-                    _auditService.InsertLog(HttpContext, "Reset Password", "Failed to reset password.", user!.UserId, "Failure");
+                    _auditService.InsertLog(HttpContext, "Reset Password", "Failed to reset password.", user.UserId, "Failure");
                     return Json(new { status = false, message = resetResult?.Message ?? "Failed to reset password." });
                 }
             }
             catch (Exception ex)
             {
+                _auditService.InsertLog(HttpContext, "Reset Password", $"An error occurred: {ex.Message}", user.UserId, "Failure");
                 return Json(new { status = false, message = $"An error occurred: {ex.Message}" });
             }
         }
-
         [HttpPost]
         public IActionResult OTPValidation([FromForm] string? email, [FromForm] string? mobile, [FromForm] string otp)
         {

@@ -338,8 +338,6 @@ export default function UserDetails() {
     }
   };
 
-  // Updated handleSign function in UserDetails.jsx
-
   const handleSign = async () => {
     if (signingMethod === "dsc") {
       const isAppRunning = await checkDesktopApp();
@@ -392,7 +390,6 @@ export default function UserDetails() {
           clientrequestURL: response.data.clientrequestURL,
         });
 
-        // HTML-escape function
         const htmlEscape = (str) => {
           if (!str) return "";
           return str
@@ -409,7 +406,6 @@ export default function UserDetails() {
         const escapedUserId = htmlEscape(response.data.userId);
         const escapedTxnId = htmlEscape(response.data.txnId);
 
-        // Open popup
         popup = window.open("", "eSignPopup", "width=800,height=600");
         if (!popup) {
           toast.error("Popup blocked. Please allow popups and try again.", {
@@ -420,7 +416,6 @@ export default function UserDetails() {
           return;
         }
 
-        // Write form to popup and submit
         popup.document.open();
         popup.document.write(`
                 <!DOCTYPE html>
@@ -445,7 +440,6 @@ export default function UserDetails() {
             `);
         popup.document.close();
 
-        // Start polling for status
         const interval = setInterval(async () => {
           try {
             const statusRes = await axiosInstance.get(
@@ -487,7 +481,6 @@ export default function UserDetails() {
         }, 5000);
         setPollInterval(interval);
 
-        // Stop polling after 15 minutes
         setTimeout(() => {
           if (pollInterval) {
             clearInterval(pollInterval);
@@ -501,7 +494,7 @@ export default function UserDetails() {
               theme: "colored",
             });
           }
-        }, 900000); // 15 minutes
+        }, 900000);
       } catch (error) {
         console.error("eSign preparation error:", error);
         if (popup && !popup.closed) {
@@ -1104,13 +1097,6 @@ export default function UserDetails() {
                                                   ? declarationText
                                                   : "",
                                               );
-                                              setValue(
-                                                "Remarks",
-                                                e.target.checked
-                                                  ? declarationText
-                                                  : "",
-                                                { shouldValidate: false },
-                                              );
                                             }}
                                             color="primary"
                                           />
@@ -1294,7 +1280,7 @@ export default function UserDetails() {
                     onChange={(e) => setSigningMethod(e.target.value)}
                   >
                     <MenuItem value="dsc">DSC (USB Token)</MenuItem>
-                    <MenuItem value="esign">eSign (Aadhaar)</MenuItem>
+                    {/* <MenuItem value="esign">eSign (Aadhaar)</MenuItem> */}
                   </Select>
                 </FormControl>
                 {signingMethod === "esign" && (
