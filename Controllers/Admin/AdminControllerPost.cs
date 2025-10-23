@@ -341,7 +341,100 @@ namespace SahayataNidhi.Controllers.Admin
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> AddOffice([FromForm] IFormCollection form)
+        {
+            try
+            {
+                if (!form.TryGetValue("OfficeType", out var officeTypeValues) || string.IsNullOrWhiteSpace(officeTypeValues[0]))
+                    return Json(new { status = false, message = "Office Type is required." });
 
+                if (!form.TryGetValue("AccessLevel", out var accessLevelValues) || string.IsNullOrWhiteSpace(accessLevelValues[0]))
+                    return Json(new { status = false, message = "Access Level is required." });
+
+                if (!form.TryGetValue("DepartmentId", out var deptIdValues) || !int.TryParse(deptIdValues[0], out int departmentId))
+                    return Json(new { status = false, message = "Invalid Department ID." });
+
+                var office = new Offices
+                {
+                    DepartmentId = departmentId,
+                    OfficeType = officeTypeValues[0]!.Trim(),
+                    AccessLevel = accessLevelValues[0]!.Trim()
+                };
+
+                dbcontext.Offices.Add(office);
+                await dbcontext.SaveChangesAsync();
+
+                return Json(new { status = true, message = "Office added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Admin/UpdateOffice
+        [HttpPost]
+        public async Task<IActionResult> UpdateOffice([FromForm] IFormCollection form)
+        {
+            try
+            {
+                if (!form.TryGetValue("OfficeId", out var idValues) || !int.TryParse(idValues[0], out int officeId))
+                    return Json(new { status = false, message = "Invalid Office ID." });
+
+                if (!form.TryGetValue("OfficeType", out var officeTypeValues) || string.IsNullOrWhiteSpace(officeTypeValues[0]))
+                    return Json(new { status = false, message = "Office Type is required." });
+
+                if (!form.TryGetValue("AccessLevel", out var accessLevelValues) || string.IsNullOrWhiteSpace(accessLevelValues[0]))
+                    return Json(new { status = false, message = "Access Level is required." });
+
+                if (!form.TryGetValue("DepartmentId", out var deptIdValues) || !int.TryParse(deptIdValues[0], out int departmentId))
+                    return Json(new { status = false, message = "Invalid Department ID." });
+
+                var office = await dbcontext.Offices.FindAsync(officeId);
+                if (office == null)
+                    return Json(new { status = false, message = "Office not found." });
+
+                // Optional: Prevent cross-department edits
+                if (office.DepartmentId != departmentId)
+                    return Json(new { status = false, message = "You cannot modify offices from another department." });
+
+                office.OfficeType = officeTypeValues[0]!.Trim();
+                office.AccessLevel = accessLevelValues[0]!.Trim();
+
+                await dbcontext.SaveChangesAsync();
+
+                return Json(new { status = true, message = "Office updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Admin/DeleteOffice
+        [HttpPost]
+        public async Task<IActionResult> DeleteOffice([FromForm] IFormCollection form)
+        {
+            try
+            {
+                if (!form.TryGetValue("OfficeId", out var idValues) || !int.TryParse(idValues[0], out int officeId))
+                    return Json(new { status = false, message = "Invalid Office ID." });
+
+                var office = await dbcontext.Offices.FindAsync(officeId);
+                if (office == null)
+                    return Json(new { status = false, message = "Office not found." });
+
+                dbcontext.Offices.Remove(office);
+                await dbcontext.SaveChangesAsync();
+
+                return Json(new { status = true, message = "Office deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
 
     }
 }

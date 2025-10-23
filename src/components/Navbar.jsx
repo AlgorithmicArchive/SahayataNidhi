@@ -686,6 +686,7 @@ const MyNavbar = () => {
                   const activePaths = [
                     "/admin/addadmin",
                     "/admin/addDesignations",
+                    "/admin/addOffices",
                   ];
                   if (designation === "System Admin")
                     activePaths.push("/admin/addDepartment");
@@ -715,6 +716,12 @@ const MyNavbar = () => {
                           }
                         >
                           Designation
+                        </MenuItem>
+                        <MenuItem
+                          sx={getMenuItemStyle("/admin/addOffices")}
+                          onClick={() => handleNavigate("/admin/addOffices")}
+                        >
+                          Offices
                         </MenuItem>
                         {designation === "System Admin" && (
                           <MenuItem

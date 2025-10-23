@@ -779,6 +779,77 @@ namespace SahayataNidhi.Controllers.Admin
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetOffices(int pageIndex = 0, int pageSize = 10)
+        {
+            try
+            {
+                var officer = GetOfficerDetails();
+                if (officer == null)
+                {
+                    return BadRequest(new { error = "Officer details not found" });
+                }
+
+                var departmentId = officer.Department;
+                if (departmentId <= 0)
+                {
+                    return BadRequest(new { error = "User department not found." });
+                }
+
+                // Fetch offices filtered by DepartmentId
+                var officesQuery = dbcontext.Offices
+                    .Where(o => o.DepartmentId == departmentId)
+                    .Select(o => new
+                    {
+                        OfficeId = o.OfficeId,
+                        OfficeType = o.OfficeType,
+                        AccessLevel = o.AccessLevel
+                    });
+
+                var totalRecords = await officesQuery.CountAsync();
+
+                var pagedData = await officesQuery
+                    .Skip(pageIndex * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // Define columns for the frontend
+                var columns = new List<object>
+        {
+            new { accessorKey = "officeId", header = "ID" },
+            new { accessorKey = "officeType", header = "Office Type" },
+            new { accessorKey = "accessLevel", header = "Access Level" }
+        };
+
+                // Shape data with custom actions
+                var data = pagedData.Select(o => new
+                {
+                    officeId = o.OfficeId,
+                    officeType = o.OfficeType,
+                    accessLevel = o.AccessLevel,
+                    customActions = new List<object>
+            {
+                new { tooltip = "Update", color = "#F0C38E", actionFunction = "UpdateOffice" },
+                new { tooltip = "Delete", color = "#F0C38E", actionFunction = "DeleteOffice" }
+            }
+                }).ToList();
+
+                return Json(new
+                {
+                    data,
+                    columns,
+                    totalRecords
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    error = "An error occurred while fetching offices",
+                    details = ex.Message
+                });
+            }
+        }
 
 
     }
