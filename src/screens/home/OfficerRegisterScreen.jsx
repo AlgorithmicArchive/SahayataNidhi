@@ -15,7 +15,6 @@ import {
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useForm, Controller } from "react-hook-form";
-import CustomButton from "../../components/CustomButton";
 import { fetchDistricts } from "../../assets/fetch";
 import OtpModal from "../../components/OtpModal";
 import axios from "axios";
@@ -24,8 +23,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Col, Row } from "react-bootstrap";
 import debounce from "lodash/debounce";
+import { CheckCircleOutline } from "@mui/icons-material";
 
-// Function to generate a random CAPTCHA
+// Generate CAPTCHA
 const generateCaptcha = () => {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -71,16 +71,14 @@ export default function OfficerRegisterScreen() {
   const [tehsilOptions, setTehsilOptions] = useState([]);
   const [accessLevelMap, setAccessLevelMap] = useState({});
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
-  const [otpType, setOtpType] = useState(null); // 'email' or 'mobile'
+  const [otpType, setOtpType] = useState(null);
   const [userId, setUserId] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [isEmailOtpSent, setIsEmailOtpSent] = useState(false);
+  const lowerCase = useState(false);
   const [isEmailOtpVerified, setIsEmailOtpVerified] = useState(false);
-  const [isMobileOtpSent, setIsMobileOtpSent] = useState(false);
   const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isReady, setIsReady] = useState(false); // To prevent FOUC
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   const selectedDepartment = watch("department");
   const selectedDesignation = watch("designation");
@@ -91,78 +89,49 @@ export default function OfficerRegisterScreen() {
   const mobileValue = watch("mobileNumber");
   const navigate = useNavigate();
 
-  // Fetch departments and districts on mount
+  // Fetch initial data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const deptResponse = await axios.get("/Home/GetDepartments");
-        if (deptResponse.data.status) {
-          const departmentOptions = deptResponse.data.departments.map(
-            (dept) => ({
-              label: dept.departmentName,
-              value: dept.departmentId,
-            }),
-          );
-          setDepartments(departmentOptions);
-        } else {
-          toast.error("Failed to fetch departments", {
-            position: "top-center",
-            autoClose: 3000,
-            theme: "colored",
-          });
-        }
+        const [deptRes, districtRes] = await Promise.all([
+          axios.get("/Home/GetDepartments"),
+          fetchDistricts(setDistrictOptions),
+        ]);
 
-        await fetchDistricts(setDistrictOptions);
+        if (deptRes.data.status) {
+          setDepartments(
+            deptRes.data.departments.map((d) => ({
+              label: d.departmentName,
+              value: d.departmentId,
+            })),
+          );
+        }
         setCaptcha(generateCaptcha());
-        setIsReady(true); // Mark as ready once data is fetched
-      } catch (error) {
-        console.error("Error fetching initial data", error);
-        toast.error("Error fetching initial data", {
-          position: "top-center",
-          autoClose: 3000,
-          theme: "colored",
-        });
+        setIsReady(true);
+      } catch (err) {
+        toast.error("Failed to load data");
       }
     };
-
     fetchData();
   }, []);
 
-  // Fetch designations when department changes
+  // Fetch designations
   useEffect(() => {
     if (selectedDepartment) {
       axios
         .get(`/Home/GetDesignations?deparmentId=${selectedDepartment}`)
-        .then((response) => {
-          if (response.data.status) {
-            const designationOptions = response.data.designations.map(
-              (des) => ({
-                label: des.designation + ` (${des.accessLevel})`,
-                value: des.designation,
-                accessLevel: des.accessLevel,
-              }),
-            );
-            setDesignations(designationOptions);
-            const newAccessLevelMap = {};
-            designationOptions.forEach((des) => {
-              newAccessLevelMap[des.value] = des.accessLevel;
-            });
-            setAccessLevelMap(newAccessLevelMap);
-          } else {
-            toast.error("Failed to fetch designations", {
-              position: "top-center",
-              autoClose: 3000,
-              theme: "colored",
-            });
+        .then((res) => {
+          if (res.data.status) {
+            const opts = res.data.designations.map((d) => ({
+              label: `${d.designation} (${d.accessLevel})`,
+              value: d.designation,
+              accessLevel: d.accessLevel,
+            }));
+            setDesignations(opts);
+            const map = {};
+            opts.forEach((o) => (map[o.value] = o.accessLevel));
+            setAccessLevelMap(map);
           }
-        })
-        .catch((error) => {
-          console.error("Error fetching designations", error);
-          toast.error("Error fetching designations", {
-            position: "top-center",
-            autoClose: 3000,
-            theme: "colored",
-          });
         });
     } else {
       setDesignations([]);
@@ -170,91 +139,61 @@ export default function OfficerRegisterScreen() {
     }
   }, [selectedDepartment]);
 
-  // Fetch tehsils when district changes
+  // Fetch tehsils
   useEffect(() => {
     if (selectedDistrict) {
       axios
         .get(`/Base/GetTeshilForDistrict?districtId=${selectedDistrict}`)
-        .then((response) => {
-          if (response.data.status) {
-            const tehsilOptionsFormatted = response.data.tehsils.map(
-              (tehsil) => ({
-                label: tehsil.tehsilName,
-                value: tehsil.tehsilId,
-              }),
+        .then((res) => {
+          if (res.data.status) {
+            setTehsilOptions(
+              res.data.tehsils.map((t) => ({
+                label: t.tehsilName,
+                value: t.tehsilId,
+              })),
             );
-            setTehsilOptions(tehsilOptionsFormatted);
-          } else {
-            toast.error("Failed to fetch tehsils", {
-              position: "top-center",
-              autoClose: 3000,
-              theme: "colored",
-            });
           }
-        })
-        .catch((error) => {
-          console.error("Error fetching tehsils", error);
-          toast.error("Error fetching tehsils", {
-            position: "top-center",
-            autoClose: 3000,
-            theme: "colored",
-          });
         });
     } else {
       setTehsilOptions([]);
     }
   }, [selectedDistrict]);
 
-  const handleRefreshCaptcha = () => {
-    setCaptcha(generateCaptcha());
-  };
+  const handleRefreshCaptcha = () => setCaptcha(generateCaptcha());
 
-  // Debounced email validation
+  // Debounced validation
   const debouncedEmailValidation = useCallback(
-    debounce(async (value, formContext) => {
-      if (!value) {
-        return "Email is required";
+    debounce(async (value, { setError }) => {
+      if (!value || !selectedDepartment || !selectedDesignation) return;
+      const params = {
+        email: value,
+        UserType: "Officer",
+        departmentId: selectedDepartment,
+        designation: selectedDesignation,
+      };
+      if (
+        accessLevelMap[selectedDesignation] === "Division" &&
+        !selectedDivision
+      )
+        return "Select division";
+      if (
+        accessLevelMap[selectedDesignation] === "District" &&
+        !selectedDistrict
+      )
+        return "Select district";
+      if (
+        accessLevelMap[selectedDesignation] === "Tehsil" &&
+        (!selectedDistrict || !selectedTehsil)
+      )
+        return "Select district & tehsil";
+
+      const res = await axios.get("/Home/CheckEmail", { params });
+      if (!res.data.isUnique) {
+        setError("email", { type: "manual", message: "Email already exists" });
+        return false;
       }
-      if (!selectedDepartment || !selectedDesignation) {
-        return "Please select department and designation first";
-      }
-      try {
-        const params = {
-          email: value,
-          UserType: "Officer",
-          departmentId: selectedDepartment || null,
-          designation: selectedDesignation || null,
-        };
-        if (accessLevelMap[selectedDesignation] === "Division") {
-          if (!selectedDivision) return "Please select division first";
-          params.divisionId = selectedDivision;
-        } else if (accessLevelMap[selectedDesignation] === "District") {
-          if (!selectedDistrict) return "Please select district first";
-          params.districtId = selectedDistrict;
-        } else if (accessLevelMap[selectedDesignation] === "Tehsil") {
-          if (!selectedDistrict) return "Please select district first";
-          if (!selectedTehsil) return "Please select tehsil first";
-          params.districtId = selectedDistrict;
-          params.tehsilId = selectedTehsil;
-        }
-        const response = await axios.get("/Home/CheckEmail", { params });
-        console.log("Email check response:", response.data); // Debug log
-        if (response.data && typeof response.data.isUnique === "boolean") {
-          if (!response.data.isUnique) {
-            formContext.setError("email", {
-              type: "manual",
-              message: "Email already exists",
-            });
-            return "Email already exists";
-          }
-          return true;
-        }
-        return "Invalid response from server";
-      } catch (error) {
-        console.error("Error checking email availability", error);
-        return "Error checking email availability";
-      }
-    }, 300), // Reduced debounce delay for faster response
+      return true;
+    }, 300),
     [
       selectedDepartment,
       selectedDesignation,
@@ -265,52 +204,41 @@ export default function OfficerRegisterScreen() {
     ],
   );
 
-  // Debounced mobile number validation
   const debouncedMobileValidation = useCallback(
-    debounce(async (value, formContext) => {
-      if (!value) {
-        return "Mobile Number is required";
+    debounce(async (value, { setError }) => {
+      if (!value || !selectedDepartment || !selectedDesignation) return;
+      const params = {
+        number: value,
+        UserType: "Officer",
+        departmentId: selectedDepartment,
+        designation: selectedDesignation,
+      };
+      if (
+        accessLevelMap[selectedDesignation] === "Division" &&
+        !selectedDivision
+      )
+        return "Select division";
+      if (
+        accessLevelMap[selectedDesignation] === "District" &&
+        !selectedDistrict
+      )
+        return "Select district";
+      if (
+        accessLevelMap[selectedDesignation] === "Tehsil" &&
+        (!selectedDistrict || !selectedTehsil)
+      )
+        return "Select district & tehsil";
+
+      const res = await axios.get("/Home/CheckMobileNumber", { params });
+      if (!res.data.isUnique) {
+        setError("mobileNumber", {
+          type: "manual",
+          message: "Mobile already exists",
+        });
+        return false;
       }
-      if (!selectedDepartment || !selectedDesignation) {
-        return "Please select department and designation first";
-      }
-      try {
-        const params = {
-          number: value,
-          UserType: "Officer",
-          departmentId: selectedDepartment || null,
-          designation: selectedDesignation || null,
-        };
-        if (accessLevelMap[selectedDesignation] === "Division") {
-          if (!selectedDivision) return "Please select division first";
-          params.divisionId = selectedDivision;
-        } else if (accessLevelMap[selectedDesignation] === "District") {
-          if (!selectedDistrict) return "Please select district first";
-          params.districtId = selectedDistrict;
-        } else if (accessLevelMap[selectedDesignation] === "Tehsil") {
-          if (!selectedDistrict) return "Please select district first";
-          if (!selectedTehsil) return "Please select tehsil first";
-          params.districtId = selectedDistrict;
-          params.tehsilId = selectedTehsil;
-        }
-        const response = await axios.get("/Home/CheckMobileNumber", { params });
-        console.log("Mobile check response:", response.data); // Debug log
-        if (response.data && typeof response.data.isUnique === "boolean") {
-          if (!response.data.isUnique) {
-            formContext.setError("mobileNumber", {
-              type: "manual",
-              message: "Mobile Number already exists",
-            });
-            return "Mobile Number already exists";
-          }
-          return true;
-        }
-        return "Invalid response from server";
-      } catch (error) {
-        console.error("Error checking mobile number availability", error);
-        return "Error checking mobile number availability";
-      }
-    }, 300), // Reduced debounce delay for faster response
+      return true;
+    }, 300),
     [
       selectedDepartment,
       selectedDesignation,
@@ -321,244 +249,122 @@ export default function OfficerRegisterScreen() {
     ],
   );
 
-  // Handle email validation button click
+  // Validate Email
   const handleEmailValidate = async () => {
-    const isValid = await trigger("email");
-    console.log(
-      "Email validation triggered, isValid:",
-      isValid,
-      "Errors:",
-      errors.email,
-    ); // Debug log
-    if (isValid && !errors.email) {
+    const valid = await trigger("email");
+    if (valid && !errors.email) {
       setLoading(true);
       try {
-        const email = getValues("email");
-        const response = await axios.get("/Home/SendOtp", {
-          params: { email },
+        const res = await axios.get("/Home/SendOtp", {
+          params: { email: getValues("email") },
         });
-        if (response.data.status) {
-          setIsEmailOtpSent(true);
+        if (res.data.status) {
           setIsOtpModalOpen(true);
           setOtpType("email");
-          setErrorMessage(response.data.message || "");
-          setUserId(response.data.userId);
-          toast.success("OTP sent to your email!", {
-            position: "top-center",
-            autoClose: 3000,
-          });
-        } else {
-          toast.error("Failed to send OTP. Please try again.", {
-            position: "top-center",
-            autoClose: 3000,
-          });
+          setUserId(res.data.userId);
+          setErrorMessage(res.data.message);
+          toast.success("OTP sent to email");
         }
-      } catch (error) {
-        console.error("Error sending OTP to email", error);
-        toast.error("Error sending OTP to email.", {
-          position: "top-center",
-          autoClose: 3000,
-        });
+      } catch {
+        toast.error("Failed to send OTP");
       } finally {
         setLoading(false);
-      }
-    } else {
-      // Manually trigger validation to ensure error is set
-      const emailError = await debouncedEmailValidation(getValues("email"), {
-        setError,
-      });
-      if (emailError !== true) {
-        setError("email", { type: "manual", message: emailError });
       }
     }
   };
 
-  // Handle mobile validation button click
+  // Validate Mobile
   const handleMobileValidate = async () => {
-    const isValid = await trigger("mobileNumber");
-    console.log(
-      "Mobile validation triggered, isValid:",
-      isValid,
-      "Errors:",
-      errors.mobileNumber,
-    ); // Debug log
-    if (isValid && !errors.mobileNumber) {
+    const valid = await trigger("mobileNumber");
+    if (valid && !errors.mobileNumber) {
       setLoading(true);
       try {
-        const mobile = getValues("mobileNumber");
-        const response = await axios.get("/Home/SendOtp", {
-          params: { mobile },
+        const res = await axios.get("/Home/SendOtp", {
+          params: { mobile: getValues("mobileNumber") },
         });
-        if (response.data.status) {
-          setIsMobileOtpSent(true);
+        if (res.data.status) {
           setIsOtpModalOpen(true);
           setOtpType("mobile");
-          setUserId(response.data.userId);
-          setErrorMessage(response.data.message || "");
-          toast.success("OTP sent to your mobile number!", {
-            position: "top-center",
-            autoClose: 3000,
-          });
-        } else {
-          toast.error("Failed to send OTP. Please try again.", {
-            position: "top-center",
-            autoClose: 3000,
-          });
+          setUserId(res.data.userId);
+          setErrorMessage(res.data.message);
+          toast.success("OTP sent to mobile");
         }
-      } catch (error) {
-        console.error("Error sending OTP to mobile", error);
-        toast.error("Error sending OTP to mobile.", {
-          position: "top-center",
-          autoClose: 3000,
-        });
+      } catch {
+        toast.error("Failed to send OTP");
       } finally {
         setLoading(false);
-      }
-    } else {
-      // Manually trigger validation to ensure error is set
-      const mobileError = await debouncedMobileValidation(
-        getValues("mobileNumber"),
-        { setError },
-      );
-      if (mobileError !== true) {
-        setError("mobileNumber", { type: "manual", message: mobileError });
       }
     }
   };
 
-  // Handle form submission
+  // Submit
   const onSubmit = async (data) => {
-    if (!isEmailOtpVerified) {
-      toast.error("Please verify email OTP before registering.", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-      return;
-    }
-    if (!isMobileOtpVerified) {
-      toast.error("Please verify mobile OTP before registering.", {
-        position: "top-center",
-        autoClose: 3000,
-      });
+    if (!isEmailOtpVerified || !isMobileOtpVerified) {
+      toast.error("Verify both email and mobile");
       return;
     }
 
-    setIsSubmitting(true);
     setLoading(true);
     const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
+    Object.entries(data).forEach(([k, v]) => formData.append(k, v));
     formData.append("accessLevel", accessLevelMap[selectedDesignation] || "");
     formData.append(
       "accessCode",
-      accessLevelMap[selectedDesignation] !== "State"
-        ? accessLevelMap[selectedDesignation]?.includes("Tehsil")
-          ? data["Tehsil"]
-          : accessLevelMap[selectedDesignation]?.includes("District")
-          ? data["District"]
-          : data["Division"]
-        : 0,
+      accessLevelMap[selectedDesignation] === "State"
+        ? 0
+        : data[
+            accessLevelMap[selectedDesignation] === "Tehsil"
+              ? "Tehsil"
+              : accessLevelMap[selectedDesignation] === "District"
+              ? "District"
+              : "Division"
+          ],
     );
+
     try {
-      const response = await axios.post("/Home/OfficerRegistration", formData);
-      const { status } = response.data;
-      if (status) {
-        toast.success("Registration successful! Redirecting to login...", {
-          position: "top-center",
-          autoClose: 2000,
-        });
+      const res = await axios.post("/Home/OfficerRegistration", formData);
+      if (res.data.status) {
+        toast.success("Registered! Redirecting...");
         setTimeout(() => navigate("/login"), 2000);
       } else {
-        toast.error("Registration failed. Please try again.", {
-          position: "top-center",
-          autoClose: 3000,
-        });
+        toast.error("Registration failed");
       }
-    } catch (error) {
-      console.error("Registration error", error);
-      toast.error("An error occurred. Please try again.", {
-        position: "top-center",
-        autoClose: 3000,
-      });
+    } catch {
+      toast.error("Error occurred");
     } finally {
       setLoading(false);
-      setIsSubmitting(false);
-      setCaptcha(generateCaptcha());
+      handleRefreshCaptcha();
     }
   };
 
-  // Handle OTP submission
+  // OTP Submit
   const handleOtpSubmit = async (otp) => {
-    console.log("handleOtpSubmit called with OTP:", otp, "Type:", otpType);
-    if (!otp) {
-      toast.error("Please enter an OTP.", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-      return;
-    }
-
+    if (!otp) return toast.error("Enter OTP");
     setLoading(true);
     const formData = new FormData();
     formData.append("otp", otp);
-    if (otpType === "email") {
-      formData.append("email", getValues("email"));
-    } else if (otpType === "mobile") {
-      formData.append("mobile", getValues("mobileNumber"));
-    }
+    formData.append(
+      otpType === "email" ? "email" : "mobile",
+      getValues(otpType === "email" ? "email" : "mobileNumber"),
+    );
 
     try {
-      const response = await axios.post(
-        otpType === "email" ? "/Home/OTPValidation" : "/Home/OTPValidation",
-        formData,
-      );
-      if (response.data.status) {
-        if (otpType === "email") {
-          setIsEmailOtpVerified(true);
-        } else if (otpType === "mobile") {
-          setIsMobileOtpVerified(true);
-        }
+      const res = await axios.post("/Home/OTPValidation", formData);
+      if (res.data.status) {
+        if (otpType === "email") setIsEmailOtpVerified(true);
+        else setIsMobileOtpVerified(true);
         setIsOtpModalOpen(false);
-        setOtpType(null);
-        toast.success(
-          `${
-            otpType === "email" ? "Email" : "Mobile"
-          } OTP verified successfully!`,
-          {
-            position: "top-center",
-            autoClose: 2000,
-          },
-        );
+        toast.success(`${otpType === "email" ? "Email" : "Mobile"} verified`);
       } else {
-        toast.error("Invalid OTP. Please try again.", {
-          position: "top-center",
-          autoClose: 3000,
-        });
+        toast.error("Invalid OTP");
       }
-    } catch (error) {
-      console.error(
-        `${otpType === "email" ? "Email" : "Mobile"} OTP validation error`,
-        error,
-      );
-      toast.error(
-        `Error validating ${otpType === "email" ? "email" : "mobile"} OTP.`,
-        {
-          position: "top-center",
-          autoClose: 3000,
-        },
-      );
+    } catch {
+      toast.error("Verification failed");
     } finally {
       setLoading(false);
     }
   };
 
-  // Debug form errors
-  useEffect(() => {
-    console.log("Form errors:", errors);
-  }, [errors]);
-
-  // Render loading state to prevent FOUC
   if (!isReady) {
     return (
       <Box
@@ -569,7 +375,7 @@ export default function OfficerRegisterScreen() {
           minHeight: "80vh",
         }}
       >
-        <CircularProgress />
+        <CircularProgress size={80} sx={{ color: "#2562E9" }} />
       </Box>
     );
   }
@@ -578,756 +384,682 @@ export default function OfficerRegisterScreen() {
     <Suspense fallback={<CircularProgress />}>
       <Box
         sx={{
+          minHeight: "100vh",
           display: "flex",
-          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: "80vh",
           background:
-            "linear-gradient(135deg, rgb(252, 252, 252) 0%, rgb(240, 236, 236) 100%)",
-          padding: { xs: 2, md: 4 },
+            "linear-gradient(to bottom right, #F4F9FF 0%, #F9F3EC 100%)",
+          p: { xs: 2, md: 4 },
         }}
       >
         <Container
-          maxWidth="md"
+          maxWidth="lg"
           sx={{
-            bgcolor: "#FFFFFF",
-            p: { xs: 3, md: 5 },
-            borderRadius: 3,
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-            maxWidth: 500,
-            transition: "transform 0.3s ease-in-out",
+            backgroundColor: "#FFFFFF",
+            p: { xs: 4, md: 6 },
+            borderRadius: 4,
+            boxShadow: "0 12px 40px rgba(0, 0, 0, 0.12)",
+            transition: "all 0.3s ease",
             "&:hover": {
-              transform: "translateY(-5px)",
+              transform: "translateY(-8px)",
+              boxShadow: "0 16px 48px rgba(0, 0, 0, 0.15)",
             },
           }}
-          role="form"
-          aria-labelledby="officer-register-title"
         >
-          <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Typography
-              variant="h4"
-              component="h1"
-              id="officer-register-title"
-              sx={{
-                fontWeight: 700,
-                color: "primary.main",
-                mb: 1,
-              }}
-            >
-              Officer Registration
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Sign up as an officer to get started
-            </Typography>
-          </Box>
-
-          <Box
-            component="form"
-            noValidate
-            autoComplete="off"
-            onSubmit={handleSubmit(onSubmit)}
-            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+          {/* Title */}
+          <Typography
+            variant="h3"
+            component="h1"
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: "2.8rem", sm: "3.2rem", md: "3.5rem" },
+              textAlign: "center",
+              background: "linear-gradient(to bottom right, #2561E8, #1F43B4)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              mb: 4,
+              letterSpacing: "-0.5px",
+            }}
           >
-            <Row>
-              <Col xs={6}>
-                <Controller
-                  name="fullName"
-                  control={control}
-                  rules={{
-                    required: "Full name is required",
-                    minLength: {
-                      value: 5,
-                      message: "Full Name must be at least 5 characters",
-                    },
-                    maxLength: {
-                      value: 255,
-                      message: "Full Name must be at most 255 characters",
-                    },
-                  }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label={
-                        <Typography component="span">
-                          Full Name <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      fullWidth
-                      disabled={loading}
-                      error={!!errors.fullName}
-                      helperText={errors.fullName?.message}
-                      variant="outlined"
-                    />
-                  )}
-                />
-              </Col>
-              <Col xs={6}>
-                <Controller
-                  name="username"
-                  control={control}
-                  rules={{
-                    required: "Username is required",
-                    minLength: {
-                      value: 5,
-                      message: "Username must be at least 5 characters",
-                    },
-                    maxLength: {
-                      value: 20,
-                      message: "Username must be at most 20 characters",
-                    },
-                    validate: async (value) => {
-                      if (!value) return "Username is required";
-                      try {
-                        const response = await axios.get(
-                          "/Home/CheckUsername",
-                          {
-                            params: { username: value },
-                          },
-                        );
-                        return (
-                          response.data.isUnique || "Username already exists"
-                        );
-                      } catch {
-                        return "Error checking username availability";
-                      }
-                    },
-                  }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label={
-                        <Typography component="span">
-                          Username <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      fullWidth
-                      disabled={loading}
-                      error={!!errors.username}
-                      helperText={errors.username?.message}
-                      variant="outlined"
-                    />
-                  )}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col xs={6}>
-                <Controller
-                  name="department"
-                  control={control}
-                  rules={{
-                    required: "Department is required",
-                  }}
-                  render={({ field }) => (
-                    <FormControl
-                      fullWidth
-                      error={!!errors.department}
-                      disabled={loading}
-                    >
-                      <InputLabel>
-                        <Typography component="span">
-                          Department <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      </InputLabel>
-                      <Select
-                        {...field}
-                        label={
-                          <Typography component="span">
-                            Department <span style={{ color: "red" }}>*</span>
-                          </Typography>
-                        }
-                        value={field.value || ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <MenuItem value="" disabled>
-                          Select Department
-                        </MenuItem>
-                        {departments.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.department && (
-                        <FormHelperText>
-                          {errors.department.message}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Col>
-              <Col xs={6}>
-                <Controller
-                  name="designation"
-                  control={control}
-                  rules={{
-                    required: "Designation is required",
-                  }}
-                  render={({ field }) => (
-                    <FormControl
-                      fullWidth
-                      error={!!errors.designation}
-                      disabled={loading || !selectedDepartment}
-                    >
-                      <InputLabel>
-                        <Typography component="span">
-                          Designation <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      </InputLabel>
-                      <Select
-                        {...field}
-                        label={
-                          <Typography component="span">
-                            Designation <span style={{ color: "red" }}>*</span>
-                          </Typography>
-                        }
-                        value={field.value || ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <MenuItem value="" disabled>
-                          Select Designation
-                        </MenuItem>
-                        {designations.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.designation && (
-                        <FormHelperText>
-                          {errors.designation.message}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col xs={6}>
-                {(accessLevelMap[selectedDesignation] === "District" ||
-                  accessLevelMap[selectedDesignation] === "Tehsil") && (
-                  <Controller
-                    name="District"
-                    control={control}
-                    rules={{
-                      required:
-                        accessLevelMap[selectedDesignation] === "District" ||
-                        accessLevelMap[selectedDesignation] === "Tehsil"
-                          ? "District is required"
-                          : false,
-                    }}
-                    render={({ field }) => (
-                      <FormControl
-                        fullWidth
-                        error={!!errors.District}
-                        disabled={loading}
-                      >
-                        <InputLabel>
-                          <Typography component="span">
-                            District <span style={{ color: "red" }}>*</span>
-                          </Typography>
-                        </InputLabel>
-                        <Select
-                          {...field}
-                          label={
-                            <Typography component="span">
-                              District <span style={{ color: "red" }}>*</span>
-                            </Typography>
-                          }
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                        >
-                          <MenuItem value="" disabled>
-                            Select District
-                          </MenuItem>
-                          {districtOptions.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {errors.District && (
-                          <FormHelperText>
-                            {errors.District.message}
-                          </FormHelperText>
-                        )}
-                      </FormControl>
-                    )}
-                  />
-                )}
-                {accessLevelMap[selectedDesignation] === "Division" && (
-                  <Controller
-                    name="Division"
-                    control={control}
-                    rules={{
-                      required:
-                        accessLevelMap[selectedDesignation] === "Division"
-                          ? "Division is required"
-                          : false,
-                    }}
-                    render={({ field }) => (
-                      <FormControl
-                        fullWidth
-                        error={!!errors.Division}
-                        disabled={loading}
-                      >
-                        <InputLabel>
-                          <Typography component="span">
-                            Division <span style={{ color: "red" }}>*</span>
-                          </Typography>
-                        </InputLabel>
-                        <Select
-                          {...field}
-                          label={
-                            <Typography component="span">
-                              Division <span style={{ color: "red" }}>*</span>
-                            </Typography>
-                          }
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                        >
-                          <MenuItem value="" disabled>
-                            Select Division
-                          </MenuItem>
-                          {[
-                            { label: "Jammu", value: 1 },
-                            { label: "Kashmir", value: 2 },
-                          ].map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {errors.Division && (
-                          <FormHelperText>
-                            {errors.Division.message}
-                          </FormHelperText>
-                        )}
-                      </FormControl>
-                    )}
-                  />
-                )}
-              </Col>
-              <Col xs={6}>
-                {accessLevelMap[selectedDesignation] === "Tehsil" && (
-                  <Controller
-                    name="Tehsil"
-                    control={control}
-                    rules={{
-                      required:
-                        accessLevelMap[selectedDesignation] === "Tehsil"
-                          ? "Tehsil is required"
-                          : false,
-                    }}
-                    render={({ field }) => (
-                      <FormControl
-                        fullWidth
-                        error={!!errors.Tehsil}
-                        disabled={loading}
-                      >
-                        <InputLabel>
-                          <Typography component="span">
-                            TSWO Office <span style={{ color: "red" }}>*</span>
-                          </Typography>
-                        </InputLabel>
-                        <Select
-                          {...field}
-                          label={
-                            <Typography component="span">
-                              TSWO Office{" "}
-                              <span style={{ color: "red" }}>*</span>
-                            </Typography>
-                          }
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                        >
-                          <MenuItem value="" disabled>
-                            Select Tehsil
-                          </MenuItem>
-                          {tehsilOptions.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {errors.Tehsil && (
-                          <FormHelperText>
-                            {errors.Tehsil.message}
-                          </FormHelperText>
-                        )}
-                      </FormControl>
-                    )}
-                  />
-                )}
-              </Col>
-            </Row>
-            <Row>
-              <Col xs={6}>
-                <Controller
-                  name="email"
-                  control={control}
-                  rules={{
-                    required: "Email is required",
-                    pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Invalid email format",
-                    },
-                    maxLength: {
-                      value: 40,
-                      message: "Email must be at most 40 characters",
-                    },
-                    validate: async (value) => {
-                      const result = await debouncedEmailValidation(value, {
-                        setError,
-                      });
-                      console.log("Email validation result:", result); // Debug log
-                      return result;
-                    },
-                  }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label={
-                        <Typography component="span">
-                          Email <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      type="email"
-                      fullWidth
-                      disabled={loading || isEmailOtpVerified}
-                      error={!!errors.email}
-                      helperText={errors.email?.message}
-                      variant="outlined"
-                      onBlur={() => {
-                        if (!isSubmitting) {
-                          trigger("email");
-                        }
-                      }} // Trigger validation on blur
-                    />
-                  )}
-                />
-                {isEmailOtpVerified && (
-                  <Typography
-                    variant="subtitle2"
-                    color="success"
-                    fontWeight="bold"
-                    sx={{ mt: 1 }}
-                  >
-                    Verified
-                  </Typography>
-                )}
-                {!isEmailOtpVerified && emailValue && !errors.email && (
-                  <CustomButton
-                    text="Validate Email"
-                    bgColor="primary.main"
-                    color="white"
-                    width="100%"
-                    disabled={loading}
-                    onClick={handleEmailValidate}
-                    sx={{ mt: 2 }}
-                  />
-                )}
-              </Col>
-              <Col xs={6}>
-                <Controller
-                  name="mobileNumber"
-                  control={control}
-                  rules={{
-                    required: "Mobile Number is required",
-                    pattern: {
-                      value: /^[0-9]{10}$/,
-                      message: "Enter 10 digit number",
-                    },
-                    validate: async (value) => {
-                      const result = await debouncedMobileValidation(value, {
-                        setError,
-                      });
-                      console.log("Mobile validation result:", result); // Debug log
-                      return result;
-                    },
-                  }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label={
-                        <Typography component="span">
-                          Mobile Number <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      type="tel"
-                      fullWidth
-                      inputProps={{ maxLength: 10 }}
-                      disabled={loading || isMobileOtpVerified}
-                      error={!!errors.mobileNumber}
-                      helperText={errors.mobileNumber?.message}
-                      variant="outlined"
-                      onBlur={() => {
-                        if (!isSubmitting) {
-                          trigger("mobileNumber");
-                        }
-                      }} // Trigger validation on blur
-                    />
-                  )}
-                />
-                {isMobileOtpVerified && (
-                  <Typography
-                    variant="subtitle2"
-                    color="success"
-                    fontWeight="bold"
-                    sx={{ mt: 1 }}
-                  >
-                    Verified
-                  </Typography>
-                )}
-                {!isMobileOtpVerified &&
-                  mobileValue &&
-                  !errors.mobileNumber && (
-                    <CustomButton
-                      text="Validate Mobile"
-                      bgColor="primary.main"
-                      color="white"
-                      width="100%"
-                      disabled={loading}
-                      onClick={handleMobileValidate}
-                      sx={{ mt: 2 }}
-                    />
-                  )}
-              </Col>
-            </Row>
-            <Row>
-              <Col xs={6}>
-                <Controller
-                  name="password"
-                  control={control}
-                  rules={{
-                    required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters",
-                    },
-                    maxLength: {
-                      value: 20,
-                      message: "Password must be at most 20 characters",
-                    },
-                    pattern: {
-                      value:
-                        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,20}$/,
-                      message:
-                        "Password must include uppercase, lowercase, number, and special character",
-                    },
-                  }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label={
-                        <Typography component="span">
-                          Password <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      type="password"
-                      fullWidth
-                      disabled={loading}
-                      error={!!errors.password}
-                      helperText={errors.password?.message}
-                      variant="outlined"
-                    />
-                  )}
-                />
-              </Col>
-              <Col xs={6}>
-                <Controller
-                  name="confirmPassword"
-                  control={control}
-                  rules={{
-                    required: "Confirm your password",
-                    validate: (value) =>
-                      value === getValues("password") ||
-                      "Passwords do not match",
-                  }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label={
-                        <Typography component="span">
-                          Confirm Password{" "}
-                          <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      type="password"
-                      fullWidth
-                      disabled={loading}
-                      error={!!errors.confirmPassword}
-                      helperText={errors.confirmPassword?.message}
-                      variant="outlined"
-                    />
-                  )}
-                />
-              </Col>
-            </Row>
+            Officer Registration
+          </Typography>
 
-            <Row>
-              <Col xs={12}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    mt: 2,
-                    flexDirection: { xs: "column", sm: "row" },
-                    justifyContent: "center",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      background: "linear-gradient(45deg, #f3f4f6, #e5e7eb)",
-                      border: "2px solid",
-                      borderColor: "primary.main",
-                      borderRadius: 2,
-                      padding: 1.5,
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      width: "95%",
-                      marginBottom: 2,
-                      position: "relative",
-                      overflow: "hidden",
-                      "&:before": {
-                        content: '""',
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background:
-                          "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.05) 10px, rgba(0, 0, 0, 0.05) 12px)",
-                        opacity: 0.2,
-                      },
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              {/* Row 1 */}
+              <Row>
+                <Col xs={12} md={6}>
+                  <Controller
+                    name="fullName"
+                    control={control}
+                    rules={{
+                      required: "Full name required",
+                      minLength: { value: 5, message: "Min 5 chars" },
                     }}
-                    aria-label={`CAPTCHA code: ${captcha}`}
-                  >
-                    {captcha.split("").map((char, index) => (
-                      <Box
-                        key={index}
-                        component="span"
+                    render={({ field, fieldState: { error } }) => (
+                      <TextField
+                        {...field}
+                        label={
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                            Full Name <span style={{ color: "red" }}>*</span>
+                          </span>
+                        }
+                        variant="outlined"
+                        fullWidth
+                        disabled={loading}
+                        error={!!error}
+                        helperText={error?.message}
                         sx={{
-                          fontFamily: "monospace",
-                          fontSize: { xs: 16, sm: 18 },
-                          fontWeight: Math.random() > 0.5 ? 700 : 400,
-                          color:
-                            Math.random() > 0.5 ? "primary.main" : "#2d3748",
-                          transform: `rotate(${Math.floor(
-                            Math.random() * 31 - 15,
-                          )}deg) translateY(${Math.floor(
-                            Math.random() * 6 - 3,
-                          )}px)`,
-                          margin: "0 2px",
-                          userSelect: "none",
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 3,
+                            fontSize: "1.05rem",
+                          },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Col>
+                <Col xs={12} md={6}>
+                  <Controller
+                    name="username"
+                    control={control}
+                    rules={{
+                      required: "Username required",
+                      minLength: { value: 5, message: "Min 5 chars" },
+                      validate: async (v) =>
+                        (
+                          await axios.get("/Home/CheckUsername", {
+                            params: { username: v },
+                          })
+                        ).data.isUnique || "Username taken",
+                    }}
+                    render={({ field, fieldState: { error } }) => (
+                      <TextField
+                        {...field}
+                        label={
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                            Username <span style={{ color: "red" }}>*</span>
+                          </span>
+                        }
+                        variant="outlined"
+                        fullWidth
+                        disabled={loading}
+                        error={!!error}
+                        helperText={error?.message}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 3,
+                            fontSize: "1.05rem",
+                          },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Col>
+              </Row>
+
+              {/* Row 2: Department & Designation */}
+              <Row>
+                <Col xs={12} md={6}>
+                  <Controller
+                    name="department"
+                    control={control}
+                    rules={{ required: "Department required" }}
+                    render={({ field, fieldState: { error } }) => (
+                      <FormControl fullWidth error={!!error}>
+                        <InputLabel sx={{ color: "#235BDE", fontWeight: 600 }}>
+                          Department <span style={{ color: "red" }}>*</span>
+                        </InputLabel>
+
+                        <Select
+                          {...field}
+                          disabled={loading}
+                          sx={{ borderRadius: 3 }}
+                        >
+                          {departments.map((d) => (
+                            <MenuItem key={d.value} value={d.value}>
+                              {d.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+
+                        {error && (
+                          <FormHelperText>{error.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    )}
+                  />
+                </Col>
+                <Col xs={12} md={6}>
+                  <Controller
+                    name="designation"
+                    control={control}
+                    rules={{ required: "Designation required" }}
+                    render={({ field, fieldState: { error } }) => (
+                      <FormControl fullWidth error={!!error}>
+                        <InputLabel sx={{ color: "#235BDE", fontWeight: 600 }}>
+                          Designation <span style={{ color: "red" }}>*</span>
+                        </InputLabel>
+                        <Select
+                          {...field}
+                          disabled={loading || !selectedDepartment}
+                          sx={{ borderRadius: 3 }}
+                        >
+                          {designations.map((d) => (
+                            <MenuItem key={d.value} value={d.value}>
+                              {d.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {error && (
+                          <FormHelperText>{error.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    )}
+                  />
+                </Col>
+              </Row>
+
+              {/* Conditional Fields */}
+              <Row>
+                <Col xs={12} md={6}>
+                  {(accessLevelMap[selectedDesignation] === "District" ||
+                    accessLevelMap[selectedDesignation] === "Tehsil") && (
+                    <Controller
+                      name="District"
+                      control={control}
+                      rules={{ required: "District required" }}
+                      render={({ field, fieldState: { error } }) => (
+                        <FormControl fullWidth error={!!error}>
+                          <InputLabel
+                            sx={{ color: "#235BDE", fontWeight: 600 }}
+                          >
+                            District <span style={{ color: "red" }}>*</span>
+                          </InputLabel>
+                          <Select
+                            {...field}
+                            disabled={loading}
+                            sx={{ borderRadius: 3 }}
+                          >
+                            {districtOptions.map((d) => (
+                              <MenuItem key={d.value} value={d.value}>
+                                {d.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          {error && (
+                            <FormHelperText>{error.message}</FormHelperText>
+                          )}
+                        </FormControl>
+                      )}
+                    />
+                  )}
+                  {accessLevelMap[selectedDesignation] === "Division" && (
+                    <Controller
+                      name="Division"
+                      control={control}
+                      rules={{ required: "Division required" }}
+                      render={({ field, fieldState: { error } }) => (
+                        <FormControl fullWidth error={!!error}>
+                          <InputLabel
+                            sx={{ color: "#235BDE", fontWeight: 600 }}
+                          >
+                            Division <span style={{ color: "red" }}>*</span>
+                          </InputLabel>
+                          <Select
+                            {...field}
+                            disabled={loading}
+                            sx={{ borderRadius: 3 }}
+                          >
+                            <MenuItem value={1}>Jammu</MenuItem>
+                            <MenuItem value={2}>Kashmir</MenuItem>
+                          </Select>
+                          {error && (
+                            <FormHelperText>{error.message}</FormHelperText>
+                          )}
+                        </FormControl>
+                      )}
+                    />
+                  )}
+                </Col>
+                <Col xs={12} md={6}>
+                  {accessLevelMap[selectedDesignation] === "Tehsil" && (
+                    <Controller
+                      name="Tehsil"
+                      control={control}
+                      rules={{ required: "TSWO Office required" }}
+                      render={({ field, fieldState: { error } }) => (
+                        <FormControl fullWidth error={!!error}>
+                          <InputLabel
+                            sx={{ color: "#235BDE", fontWeight: 600 }}
+                          >
+                            TSWO Office <span style={{ color: "red" }}>*</span>
+                          </InputLabel>
+                          <Select
+                            {...field}
+                            disabled={loading || !selectedDistrict}
+                            sx={{ borderRadius: 3 }}
+                          >
+                            {tehsilOptions.map((t) => (
+                              <MenuItem key={t.value} value={t.value}>
+                                {t.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          {error && (
+                            <FormHelperText>{error.message}</FormHelperText>
+                          )}
+                        </FormControl>
+                      )}
+                    />
+                  )}
+                </Col>
+              </Row>
+
+              {/* Email & Mobile */}
+              <Row>
+                <Col xs={12} md={6}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Controller
+                      name="email"
+                      control={control}
+                      rules={{
+                        required: "Email required",
+                        pattern: {
+                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                          message: "Invalid email",
+                        },
+                        validate: (v) =>
+                          debouncedEmailValidation(v, { setError }),
+                      }}
+                      render={({ field, fieldState: { error } }) => (
+                        <TextField
+                          {...field}
+                          label={
+                            <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                              Email <span style={{ color: "red" }}>*</span>
+                            </span>
+                          }
+                          type="email"
+                          fullWidth
+                          disabled={loading || isEmailOtpVerified}
+                          error={!!error}
+                          helperText={error?.message}
+                          sx={{
+                            flex: 1,
+                            "& .MuiOutlinedInput-root": { borderRadius: 3 },
+                            "& .MuiFormLabel-root": {
+                              fontWeight: 600,
+                              color: "#235BDE",
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                    {isEmailOtpVerified && (
+                      <CheckCircleOutline
+                        sx={{ color: "#0FB282", fontSize: 28 }}
+                      />
+                    )}
+                  </Box>
+                  {!isEmailOtpVerified && emailValue && !errors.email && (
+                    <Box
+                      component="button"
+                      onClick={handleEmailValidate}
+                      disabled={loading}
+                      sx={{
+                        mt: 1,
+                        width: "100%",
+                        background:
+                          "linear-gradient(to bottom, #F67015 0%, #E4630A 100%)",
+                        color: "#FDF6F0",
+                        fontWeight: "bold",
+                        fontSize: "1rem",
+                        py: 1.5,
+                        borderRadius: 3,
+                        border: "none",
+                        cursor: "pointer",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(to bottom, #E4630A 0%, #F67015 100%)",
+                        },
+                      }}
+                    >
+                      Validate Email
+                    </Box>
+                  )}
+                </Col>
+                <Col xs={12} md={6}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Controller
+                      name="mobileNumber"
+                      control={control}
+                      rules={{
+                        required: "Mobile required",
+                        pattern: {
+                          value: /^[0-9]{10}$/,
+                          message: "10 digits only",
+                        },
+                        validate: (v) =>
+                          debouncedMobileValidation(v, { setError }),
+                      }}
+                      render={({ field, fieldState: { error } }) => (
+                        <TextField
+                          {...field}
+                          label={
+                            <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                              Mobile Number{" "}
+                              <span style={{ color: "red" }}>*</span>
+                            </span>
+                          }
+                          type="tel"
+                          fullWidth
+                          inputProps={{ maxLength: 10 }}
+                          disabled={loading || isMobileOtpVerified}
+                          error={!!error}
+                          helperText={error?.message}
+                          sx={{
+                            flex: 1,
+                            "& .MuiOutlinedInput-root": { borderRadius: 3 },
+                            "& .MuiFormLabel-root": {
+                              fontWeight: 600,
+                              color: "#235BDE",
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                    {isMobileOtpVerified && (
+                      <CheckCircleOutline
+                        sx={{ color: "#0FB282", fontSize: 28 }}
+                      />
+                    )}
+                  </Box>
+                  {!isMobileOtpVerified &&
+                    mobileValue &&
+                    !errors.mobileNumber && (
+                      <Box
+                        component="button"
+                        onClick={handleMobileValidate}
+                        disabled={loading}
+                        sx={{
+                          mt: 1,
+                          width: "100%",
+                          background:
+                            "linear-gradient(to bottom, #0FB282 0%, #4CAF50 100%)",
+                          color: "#FDF6F0",
+                          fontWeight: "bold",
+                          fontSize: "1rem",
+                          py: 1.5,
+                          borderRadius: 3,
+                          border: "none",
+                          cursor: "pointer",
+                          "&:hover": {
+                            background:
+                              "linear-gradient(to bottom, #4CAF50 0%, #0FB282 100%)",
+                          },
                         }}
                       >
-                        {char}
+                        Validate Mobile
                       </Box>
-                    ))}
-                  </Box>
-                  <IconButton
-                    onClick={handleRefreshCaptcha}
-                    disabled={loading}
-                    sx={{
-                      color: "primary.main",
-                      border: "1px solid",
-                      borderColor: "primary.main",
-                      borderRadius: 2,
-                      p: 1,
-                      "&:hover": {
-                        backgroundColor: "primary.light",
-                        borderColor: "primary.dark",
-                        transform: "scale(1.05)",
+                    )}
+                </Col>
+              </Row>
+
+              {/* Password */}
+              <Row>
+                <Col xs={12} md={6}>
+                  <Controller
+                    name="password"
+                    control={control}
+                    rules={{
+                      required: "Password required",
+                      pattern: {
+                        value:
+                          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,20}$/,
+                        message:
+                          "Use uppercase, lowercase, number, special char",
                       },
                     }}
-                    aria-label="Refresh CAPTCHA"
+                    render={({ field, fieldState: { error } }) => (
+                      <TextField
+                        {...field}
+                        label={
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                            Password <span style={{ color: "red" }}>*</span>
+                          </span>
+                        }
+                        type="password"
+                        fullWidth
+                        disabled={loading}
+                        error={!!error}
+                        helperText={error?.message}
+                        sx={{
+                          "& .MuiOutlinedInput-root": { borderRadius: 3 },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Col>
+                <Col xs={12} md={6}>
+                  <Controller
+                    name="confirmPassword"
+                    control={control}
+                    rules={{
+                      required: "Confirm password",
+                      validate: (v) =>
+                        v === getValues("password") || "Passwords don't match",
+                    }}
+                    render={({ field, fieldState: { error } }) => (
+                      <TextField
+                        {...field}
+                        label={
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                            Confirm Password{" "}
+                            <span style={{ color: "red" }}>*</span>
+                          </span>
+                        }
+                        type="password"
+                        fullWidth
+                        disabled={loading}
+                        error={!!error}
+                        helperText={error?.message}
+                        sx={{
+                          "& .MuiOutlinedInput-root": { borderRadius: 3 },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Col>
+              </Row>
+
+              {/* CAPTCHA */}
+              <Row>
+                <Col xs={12}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      mt: 3,
+                      flexDirection: { xs: "column", sm: "row" },
+                      justifyContent: "center",
+                    }}
                   >
-                    <RefreshIcon />
-                  </IconButton>
-                </Box>
-                <Controller
-                  name="captcha"
-                  control={control}
-                  rules={{
-                    required: "CAPTCHA is required",
-                    validate: (value) =>
-                      value === captcha || "CAPTCHA is incorrect",
-                  }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label={
-                        <Typography component="span">
-                          Enter CAPTCHA <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      fullWidth
-                      placeholder="Enter the CAPTCHA code"
+                    <Box
+                      sx={{
+                        background:
+                          "linear-gradient(to bottom right, #F0F7FE 0%, #FDF7F0 100%)",
+                        border: "3px solid #2562E9",
+                        borderRadius: 4,
+                        padding: { xs: "16px 24px", sm: "18px 28px" },
+                        boxShadow: "0 6px 16px rgba(0, 0, 0, 0.12)",
+                        fontFamily: "monospace",
+                        fontSize: { xs: "2rem", sm: "2.3rem", md: "2.5rem" },
+                        fontWeight: 800,
+                        color: "#2562E9",
+                        letterSpacing: "5px",
+                        minWidth: { xs: "200px", sm: "650px" },
+                        textAlign: "center",
+                        userSelect: "none",
+                        textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {captcha}
+                    </Box>
+                    <IconButton
+                      onClick={handleRefreshCaptcha}
                       disabled={loading}
-                      error={!!errors.captcha}
-                      helperText={errors.captcha?.message}
-                      variant="outlined"
-                      inputProps={{ "aria-describedby": "captcha-error" }}
-                    />
-                  )}
-                />
-              </Col>
-            </Row>
+                      sx={{
+                        background:
+                          "linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)",
+                        color: "#FDF6F0",
+                        width: 60,
+                        height: 60,
+                        borderRadius: 3,
+                        boxShadow: "0 4px 12px rgba(37, 98, 233, 0.3)",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(to bottom, #1F43B5 0%, #2562E9 100%)",
+                          transform: "scale(1.1)",
+                        },
+                      }}
+                    >
+                      <RefreshIcon sx={{ fontSize: "1.8rem" }} />
+                    </IconButton>
+                  </Box>
 
-            <CustomButton
-              text={loading ? "Registering..." : "Register"}
-              bgColor="primary.main"
-              color="background.default"
-              type="submit"
-              width="50%"
-              disabled={loading || !isEmailOtpVerified || !isMobileOtpVerified}
-              startIcon={
-                loading && <CircularProgress size={20} color="inherit" />
-              }
-              sx={{
-                py: 1.5,
-                fontWeight: 600,
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "primary.dark",
-                  transform: "scale(1.02)",
-                  transition: "all 0.2s ease",
-                },
-              }}
-            />
+                  <Controller
+                    name="captcha"
+                    control={control}
+                    rules={{
+                      required: "CAPTCHA required",
+                      validate: (v) => v === captcha || "Incorrect CAPTCHA",
+                    }}
+                    render={({ field, fieldState: { error } }) => (
+                      <TextField
+                        {...field}
+                        label={
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                            Enter CAPTCHA{" "}
+                            <span style={{ color: "red" }}>*</span>
+                          </span>
+                        }
+                        variant="outlined"
+                        fullWidth
+                        disabled={loading}
+                        error={!!error}
+                        helperText={error?.message}
+                        sx={{
+                          mt: 2,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 3,
+                            fontSize: "1.1rem",
+                          },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Col>
+              </Row>
 
-            <Box sx={{ textAlign: "center", mt: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Already have an account?{" "}
-                <Link
-                  href="/login"
-                  sx={{ color: "primary.main", fontWeight: 600 }}
-                  underline="hover"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate("/login");
+              {/* Register Button */}
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+                <Box
+                  component="button"
+                  type="submit"
+                  disabled={
+                    loading || !isEmailOtpVerified || !isMobileOtpVerified
+                  }
+                  sx={{
+                    border: "none",
+                    background:
+                      "linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)",
+                    padding: { xs: "1.2rem 2rem", sm: "1.4rem 2.5rem" },
+                    width: { xs: "100%", sm: "60%", md: "50%" },
+                    color: "#FDF6F0",
+                    fontWeight: "bold",
+                    fontSize: { xs: "1.1rem", sm: "1.2rem" },
+                    borderRadius: 4,
+                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 1,
+                    textTransform: "none",
+                    boxShadow: "0 6px 16px rgba(37, 98, 233, 0.3)",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      background:
+                        "linear-gradient(to bottom, #1F43B5 0%, #2562E9 100%)",
+                      transform: "translateY(-2px)",
+                      boxShadow: "Boosted shadow",
+                    },
+                    "&:disabled": { opacity: 0.7, cursor: "not-allowed" },
                   }}
-                  aria-label="Sign in"
                 >
-                  Sign In
-                </Link>
-              </Typography>
+                  {loading ? (
+                    <>
+                      <CircularProgress size={24} color="inherit" />
+                      Registering...
+                    </>
+                  ) : (
+                    "Register"
+                  )}
+                </Box>
+              </Box>
             </Box>
+          </form>
+
+          {/* Sign In Link */}
+          <Box textAlign="center" mt={3}>
+            <Typography variant="body2" color="text.secondary">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/login");
+                }}
+                sx={{
+                  color: "#F67015",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+              >
+                Sign In
+              </Link>
+            </Typography>
           </Box>
         </Container>
 
+        {/* OTP Modal */}
         {OtpModal && (
           <OtpModal
             open={isOtpModalOpen}
             onClose={() => {
-              console.log("OtpModal onClose triggered");
               setIsOtpModalOpen(false);
               setOtpType(null);
             }}
@@ -1340,6 +1072,26 @@ export default function OfficerRegisterScreen() {
 
         <ToastContainer />
       </Box>
+
+      {/* Fullscreen Loader */}
+      {loading && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <CircularProgress size={80} sx={{ color: "#2562E9" }} />
+        </Box>
+      )}
     </Suspense>
   );
 }

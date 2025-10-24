@@ -1,30 +1,63 @@
-import React, { useState } from "react";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-} from "@mui/material";
+import React, { useState, useRef, useEffect } from "react";
+import { Card, CardContent, Typography, Box, Button } from "@mui/material";
 
 const CustomCard = ({
   heading,
   description,
   gradient,
   icon,
-  showApplicationFlow = false,
+  flowchartSrc, // Optional: image path for flowchart
 }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+  const cardRef = useRef(null);
+  const flowRef = useRef(null);
+  const [linePath, setLinePath] = useState("");
+
   const truncatedDescription =
     description.length > 100 ? description.slice(0, 100) + "..." : description;
 
+  const hasFlowchart = !!flowchartSrc;
+
+  // Recalculate connector line on mount, resize, and when content changes
+  useEffect(() => {
+    const updateLine = () => {
+      if (!hasFlowchart || !cardRef.current || !flowRef.current) {
+        setLinePath("");
+        return;
+      }
+
+      const cardRect = cardRef.current.getBoundingClientRect();
+      const flowRect = flowRef.current.getBoundingClientRect();
+      const containerRect =
+        cardRef.current.parentElement?.getBoundingClientRect();
+
+      if (!containerRect) return;
+
+      const startX = cardRect.left + cardRect.width / 2 - containerRect.left;
+      const startY = cardRect.bottom - containerRect.top;
+      const endX = flowRect.left + flowRect.width / 2 - containerRect.left;
+      const endY = flowRect.top - containerRect.top - 12;
+
+      const cpOffset = 50;
+      const path = `M ${startX},${startY}
+                    C ${startX},${startY + cpOffset}
+                      ${endX},${endY - cpOffset}
+                      ${endX},${endY}`;
+
+      setLinePath(path);
+    };
+
+    updateLine();
+    const handleResize = () => updateLine();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [hasFlowchart, showFullDescription]);
+
   return (
-    <>
-      <Box sx={{ position: "relative", maxWidth: 400, mx: "auto" }}>
+    <Box sx={{ position: "relative", maxWidth: 400, mx: "auto" }}>
+      {/* CARD */}
+      <Box ref={cardRef}>
         <Card
           sx={{
             background:
@@ -73,6 +106,7 @@ const CustomCard = ({
             >
               {heading}
             </Typography>
+
             <Box
               sx={{
                 backgroundColor: "rgba(255,255,255,0.15)",
@@ -95,6 +129,7 @@ const CustomCard = ({
                 {showFullDescription ? description : truncatedDescription}
               </Typography>
             </Box>
+
             <Box
               sx={{
                 display: "flex",
@@ -116,59 +151,82 @@ const CustomCard = ({
                   {showFullDescription ? "Read Less" : "Read More"}
                 </Button>
               )}
-              {showApplicationFlow && (
-                <Button
-                  variant="text"
-                  onClick={() => setOpenModal(true)}
-                  sx={{
-                    color: "white",
-                    textTransform: "none",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Application Flow
-                </Button>
-              )}
             </Box>
           </CardContent>
         </Card>
       </Box>
 
-      {/* Modal with Flowchart Image */}
-      {showApplicationFlow && (
-        <Dialog
-          open={openModal}
-          onClose={() => setOpenModal(false)}
-          maxWidth="lg"
-          fullWidth
-        >
-          <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>
-            Application Flow for JK-ISSS Pension
-          </DialogTitle>
-          <DialogContent
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "black",
-              p: 3,
+      {/* APPLICATION FLOW (Only if flowchartSrc is provided) */}
+      {hasFlowchart && (
+        <>
+          {/* SVG Curved Connector Line */}
+          <svg
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+              zIndex: 1,
+              overflow: "visible",
             }}
           >
-            <Box
-              component="img"
-              src="/assets/images/JK_ISSS_Flowchart.png"
-              alt="Application Flowchart"
-              sx={{
-                maxWidth: "100%",
-                height: "auto",
-                borderRadius: 2,
-                boxShadow: 3,
-              }}
+            <path
+              d={linePath}
+              stroke="#2561E8"
+              strokeWidth="3"
+              fill="none"
+              strokeLinecap="round"
+              opacity={0.8}
             />
-          </DialogContent>
-        </Dialog>
+          </svg>
+
+          {/* Flowchart Section */}
+          <Box
+            ref={flowRef}
+            sx={{
+              mt: 7,
+              textAlign: "center",
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: "bold",
+                color: "#2561E8",
+                mb: 2,
+                fontSize: { xs: "1.1rem", sm: "1.25rem" },
+              }}
+            >
+              Application Flow
+            </Typography>
+
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: "#111",
+                borderRadius: 2,
+                display: "inline-block",
+                boxShadow: 3,
+                maxWidth: "100%",
+              }}
+            >
+              <Box
+                component="img"
+                src={flowchartSrc}
+                alt={`${heading} - Application Flow`}
+                sx={{
+                  maxWidth: "100%",
+                  height: "auto",
+                  borderRadius: 2,
+                }}
+              />
+            </Box>
+          </Box>
+        </>
       )}
-    </>
+    </Box>
   );
 };
 

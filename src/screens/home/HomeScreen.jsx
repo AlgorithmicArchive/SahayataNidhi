@@ -325,6 +325,7 @@ export default function HomeScreen() {
                   description="Aimed at promoting the education and well-being of the girl child, this scheme provides financial support to families for the upbringing and education of daughters. Eligible beneficiaries receive structured monetary assistance at different stages of the child's development to reduce gender disparity and encourage empowerment."
                   gradient="linear-gradient(to bottom right, #F44336, #E91E63)"
                   icon={<GirlSharp fontSize="large" />}
+                  flowchartSrc="/assets/images/LadliBeti_Flowchart.png"
                 />
               </Col>
               <Col xs={12} sm={6} md={4} style={{ display: "flex" }}>
@@ -334,6 +335,7 @@ export default function HomeScreen() {
                   description="This scheme extends financial assistance to economically disadvantaged women at the time of their marriage. It is intended to support families facing financial constraints, ensuring dignity and reducing the economic burden associated with marriage expenses."
                   gradient="linear-gradient(to bottom right, #4CAF50, #81C784)"
                   icon={<FavoriteBorderOutlined fontSize="large" />}
+                  flowchartSrc="/assets/images/MAS_Flowchart.png"
                 />
               </Col>
               <Col xs={12} sm={6} md={4} style={{ display: "flex" }}>
@@ -343,7 +345,7 @@ export default function HomeScreen() {
                   description="This comprehensive pension program offers financial security to senior citizens, persons with disabilities, women in distress, and transgender individuals. Monthly pension support ensures dignity, inclusion, and sustenance for those in need, contributing to social justice and welfare."
                   gradient="linear-gradient(to bottom right, #2561E8, #1F43B4)"
                   icon={<AccountBalanceSharp fontSize="large" />}
-                  showApplicationFlow={true}
+                  flowchartSrc="/assets/images/JK_ISSS_Flowchart.png"
                 />
               </Col>
             </Row>

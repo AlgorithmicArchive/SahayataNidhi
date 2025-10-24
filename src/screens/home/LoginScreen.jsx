@@ -24,7 +24,7 @@ import { ToastContainer, toast } from "react-toastify";
 import CircularProgress from "@mui/material/CircularProgress";
 import "react-toastify/dist/ReactToastify.css";
 
-// Function to generate a random CAPTCHA (6 alphanumeric characters)
+// CAPTCHA generator
 const generateCaptcha = () => {
   const characters = "ABCDEFGHIJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
   let captcha = "";
@@ -34,7 +34,7 @@ const generateCaptcha = () => {
   return captcha;
 };
 
-// Validation schema with CAPTCHA
+// Validation schema
 const schema = yup.object().shape({
   username: yup.string().required("Username is required"),
   password: yup
@@ -55,7 +55,6 @@ export default function LoginScreen() {
     handleSubmit,
     control,
     formState: { errors },
-    setValue,
   } = useForm({
     resolver: yupResolver(schema),
     context: { captcha },
@@ -79,7 +78,6 @@ export default function LoginScreen() {
   const [otp, setOtp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Set CAPTCHA value and regenerate on mount or refresh
   useEffect(() => {
     setCaptcha(generateCaptcha());
   }, []);
@@ -105,7 +103,7 @@ export default function LoginScreen() {
         setUsername(response.username);
         setDesignation(response.designation);
         setUserId(response.userId);
-        if (response.department && response.department != "")
+        if (response.department && response.department !== "")
           setDepartment(response.department);
         navigate("/verification");
       } else if (response.isEmailVerified === false) {
@@ -201,10 +199,11 @@ export default function LoginScreen() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          bgcolor: "#f8f9fa",
+          background:
+            "linear-gradient(to bottom right, #F4F9FF 0%, #F9F3EC 100%)",
         }}
       >
-        <CircularProgress size={60} />
+        <CircularProgress size={80} sx={{ color: "#2562E9" }} />
       </Box>
     );
 
@@ -224,195 +223,257 @@ export default function LoginScreen() {
       <Box
         sx={{
           backgroundColor: "#FFFFFF",
-          padding: { xs: 3, md: 5 },
-          borderRadius: 3,
+          padding: { xs: 4, md: 6 },
+          borderRadius: 4,
           width: { xs: "95%", sm: "80%", md: "50%", lg: "35%" },
-          maxWidth: 500,
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-          transition: "transform 0.3s ease-in-out",
+          maxWidth: 520,
+          boxShadow: "0 12px 40px rgba(0, 0, 0, 0.12)",
+          transition: "all 0.3s ease-in-out",
           "&:hover": {
-            transform: "translateY(-5px)",
+            transform: "translateY(-8px)",
+            boxShadow: "0 16px 48px rgba(0, 0, 0, 0.15)",
           },
         }}
       >
-        <Box sx={{ textAlign: "center", mb: 3 }}>
+        {/* Login Title */}
+        <Box sx={{ textAlign: "center", mb: 4 }}>
           <Typography
-            variant="h4"
+            variant="h3"
             component="h1"
-            id="login-title"
             sx={{
               fontWeight: 700,
-              mb: 1,
+              fontSize: { xs: "2.8rem", sm: "3.2rem", md: "3.5rem" },
               background: "linear-gradient(to bottom right, #2561E8, #1F43B4)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
+              letterSpacing: "-0.5px",
             }}
           >
             Login
           </Typography>
         </Box>
 
+        {/* Form */}
         <Box
           component="form"
           noValidate
           autoComplete="off"
           onSubmit={handleSubmit(onSubmit)}
-          sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+          sx={{ display: "flex", flexDirection: "column", gap: 3.5 }}
         >
+          {/* Username Field */}
           <CustomInputField
-            label="Username"
+            label={
+              <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                Username <span style={{ color: "red" }}>*</span>
+              </span>
+            }
             name="username"
             control={control}
             placeholder="Enter your username"
             errors={errors}
-            aria-describedby="username-error"
             disabled={buttonLoading}
+            sx={{
+              "& .MuiFormLabel-root": {
+                color: "#235BDE",
+                fontWeight: 600,
+                fontSize: "1.05rem",
+              },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                fontSize: "1.05rem",
+              },
+            }}
           />
 
+          {/* Password Field */}
           <CustomInputField
-            label="Password"
+            label={
+              <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                Password <span style={{ color: "red" }}>*</span>
+              </span>
+            }
             name="password"
             control={control}
             type="password"
             placeholder="Enter your password"
             errors={errors}
-            aria-describedby="password-error"
             disabled={buttonLoading}
+            sx={{
+              "& .MuiFormLabel-root": {
+                color: "#235BDE",
+                fontWeight: 600,
+                fontSize: "1.05rem",
+              },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                fontSize: "1.05rem",
+              },
+            }}
           />
 
-          {/* CAPTCHA Display and Input */}
+          {/* CAPTCHA */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
               gap: 2,
-              mt: 2,
+              mt: 3,
               flexDirection: { xs: "column", sm: "row" },
             }}
           >
             <Box
               sx={{
-                background: "linear-gradient(45deg, #f3f4f6, #e5e7eb)",
-                border: "2px solid",
-                borderColor: "primary.main",
-                borderRadius: 2,
-                padding: 1.5,
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minWidth: 140,
-                position: "relative",
-                overflow: "hidden",
-                width: "90%",
-                "&:before": {
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background:
-                    "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.05) 10px, rgba(0, 0, 0, 0.05) 12px)",
-                  opacity: 0.2,
-                },
+                background:
+                  "linear-gradient(to bottom right, #F0F7FE 0%, #FDF7F0 100%)",
+                border: "3px solid #2562E9",
+                borderRadius: 4,
+                padding: { xs: "14px 20px", sm: "16px 24px" },
+                boxShadow: "0 6px 16px rgba(0, 0, 0, 0.12)",
+                fontFamily: "monospace",
+                fontSize: { xs: "1.8rem", sm: "2.1rem", md: "2.3rem" },
+                fontWeight: 800,
+                color: "#2562E9",
+                letterSpacing: "4px",
+                minWidth: { xs: "180px", sm: "350px" },
+                textAlign: "center",
+                userSelect: "none",
+                textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
               }}
-              aria-label={`CAPTCHA code: ${captcha}`}
             >
-              {captcha.split("").map((char, index) => (
-                <Box
-                  key={index}
-                  component="span"
-                  sx={{
-                    fontFamily: "monospace",
-                    fontSize: { xs: 24, sm: 24 },
-                    fontWeight: Math.random() > 0.5 ? 700 : 400,
-                    color: Math.random() > 0.5 ? "primary.main" : "#2d3748",
-                    transform: `rotate(${Math.floor(
-                      Math.random() * 31 - 15,
-                    )}deg) translateY(${Math.floor(Math.random() * 6 - 3)}px)`,
-                    margin: "0 2px",
-                    userSelect: "none",
-                  }}
-                >
-                  {char}
-                </Box>
-              ))}
+              {captcha}
             </Box>
             <IconButton
               onClick={handleRefreshCaptcha}
               disabled={buttonLoading}
               sx={{
-                color: "primary.main",
-                border: "1px solid",
-                borderColor: "primary.main",
-                borderRadius: 2,
-                p: 1,
+                background:
+                  "linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)",
+                color: "#FDF6F0",
+                width: { xs: 50, sm: 56 },
+                height: { xs: 50, sm: 56 },
+                borderRadius: 3,
+                boxShadow: "0 4px 12px rgba(37, 98, 233, 0.3)",
                 "&:hover": {
-                  backgroundColor: "primary.light",
-                  borderColor: "primary.dark",
-                  transform: "scale(1.05)",
+                  background:
+                    "linear-gradient(to bottom, #1F43B5 0%, #2562E9 100%)",
+                  transform: "scale(1.1)",
+                  boxShadow: "0 6px 16px rgba(37, 98, 233, 0.4)",
                 },
               }}
-              aria-label="Refresh CAPTCHA"
             >
-              <RefreshIcon />
+              <RefreshIcon sx={{ fontSize: "1.6rem" }} />
             </IconButton>
           </Box>
+
+          {/* CAPTCHA Input */}
           <CustomInputField
-            label="Enter CAPTCHA"
+            label={
+              <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                Enter CAPTCHA <span style={{ color: "red" }}>*</span>
+              </span>
+            }
             name="captcha"
             control={control}
-            placeholder="Enter the CAPTCHA code"
+            placeholder="Type the code above"
             errors={errors}
-            aria-describedby="captcha-error"
             disabled={buttonLoading}
+            sx={{
+              "& .MuiFormLabel-root": {
+                color: "#235BDE",
+                fontWeight: 600,
+                fontSize: "1.05rem",
+              },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                fontSize: "1.05rem",
+              },
+            }}
           />
 
+          {/* Forgot Password */}
           <Box sx={{ textAlign: "right" }}>
             <Link
               href="/forgot-password"
-              sx={{ fontSize: 14, color: "primary.main" }}
-              underline="hover"
-              aria-label="Forgot password"
+              sx={{
+                fontSize: "0.95rem",
+                color: "#235BDE",
+                fontWeight: 600,
+                textDecoration: "none",
+                "&:hover": {
+                  textDecoration: "underline",
+                  color: "#1F43B5",
+                },
+              }}
             >
               Forgot Password/Username?
             </Link>
           </Box>
 
-          <CustomButton
-            text={buttonLoading ? "Logging In..." : "Log In"}
-            bgColor="linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)"
-            color="#FDF6F0"
+          {/* LOGIN BUTTON */}
+          <Box
+            component="button"
             type="submit"
-            width="100%"
             disabled={buttonLoading}
-            startIcon={
-              buttonLoading && <CircularProgress size={20} color="inherit" />
-            }
             sx={{
-              py: 1.5,
-              fontWeight: 600,
+              border: "none",
+              background:
+                "linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)",
+              padding: { xs: "1rem 1.5rem", sm: "1.2rem 2rem" },
+              width: "100%",
+              color: "#FDF6F0",
+              fontWeight: "bold",
+              fontSize: { xs: "1.1rem", sm: "1.2rem" },
+              borderRadius: 4,
+              cursor: "pointer",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 1,
               textTransform: "none",
+              boxShadow: "0 6px 16px rgba(37, 98, 233, 0.3)",
+              transition: "all 0.3s ease",
               "&:hover": {
-                transform: "scale(1.02)",
-                transition: "all 0.2s ease",
+                background:
+                  "linear-gradient(to bottom, #1F43B5 0%, #2562E9 100%)",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 20px rgba(37, 98, 233, 0.4)",
+              },
+              "&:disabled": {
+                opacity: 0.7,
+                cursor: "not-allowed",
               },
             }}
-          />
+          >
+            {buttonLoading ? (
+              <>
+                <CircularProgress size={22} color="inherit" />
+                Logging In...
+              </>
+            ) : (
+              "Log In"
+            )}
+          </Box>
 
+          {/* Sign Up Link */}
           <Box sx={{ textAlign: "center", mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Don't have an account?{" "}
               <Link
                 href="/register"
-                sx={{ color: "primary.main", fontWeight: 600 }}
-                underline="hover"
+                sx={{
+                  color: "#F67015",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  "&:hover": {
+                    textDecoration: "underline",
+                    color: "#E4630A",
+                  },
+                }}
                 onClick={(e) => {
                   e.preventDefault();
                   navigate("/register");
                 }}
-                aria-label="Sign up"
               >
                 Sign Up
               </Link>
@@ -421,39 +482,83 @@ export default function LoginScreen() {
         </Box>
       </Box>
 
-      {/* OTP Dialog */}
+      {/* OTP Modal */}
       <Dialog open={otpModalOpen} onClose={() => setOtpModalOpen(false)}>
-        <DialogTitle>Verify Your Email</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" mb={1}>
+        <DialogTitle
+          sx={{
+            background: "linear-gradient(to bottom right, #2561E8, #1F43B4)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            fontWeight: 700,
+            fontSize: "1.4rem",
+          }}
+        >
+          Verify Your Email
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            background:
+              "linear-gradient(to bottom right, #F0F7FE 0%, #FDF7F0 100%)",
+            p: 3,
+          }}
+        >
+          <Typography variant="body1" mb={2} color="#1e1e1eff" fontWeight={500}>
             Enter the 6-digit OTP sent to <strong>{email}</strong>
           </Typography>
           <TextField
             fullWidth
-            label="OTP"
+            label={
+              <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                OTP <span style={{ color: "red" }}>*</span>
+              </span>
+            }
             variant="outlined"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             inputProps={{ maxLength: 6 }}
             disabled={buttonLoading}
-            aria-label="OTP input"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                backgroundColor: "#FFFFFF",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+                fontSize: "1.1rem",
+              },
+              "& .MuiFormLabel-root": {
+                color: "#235BDE",
+                fontWeight: 600,
+                fontSize: "1.05rem",
+              },
+            }}
           />
-          <Box mt={1}>
+          <Box mt={2}>
             <Link
               component="button"
               variant="body2"
               onClick={handleResendOtp}
               disabled={buttonLoading}
-              aria-label="Resend OTP"
+              sx={{
+                color: "#0FB282",
+                fontWeight: 600,
+                textDecoration: "none",
+                "&:hover": { textDecoration: "underline" },
+              }}
             >
               Resend OTP
             </Link>
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions
+          sx={{
+            backgroundColor: "#FFFFFF",
+            p: 2,
+            boxShadow: "0 -4px 12px rgba(0,0,0,0.05)",
+          }}
+        >
           <Button
             onClick={() => setOtpModalOpen(false)}
             disabled={buttonLoading}
+            sx={{ fontWeight: 600 }}
           >
             Cancel
           </Button>
@@ -461,11 +566,18 @@ export default function LoginScreen() {
             variant="contained"
             onClick={handleOtpVerify}
             disabled={buttonLoading}
-            aria-label="Verify OTP"
             sx={{
               background:
                 "linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)",
               color: "#FDF6F0",
+              borderRadius: 3,
+              fontWeight: 600,
+              px: 3,
+              textTransform: "none",
+              "&:hover": {
+                background:
+                  "linear-gradient(to bottom, #1F43B5 0%, #2562E9 100%)",
+              },
             }}
           >
             Verify

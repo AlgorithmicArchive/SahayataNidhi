@@ -13,8 +13,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { useForm, Controller, set } from "react-hook-form";
-import CustomButton from "../../components/CustomButton";
+import { useForm, Controller } from "react-hook-form";
 import OtpModal from "../../components/OtpModal";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +23,7 @@ import { Col, Row } from "react-bootstrap";
 import { fetchDistricts } from "../../assets/fetch";
 import { CheckCircleOutline } from "@mui/icons-material";
 
-// Function to generate a random CAPTCHA
+// Generate CAPTCHA
 const generateCaptcha = () => {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -42,7 +41,7 @@ export default function RegisterScreen() {
     control,
     getValues,
     watch,
-    formState: { errors, touchedFields },
+    formState: { errors },
     trigger,
     setValue,
   } = useForm({
@@ -60,6 +59,7 @@ export default function RegisterScreen() {
       Tehsil: "",
     },
   });
+
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
   const [otpType, setOtpType] = useState(null); // 'email' or 'mobile'
   const [userId, setUserId] = useState(0);
@@ -71,57 +71,41 @@ export default function RegisterScreen() {
   const [isMobileOtpSent, setIsMobileOtpSent] = useState(false);
   const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isEmailUnique, setIsEmailUnique] = useState(true);
+  const [isMobileNumberUnique, setIsMobileNumberUnique] = useState(true);
+
   const selectedDistrict = watch("District");
   const emailValue = watch("email");
   const mobileValue = watch("mobileNumber");
-
   const navigate = useNavigate();
 
-  // Debug OtpModal state
-  useEffect(() => {
-    console.log("OtpModal open state:", isOtpModalOpen, "OTP Type:", otpType);
-  }, [isOtpModalOpen, otpType]);
-
-  // Reset captcha field when captcha state changes
+  // Reset CAPTCHA
   useEffect(() => {
     setValue("captcha", "");
     setCaptcha(generateCaptcha());
   }, [setValue]);
 
-  // Fetch districts on mount
+  // Fetch districts
   useEffect(() => {
     fetchDistricts(setDistrictOptions);
   }, []);
 
-  // Fetch tehsils when district changes
+  // Fetch tehsils
   useEffect(() => {
     if (selectedDistrict) {
       axios
         .get(`/Base/GetTeshilForDistrict?districtId=${selectedDistrict}`)
         .then((response) => {
           if (response.data.status) {
-            const tehsilOptionsFormatted = response.data.tehsils.map(
-              (tehsil) => ({
-                label: tehsil.tehsilName,
-                value: tehsil.tehsilId,
-              }),
-            );
-            setTehsilOptions(tehsilOptionsFormatted);
-          } else {
-            toast.error("Failed to fetch tehsils", {
-              position: "top-center",
-              autoClose: 3000,
-              theme: "colored",
-            });
+            const formatted = response.data.tehsils.map((t) => ({
+              label: t.tehsilName,
+              value: t.tehsilId,
+            }));
+            setTehsilOptions(formatted);
           }
         })
-        .catch((error) => {
-          console.error("Error fetching tehsils", error);
-          toast.error("Error fetching tehsils", {
-            position: "top-center",
-            autoClose: 3000,
-            theme: "colored",
-          });
+        .catch(() => {
+          toast.error("Failed to load tehsils");
         });
     }
   }, [selectedDistrict]);
@@ -131,192 +115,108 @@ export default function RegisterScreen() {
     setValue("captcha", "");
   }, [setValue]);
 
-  // Handle email validation button click
+  // Validate Email
   const handleEmailValidate = async () => {
     if (!emailValue) {
-      setIsEmailOtpVerified(true); // Skip OTP if email is empty
+      setIsEmailOtpVerified(true);
       return;
     }
-    const isValid = await trigger("email");
-    if (isValid && !errors.email) {
+    const valid = await trigger("email");
+    if (valid) {
       setLoading(true);
       try {
-        const email = getValues("email");
-        const response = await axios.get("/Home/SendOtp", {
-          params: { email },
+        const res = await axios.get("/Home/SendOtp", {
+          params: { email: emailValue },
         });
-        if (response.data.status) {
+        if (res.data.status) {
           setIsEmailOtpSent(true);
           setIsOtpModalOpen(true);
-          setErrorMessage(response.data.message || "");
           setOtpType("email");
-          setUserId(response.data.userId);
-          toast.success("OTP sent to your email!", {
-            position: "top-center",
-            autoClose: 3000,
-          });
-        } else {
-          toast.error("Failed to send OTP. Please try again.", {
-            position: "top-center",
-            autoClose: 3000,
-          });
+          setUserId(res.data.userId);
+          setErrorMessage(res.data.message);
+          toast.success("OTP sent to email!");
         }
-      } catch (error) {
-        console.error("Error sending OTP to email", error);
-        toast.error("Error sending OTP to email.", {
-          position: "top-center",
-          autoClose: 3000,
-        });
+      } catch {
+        toast.error("Failed to send email OTP");
       } finally {
         setLoading(false);
       }
     }
   };
 
-  // Handle mobile validation button click
+  // Validate Mobile
   const handleMobileValidate = async () => {
-    const isValid = await trigger("mobileNumber");
-    if (isValid && !errors.mobileNumber) {
+    const valid = await trigger("mobileNumber");
+    if (valid) {
       setLoading(true);
       try {
-        const mobile = getValues("mobileNumber");
-        const response = await axios.get("/Home/SendOtp", {
-          params: { mobile: mobile },
+        const res = await axios.get("/Home/SendOtp", {
+          params: { mobile: mobileValue },
         });
-        if (response.data.status) {
+        if (res.data.status) {
           setIsMobileOtpSent(true);
           setIsOtpModalOpen(true);
           setOtpType("mobile");
-          setUserId(response.data.userId);
-          setErrorMessage(response.data.message || "");
-          toast.success("OTP sent to your mobile number!", {
-            position: "top-center",
-            autoClose: 3000,
-          });
-        } else {
-          toast.error("Failed to send OTP. Please try again.", {
-            position: "top-center",
-            autoClose: 3000,
-          });
+          setUserId(res.data.userId);
+          setErrorMessage(res.data.message);
+          toast.success("OTP sent to mobile!");
         }
-      } catch (error) {
-        console.error("Error sending OTP to mobile", error);
-        toast.error("Error sending OTP to mobile.", {
-          position: "top-center",
-          autoClose: 3000,
-        });
+      } catch {
+        toast.error("Failed to send mobile OTP");
       } finally {
         setLoading(false);
       }
     }
   };
 
+  // Submit Registration
   const onSubmit = async (data) => {
-    if (emailValue && !isEmailOtpVerified) {
-      toast.error("Please verify email OTP before registering.", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-      return;
-    }
-    if (!isMobileOtpVerified) {
-      toast.error("Please verify mobile OTP before registering.", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-      return;
-    }
+    if (emailValue && !isEmailOtpVerified)
+      return toast.error("Verify email first");
+    if (!isMobileOtpVerified) return toast.error("Verify mobile first");
 
     setLoading(true);
     const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => formData.append(key, value));
+    Object.entries(data).forEach(([k, v]) => formData.append(k, v));
 
     try {
-      const response = await axios.post("/Home/Register", formData);
-      const { status } = response.data;
-      if (status) {
-        toast.success("Registration successful! Redirecting to login...", {
-          position: "top-center",
-          autoClose: 2000,
-        });
+      const res = await axios.post("/Home/Register", formData);
+      if (res.data.status) {
+        toast.success("Registered! Redirecting...");
         setTimeout(() => navigate("/login"), 2000);
       } else {
-        toast.error("Registration failed. Please try again.", {
-          position: "top-center",
-          autoClose: 3000,
-        });
+        toast.error("Registration failed");
       }
-    } catch (error) {
-      console.error("Registration error", error);
-      toast.error("An error occurred during registration.", {
-        position: "top-center",
-        autoClose: 3000,
-      });
+    } catch {
+      toast.error("Error during registration");
     } finally {
       setLoading(false);
       handleRefreshCaptcha();
     }
   };
 
+  // OTP Submit
   const handleOtpSubmit = async (otp) => {
-    console.log("handleOtpSubmit called with OTP:", otp, "Type:", otpType);
-    if (!otp) {
-      toast.error("Please enter an OTP.", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-      return;
-    }
+    if (!otp) return toast.error("Enter OTP");
 
     setLoading(true);
     const formData = new FormData();
     formData.append("otp", otp);
-    if (otpType === "email") {
-      formData.append("email", getValues("email"));
-    } else if (otpType === "mobile") {
-      formData.append("mobile", getValues("mobileNumber"));
-    }
+    if (otpType === "email") formData.append("email", getValues("email"));
+    else formData.append("mobile", getValues("mobileNumber"));
 
     try {
-      const response = await axios.post(
-        otpType === "email" ? "/Home/OTPValidation" : "/Home/OTPValidation",
-        formData,
-      );
-      if (response.data.status) {
-        if (otpType === "email") {
-          setIsEmailOtpVerified(true);
-        } else if (otpType === "mobile") {
-          setIsMobileOtpVerified(true);
-        }
+      const res = await axios.post("/Home/OTPValidation", formData);
+      if (res.data.status) {
+        if (otpType === "email") setIsEmailOtpVerified(true);
+        else setIsMobileOtpVerified(true);
         setIsOtpModalOpen(false);
-        setOtpType(null);
-        toast.success(
-          `${
-            otpType === "email" ? "Email" : "Mobile"
-          } OTP verified successfully!`,
-          {
-            position: "top-center",
-            autoClose: 2000,
-          },
-        );
+        toast.success(`${otpType === "email" ? "Email" : "Mobile"} verified!`);
       } else {
-        toast.error("Invalid OTP. Please try again.", {
-          position: "top-center",
-          autoClose: 3000,
-        });
+        toast.error("Invalid OTP");
       }
-    } catch (error) {
-      console.error(
-        `${otpType === "email" ? "Email" : "Mobile"} OTP validation error`,
-        error,
-      );
-      toast.error(
-        `Error validating ${otpType === "email" ? "email" : "mobile"} OTP.`,
-        {
-          position: "top-center",
-          autoClose: 3000,
-        },
-      );
+    } catch {
+      toast.error("OTP verification failed");
     } finally {
       setLoading(false);
     }
@@ -326,125 +226,132 @@ export default function RegisterScreen() {
     <>
       <Box
         sx={{
-          minHeight: { xs: "90vh", lg: "80vh" },
+          minHeight: "100vh",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           background:
-            "linear-gradient(135deg, rgb(252, 252, 252) 0%, rgb(240, 236, 236) 100%)",
-          p: 2,
+            "linear-gradient(to bottom right, #F4F9FF 0%, #F9F3EC 100%)",
+          p: { xs: 2, md: 4 },
         }}
       >
         <Container
           maxWidth="md"
           sx={{
-            backgroundColor: "#fff",
-            p: { xs: 3, md: 5 },
-            borderRadius: 3,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+            backgroundColor: "#FFFFFF",
+            p: { xs: 4, md: 6 },
+            borderRadius: 4,
+            boxShadow: "0 12px 40px rgba(0, 0, 0, 0.12)",
+            transition: "all 0.3s ease",
+            "&:hover": {
+              transform: "translateY(-8px)",
+              boxShadow: "0 16px 48px rgba(0, 0, 0, 0.15)",
+            },
           }}
         >
+          {/* Title */}
           <Typography
+            variant="h3"
+            component="h1"
             sx={{
               fontWeight: 700,
-              color: "primary.main",
-              mb: 1,
+              fontSize: { xs: "2.8rem", sm: "3.2rem", md: "3.5rem" },
+              textAlign: "center",
+              background: "linear-gradient(to bottom right, #2561E8, #1F43B4)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              mb: 4,
+              letterSpacing: "-0.5px",
             }}
-            variant="h4"
-            fontWeight={700}
-            textAlign="center"
-            mb={2}
           >
-            Create an Account
+            Create Account
           </Typography>
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              {/* Row 1 */}
               <Row>
-                <Col xs={6}>
+                <Col xs={12} md={6}>
                   <Controller
                     name="fullName"
                     control={control}
                     rules={{
-                      required: "Full name is required",
-                      minLength: {
-                        value: 5,
-                        message: "Full Name must be at least 5 characters",
-                      },
-                      maxLength: {
-                        value: 255,
-                        message: "Full Name must be at most 255 characters",
-                      },
+                      required: "Full name required",
+                      minLength: { value: 5, message: "Min 5 chars" },
                     }}
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
                         label={
-                          <Typography component="span">
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
                             Full Name <span style={{ color: "red" }}>*</span>
-                          </Typography>
+                          </span>
                         }
                         variant="outlined"
                         fullWidth
                         disabled={loading}
                         error={!!error}
-                        helperText={error ? error.message : ""}
-                        sx={{ mb: 2 }}
-                        aria-label="Full Name"
+                        helperText={error?.message}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 3,
+                            fontSize: "1.05rem",
+                          },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
                       />
                     )}
                   />
                 </Col>
-                <Col xs={6}>
+                <Col xs={12} md={6}>
                   <Controller
                     name="username"
                     control={control}
                     rules={{
-                      required: "Username is required",
-                      minLength: {
-                        value: 5,
-                        message: "Username must be at least 5 characters",
-                      },
-                      maxLength: {
-                        value: 20,
-                        message: "Username must be at most 20 characters",
-                      },
-                      validate: async (value) => {
-                        if (!value) return "Username is required";
-                        try {
-                          const res = await axios.get("/Home/CheckUsername", {
-                            params: { username: value },
-                          });
-                          return (
-                            res.data?.isUnique || "Username already exists"
-                          );
-                        } catch {
-                          return "Error checking username";
-                        }
+                      required: "Username required",
+                      minLength: { value: 5, message: "Min 5 chars" },
+                      validate: async (v) => {
+                        const res = await axios.get("/Home/CheckUsername", {
+                          params: { username: v },
+                        });
+                        return res.data?.isUnique || "Username taken";
                       },
                     }}
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
                         label={
-                          <Typography component="span">
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
                             Username <span style={{ color: "red" }}>*</span>
-                          </Typography>
+                          </span>
                         }
                         variant="outlined"
                         fullWidth
                         disabled={loading}
                         error={!!error}
-                        helperText={error ? error.message : ""}
-                        sx={{ mb: 2 }}
-                        aria-label="Username"
+                        helperText={error?.message}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 3,
+                            fontSize: "1.05rem",
+                          },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
                       />
                     )}
                   />
                 </Col>
               </Row>
+
+              {/* Row 2: Email + Mobile */}
               <Row>
-                <Col xs={6}>
+                <Col xs={12} md={6}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Controller
                       name="email"
@@ -452,87 +359,28 @@ export default function RegisterScreen() {
                       rules={{
                         pattern: {
                           value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                          message: "Invalid email format",
-                        },
-                        maxLength: {
-                          value: 40,
-                          message: "Email must be at most 40 characters",
+                          message: "Invalid email",
                         },
                         validate: async (value) => {
-                          if (!value) return true; // Email is optional
+                          if (!value) return true; // Skip if empty
+
                           try {
-                            const res = await axios.get("/Home/CheckEmail", {
-                              params: { email: value, UserType: "Citizen" },
-                            });
-                            return res.data?.isUnique || "Email already exists";
-                          } catch {
-                            return "Error checking email";
-                          }
-                        },
-                      }}
-                      render={({ field, fieldState: { error } }) => (
-                        <TextField
-                          {...field}
-                          label="Email"
-                          type="email"
-                          variant="outlined"
-                          fullWidth
-                          disabled={loading || isEmailOtpVerified}
-                          error={!!error}
-                          helperText={error ? error.message : ""}
-                          sx={{ mb: 2, flex: 1 }}
-                          aria-label="Email"
-                        />
-                      )}
-                    />
-                    {isEmailOtpVerified && emailValue && (
-                      <Typography
-                        variant="subtitle2"
-                        color="success"
-                        fontWeight="bold"
-                      >
-                        Verified
-                      </Typography>
-                    )}
-                  </Box>
-                  {!isEmailOtpVerified && emailValue && (
-                    <CustomButton
-                      text="Validate Email"
-                      bgColor="primary.main"
-                      color="white"
-                      width="100%"
-                      disabled={loading}
-                      onClick={handleEmailValidate}
-                      sx={{ mb: 2 }}
-                    />
-                  )}
-                </Col>
-                <Col xs={6}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Controller
-                      name="mobileNumber"
-                      control={control}
-                      rules={{
-                        required: "Mobile Number is required",
-                        pattern: {
-                          value: /^[0-9]{10}$/,
-                          message: "Enter 10 digit number",
-                        },
-                        validate: async (value) => {
-                          if (!value) return "Mobile Number is required";
-                          try {
-                            const res = await axios.get(
-                              "/Home/CheckMobileNumber",
+                            const response = await axios.get(
+                              "/Home/CheckEmail",
                               {
-                                params: { number: value, UserType: "Citizen" },
+                                params: { email: value, UserType: "Citizen" },
                               },
                             );
-                            return (
-                              res.data?.isUnique ||
-                              "Mobile Number already exists"
-                            );
-                          } catch {
-                            return "Error checking mobile number";
+
+                            const isUnique = response.data?.isUnique;
+
+                            // ✅ Store in state
+                            setIsEmailUnique(isUnique);
+
+                            // ✅ Return for validation
+                            return isUnique || "Email already exists";
+                          } catch (error) {
+                            return "Server error while checking email";
                           }
                         },
                       }}
@@ -540,146 +388,256 @@ export default function RegisterScreen() {
                         <TextField
                           {...field}
                           label={
-                            <Typography component="span">
+                            <span style={{ color: "#235BDE", fontWeight: 600 }}>
+                              Email
+                            </span>
+                          }
+                          type="email"
+                          variant="outlined"
+                          fullWidth
+                          disabled={loading || isEmailOtpVerified}
+                          error={!!error}
+                          helperText={error?.message}
+                          sx={{
+                            flex: 1,
+                            "& .MuiOutlinedInput-root": { borderRadius: 3 },
+                            "& .MuiFormLabel-root": {
+                              fontWeight: 600,
+                              color: "#235BDE",
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                    {isEmailOtpVerified && emailValue && (
+                      <CheckCircleOutline
+                        sx={{ color: "#0FB282", fontSize: 28 }}
+                      />
+                    )}
+                  </Box>
+                  {!isEmailOtpVerified && emailValue && isEmailUnique && (
+                    <Box
+                      component="button"
+                      onClick={handleEmailValidate}
+                      disabled={loading}
+                      sx={{
+                        mt: 1,
+                        width: "100%",
+                        background:
+                          "linear-gradient(to bottom, #F67015 0%, #E4630A 100%)",
+                        color: "#FDF6F0",
+                        fontWeight: "bold",
+                        fontSize: "1rem",
+                        py: 1.5,
+                        borderRadius: 3,
+                        border: "none",
+                        cursor: "pointer",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(to bottom, #E4630A 0%, #F67015 100%)",
+                        },
+                      }}
+                    >
+                      Validate Email
+                    </Box>
+                  )}
+                </Col>
+
+                <Col xs={12} md={6}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Controller
+                      name="mobileNumber"
+                      control={control}
+                      rules={{
+                        required: "Mobile required",
+                        pattern: {
+                          value: /^[0-9]{10}$/,
+                          message: "10 digits only",
+                        },
+                        validate: async (value) => {
+                          if (!value) return true; // If field is empty, skip validation
+
+                          try {
+                            const response = await axios.get(
+                              "/Home/CheckMobileNumber",
+                              {
+                                params: { number: value, UserType: "Citizen" },
+                              },
+                            );
+
+                            const isUnique = response.data?.isUnique;
+
+                            // ✅ Store in state for UI use
+                            setIsMobileNumberUnique(isUnique);
+
+                            // ✅ Must return validation result (required by React Hook Form)
+                            return isUnique || "Mobile Number already exists";
+                          } catch (error) {
+                            return "Error validating mobile number";
+                          }
+                        },
+                      }}
+                      render={({ field, fieldState: { error } }) => (
+                        <TextField
+                          {...field}
+                          label={
+                            <span style={{ color: "#235BDE", fontWeight: 600 }}>
                               Mobile Number{" "}
                               <span style={{ color: "red" }}>*</span>
-                            </Typography>
+                            </span>
                           }
                           type="tel"
                           variant="outlined"
                           fullWidth
                           disabled={loading || isMobileOtpVerified}
                           error={!!error}
-                          helperText={error ? error.message : ""}
+                          helperText={error?.message}
                           inputProps={{ maxLength: 10 }}
-                          sx={{ mb: 2, flex: 1 }}
-                          aria-label="Mobile Number"
+                          sx={{
+                            flex: 1,
+                            "& .MuiOutlinedInput-root": { borderRadius: 3 },
+                            "& .MuiFormLabel-root": {
+                              fontWeight: 600,
+                              color: "#235BDE",
+                            },
+                          }}
                         />
                       )}
                     />
                     {isMobileOtpVerified && (
-                      <Typography
-                        variant="subtitle2"
-                        color="success"
-                        fontWeight="bold"
-                      >
-                        Verified
-                      </Typography>
+                      <CheckCircleOutline
+                        sx={{ color: "#0FB282", fontSize: 28 }}
+                      />
                     )}
                   </Box>
-                  {!isMobileOtpVerified && mobileValue && (
-                    <CustomButton
-                      text="Validate Mobile"
-                      bgColor="primary.main"
-                      color="white"
-                      width="100%"
-                      disabled={loading}
-                      onClick={handleMobileValidate}
-                      sx={{ mb: 2 }}
-                    />
-                  )}
+                  {!isMobileOtpVerified &&
+                    mobileValue &&
+                    isMobileNumberUnique && (
+                      <Box
+                        component="button"
+                        onClick={handleMobileValidate}
+                        disabled={loading}
+                        sx={{
+                          mt: 1,
+                          width: "100%",
+                          background:
+                            "linear-gradient(to bottom, #0FB282 0%, #4CAF50 100%)",
+                          color: "#FDF6F0",
+                          fontWeight: "bold",
+                          fontSize: "1rem",
+                          py: 1.5,
+                          borderRadius: 3,
+                          border: "none",
+                          cursor: "pointer",
+                          "&:hover": {
+                            background:
+                              "linear-gradient(to bottom, #4CAF50 0%, #0FB282 100%)",
+                          },
+                        }}
+                      >
+                        Validate Mobile
+                      </Box>
+                    )}
                 </Col>
               </Row>
+
+              {/* Row 3: Password */}
               <Row>
-                <Col xs={6}>
+                <Col xs={12} md={6}>
                   <Controller
                     name="password"
                     control={control}
                     rules={{
-                      required: "Password is required",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters",
-                      },
-                      maxLength: {
-                        value: 20,
-                        message: "Password must be at most 20 characters",
-                      },
+                      required: "Password required",
                       pattern: {
                         value:
                           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,20}$/,
                         message:
-                          "Password must include uppercase, lowercase, number, and special character",
+                          "Use uppercase, lowercase, number, special char",
                       },
                     }}
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
                         label={
-                          <Typography component="span">
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
                             Password <span style={{ color: "red" }}>*</span>
-                          </Typography>
+                          </span>
                         }
                         type="password"
                         variant="outlined"
                         fullWidth
                         disabled={loading}
                         error={!!error}
-                        helperText={error ? error.message : ""}
-                        sx={{ mb: 2 }}
-                        aria-label="Password"
+                        helperText={error?.message}
+                        sx={{
+                          "& .MuiOutlinedInput-root": { borderRadius: 3 },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
                       />
                     )}
                   />
                 </Col>
-                <Col xs={6}>
+                <Col xs={12} md={6}>
                   <Controller
                     name="confirmPassword"
                     control={control}
                     rules={{
-                      required: "Confirm your password",
-                      validate: (value) =>
-                        value === getValues("password") ||
-                        "Passwords do not match",
+                      required: "Confirm password",
+                      validate: (v) =>
+                        v === getValues("password") || "Passwords don't match",
                     }}
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
                         label={
-                          <Typography component="span">
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
                             Confirm Password{" "}
                             <span style={{ color: "red" }}>*</span>
-                          </Typography>
+                          </span>
                         }
                         type="password"
                         variant="outlined"
                         fullWidth
                         disabled={loading}
                         error={!!error}
-                        helperText={error ? error.message : ""}
-                        sx={{ mb: 2 }}
-                        aria-label="Confirm Password"
+                        helperText={error?.message}
+                        sx={{
+                          "& .MuiOutlinedInput-root": { borderRadius: 3 },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
                       />
                     )}
                   />
                 </Col>
               </Row>
+
+              {/* Row 4: District & Tehsil */}
               <Row>
-                <Col xs={6}>
+                <Col xs={12} md={6}>
                   <Controller
                     name="District"
                     control={control}
-                    rules={{
-                      required: "District is required",
-                    }}
+                    rules={{ required: "District required" }}
                     render={({ field, fieldState: { error } }) => (
-                      <FormControl fullWidth sx={{ mb: 2 }} error={!!error}>
-                        <InputLabel>
+                      <FormControl fullWidth error={!!error}>
+                        <InputLabel sx={{ color: "#235BDE", fontWeight: 600 }}>
                           District <span style={{ color: "red" }}>*</span>
                         </InputLabel>
                         <Select
                           {...field}
-                          label={
-                            <Typography component="span">
-                              District <span style={{ color: "red" }}>*</span>
-                            </Typography>
-                          }
                           disabled={loading}
-                          aria-label="District"
+                          sx={{ borderRadius: 3, fontSize: "1.05rem" }}
                         >
-                          {districtOptions.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
+                          {districtOptions.map((opt) => (
+                            <MenuItem key={opt.value} value={opt.value}>
+                              {opt.label}
                             </MenuItem>
                           ))}
                         </Select>
@@ -692,31 +650,24 @@ export default function RegisterScreen() {
                     )}
                   />
                 </Col>
-                <Col xs={6}>
+                <Col xs={12} md={6}>
                   <Controller
                     name="Tehsil"
                     control={control}
-                    rules={{
-                      required: "Tehsil is required",
-                    }}
+                    rules={{ required: "Tehsil required" }}
                     render={({ field, fieldState: { error } }) => (
-                      <FormControl fullWidth sx={{ mb: 2 }} error={!!error}>
-                        <InputLabel>
+                      <FormControl fullWidth error={!!error}>
+                        <InputLabel sx={{ color: "#235BDE", fontWeight: 600 }}>
                           Tehsil <span style={{ color: "red" }}>*</span>
                         </InputLabel>
                         <Select
                           {...field}
-                          label={
-                            <Typography component="span">
-                              Tehsil <span style={{ color: "red" }}>*</span>
-                            </Typography>
-                          }
                           disabled={loading || !selectedDistrict}
-                          aria-label="Tehsil"
+                          sx={{ borderRadius: 3, fontSize: "1.05rem" }}
                         >
-                          {tehsilOptions.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
+                          {tehsilOptions.map((opt) => (
+                            <MenuItem key={opt.value} value={opt.value}>
+                              {opt.label}
                             </MenuItem>
                           ))}
                         </Select>
@@ -730,6 +681,8 @@ export default function RegisterScreen() {
                   />
                 </Col>
               </Row>
+
+              {/* CAPTCHA */}
               <Row>
                 <Col xs={12}>
                   <Box
@@ -737,143 +690,145 @@ export default function RegisterScreen() {
                       display: "flex",
                       alignItems: "center",
                       gap: 2,
-                      mt: 2,
+                      mt: 3,
                       flexDirection: { xs: "column", sm: "row" },
                       justifyContent: "center",
                     }}
                   >
                     <Box
                       sx={{
-                        background: "linear-gradient(45deg, #f3f4f6, #e5e7eb)",
-                        border: "2px solid",
-                        borderColor: "primary.main",
-                        borderRadius: 2,
-                        padding: 1.5,
-                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        minWidth: 140,
-                        position: "relative",
-                        overflow: "hidden",
-                        width: "95%",
-                        marginBottom: 2,
-                        "&:before": {
-                          content: '""',
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          background:
-                            "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.05) 10px, rgba(0, 0, 0, 0.05) 12px)",
-                          opacity: 0.2,
-                        },
+                        background:
+                          "linear-gradient(to bottom right, #F0F7FE 0%, #FDF7F0 100%)",
+                        border: "3px solid #2562E9",
+                        borderRadius: 4,
+                        padding: { xs: "16px 24px", sm: "18px 28px" },
+                        boxShadow: "0 6px 16px rgba(0, 0, 0, 0.12)",
+                        fontFamily: "monospace",
+                        fontSize: { xs: "2rem", sm: "2.3rem", md: "2.5rem" },
+                        fontWeight: 800,
+                        color: "#2562E9",
+                        letterSpacing: "5px",
+                        minWidth: { xs: "200px", sm: "650px" },
+                        textAlign: "center",
+                        userSelect: "none",
+                        textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
                       }}
-                      aria-label={`CAPTCHA code: ${captcha}`}
                     >
-                      {captcha.split("").map((char, index) => (
-                        <Box
-                          key={index}
-                          component="span"
-                          sx={{
-                            fontFamily: "monospace",
-                            fontSize: { xs: 16, sm: 18 },
-                            fontWeight: Math.random() > 0.5 ? 700 : 400,
-                            color:
-                              Math.random() > 0.5 ? "primary.main" : "#2d3748",
-                            transform: `rotate(${Math.floor(
-                              Math.random() * 31 - 15,
-                            )}deg) translateY(${Math.floor(
-                              Math.random() * 6 - 3,
-                            )}px)`,
-                            margin: "0 2px",
-                            userSelect: "none",
-                          }}
-                        >
-                          {char}
-                        </Box>
-                      ))}
+                      {captcha}
                     </Box>
                     <IconButton
                       onClick={handleRefreshCaptcha}
                       disabled={loading}
                       sx={{
-                        color: "primary.main",
-                        border: "1px solid",
-                        borderColor: "primary.main",
-                        borderRadius: 2,
-                        p: 1,
+                        background:
+                          "linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)",
+                        color: "#FDF6F0",
+                        width: 60,
+                        height: 60,
+                        borderRadius: 3,
+                        boxShadow: "0 4px 12px rgba(37, 98, 233, 0.3)",
                         "&:hover": {
-                          backgroundColor: "primary.light",
-                          borderColor: "primary.dark",
-                          transform: "scale(1.05)",
+                          background:
+                            "linear-gradient(to bottom, #1F43B5 0%, #2562E9 100%)",
+                          transform: "scale(1.1)",
                         },
                       }}
-                      aria-label="Refresh CAPTCHA"
                     >
-                      <RefreshIcon />
+                      <RefreshIcon sx={{ fontSize: "1.8rem" }} />
                     </IconButton>
                   </Box>
+
                   <Controller
                     name="captcha"
                     control={control}
                     rules={{
-                      required: "CAPTCHA is required",
-                      validate: (value) => {
-                        console.log("Validating CAPTCHA:", { value, captcha });
-                        return (
-                          !captcha ||
-                          value === captcha ||
-                          "CAPTCHA is incorrect"
-                        );
-                      },
+                      required: "CAPTCHA required",
+                      validate: (v) => v === captcha || "Incorrect CAPTCHA",
                     }}
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
                         label={
-                          <Typography component="span">
+                          <span style={{ color: "#235BDE", fontWeight: 600 }}>
                             Enter CAPTCHA{" "}
                             <span style={{ color: "red" }}>*</span>
-                          </Typography>
+                          </span>
                         }
                         variant="outlined"
                         fullWidth
                         disabled={loading}
                         error={!!error}
-                        helperText={error ? error.message : ""}
-                        sx={{ mb: 2 }}
-                        aria-describedby="captcha-error"
+                        helperText={error?.message}
+                        sx={{
+                          mt: 2,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 3,
+                            fontSize: "1.1rem",
+                          },
+                          "& .MuiFormLabel-root": {
+                            fontWeight: 600,
+                            color: "#235BDE",
+                          },
+                        }}
                       />
                     )}
                   />
                 </Col>
               </Row>
-            </Box>
 
-            <Box sx={{ display: "flex", justifyContent: "center" }}>
-              <CustomButton
-                type="submit"
-                text={loading ? "Registering..." : "Register"}
-                bgColor="primary.main"
-                color="white"
-                width="50%"
-                disabled={
-                  loading ||
-                  !isMobileOtpVerified ||
-                  (emailValue && !isEmailOtpVerified)
-                }
-                startIcon={
-                  loading && <CircularProgress size={20} color="inherit" />
-                }
-                sx={{ mt: 3 }}
-              />
+              {/* Register Button */}
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+                <Box
+                  component="button"
+                  type="submit"
+                  disabled={
+                    loading ||
+                    !isMobileOtpVerified ||
+                    (emailValue && !isEmailOtpVerified)
+                  }
+                  sx={{
+                    border: "none",
+                    background:
+                      "linear-gradient(to bottom, #2562E9 0%, #1F43B5 100%)",
+                    padding: { xs: "1.2rem 2rem", sm: "1.4rem 2.5rem" },
+                    width: { xs: "100%", sm: "60%", md: "50%" },
+                    color: "#FDF6F0",
+                    fontWeight: "bold",
+                    fontSize: { xs: "1.1rem", sm: "1.2rem" },
+                    borderRadius: 4,
+                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 1,
+                    textTransform: "none",
+                    boxShadow: "0 6px 16px rgba(37, 98, 233, 0.3)",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      background:
+                        "linear-gradient(to bottom, #1F43B5 0%, #2562E9 100%)",
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 8px 20px rgba(37, 98, 233, 0.4)",
+                    },
+                    "&:disabled": { opacity: 0.7, cursor: "not-allowed" },
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <CircularProgress size={24} color="inherit" />
+                      Registering...
+                    </>
+                  ) : (
+                    "Register"
+                  )}
+                </Box>
+              </Box>
             </Box>
           </form>
 
-          <Box textAlign="center" mt={2}>
-            <Typography variant="body2">
+          {/* Links */}
+          <Box textAlign="center" mt={3}>
+            <Typography variant="body2" color="text.secondary">
               Already have an account?{" "}
               <Link
                 href="/login"
@@ -881,14 +836,19 @@ export default function RegisterScreen() {
                   e.preventDefault();
                   navigate("/login");
                 }}
-                sx={{ fontWeight: 600 }}
+                sx={{
+                  color: "#F67015",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  "&:hover": { textDecoration: "underline" },
+                }}
               >
                 Sign In
               </Link>
             </Typography>
           </Box>
-          <Box textAlign="center" mt={2}>
-            <Typography variant="body2">
+          <Box textAlign="center" mt={1}>
+            <Typography variant="body2" color="text.secondary">
               Department Officer?{" "}
               <Link
                 href="/officerRegistration"
@@ -896,7 +856,12 @@ export default function RegisterScreen() {
                   e.preventDefault();
                   navigate("/officerRegistration");
                 }}
-                sx={{ fontWeight: 600 }}
+                sx={{
+                  color: "#235BDE",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  "&:hover": { textDecoration: "underline" },
+                }}
               >
                 Sign Up
               </Link>
@@ -904,11 +869,11 @@ export default function RegisterScreen() {
           </Box>
         </Container>
 
+        {/* OTP Modal */}
         {OtpModal && (
           <OtpModal
             open={isOtpModalOpen}
             onClose={() => {
-              console.log("OtpModal onClose triggered");
               setIsOtpModalOpen(false);
               setOtpType(null);
             }}
@@ -922,6 +887,7 @@ export default function RegisterScreen() {
         <ToastContainer />
       </Box>
 
+      {/* Fullscreen Loader */}
       {loading && (
         <Box
           sx={{
@@ -930,14 +896,14 @@ export default function RegisterScreen() {
             left: 0,
             width: "100vw",
             height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.5)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
             zIndex: 9999,
           }}
         >
-          <CircularProgress size={60} color="primary" />
+          <CircularProgress size={80} sx={{ color: "#2562E9" }} />
         </Box>
       )}
     </>

@@ -205,7 +205,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
     clearErrors,
     formState: { errors, dirtyFields },
   } = useForm({
-    mode: "onChange",
+    mode: "onBlur",
+    reValidateMode: "onBlur", // ← ADD THIS LINE
     shouldUnregister: false,
     defaultValues: {},
   });
@@ -1560,6 +1561,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       },
       marginBottom: "1.5rem",
     };
+
     const buttonStyles = {
       background: "linear-gradient(to right, #10B981, #059669)",
       color: "#FFFFFF",
@@ -1576,6 +1578,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       },
       marginBottom: "0.5rem",
     };
+
     const formatDisplayDate = (dateValue) => {
       if (!dateValue) return "";
       try {
@@ -1590,6 +1593,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         return "";
       }
     };
+
     const getLabelWithAsteriskJSX = (field) => {
       const isRequired = field.validationFunctions?.includes("notEmpty");
       return (
@@ -1626,7 +1630,6 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   referenceNumber,
                   setValue,
                 );
-                // Check if validation result for IfscCode indicates to remove readonly
                 if (
                   field.name === "IfscCode" &&
                   typeof validationResult === "object" &&
@@ -1680,6 +1683,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                           },
                           placeholder: "dd MMM yyyy",
                           sx: commonStyles,
+                          onBlur: () => trigger(field.name), // ← BLUR TRIGGER
                         },
                       }}
                     />
@@ -1745,6 +1749,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
 
                         onChange(transformedVal);
                       }}
+                      onBlur={() => trigger(field.name)} // ← BLUR TRIGGER
                       inputRef={ref}
                       disabled={isFieldDisabled(field.name)}
                       error={Boolean(errors[field.name])}
@@ -1879,6 +1884,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                           handleCopyAddress(checked, sectionIndex);
                         }
                       }}
+                      onBlur={() => trigger(field.name)} // ← BLUR TRIGGER
                       inputRef={ref}
                       disabled={isFieldDisabled(field.name)}
                       sx={{ paddingTop: 0, paddingBottom: 0 }}
@@ -1923,7 +1929,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                               } else {
                                 onChange(checked ? option.value : "");
                               }
+                              trigger(field.name); // ← VALIDATE ON CHANGE
                             }}
+                            onBlur={() => trigger(field.name)} // ← BLUR TRIGGER
                             inputRef={ref}
                             disabled={isFieldDisabled(field.name)}
                           />
@@ -1969,6 +1977,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                   component="label"
                   disabled={isFieldDisabled(field.name)}
                   sx={buttonStyles}
+                  onBlur={() => trigger(field.name)} // ← BLUR TRIGGER
                 >
                   {getLabelWithAsteriskJSX(field)}
                   <input
@@ -1977,6 +1986,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     onChange={(e) => {
                       const file = e.target.files[0];
                       onChange(file);
+                      trigger(field.name); // ← VALIDATE ON CHANGE
                     }}
                     ref={ref}
                     accept={field.accept}
@@ -2034,6 +2044,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       onChange={(event, newOption) => {
                         const newValue = newOption?.value || "";
                         onChange({ target: { value: newValue } });
+                        trigger(field.name); // ← VALIDATE ON CHANGE
 
                         if (
                           /district|muncipality|block|halqapanchayat/i.test(
@@ -2063,6 +2074,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                           );
                         }
                       }}
+                      onBlur={() => trigger(field.name)} // ← BLUR TRIGGER
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -2167,6 +2179,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     helperText={errors[selectFieldName]?.message}
                     sx={commonStyles}
                     disabled={isDisabled}
+                    onBlur={() => trigger(selectFieldName)} // ← BLUR TRIGGER
                   />
                 )}
               />
@@ -2187,7 +2200,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                     onChange={(e) => {
                       onChange(e.target.value);
                       setValue(fileFieldName, null, { shouldValidate: true });
+                      trigger(selectFieldName); // ← VALIDATE ON CHANGE
                     }}
+                    onBlur={() => trigger(selectFieldName)} // ← BLUR TRIGGER
                     disabled={isDisabled}
                     error={Boolean(errors[selectFieldName])}
                     helperText={errors[selectFieldName]?.message || ""}
@@ -2289,6 +2304,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       ...buttonStyles,
                     }}
                     disabled={isDisabled || !getValues(selectFieldName)}
+                    onBlur={() => trigger(fileFieldName)} // ← BLUR TRIGGER
                   >
                     Upload File
                     <input
@@ -2297,6 +2313,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
                       onChange={(e) => {
                         const file = e.target.files[0];
                         onChange(file);
+                        trigger(fileFieldName); // ← VALIDATE ON CHANGE
                       }}
                       accept={field.accept || ".pdf"}
                     />
