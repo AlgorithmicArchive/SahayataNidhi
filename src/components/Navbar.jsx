@@ -4,10 +4,13 @@ import {
   Toolbar,
   Typography,
   Button,
-  Menu,
-  MenuItem,
   IconButton,
   Box,
+  Paper,
+  MenuList,
+  MenuItem,
+  Popper,
+  Menu,
 } from "@mui/material";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { UserContext } from "../UserContext";
@@ -16,13 +19,16 @@ import axiosInstance from "../axiosConfig";
 import MenuIcon from "@mui/icons-material/Menu";
 
 const MyNavbar = () => {
-  const [expanded, setExpanded] = useState(false);
-  const [hoveredItem, setHoveredItem] = useState(null);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
+  const [openSubmenu, setOpenSubmenu] = useState(null);
+  const [hoveredKey, setHoveredKey] = useState(null);
+  const [popperAnchor, setPopperAnchor] = useState(null);
   const timeoutRef = useRef(null);
+
   const navigate = useNavigate();
   const location = useLocation();
+
   const {
     userType,
     setUserType,
@@ -37,23 +43,19 @@ const MyNavbar = () => {
     officerAuthorities,
   } = useContext(UserContext);
 
+  /* ------------------ Resize detection ------------------ */
   useEffect(() => {
-    const handleResize = () => {
-      setIsSmallScreen(window.innerWidth < 992);
-    };
+    const handleResize = () => setIsSmallScreen(window.innerWidth < 992);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
+    return () => timeoutRef.current && clearTimeout(timeoutRef.current);
   }, []);
 
+  /* ------------------ Logout & navigation ------------------ */
   const handleLogout = async () => {
     await axiosInstance.get("/Home/LogOut");
     setToken(null);
@@ -62,64 +64,76 @@ const MyNavbar = () => {
     setProfile(null);
     setVerified(false);
     sessionStorage.clear();
-    setExpanded(false);
+    closeAllMenus();
     navigate("/login");
+  };
+
+  const closeAllMenus = () => {
+    setMobileMenuAnchor(null);
+    setPopperAnchor(null);
+    setOpenSubmenu(null);
+    setHoveredKey(null);
   };
 
   const handleNavigate = (path) => {
     navigate(path);
-    setExpanded(false);
-    setAnchorEl(null);
+    closeAllMenus();
   };
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-    setExpanded(true);
-  };
+  const handleMobileMenuOpen = (e) => setMobileMenuAnchor(e.currentTarget);
+  const handleMobileMenuClose = () => setMobileMenuAnchor(null);
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setExpanded(false);
-  };
-
-  const handleMouseEnter = (itemName) => {
+  /* ------------------ Hover handling (desktop) ------------------ */
+  const handleMouseEnter = (key, anchorEl) => {
     if (!isSmallScreen) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      setHoveredItem(itemName);
+      clearTimeout(timeoutRef.current);
+      setHoveredKey(key);
+      setPopperAnchor(anchorEl);
     }
   };
 
   const handleMouseLeave = () => {
     if (!isSmallScreen) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = setTimeout(() => {
-        setHoveredItem(null);
-      }, 200);
+      timeoutRef.current = setTimeout(() => setHoveredKey(null), 200);
     }
   };
 
-  const getNavItemStyle = (itemName, path = null, activePaths = []) => {
-    const isActive = path
-      ? location.pathname === path
-      : activePaths.some((p) => location.pathname === p);
-    const isHovered = hoveredItem === itemName;
+  const handleMenuMouseEnter = () => clearTimeout(timeoutRef.current);
+  const handleMenuMouseLeave = () => handleMouseLeave();
+
+  /* ------------------ Style helpers ------------------ */
+  const getActivePaths = (item) => {
+    if (item.path) return [item.path];
+    if (item.subItems) return item.subItems.map((s) => s.path).filter(Boolean);
+    return [];
+  };
+
+  const getNavItemStyle = (item) => {
+    const activePaths = getActivePaths(item);
+    const isActive = activePaths.includes(location.pathname);
 
     return {
-      color: isActive ? "#ffffff" : "#000000",
+      color: isActive ? "#FFF" : "#000", // changed from white to green
       fontWeight: isActive ? 600 : "normal",
       padding: "5px 15px",
       transition: "all 0.3s ease",
       background: isActive
-        ? "linear-gradient(to right, #10B582, #0D9588)"
+        ? "linear-gradient(to right, #10B582, #0D9588)" // lighter background for better contrast
         : "transparent",
+      borderRadius: 2,
       "&:hover": {
         transform: isActive ? "scale(1.05)" : "none",
-        color: !isActive ? "#10B582" : undefined,
+        color: !isActive ? "#0FB282" : undefined,
       },
+      ...(item.isSpecial && {
+        backgroundColor: "#E5620A",
+        color: "#fff",
+        "&:hover": { backgroundColor: "#DE6E08" },
+        marginLeft: 2,
+      }),
+      display: "flex",
+      alignItems: "center",
+      gap: 0.5,
     };
   };
 
@@ -129,35 +143,51 @@ const MyNavbar = () => {
       backgroundColor: isActive
         ? "linear-gradient(to right, #10B582, #0D9588)"
         : "transparent",
-      color: isActive ? "#ffffff" : "#000000",
+      color: isActive ? "#0D9588" : "#000",
       fontWeight: isActive ? 600 : "normal",
       "&:hover": {
         backgroundColor: isActive
           ? "linear-gradient(to right, #10B582, #0D9588)"
           : "#f0f0f0",
-        color: isActive ? "#ffffff" : "#10B582",
+        color: isActive ? "#0D9588" : "#10B582",
       },
     };
   };
 
-  // Dynamic menu items based on userType and officerAuthorities
-  const getMobileMenuItems = () => {
-    const menuItems = [];
+  /* ------------------ Dynamic menu config ------------------ */
+  const getMenuConfig = () => {
+    const menu = [];
 
+    // ---------------------------
+    // Unauthenticated users
+    // ---------------------------
     if (!userType && !verified) {
-      menuItems.push(
-        { name: "Home", path: "/" },
-        { name: "Login", path: "/login" },
-        { name: "Register", path: "/register" },
+      menu.push(
+        { name: "Home", path: "/", key: "home" },
+        { name: "Login", path: "/login", key: "login" },
+        {
+          name: "Register",
+          path: "/register",
+          key: "register",
+          isSpecial: true,
+        },
       );
     }
 
+    // ---------------------------
+    // Citizen
+    // ---------------------------
     if (userType === "Citizen" && verified) {
-      menuItems.push(
-        { name: "Home", path: "/user/home" },
-        { name: "Apply for Service", path: "/user/services" },
+      menu.push(
+        { name: "Home", path: "/user/home", key: "citizen-home" },
+        {
+          name: "Apply for Service",
+          path: "/user/services",
+          key: "apply-service",
+        },
         {
           name: "Application Status",
+          key: "app-status",
           subItems: [
             { name: "Initiated Applications", path: "/user/initiated" },
             { name: "Incomplete Applications", path: "/user/incomplete" },
@@ -166,18 +196,24 @@ const MyNavbar = () => {
       );
     }
 
+    // ---------------------------
+    // Officer
+    // ---------------------------
     if (userType === "Officer" && verified) {
-      menuItems.push(
-        { name: "Home", path: "/officer/home" },
-        { name: "Reports", path: "/officer/reports" },
+      menu.push(
+        { name: "Home", path: "/officer/home", key: "officer-home" },
+        { name: "Reports", path: "/officer/reports", key: "officer-reports" },
         {
           name: "DSC Management",
+          key: "dsc-mgmt",
           subItems: [{ name: "Register DSC", path: "/officer/registerdsc" }],
         },
       );
+
       if (officerAuthorities?.canManageBankFiles) {
-        menuItems.push({
+        menu.push({
           name: "Bank Files",
+          key: "bank-files",
           subItems: [
             { name: "Create Bank File", path: "/officer/bankFile" },
             {
@@ -187,31 +223,37 @@ const MyNavbar = () => {
           ],
         });
       }
-      if (
-        officerAuthorities?.canCorrigendum ||
-        officerAuthorities.canWithhold ||
-        officerAuthorities.canValidateAadhaar
-      ) {
-        menuItems.push({
-          name: "Applications Updations",
-          subItems: [
-            officerAuthorities?.canCorrigendum && {
-              name: "Data Updation",
-              path: "/officer/issuecorrigendum",
-            },
-            officerAuthorities.canWithhold && {
-              name: "Withheld Application",
-              path: "/officer/withheld",
-            },
-            officerAuthorities.canValidateAadhaar && {
-              name: "Validate Aadhaar",
-              path: "/officer/validateaadhaar",
-            },
-          ].filter(Boolean),
+
+      const updations = [];
+      if (officerAuthorities?.canCorrigendum) {
+        updations.push({
+          name: "Data Updation",
+          path: "/officer/issuecorrigendum",
         });
       }
-      menuItems.push({
+      if (officerAuthorities?.canWithhold) {
+        updations.push({
+          name: "Withheld Application",
+          path: "/officer/withheld",
+        });
+      }
+      if (officerAuthorities?.canValidateAadhaar) {
+        updations.push({
+          name: "Validate Aadhaar",
+          path: "/officer/validateaadhaar",
+        });
+      }
+      if (updations.length) {
+        menu.push({
+          name: "Applications Updations",
+          key: "updations",
+          subItems: updations,
+        });
+      }
+
+      menu.push({
         name: "View Applications",
+        key: "view-apps",
         subItems: [
           { name: "Aadhaar Validations", path: "/officer/aadhaarvalidations" },
           { name: "Search Application", path: "/officer/searchapplication" },
@@ -219,40 +261,70 @@ const MyNavbar = () => {
       });
     }
 
+    // ---------------------------
+    // Viewer
+    // ---------------------------
     if (userType === "Viewer" && verified) {
-      menuItems.push(
-        { name: "Home", path: "/viewer/home" },
-        { name: "Aadhaar Validations", path: "/viewer/aadhaarvalidations" },
+      menu.push(
+        { name: "Home", path: "/viewer/home", key: "viewer-home" },
+        {
+          name: "Aadhaar Validations",
+          path: "/viewer/aadhaarvalidations",
+          key: "viewer-aadhaar",
+        },
       );
     }
 
+    // ---------------------------
+    // Admin
+    // ---------------------------
     if (userType === "Admin" && verified) {
-      menuItems.push(
-        { name: "Dashboard", path: "/admin/home" },
-        { name: "Reports", path: "/admin/reports" },
+      menu.push(
+        { name: "Dashboard", path: "/admin/home", key: "admin-home" },
+        { name: "Reports", path: "/admin/reports", key: "admin-reports" },
         {
           name: "Add",
+          key: "admin-add",
           subItems: [
             { name: "Admin", path: "/admin/addadmin" },
             { name: "Designation", path: "/admin/addDesignations" },
-            { name: "Designation", path: "/admin/addDesignations" },
-            designation === "System Admin" && {
-              name: "Department",
-              path: "/admin/addDepartment",
-            },
-          ].filter(Boolean),
+            { name: "Offices", path: "/admin/addOffices" },
+            ...(designation === "System Admin"
+              ? [{ name: "Department", path: "/admin/addDepartment" }]
+              : []),
+          ],
         },
-        { name: "Validate Officers", path: "/admin/validateofficer" },
-        { name: "View Feedbacks", path: "/admin/viewFeedbacks" },
+        {
+          name: "Validate Officers",
+          path: "/admin/validateofficer",
+          key: "admin-validate",
+        },
+        {
+          name: "View Feedbacks",
+          path: "/admin/viewFeedbacks",
+          key: "admin-feedback",
+        },
       );
     }
 
+    // ---------------------------
+    // Designer
+    // ---------------------------
     if (userType === "Designer" && verified) {
-      menuItems.push(
-        { name: "Dashboard", path: "/designer/dashboard" },
-        { name: "Dynamic Form", path: "/designer/dynamicform" },
+      menu.push(
+        {
+          name: "Dashboard",
+          path: "/designer/dashboard",
+          key: "designer-dashboard",
+        },
+        {
+          name: "Dynamic Form",
+          path: "/designer/dynamicform",
+          key: "dynamic-form",
+        },
         {
           name: "Create/Update",
+          key: "designer-create",
           subItems: [
             { name: "Service", path: "/designer/createservice" },
             { name: "Workflow", path: "/designer/createworkflow" },
@@ -269,700 +341,260 @@ const MyNavbar = () => {
       );
     }
 
-    if (userType && verified) {
-      menuItems.push(
-        { name: "Feedback", path: "/feedback" },
-        {
-          name: "Profile",
-          subItems: [
-            { name: "Settings", path: "/settings" },
-            { name: "Logout", action: handleLogout },
-          ],
-        },
+    return menu;
+  };
+
+  const menuConfig = getMenuConfig();
+
+  const mobileMenuItems = React.useMemo(() => {
+    if (!userType || !verified) return menuConfig;
+    return [
+      ...menuConfig,
+      { name: "Feedback", path: "/feedback", key: "feedback" },
+      {
+        name: "Profile",
+        key: "profile",
+        subItems: [
+          { name: "Settings", path: "/settings" },
+          { name: "Logout", action: handleLogout },
+        ],
+      },
+    ];
+  }, [menuConfig, userType, verified]);
+
+  /* ------------------ Desktop render helper using Popper ------------------ */
+  const renderDesktopItem = (item, idx) => {
+    const isDropdown = !!item.subItems;
+
+    if (!isDropdown) {
+      return (
+        <Button
+          key={idx}
+          component={Link}
+          to={item.path}
+          sx={getNavItemStyle(item)}
+          onClick={() => handleNavigate(item.path)}
+        >
+          {item.name}
+        </Button>
       );
     }
 
-    return menuItems;
+    return (
+      <Box
+        key={idx}
+        sx={{ position: "relative" }}
+        onMouseEnter={(e) => handleMouseEnter(item.key, e.currentTarget)}
+        onMouseLeave={handleMouseLeave}
+      >
+        <Button sx={getNavItemStyle(item)}>
+          {item.name}
+          <Box component="span" sx={{ fontSize: 12 }}>
+            ▼
+          </Box>
+        </Button>
+
+        <Popper
+          open={hoveredKey === item.key}
+          anchorEl={popperAnchor}
+          placement="bottom-start"
+          disablePortal={false}
+        >
+          <Paper
+            onMouseEnter={handleMenuMouseEnter}
+            onMouseLeave={handleMenuMouseLeave}
+          >
+            <MenuList>
+              {item.subItems.map((sub, i) => (
+                <MenuItem
+                  key={i}
+                  sx={getMenuItemStyle(sub.path)}
+                  onClick={() => handleNavigate(sub.path)}
+                >
+                  {sub.name}
+                </MenuItem>
+              ))}
+            </MenuList>
+          </Paper>
+        </Popper>
+      </Box>
+    );
   };
 
+  /* ------------------ Mobile render helper ------------------ */
+  const renderMobileItem = (item, idx) => {
+    const isDropdown = !!item.subItems;
+    const isOpen = openSubmenu === item.key;
+
+    if (!isDropdown) {
+      return (
+        <MenuItem
+          key={idx}
+          onClick={() => handleNavigate(item.path)}
+          sx={getMenuItemStyle(item.path)}
+        >
+          {item.name}
+        </MenuItem>
+      );
+    }
+
+    return (
+      <React.Fragment key={idx}>
+        <MenuItem
+          onClick={() => setOpenSubmenu(isOpen ? null : item.key)}
+          sx={{
+            fontWeight: 600,
+            justifyContent: "space-between",
+            "&:hover": { backgroundColor: "#f0f0f0", color: "#10B582" },
+          }}
+        >
+          {item.name} <Box>{isOpen ? "−" : "→"}</Box>
+        </MenuItem>
+
+        {isOpen &&
+          item.subItems.map((sub, i) => (
+            <MenuItem
+              key={i}
+              sx={{ pl: 4, ...getMenuItemStyle(sub.path) }}
+              onClick={() => {
+                if (sub.action) sub.action();
+                else handleNavigate(sub.path);
+              }}
+            >
+              {sub.name}
+            </MenuItem>
+          ))}
+      </React.Fragment>
+    );
+  };
+
+  /* ------------------ JSX ------------------ */
   return (
-    <AppBar
-      position="static"
-      sx={{
-        backgroundColor: "#ffffff",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      }}
-    >
+    <AppBar position="static" sx={{ backgroundColor: "#fff" }}>
       <Toolbar>
+        {/* Logo */}
         <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
           <img
             src="/assets/images/logo.png"
-            alt="Website Logo"
+            alt="Logo"
             style={{
-              height: "50px",
-              width: "50px",
+              height: 50,
+              width: 50,
               borderRadius: "50%",
               objectFit: "cover",
             }}
           />
           <Box sx={{ ml: 2 }}>
-            <Typography
-              variant="h6"
-              sx={{ color: "#333333", fontWeight: "bold" }}
-            >
+            <Typography variant="h6" sx={{ color: "#333", fontWeight: "bold" }}>
               ISSS Pension
             </Typography>
-            <Typography variant="body2" sx={{ color: "#666666" }}>
+            <Typography variant="body2" sx={{ color: "#666" }}>
               Social Welfare Department
             </Typography>
           </Box>
         </Box>
 
+        {/* Mobile hamburger */}
         <IconButton
           edge="end"
           color="inherit"
-          aria-label="menu"
-          onClick={handleMenuOpen}
+          onClick={handleMobileMenuOpen}
           sx={{ display: { xs: "block", md: "none" } }}
         >
           <MenuIcon />
         </IconButton>
 
+        {/* Desktop menu */}
         <Box
           sx={{
             display: { xs: "none", md: "flex" },
             alignItems: "center",
+            gap: 1,
             backgroundColor: "#F3F4F6",
             borderRadius: 5,
-            padding: 1,
+            p: 1,
           }}
         >
-          {!userType && !verified && (
-            <>
-              <Button
-                component={Link}
-                to="/"
-                sx={getNavItemStyle("home", "/")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("home")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Home
-              </Button>
-              <Button
-                component={Link}
-                to="/login"
-                sx={getNavItemStyle("login", "/login")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("login")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Login
-              </Button>
-              <Button
-                component={Link}
-                to="/register"
-                sx={{
-                  ...getNavItemStyle("register", "/register"),
-                  backgroundColor: "#E5620A",
-                  color: "#ffffff",
-                  "&:hover": {
-                    backgroundColor: "#DE6E08",
-                  },
-                  marginLeft: 2,
-                }}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("register")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Register
-              </Button>
-            </>
+          {/* Main nav items */}
+          {menuConfig.map(renderDesktopItem)}
+
+          {/* Feedback button */}
+          {userType && verified && (
+            <Button
+              component={Link}
+              to="/feedback"
+              sx={getNavItemStyle({ key: "feedback", path: "/feedback" })}
+              onClick={() => handleNavigate("/feedback")}
+            >
+              Feedback
+            </Button>
           )}
 
-          {userType === "Citizen" && verified && (
-            <>
-              <Button
-                component={Link}
-                to="/user/home"
-                sx={getNavItemStyle("citizen-home", "/user/home")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("citizen-home")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Home
-              </Button>
-              <Button
-                component={Link}
-                to="/user/services"
-                sx={getNavItemStyle("apply-service", "/user/services")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("apply-service")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Apply for Service
-              </Button>
-              <div
-                onMouseEnter={() => handleMouseEnter("application-status")}
-                onMouseLeave={handleMouseLeave}
-              >
-                <Button
-                  sx={getNavItemStyle("application-status", null, [
-                    "/user/initiated",
-                    "/user/incomplete",
-                  ])}
-                  onClick={handleMenuOpen}
-                >
-                  Application Status
-                </Button>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={
-                    Boolean(anchorEl) && hoveredItem === "application-status"
-                  }
-                  onClose={handleMenuClose}
-                >
-                  <MenuItem
-                    sx={getMenuItemStyle("/user/initiated")}
-                    onClick={() => handleNavigate("/user/initiated")}
-                  >
-                    Initiated Applications
-                  </MenuItem>
-                  <MenuItem
-                    sx={getMenuItemStyle("/user/incomplete")}
-                    onClick={() => handleNavigate("/user/incomplete")}
-                  >
-                    Incomplete Applications
-                  </MenuItem>
-                </Menu>
-              </div>
-            </>
-          )}
+          {/* User info + TokenTimer + Profile dropdown */}
+          {userType && verified && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, ml: 2 }}>
+              <Typography sx={{ color: "#333", fontWeight: "bold" }}>
+                {username}
+              </Typography>
+              <TokenTimer />
 
-          {userType === "Officer" && verified && (
-            <>
-              <Button
-                component={Link}
-                to="/officer/home"
-                sx={getNavItemStyle("officer-home", "/officer/home")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("officer-home")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Home
-              </Button>
-              <Button
-                component={Link}
-                to="/officer/reports"
-                sx={getNavItemStyle("officer-reports", "/officer/reports")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("officer-reports")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Reports
-              </Button>
-              <div
-                onMouseEnter={() => handleMouseEnter("dsc-management")}
-                onMouseLeave={handleMouseLeave}
-              >
-                <Button
-                  sx={getNavItemStyle("dsc-management", null, [
-                    "/officer/registerdsc",
-                  ])}
-                  onClick={handleMenuOpen}
-                >
-                  DSC Management
-                </Button>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl) && hoveredItem === "dsc-management"}
-                  onClose={handleMenuClose}
-                >
-                  <MenuItem
-                    sx={getMenuItemStyle("/officer/registerdsc")}
-                    onClick={() => handleNavigate("/officer/registerdsc")}
-                  >
-                    Register DSC
-                  </MenuItem>
-                </Menu>
-              </div>
-              {officerAuthorities && officerAuthorities.canManageBankFiles && (
-                <div
-                  onMouseEnter={() => handleMouseEnter("bankfiles-management")}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <Button
-                    sx={getNavItemStyle("bankfiles-management", null, [
-                      "/officer/bankFile",
-                      "/officer/responseFile",
-                    ])}
-                    onClick={handleMenuOpen}
-                  >
-                    Bank Files
-                  </Button>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={
-                      Boolean(anchorEl) &&
-                      hoveredItem === "bankfiles-management"
-                    }
-                    onClose={handleMenuClose}
-                  >
-                    <MenuItem
-                      sx={getMenuItemStyle("/officer/bankFile")}
-                      onClick={() => handleNavigate("/officer/bankFile")}
-                    >
-                      Create Bank File
-                    </MenuItem>
-                    <MenuItem
-                      sx={getMenuItemStyle("/officer/responseFile")}
-                      onClick={() => handleNavigate("/officer/responseFile")}
-                    >
-                      Update Bank Response File
-                    </MenuItem>
-                  </Menu>
-                </div>
-              )}
-              <div
-                onMouseEnter={() => handleMouseEnter("applications")}
-                onMouseLeave={handleMouseLeave}
-              >
-                {(() => {
-                  const activePaths = [];
-                  if (officerAuthorities?.canCorrigendum)
-                    activePaths.push("/officer/issuecorrigendum");
-                  if (officerAuthorities.canWithhold)
-                    activePaths.push("/officer/withheld");
-                  if (officerAuthorities.canValidateAadhaar)
-                    activePaths.push("/officer/validateaadhaar");
-                  return (
-                    <>
-                      <Button
-                        sx={getNavItemStyle("applications", null, activePaths)}
-                        onClick={handleMenuOpen}
-                      >
-                        Applications Updations
-                      </Button>
-                      <Menu
-                        anchorEl={anchorEl}
-                        open={
-                          Boolean(anchorEl) && hoveredItem === "applications"
-                        }
-                        onClose={handleMenuClose}
-                      >
-                        {officerAuthorities?.canCorrigendum && (
-                          <MenuItem
-                            sx={getMenuItemStyle("/officer/issuecorrigendum")}
-                            component={Link}
-                            to="/officer/issuecorrigendum"
-                            onClick={() => setExpanded(false)}
-                          >
-                            Data Updation
-                          </MenuItem>
-                        )}
-                        {officerAuthorities.canWithhold && (
-                          <MenuItem
-                            sx={getMenuItemStyle("/officer/withheld")}
-                            component={Link}
-                            to="/officer/withheld"
-                            onClick={() => setExpanded(false)}
-                          >
-                            Withheld Application
-                          </MenuItem>
-                        )}
-                        {officerAuthorities.canValidateAadhaar && (
-                          <MenuItem
-                            sx={getMenuItemStyle("/officer/validateaadhaar")}
-                            component={Link}
-                            to="/officer/validateaadhaar"
-                            onClick={() => setExpanded(false)}
-                          >
-                            Validate Aadhaar
-                          </MenuItem>
-                        )}
-                      </Menu>
-                    </>
-                  );
-                })()}
-              </div>
-              <div
-                onMouseEnter={() => handleMouseEnter("view-applications")}
-                onMouseLeave={handleMouseLeave}
-              >
-                <Button
-                  sx={getNavItemStyle("view-applications", null, [
-                    "/officer/aadhaarvalidations",
-                    "/officer/searchapplication",
-                  ])}
-                  onClick={handleMenuOpen}
-                >
-                  View Applications
-                </Button>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={
-                    Boolean(anchorEl) && hoveredItem === "view-applications"
-                  }
-                  onClose={handleMenuClose}
-                >
-                  <MenuItem
-                    sx={getMenuItemStyle("/officer/aadhaarvalidations")}
-                    component={Link}
-                    to="/officer/aadhaarvalidations"
-                    onClick={() => setExpanded(false)}
-                  >
-                    Aadhaar Validations
-                  </MenuItem>
-                  <MenuItem
-                    sx={getMenuItemStyle("/officer/searchapplication")}
-                    component={Link}
-                    to="/officer/searchapplication"
-                    onClick={() => setExpanded(false)}
-                  >
-                    Search Application
-                  </MenuItem>
-                </Menu>
-              </div>
-            </>
-          )}
-
-          {userType === "Viewer" && verified && (
-            <>
-              <Button
-                component={Link}
-                to="/viewer/home"
-                sx={getNavItemStyle("viewer-home", "/viewer/home")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("viewer-home")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Home
-              </Button>
-              <Button
-                component={Link}
-                to="/viewer/aadhaarvalidations"
-                sx={getNavItemStyle(
-                  "viewer-aadhaarvalidations",
-                  "/viewer/aadhaarvalidations",
-                )}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() =>
-                  handleMouseEnter("viewer-aadhaarvalidations")
+              {/* Profile dropdown */}
+              <Box
+                onMouseEnter={(e) =>
+                  handleMouseEnter("profile", e.currentTarget)
                 }
                 onMouseLeave={handleMouseLeave}
+                sx={{ position: "relative" }}
               >
-                Aadhaar Validations
-              </Button>
-            </>
-          )}
+                <IconButton sx={{ p: 0 }}>
+                  <img
+                    src={`/Base/DisplayFile?fileName=${profile}`}
+                    alt="Profile"
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = "/assets/images/profile.jpg";
+                    }}
+                  />
+                </IconButton>
 
-          {userType === "Admin" && verified && (
-            <>
-              <Button
-                component={Link}
-                to="/admin/home"
-                sx={getNavItemStyle("admin-home", "/admin/home")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("admin-home")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Dashboard
-              </Button>
-              <Button
-                component={Link}
-                to="/admin/reports"
-                sx={getNavItemStyle("admin-reports", "/admin/reports")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("admin-reports")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Reports
-              </Button>
-              <div
-                onMouseEnter={() => handleMouseEnter("admin-add")}
-                onMouseLeave={handleMouseLeave}
-              >
-                {(() => {
-                  const activePaths = [
-                    "/admin/addadmin",
-                    "/admin/addDesignations",
-                    "/admin/addOffices",
-                  ];
-                  if (designation === "System Admin")
-                    activePaths.push("/admin/addDepartment");
-                  return (
-                    <>
-                      <Button
-                        sx={getNavItemStyle("add-admin", null, activePaths)}
-                        onClick={handleMenuOpen}
+                <Popper
+                  open={hoveredKey === "profile"}
+                  anchorEl={popperAnchor}
+                  placement="bottom-end"
+                  disablePortal={false}
+                >
+                  <Paper
+                    onMouseEnter={handleMenuMouseEnter}
+                    onMouseLeave={handleMenuMouseLeave}
+                  >
+                    <MenuList>
+                      <MenuItem
+                        sx={getMenuItemStyle("/settings")}
+                        onClick={() => handleNavigate("/settings")}
                       >
-                        Add
-                      </Button>
-                      <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl) && hoveredItem === "admin-add"}
-                        onClose={handleMenuClose}
-                      >
-                        <MenuItem
-                          sx={getMenuItemStyle("/admin/addadmin")}
-                          onClick={() => handleNavigate("/admin/addadmin")}
-                        >
-                          Admin
-                        </MenuItem>
-                        <MenuItem
-                          sx={getMenuItemStyle("/admin/addDesignations")}
-                          onClick={() =>
-                            handleNavigate("/admin/addDesignations")
-                          }
-                        >
-                          Designation
-                        </MenuItem>
-                        <MenuItem
-                          sx={getMenuItemStyle("/admin/addOffices")}
-                          onClick={() => handleNavigate("/admin/addOffices")}
-                        >
-                          Offices
-                        </MenuItem>
-                        {designation === "System Admin" && (
-                          <MenuItem
-                            sx={getMenuItemStyle("/admin/addDepartment")}
-                            onClick={() =>
-                              handleNavigate("/admin/addDepartment")
-                            }
-                          >
-                            Department
-                          </MenuItem>
-                        )}
-                      </Menu>
-                    </>
-                  );
-                })()}
-              </div>
-              <Button
-                component={Link}
-                to="/admin/validateofficer"
-                sx={getNavItemStyle(
-                  "admin-validateofficer",
-                  "/admin/validateofficer",
-                )}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("admin-validateofficer")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Validate Officers
-              </Button>
-              <Button
-                component={Link}
-                to="/admin/viewFeedbacks"
-                sx={getNavItemStyle(
-                  "admin-viewFiedbacks",
-                  "/admin/viewFeedbacks",
-                )}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("admin-viewFiedbacks")}
-                onMouseLeave={handleMouseLeave}
-              >
-                View Feedbacks
-              </Button>
-            </>
-          )}
-
-          {userType === "Designer" && verified && (
-            <>
-              <Button
-                component={Link}
-                to="/designer/dashboard"
-                sx={getNavItemStyle(
-                  "designer-dashboard",
-                  "/designer/dashboard",
-                )}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("designer-dashboard")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Dashboard
-              </Button>
-              <Button
-                component={Link}
-                to="/designer/dynamicform"
-                sx={getNavItemStyle("dynamic-form", "/designer/dynamicform")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("dynamic-form")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Dynamic Form
-              </Button>
-              <div
-                onMouseEnter={() => handleMouseEnter("designer-create")}
-                onMouseLeave={handleMouseLeave}
-              >
-                <Button
-                  sx={getNavItemStyle("designer-create", null, [
-                    "/designer/createservice",
-                    "/designer/createworkflow",
-                    "/designer/corrections",
-                    "/designer/createletterpdf",
-                    "/designer/createwebservice",
-                    "/designer/emailsettings",
-                    "/designer/submissionlimitations",
-                  ])}
-                  onClick={handleMenuOpen}
-                >
-                  Create/Update
-                </Button>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl) && hoveredItem === "designer-create"}
-                  onClose={handleMenuClose}
-                >
-                  <MenuItem
-                    sx={getMenuItemStyle("/designer/createservice")}
-                    onClick={() => handleNavigate("/designer/createservice")}
-                  >
-                    Service
-                  </MenuItem>
-                  <MenuItem
-                    sx={getMenuItemStyle("/designer/createworkflow")}
-                    onClick={() => handleNavigate("/designer/createworkflow")}
-                  >
-                    Workflow
-                  </MenuItem>
-                  <MenuItem
-                    sx={getMenuItemStyle("/designer/corrections")}
-                    onClick={() => handleNavigate("/designer/corrections")}
-                  >
-                    Corrections/Corrigendum
-                  </MenuItem>
-                  <MenuItem
-                    sx={getMenuItemStyle("/designer/createletterpdf")}
-                    onClick={() => handleNavigate("/designer/createletterpdf")}
-                  >
-                    Letter Pdf
-                  </MenuItem>
-                  <MenuItem
-                    sx={getMenuItemStyle("/designer/createwebservice")}
-                    onClick={() => handleNavigate("/designer/createwebservice")}
-                  >
-                    Web Service
-                  </MenuItem>
-                  <MenuItem
-                    sx={getMenuItemStyle("/designer/emailsettings")}
-                    onClick={() => handleNavigate("/designer/emailsettings")}
-                  >
-                    Email
-                  </MenuItem>
-                  <MenuItem
-                    sx={getMenuItemStyle("/designer/submissionlimitations")}
-                    onClick={() =>
-                      handleNavigate("/designer/submissionlimitations")
-                    }
-                  >
-                    Submission Limitations
-                  </MenuItem>
-                </Menu>
-              </div>
-            </>
-          )}
-
-          {userType && verified && (
-            <>
-              <Button
-                component={Link}
-                to="/feedback"
-                sx={getNavItemStyle("feedback", "/feedback")}
-                onClick={() => setExpanded(false)}
-                onMouseEnter={() => handleMouseEnter("feedback")}
-                onMouseLeave={handleMouseLeave}
-              >
-                Feedback
-              </Button>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Typography sx={{ color: "#333333", fontWeight: "bold" }}>
-                  {username}
-                </Typography>
-                <TokenTimer />
-                <div
-                  onMouseEnter={() => handleMouseEnter("profile")}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <IconButton onClick={handleMenuOpen} sx={{ padding: 0 }}>
-                    <img
-                      src={`/Base/DisplayFile?fileName=${profile}`}
-                      alt="Profile"
-                      className="rounded-circle"
-                      style={{
-                        width: "30px",
-                        height: "30px",
-                        objectFit: "cover",
-                      }}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null; // stop infinite loop
-                        e.currentTarget.src = "/assets/images/profile.jpg"; // fallback
-                      }}
-                    />
-                  </IconButton>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl) && hoveredItem === "profile"}
-                    onClose={handleMenuClose}
-                  >
-                    <MenuItem
-                      sx={getMenuItemStyle("/settings")}
-                      onClick={() => handleNavigate("/settings")}
-                    >
-                      Settings
-                    </MenuItem>
-                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                  </Menu>
-                </div>
+                        Settings
+                      </MenuItem>
+                      <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                    </MenuList>
+                  </Paper>
+                </Popper>
               </Box>
-            </>
+            </Box>
           )}
         </Box>
 
-        {/* Mobile Menu */}
+        {/* Mobile menu */}
         <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl) && isSmallScreen}
-          onClose={handleMenuClose}
-          sx={{ display: { xs: "block", md: "none" } }}
+          anchorEl={mobileMenuAnchor}
+          open={Boolean(mobileMenuAnchor) && isSmallScreen}
+          onClose={handleMobileMenuClose}
         >
-          {getMobileMenuItems().map((item, index) =>
-            item.subItems ? (
-              <div key={index}>
-                <MenuItem
-                  onClick={handleMenuOpen}
-                  sx={{
-                    ...getMenuItemStyle(item.path),
-                    fontWeight: 600,
-                  }}
-                >
-                  {item.name}
-                </MenuItem>
-                {expanded &&
-                  item.subItems.map((subItem, subIndex) => (
-                    <MenuItem
-                      key={subIndex}
-                      onClick={() => {
-                        if (subItem.action) subItem.action();
-                        else handleNavigate(subItem.path);
-                      }}
-                      sx={getMenuItemStyle(subItem.path)}
-                    >
-                      {subItem.name}
-                    </MenuItem>
-                  ))}
-              </div>
-            ) : (
-              <MenuItem
-                key={index}
-                onClick={() => handleNavigate(item.path)}
-                sx={getMenuItemStyle(item.path)}
-              >
-                {item.name}
-              </MenuItem>
-            ),
-          )}
+          {mobileMenuItems.map(renderMobileItem)}
         </Menu>
       </Toolbar>
     </AppBar>
