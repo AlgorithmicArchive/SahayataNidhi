@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
@@ -101,10 +102,11 @@ namespace SahayataNidhi.Controllers
                                   $"&cs={Uri.EscapeDataString(clientSignature)}" +
                                   $"&string={Uri.EscapeDataString(encryptedClientSessionId)}";
 
-                _logger.LogInformation("Redirecting to JanParichay: {Url}", redirectUrl);
+                // _logger.LogInformation("Redirecting to JanParichay: {Url}", redirectUrl);
 
-                // Return JSON for React frontend
-                return Ok(new { redirectUrl });
+                // // Return JSON for React frontend
+                // return Ok(new { redirectUrl });
+                return Json(new { redirectUrl });
             }
             catch (Exception ex)
             {
@@ -116,55 +118,112 @@ namespace SahayataNidhi.Controllers
         [HttpGet]
         public async Task<IActionResult> SSOCallback([FromQuery] string @string)
         {
+            // ========================================
+            // STEP 1: LOG EVERYTHING — SEE WHAT JAN PARICHAY SENT
+            // ========================================
+            var fullUrl = Request.GetDisplayUrl();
+            _logger.LogInformation("=== JAN PARICHAY CALLBACK START ===");
+            _logger.LogInformation("Full URL: {FullUrl}", fullUrl);
+            _logger.LogInformation("Raw @string: '{String}' (Length: {Len})", @string ?? "NULL", @string?.Length ?? 0);
+            _logger.LogInformation("All Query Params: {@Query}", Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString()));
+
+            // ========================================
+            // STEP 2: VALIDATE HANDSHAKING ID
+            // ========================================
             if (string.IsNullOrEmpty(@string))
+            {
+                _logger.LogError("MISSING HANDSHAKING ID — Jan Parichay did NOT send ?string=");
                 return BadRequest(new { status = false, response = "Missing handshaking ID" });
+            }
+
+            if (@string.Length < 100 || @string.Length > 1000)
+            {
+                _logger.LogWarning("SUSPICIOUS HANDSHAKING ID LENGTH: {Len} chars", @string.Length);
+                // Still proceed — might be valid
+            }
+
+            _logger.LogInformation("VALID HANDSHAKING ID RECEIVED: {Len} chars", @string.Length);
 
             try
             {
                 var sid = _configuration["JanParichay:ServiceId"]!;
                 var clientBaseUrl = _configuration["JanParichay:ClientBaseUrl"]!.TrimEnd('/');
 
-                // 1. Create HttpClient
-                var client = _httpClientFactory.CreateClient();
-
-                // 2. Call Handshake API
+                // ========================================
+                // STEP 3: CALL HANDSHAKE API
+                // ========================================
                 var handshakeUrl = $"{clientBaseUrl}/handshake?handshakingId={Uri.EscapeDataString(@string)}&sid={sid}";
+                _logger.LogInformation("Calling Handshake API: {HandshakeUrl}", handshakeUrl);
+
+                var client = _httpClientFactory.CreateClient();
                 var response = await client.GetAsync(handshakeUrl);
 
+                _logger.LogInformation("Handshake Response Status: {StatusCode}", response.StatusCode);
+
                 if (response.StatusCode != HttpStatusCode.Accepted) // 202
-                    return StatusCode(500, new { status = false, response = "Handshake failed" });
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("HANDSHAKE FAILED: {Status} | Response: {Error}", response.StatusCode, error);
+                    return StatusCode(500, new { status = false, response = "Handshake failed", details = error });
+                }
 
                 var encryptedPayload = await response.Content.ReadAsStringAsync();
-                if (encryptedPayload == "false")
-                    return Unauthorized(new { status = false, response = "Invalid handshaking ID" });
+                _logger.LogInformation("Encrypted Payload: '{Payload}' (Length: {Len})", encryptedPayload, encryptedPayload.Length);
 
-                // 3. Decrypt
+                if (encryptedPayload == "false")
+                {
+                    _logger.LogError("INVALID HANDSHAKING ID — Jan Parichay returned 'false'");
+                    return Unauthorized(new { status = false, response = "Invalid handshaking ID" });
+                }
+
+                // ========================================
+                // STEP 4: DECRYPT PAYLOAD
+                // ========================================
+                _logger.LogInformation("Decrypting payload...");
                 var decryptedJson = await _helper.DecryptStringAsync(encryptedPayload);
+                _logger.LogInformation("Decryption SUCCESS. Decrypted JSON: {Json}", decryptedJson);
+
                 var janUser = JsonSerializer.Deserialize<JanParichayUser>(decryptedJson,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                 if (janUser?.ClientToken == null)
+                {
+                    _logger.LogError("DECRYPTED DATA MISSING ClientToken");
                     return BadRequest(new { status = false, response = "Invalid user data" });
+                }
 
-                // 4. Token Validation
+                // ========================================
+                // STEP 5: TOKEN VALIDATION (Optional but Recommended)
+                // ========================================
                 var isValid = await ValidateToken(janUser);
                 if (!isValid)
+                {
+                    _logger.LogWarning("TOKEN VALIDATION FAILED");
                     return Unauthorized(new { status = false, response = "Token validation failed" });
+                }
 
-                // 5. Create local user & JWT
+                // ========================================
+                // STEP 6: CREATE LOCAL USER & JWT
+                // ========================================
                 var localUser = await _helper.FindOrCreateJanParichayUser(janUser);
                 if (localUser == null)
+                {
+                    _logger.LogError("USER CREATION FAILED");
                     return StatusCode(500, new { status = false, response = "User creation failed" });
+                }
 
                 var jwt = _helper.GenerateJwt(localUser, janUser.ClientToken);
 
-                // 6. Set Cookies
+                // ========================================
+                // STEP 7: SET COOKIES (SameSite=None for Cross-Origin)
+                // ========================================
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = _configuration.GetValue<bool>("AppSettings:UseSecureCookies", true),
                     SameSite = SameSiteMode.None,
-                    Expires = DateTimeOffset.Now.AddHours(12)
+                    Expires = DateTimeOffset.Now.AddHours(12),
+                    Path = "/"
                 };
 
                 Response.Cookies.Append("ClientToken", janUser.ClientToken, cookieOptions);
@@ -172,7 +231,11 @@ namespace SahayataNidhi.Controllers
                 Response.Cookies.Append("BrowserId", janUser.BrowserId!, cookieOptions);
                 Response.Cookies.Append("PostLoginSessionId", janUser.SessionId!, cookieOptions);
 
-                // 7. Redirect to Frontend
+                _logger.LogInformation("COOKIES SET — User: {Email}", janUser.Email);
+
+                // ========================================
+                // STEP 8: REDIRECT TO FRONTEND WITH SSO DATA
+                // ========================================
                 var ssoResponse = new
                 {
                     status = true,
@@ -188,12 +251,14 @@ namespace SahayataNidhi.Controllers
 
                 var encoded = Uri.EscapeDataString(JsonSerializer.Serialize(ssoResponse));
                 var frontendUrl = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+
+                _logger.LogInformation("REDIRECTING TO FRONTEND: {Url}", $"{frontendUrl}/verification?sso={encoded}");
                 return Redirect($"{frontendUrl}/verification?sso={encoded}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "SSOCallback failed. handshakingId: {Id}", @string);
-                return StatusCode(500, new { status = false, response = "SSO processing failed" });
+                _logger.LogError(ex, "SSOCALLBACK CRASHED — Handshaking ID: {Id}", @string);
+                return StatusCode(500, new { status = false, response = "SSO processing failed", details = ex.Message });
             }
         }
         private static string GenerateOTP(int length)
