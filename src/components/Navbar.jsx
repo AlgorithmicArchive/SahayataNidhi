@@ -288,7 +288,8 @@ const MyNavbar = () => {
           subItems: [
             { name: "Admin", path: "/admin/addadmin" },
             { name: "Designation", path: "/admin/addDesignations" },
-            { name: "Offices", path: "/admin/addOffices" },
+            { name: "Offices Type", path: "/admin/addOffices" },
+            { name: "Offices Details", path: "/admin/addOfficeDetails" },
             ...(designation === "System Admin"
               ? [{ name: "Department", path: "/admin/addDepartment" }]
               : []),

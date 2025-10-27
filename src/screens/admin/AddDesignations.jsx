@@ -369,12 +369,9 @@ export default function AddDesignations() {
         </form>
       </Box>
 
-      <Typography variant="h5" fontWeight="bold" align="center" gutterBottom>
-        Existing Designations
-      </Typography>
       <ServerSideTable
         url="/Admin/GetDesignations"
-        Title="Designations"
+        Title="Existing Designations"
         extraParams={{}}
         canSanction={false}
         canHavePool={false}

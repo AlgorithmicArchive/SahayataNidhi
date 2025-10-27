@@ -1,9 +1,11 @@
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
@@ -19,10 +21,11 @@ using Renci.SshNet.Messages;
 using SahayataNidhi.Models;
 using SahayataNidhi.Models.Entities;
 using SendEmails;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace SahayataNidhi.Controllers
 {
-    public class HomeController(ILogger<HomeController> logger, SwdjkContext dbContext, OtpStore otpStore, EmailSender emailSender, UserHelperFunctions helper, PdfService pdfService, IConfiguration configuration, IAuditLogService auditService, SessionRepository sessionRepo) : Controller
+    public class HomeController(ILogger<HomeController> logger, SwdjkContext dbContext, OtpStore otpStore, EmailSender emailSender, UserHelperFunctions helper, PdfService pdfService, IConfiguration configuration, IAuditLogService auditService, SessionRepository sessionRepo, IHttpClientFactory httpClientFactory) : Controller
     {
         private readonly ILogger<HomeController> _logger = logger;
         private readonly SwdjkContext _dbContext = dbContext;
@@ -33,6 +36,7 @@ namespace SahayataNidhi.Controllers
         private readonly IConfiguration _configuration = configuration;
         private readonly IAuditLogService _auditService = auditService;
         private readonly SessionRepository _sessionRepo = sessionRepo;
+        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
 
         public override void OnActionExecuted(ActionExecutedContext context)
         {
@@ -40,6 +44,158 @@ namespace SahayataNidhi.Controllers
             ViewData["UserType"] = "";
         }
 
+
+
+        // JAN PARICHAY SETUP
+
+        public async Task<bool> ValidateToken(JanParichayUser janUser)
+        {
+            var client = _httpClientFactory.CreateClient();
+            var clientToken = janUser.ClientToken; // From payload
+            var sessionId = janUser.SessionId; // From payload (Post Login Session Id)
+            var browserId = janUser.BrowserId; // From payload
+
+            // PDF Page 10: Include sessionId & browserId from cookies if set, fallback to payload
+            var cookieSessionId = HttpContext.Request.Cookies["SessionId"];
+            var cookieBrowserId = HttpContext.Request.Cookies["BrowserId"];
+            if (!string.IsNullOrEmpty(cookieSessionId)) sessionId = cookieSessionId;
+            if (!string.IsNullOrEmpty(cookieBrowserId)) browserId = cookieBrowserId;
+
+            var url = $"{_configuration["JanParichay:ClientBaseUrl"]}/isTokenValid?" +
+                      $"clientToken={Uri.EscapeDataString(clientToken!)}" +
+                      $"&sid={_configuration["JanParichay:ServiceId"]}" +
+                      $"&sessionId={Uri.EscapeDataString(sessionId!)}" +
+                      $"&browserId={Uri.EscapeDataString(browserId!)}";
+
+            var response = await client.GetAsync(url);
+            if (!response.IsSuccessStatusCode) return false;
+
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            return result?["tokenValid"] == "true";
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> InitiateSSO()
+        {
+            try
+            {
+                var clientSessionId = Guid.NewGuid().ToString();
+                var sid = _configuration["JanParichay:ServiceId"]!;
+                var tid = DateTimeOffset.UtcNow.AddMinutes(5).ToUnixTimeMilliseconds();
+                var baseUrl = _configuration["JanParichay:JanParichayBaseUrl"]!.TrimEnd('/');
+
+                // 1. Encrypt the Client Session Id
+                var encryptedClientSessionId = await _helper.EncryptStringAsync(clientSessionId);
+
+                // 2. Build HMAC input string (EXACTLY as per doc)
+                var loginUrl = $"{baseUrl}/v1/api/login";
+                var hmacInput = $"JanParichay{tid}{loginUrl}{sid}";
+
+                var clientSignature = await _helper.GetHmacSignatureAsync(hmacInput);
+
+                // 3. Build redirect URL
+                var redirectUrl = $"{baseUrl}/v1/api/login?" +
+                                  $"sid={sid}" +
+                                  $"&tid={tid}" +
+                                  $"&cs={Uri.EscapeDataString(clientSignature)}" +
+                                  $"&string={Uri.EscapeDataString(encryptedClientSessionId)}";
+
+                _logger.LogInformation("Redirecting to JanParichay: {Url}", redirectUrl);
+
+                // Return JSON for React frontend
+                return Ok(new { redirectUrl });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "InitiateSSO failed");
+                return StatusCode(500, new { error = "SSO initiation failed", details = ex.Message });
+            }
+        }
+
+        [HttpGet("sso/callback")]
+        public async Task<IActionResult> SSOCallback([FromQuery] string @string)
+        {
+            if (string.IsNullOrEmpty(@string))
+                return BadRequest(new { status = false, response = "Missing handshaking ID" });
+
+            try
+            {
+                var sid = _configuration["JanParichay:ServiceId"]!;
+                var clientBaseUrl = _configuration["JanParichay:ClientBaseUrl"]!.TrimEnd('/');
+
+                // 1. Create HttpClient
+                var client = _httpClientFactory.CreateClient();
+
+                // 2. Call Handshake API
+                var handshakeUrl = $"{clientBaseUrl}/handshake?handshakingId={Uri.EscapeDataString(@string)}&sid={sid}";
+                var response = await client.GetAsync(handshakeUrl);
+
+                if (response.StatusCode != HttpStatusCode.Accepted) // 202
+                    return StatusCode(500, new { status = false, response = "Handshake failed" });
+
+                var encryptedPayload = await response.Content.ReadAsStringAsync();
+                if (encryptedPayload == "false")
+                    return Unauthorized(new { status = false, response = "Invalid handshaking ID" });
+
+                // 3. Decrypt
+                var decryptedJson = await _helper.DecryptStringAsync(encryptedPayload);
+                var janUser = JsonSerializer.Deserialize<JanParichayUser>(decryptedJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (janUser?.ClientToken == null)
+                    return BadRequest(new { status = false, response = "Invalid user data" });
+
+                // 4. Token Validation
+                var isValid = await ValidateToken(janUser);
+                if (!isValid)
+                    return Unauthorized(new { status = false, response = "Token validation failed" });
+
+                // 5. Create local user & JWT
+                var localUser = await _helper.FindOrCreateJanParichayUser(janUser);
+                if (localUser == null)
+                    return StatusCode(500, new { status = false, response = "User creation failed" });
+
+                var jwt = _helper.GenerateJwt(localUser, janUser.ClientToken);
+
+                // 6. Set Cookies
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = _configuration.GetValue<bool>("AppSettings:UseSecureCookies", true),
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.Now.AddHours(12)
+                };
+
+                Response.Cookies.Append("ClientToken", janUser.ClientToken, cookieOptions);
+                Response.Cookies.Append("SessionId", janUser.SessionId!, cookieOptions);
+                Response.Cookies.Append("BrowserId", janUser.BrowserId!, cookieOptions);
+                Response.Cookies.Append("PostLoginSessionId", janUser.SessionId!, cookieOptions);
+
+                // 7. Redirect to Frontend
+                var ssoResponse = new
+                {
+                    status = true,
+                    token = jwt,
+                    userType = localUser.UserType,
+                    username = localUser.Username,
+                    userId = localUser.UserId,
+                    designation = janUser.Designation ?? "",
+                    department = _helper.GetDepartment(localUser),
+                    profile = localUser.Profile ?? "/assets/images/profile.jpg",
+                    email = janUser.Email
+                };
+
+                var encoded = Uri.EscapeDataString(JsonSerializer.Serialize(ssoResponse));
+                var frontendUrl = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+                return Redirect($"{frontendUrl}/sso-callback?sso={encoded}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SSOCallback failed. handshakingId: {Id}", @string);
+                return StatusCode(500, new { status = false, response = "SSO processing failed" });
+            }
+        }
         private static string GenerateOTP(int length)
         {
             var random = new Random();
@@ -786,7 +942,7 @@ namespace SahayataNidhi.Controllers
                             _logger.LogInformation("User {Username} verified successfully via backup code.", username);
                         }
                     }
-                    catch (JsonException ex)
+                    catch (System.Text.Json.JsonException ex)
                     {
                         _logger.LogError(ex, "Failed to parse backup codes for user {UserId}", userId);
                     }

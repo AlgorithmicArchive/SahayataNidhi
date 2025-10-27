@@ -339,12 +339,9 @@ export default function AddOffices() {
         </form>
       </Box>
 
-      <Typography variant="h5" fontWeight="bold" align="center" gutterBottom>
-        Existing Offices
-      </Typography>
       <ServerSideTable
         url="/Admin/GetOffices"
-        Title="Offices"
+        Title="Existing Offices"
         extraParams={{}}
         canSanction={false}
         canHavePool={false}

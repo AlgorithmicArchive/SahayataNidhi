@@ -252,7 +252,65 @@ export default function LoginScreen() {
             Login
           </Typography>
         </Box>
-
+        {/* JanParichay SSO Button */}
+        {/* JanParichay SSO Button */}
+        <Box
+          component="button"
+          onClick={async () => {
+            setButtonLoading(true);
+            try {
+              const res = await fetch("/Home/InitiateSSO", { method: "POST" });
+              const data = await res.json();
+              if (data.redirectUrl) {
+                window.location.href = data.redirectUrl; // Redirect to JanParichay
+              } else {
+                toast.error("Failed to start SSO.");
+              }
+            } catch (err) {
+              toast.error("SSO initiation failed.");
+            } finally {
+              setButtonLoading(false);
+            }
+          }}
+          disabled={buttonLoading}
+          sx={{
+            border: "none",
+            background: "linear-gradient(to bottom, #0A7B5B, #065F46)",
+            padding: { xs: "1rem 1.5rem", sm: "1.2rem 2rem" },
+            width: "100%",
+            color: "#FFFFFF",
+            fontWeight: "bold",
+            fontSize: { xs: "1.1rem", sm: "1.2rem" },
+            borderRadius: 4,
+            cursor: "pointer",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 1,
+            textTransform: "none",
+            boxShadow: "0 6px 16px rgba(10, 123, 91, 0.3)",
+            transition: "all 0.3s ease",
+            mt: 2,
+            "&:hover": {
+              background: "linear-gradient(to bottom, #065F46, #0A7B5B)",
+              transform: "translateY(-2px)",
+              boxShadow: "0 8px 20px rgba(10, 123, 91, 0.4)",
+            },
+            "&:disabled": {
+              opacity: 0.7,
+              cursor: "not-allowed",
+            },
+          }}
+        >
+          {buttonLoading ? (
+            <>
+              <CircularProgress size={20} color="inherit" />
+              Starting SSO...
+            </>
+          ) : (
+            <>Login with JanParichay</>
+          )}
+        </Box>
         {/* Form */}
         <Box
           component="form"

@@ -282,12 +282,9 @@ export default function AddDepartment() {
         </form>
       </Box>
 
-      <Typography variant="h5" fontWeight="bold" align="center" gutterBottom>
-        Existing Departments
-      </Typography>
       <ServerSideTable
         url="/Admin/GetDepartments"
-        Title="Departments"
+        Title="Existing Departments"
         extraParams={{}}
         canSanction={false}
         canHavePool={false}

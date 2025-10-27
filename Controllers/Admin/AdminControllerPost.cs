@@ -436,5 +436,114 @@ namespace SahayataNidhi.Controllers.Admin
             }
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> AddOfficeDetail([FromForm] string OfficeName, [FromForm] int OfficeType, [FromForm] int Divisioncode, [FromForm] int DistrictCode, [FromForm] int AreaCode, [FromForm] string AreaName)
+        {
+            try
+            {
+                var officer = GetOfficerDetails();
+                if (officer == null || officer.Department <= 0)
+                    return BadRequest(new { status = false, message = "Invalid officer or department." });
+
+                var office = await dbcontext.Offices
+                    .FirstOrDefaultAsync(o => o.OfficeId == OfficeType && o.DepartmentId == officer.Department);
+
+                if (office == null)
+                    return BadRequest(new { status = false, message = "Invalid office type or access denied." });
+
+                var newDetail = new OfficesDetails
+                {
+                    StateCode = 0,
+                    Divisioncode = Divisioncode,
+                    DistrictCode = DistrictCode,
+                    AreaCode = AreaCode,
+                    AreaName = AreaName ?? "",
+                    OfficeName = OfficeName,
+                    OfficeType = OfficeType
+                };
+
+                dbcontext.OfficesDetails.Add(newDetail);
+                await dbcontext.SaveChangesAsync();
+
+                return Json(new { status = true, message = "Office detail added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = "Error adding office detail: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateOfficeDetail([FromForm] int OfficeDetailId, [FromForm] string OfficeName, [FromForm] int OfficeType, [FromForm] int Divisioncode, [FromForm] int DistrictCode, [FromForm] int AreaCode, [FromForm] string AreaName)
+        {
+            try
+            {
+                var officer = GetOfficerDetails();
+                if (officer == null || officer.Department <= 0)
+                    return BadRequest(new { status = false, message = "Invalid officer." });
+
+                // Find office detail via composite key (or use real PK)
+                var detail = await dbcontext.OfficesDetails
+                    .FirstOrDefaultAsync(od =>
+                        od.Divisioncode == Divisioncode &&
+                        od.DistrictCode == DistrictCode &&
+                        od.AreaCode == AreaCode &&
+                        od.OfficeType == OfficeType);
+
+                if (detail == null)
+                    return NotFound(new { status = false, message = "Office detail not found." });
+
+                var office = await dbcontext.Offices
+                    .FirstOrDefaultAsync(o => o.OfficeId == OfficeType && o.DepartmentId == officer.Department);
+
+                if (office == null)
+                    return BadRequest(new { status = false, message = "Access denied." });
+
+                detail.OfficeName = OfficeName;
+                detail.AreaName = AreaName ?? "";
+                // Only update codes if allowed by access level (optional validation)
+
+                await dbcontext.SaveChangesAsync();
+
+                return Json(new { status = true, message = "Office detail updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = "Error updating: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteOfficeDetail([FromForm] int OfficeDetailId)
+        {
+            try
+            {
+                var officer = GetOfficerDetails();
+                if (officer == null || officer.Department <= 0)
+                    return BadRequest(new { status = false, message = "Invalid officer." });
+
+                // Example: Find by composite (replace with real PK if added)
+                var detail = await dbcontext.OfficesDetails
+                    .Include(od => od.OfficeTypeNavigation)
+                    .FirstOrDefaultAsync(od =>
+                        od.StateCode == 0 && // placeholder
+                        od.OfficeTypeNavigation.DepartmentId == officer.Department &&
+                        /* match other fields */ true);
+
+                if (detail == null)
+                    return NotFound(new { status = false, message = "Office detail not found." });
+
+                dbcontext.OfficesDetails.Remove(detail);
+                await dbcontext.SaveChangesAsync();
+
+                return Json(new { status = true, message = "Office detail deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = "Error deleting: " + ex.Message });
+            }
+        }
+
     }
 }

@@ -1,18 +1,30 @@
 using System.Dynamic;
 using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SahayataNidhi.Models.Entities;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
-public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SwdjkContext dbcontext, ILogger<UserHelperFunctions> logger)
+public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SwdjkContext dbcontext, ILogger<UserHelperFunctions> logger, IHttpClientFactory httpClientFactory, IConfiguration configuration)
 {
     private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
     private readonly SwdjkContext dbcontext = dbcontext;
-
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private readonly IConfiguration _configuration = configuration;
     private readonly ILogger<UserHelperFunctions> _logger = logger;
+
+    private HttpClient Client => _httpClientFactory.CreateClient();
+
+    private string BaseUrl => _configuration["JanParichay:ClientBaseUrl"]!.TrimEnd('/');
 
     public async Task<string> GetFilePath(IFormFile? docFile = null, byte[]? fileData = null, string? fileName = null, string documentType = "document")
     {
@@ -101,8 +113,6 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SwdjkCo
         // Format: yyyy-yy (e.g., 2025-26)
         return $"{startYear}-{endYear % 100:00}";
     }
-
-
 
     public string GenerateApplicationId(int districtId, SwdjkContext dbcontext)
     {
@@ -229,6 +239,249 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SwdjkCo
             return false;
         }
     }
+
+
+    // Janparichay Helper functions
+    public async Task<string> PerformHandshakeAsync(string handshakingId, string sid)
+    {
+        var url = $"{BaseUrl}/handshake?handshakingId={handshakingId}&sid={sid}";
+        var response = await Client.GetAsync(url);
+        var content = await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("Handshake Response: {Content}", content);
+
+        response.EnsureSuccessStatusCode();
+        var result = JsonSerializer.Deserialize<HandshakeResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                     ?? throw new Exception("Handshake failed: null response");
+
+        if (result.Status?.ToLower() != "success")
+            throw new Exception($"Handshake failed: {result.Status}");
+
+        return result.ServerHandshakingId!;
+    }
+
+    // 2. ENCRYPT
+    public async Task<string> EncryptStringAsync(string plainText)
+    {
+        var url = $"{BaseUrl}/encryption";
+
+        var requestBody = new
+        {
+            AESString = plainText
+        };
+
+        var content = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        _logger.LogInformation("Encrypt Request: {Body}", JsonSerializer.Serialize(requestBody));
+
+        var response = await Client.PostAsync(url, content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("Encrypt Response: {Content}", responseContent);
+
+        response.EnsureSuccessStatusCode();
+
+        var result = JsonSerializer.Deserialize<EncryptResponse>(responseContent,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+            ?? throw new Exception("Encrypt failed: null response");
+
+        // ✅ The actual API responds with data.signature, not data.AESString
+        if (!string.Equals(result.Status, "success", StringComparison.OrdinalIgnoreCase) ||
+            string.IsNullOrEmpty(result.Data?.Signature))
+        {
+            throw new Exception($"Encrypt failed: {responseContent}");
+        }
+
+        // Return the encrypted string (inside 'signature' key)
+        return result.Data.Signature;
+    }
+
+
+
+
+    public async Task<string> DecryptStringAsync(string encryptedText)
+    {
+        var url = $"{BaseUrl}/Encryption/decrypt?encryptedText={Uri.EscapeDataString(encryptedText)}";
+        var response = await Client.GetAsync(url);
+        var content = await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("Decrypt Response: {Content}", content);
+
+        response.EnsureSuccessStatusCode();
+
+        var result = JsonSerializer.Deserialize<DecryptResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                     ?? throw new Exception("Decrypt failed: null response");
+
+        if (result.Status?.ToLower() != "success" || result.Data?.DecryptedString == null)
+            throw new Exception($"Decrypt failed: {content}");
+
+        return result.Data.DecryptedString;
+    }
+
+    // 3. HMAC
+    public async Task<string> GetHmacSignatureAsync(string input)
+    {
+        var url = $"{BaseUrl}/hmac"; // Correct API endpoint
+
+        // Prepare the JSON request body as per API spec
+        var requestBody = new
+        {
+            HmacString = input
+        };
+
+        var content = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        _logger.LogInformation("HMAC Request: {Body}", JsonSerializer.Serialize(requestBody));
+
+        // API requires POST
+        var response = await Client.PostAsync(url, content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("HMAC Response: {Content}", responseContent);
+
+        // Throw on 4xx or 5xx
+        response.EnsureSuccessStatusCode();
+
+        var result = JsonSerializer.Deserialize<HmacResponse>(
+            responseContent,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+            ?? throw new Exception("HMAC failed: null response");
+
+        // Expected successful response format:
+        // {
+        //   "status": "success",
+        //   "message": "...",
+        //   "data": { "signature": "HMAC Sign" }
+        // }
+
+        if (!string.Equals(result.Status, "success", StringComparison.OrdinalIgnoreCase) ||
+            string.IsNullOrEmpty(result.Data?.Signature))
+        {
+            throw new Exception($"HMAC failed: {responseContent}");
+        }
+
+        return result.Data.Signature;
+    }
+
+    // 4. TOKEN VALIDATION
+    public async Task<bool> ValidateTokenAsync(string clientToken, string sessionId, string browserId, string sid)
+    {
+        var url = $"{BaseUrl}/isTokenValid?clientToken={clientToken}&sessionId={sessionId}&browserId={browserId}&sid={sid}";
+        var response = await Client.GetAsync(url);
+        var content = await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("TokenValid Response: {Content}", content);
+
+        response.EnsureSuccessStatusCode();
+        var result = JsonSerializer.Deserialize<TokenValidResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                     ?? throw new Exception("TokenValid failed");
+
+        return result.Status?.ToLower() == "success" && result.TokenValid == "true";
+    }
+
+    public async Task<Users> FindOrCreateJanParichayUser(JanParichayUser janUser)
+    {
+        if (janUser == null || string.IsNullOrEmpty(janUser.Email))
+            throw new ArgumentException("Invalid JanParichay user data");
+
+        // 1. Try to find existing user by Email
+        var existingUser = await dbcontext.Users
+            .FirstOrDefaultAsync(u => u.Email == janUser.Email);
+
+        if (existingUser != null)
+            return existingUser;
+
+        // 2. Create new user
+        var newUser = new Users
+        {
+            Name = $"{janUser.FirstName} {janUser.LastName}".Trim(),
+            Username = janUser.Email,
+            Email = janUser.Email,
+            MobileNumber = janUser.MobileNo,
+            UserType = "Citizen", // You can map based on Designation later
+            Profile = "/assets/images/profile.jpg",
+            IsEmailValid = true,
+            RegisteredDate = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
+        };
+
+        dbcontext.Users.Add(newUser);
+        await dbcontext.SaveChangesAsync();
+
+        return newUser;
+    }
+
+    // 5. LOGOUT
+    public async Task<bool> LogoutAsync(string clientToken, string sessionId, string browserId, string sid, string userAgent, string tid)
+    {
+        var signatureInput = $"clientToken={clientToken}&sessionId={sessionId}&browserId={browserId}&sid={sid}&UserAgent={userAgent}&tid={tid}&cs=";
+        var clientSignature = await GetHmacSignatureAsync(signatureInput);
+
+        var url = $"{BaseUrl}/sal/api/client/logout?" +
+                  $"clientToken={clientToken}" +
+                  $"&sessionId={sessionId}" +
+                  $"&browserId={browserId}" +
+                  $"&sid={sid}" +
+                  $"&UserAgent={Uri.EscapeDataString(userAgent)}" +
+                  $"&tid={tid}" +
+                  $"&cs=" +
+                  $"&ClientSignature={Uri.EscapeDataString(clientSignature)}";
+
+        var response = await Client.GetAsync(url);
+        var content = await response.Content.ReadAsStringAsync();
+        _logger.LogInformation("Logout Response: {Content}", content);
+
+        return response.IsSuccessStatusCode;
+    }
+    public string GetDepartment(Users user)
+    {
+        if (user.UserType != "Admin") return "";
+        try
+        {
+            var details = JsonConvert.DeserializeObject<Dictionary<string, object>>(user.AdditionalDetails!);
+            if (details?.TryGetValue("Department", out var deptId) == true)
+            {
+                int id = Convert.ToInt32(deptId);
+                return dbcontext.Departments.FirstOrDefault(d => d.DepartmentId == id)?.DepartmentName ?? "";
+            }
+        }
+        catch { }
+        return "";
+    }
+
+    public string GenerateJwt(Users user, string clientToken)
+    {
+        var claims = new List<Claim>
+    {
+        new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+        new(ClaimTypes.Name, user.Username!),
+        new(ClaimTypes.Role, user.UserType!),
+        new("Profile", user.Profile!),
+        new("JanParichayClientToken", clientToken)
+    };
+
+        var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]!);
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddHours(12),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            Issuer = _configuration["JWT:Issuer"],
+            Audience = _configuration["JWT:Audience"]
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+
 
 }
 

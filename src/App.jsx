@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { BrowserRouter as Router, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
@@ -39,97 +40,92 @@ const MainContent = () => {
     setProfile,
     setVerified,
     setDesignation,
+    setDepartment,
+    setUserId,
     setTokenExpiry,
   } = useContext(UserContext);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const navigate = useNavigate();
 
-  // Proactive token expiration check and timer setup
+  // === SSO REDIRECT HANDLER ===
   useEffect(() => {
-    if (token) {
+    const params = new URLSearchParams(window.location.search);
+    const ssoParam = params.get("sso");
+
+    if (ssoParam) {
       try {
-        const decoded = jwtDecode(token);
-        const exp = decoded.exp * 1000; // Convert to milliseconds
-        const now = Date.now();
-        const timeUntilExpiry = exp - now;
+        const data = JSON.parse(decodeURIComponent(ssoParam));
+        if (data.status) {
+          setToken(data.token);
+          setUserType(data.userType);
+          setUsername(data.username);
+          setUserId(data.userId);
+          setDesignation(data.designation || "");
+          if (data.department) setDepartment(data.department);
+          setProfile("/assets/images/profile.jpg"); // default
+          setVerified(true); // JanParichay users are verified
 
-        if (timeUntilExpiry <= 0) {
-          // Token already expired
-          setToken(null);
-          setUserType(null);
-          setUsername(null);
-          setProfile(null);
-          setVerified(false);
-          setDesignation(null);
-          setTokenExpiry(null);
-          sessionStorage.removeItem("token");
-          sessionStorage.removeItem("userType");
-          sessionStorage.removeItem("username");
-          sessionStorage.removeItem("profile");
-          sessionStorage.removeItem("verified");
-          sessionStorage.removeItem("designation");
-          toast.error("Session expired. Please log in again.");
-          navigate("/login");
-        } else {
-          // Update token expiry in UserContext for timer display
-          setTokenExpiry(exp);
+          // Clean URL
+          window.history.replaceState({}, document.title, "/");
 
-          // Set timeout to log out when token expires
-          const timeout = setTimeout(() => {
-            setToken(null);
-            setUserType(null);
-            setUsername(null);
-            setProfile(null);
-            setVerified(false);
-            setDesignation(null);
-            setTokenExpiry(null);
-            sessionStorage.removeItem("token");
-            sessionStorage.removeItem("userType");
-            sessionStorage.removeItem("username");
-            sessionStorage.removeItem("profile");
-            sessionStorage.removeItem("verified");
-            sessionStorage.removeItem("designation");
-            toast.error("Session expired. Please log in again.");
-            navigate("/login");
-          }, timeUntilExpiry);
-
-          // Cleanup timeout on unmount or token change
-          return () => clearTimeout(timeout);
+          toast.success("Logged in with JanParichay!");
+          navigate("/verification");
         }
       } catch (err) {
-        console.error("Token decode error:", err);
-        setToken(null);
-        setUserType(null);
-        setUsername(null);
-        setProfile(null);
-        setVerified(false);
-        setDesignation(null);
-        setTokenExpiry(null);
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("userType");
-        sessionStorage.removeItem("username");
-        sessionStorage.removeItem("profile");
-        sessionStorage.removeItem("verified");
-        sessionStorage.removeItem("designation");
-        toast.error("Invalid token. Please log in again.");
-        navigate("/login");
+        console.error("SSO parse error:", err);
+        toast.error("SSO login failed.");
       }
-    } else {
-      setTokenExpiry(null);
     }
   }, [
-    token,
     navigate,
     setToken,
     setUserType,
     setUsername,
-    setProfile,
-    setVerified,
+    setUserId,
     setDesignation,
-    setTokenExpiry,
+    setDepartment,
   ]);
 
-  // Initial load token validation
+  // === TOKEN EXPIRY CHECK ===
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        const exp = decoded.exp * 1000;
+        const now = Date.now();
+        const timeUntilExpiry = exp - now;
+
+        if (timeUntilExpiry <= 0) {
+          logoutAll();
+        } else {
+          setTokenExpiry(exp);
+          const timeout = setTimeout(logoutAll, timeUntilExpiry);
+          return () => clearTimeout(timeout);
+        }
+      } catch (err) {
+        logoutAll();
+      }
+    } else {
+      setTokenExpiry(null);
+    }
+  }, [token]);
+
+  const logoutAll = () => {
+    setToken(null);
+    setUserType(null);
+    setUsername(null);
+    setProfile(null);
+    setVerified(false);
+    setDesignation(null);
+    setDepartment(null);
+    setUserId(null);
+    setTokenExpiry(null);
+    sessionStorage.clear();
+    toast.error("Session expired. Please log in again.");
+    navigate("/login");
+  };
+
+  // === INITIAL LOAD + TOKEN VALIDATION ===
   useEffect(() => {
     const isInitialLoadStored = sessionStorage.getItem("initialLoad") === null;
 
@@ -137,25 +133,18 @@ const MainContent = () => {
       const validateToken = async () => {
         try {
           const result = await fetch("/Home/ValidateToken");
-          if (result.status) {
-            if (!verified) {
-              navigate("/Verification");
-            } else if (verified) {
-              if (userType === "Citizen") {
-                navigate("/user/home");
-              } else if (userType === "Officer") {
-                navigate("/officer/home");
-              } else if (userType === "Admin") {
-                navigate("/admin/home");
-              } else if (userType === "Designer") {
-                navigate("/designer/dashboard");
-              } else if (userType == "Viewer") {
-                navigate("/viewer/home");
+          if (result.ok) {
+            const data = await result.json();
+            if (data.status) {
+              if (!verified) {
+                navigate("/verification");
+              } else {
+                redirectByUserType();
               }
             }
           }
         } catch (err) {
-          // Errors (including 401) are handled by apiFetch
+          console.error("Token validation failed:", err);
         } finally {
           sessionStorage.setItem("initialLoad", "false");
           setIsInitialLoad(false);
@@ -166,22 +155,16 @@ const MainContent = () => {
     } else {
       sessionStorage.setItem("initialLoad", "false");
       setIsInitialLoad(false);
-      // if (!token) {
-      //   navigate("/login");
-      // }
     }
-  }, [
-    token,
-    userType,
-    verified,
-    navigate,
-    setToken,
-    setUserType,
-    setUsername,
-    setProfile,
-    setVerified,
-    setDesignation,
-  ]);
+  }, [token, userType, verified, navigate]);
+
+  const redirectByUserType = () => {
+    if (userType === "Citizen") navigate("/user/home");
+    else if (userType === "Officer") navigate("/officer/home");
+    else if (userType === "Admin") navigate("/admin/home");
+    else if (userType === "Designer") navigate("/designer/dashboard");
+    else if (userType === "Viewer") navigate("/viewer/home");
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
