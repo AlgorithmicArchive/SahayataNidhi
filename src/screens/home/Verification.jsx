@@ -5,11 +5,11 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import CustomInputField from "../../components/form/CustomInputField";
 import { useForm } from "react-hook-form";
 import CustomButton from "../../components/CustomButton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Validate } from "../../assets/fetch";
 import { UserContext } from "../../UserContext";
 
@@ -17,42 +17,91 @@ export default function Verification() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [otpMessage, setOtpMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // New state for loading
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSSOProcessing, setIsSSOProcessing] = useState(true); // Show loading during SSO
+
   const {
     handleSubmit,
     control,
     formState: { errors },
   } = useForm();
 
-  const { setVerified, userType, username } = useContext(UserContext);
+  const { setVerified, userType, username, setUser } = useContext(UserContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // ========================================
+  // AUTO-PROCESS SSO FROM ?sso=... PARAM
+  // ========================================
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sso = params.get("sso");
+
+    if (sso) {
+      try {
+        const data = JSON.parse(decodeURIComponent(sso));
+
+        if (data.status && data.token) {
+          // Save to localStorage
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data));
+
+          // Update context
+          setVerified(true);
+          if (setUser) setUser(data); // Optional: update full user in context
+
+          // Redirect based on userType
+          const redirectUrl =
+            data.userType === "Admin"
+              ? "/admin/home"
+              : data.userType === "Officer"
+              ? "/officer/home"
+              : data.userType === "Designer"
+              ? "/designer/dashboard"
+              : data.userType === "Viewer"
+              ? "/viewer/home"
+              : "/user/home";
+
+          navigate(redirectUrl, { replace: true });
+        } else {
+          setErrorMessage("Invalid SSO response.");
+          setIsSSOProcessing(false);
+        }
+      } catch (e) {
+        console.error("SSO parse error:", e);
+        setErrorMessage("Invalid SSO data.");
+        setIsSSOProcessing(false);
+      }
+    } else {
+      setIsSSOProcessing(false); // No SSO → show OTP form
+    }
+  }, [location, navigate, setVerified, setUser]);
+
+  // ========================================
+  // NORMAL OTP / BACKUP FLOW
+  // ========================================
   const handleOptionSelect = async (option) => {
     setErrorMessage("");
     setOtpMessage("");
     if (option === "otp") {
-      setIsLoading(true); // Start loading
+      setIsLoading(true);
       try {
         const response = await fetch(`/Home/SendLoginOtp?username=${username}`);
         const data = await response.json();
         if (data.status) {
-          if (data.message) {
-            setOtpMessage(data.message);
-          } else {
-            setOtpMessage("OTP sent to your email and mobile number.");
-          }
-          setSelectedOption(option); // Set option after successful response
+          setOtpMessage(data.message || "OTP sent to your email and mobile.");
+          setSelectedOption(option);
         } else {
           setErrorMessage(data.message || "Failed to send OTP.");
         }
       } catch (error) {
-        console.error("Error sending OTP:", error);
-        setErrorMessage("An error occurred while sending OTP.");
+        console.error("Error sending OTP:", siete);
+        setErrorMessage("Network error. Please try again.");
       } finally {
-        setIsLoading(false); // Stop loading
+        setIsLoading(false);
       }
     } else {
-      setSelectedOption(option); // For backup code, no fetch required
+      setSelectedOption(option);
     }
   };
 
@@ -84,7 +133,6 @@ export default function Verification() {
             : "/user/home";
         navigate(url);
       } else {
-        console.error("Verification failed:", response.message);
         setErrorMessage(response.message || "Verification failed.");
       }
     } catch (error) {
@@ -92,6 +140,30 @@ export default function Verification() {
       setErrorMessage("An error occurred during verification.");
     }
   };
+
+  // ========================================
+  // RENDER
+  // ========================================
+  if (isSSOProcessing) {
+    return (
+      <Box
+        sx={{
+          width: "100vw",
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 2,
+        }}
+      >
+        <CircularProgress sx={{ color: "primary.main" }} />
+        <Typography variant="body1" color="text.primary">
+          Completing Jan Parichay login...
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -114,6 +186,7 @@ export default function Verification() {
         Verification
       </Typography>
 
+      {/* Show OTP/Backup Options */}
       {!selectedOption && !isLoading && (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Button
@@ -125,9 +198,7 @@ export default function Verification() {
               borderRadius: 3,
               fontWeight: "bold",
               textTransform: "none",
-              "&:hover": {
-                backgroundColor: "primary.dark",
-              },
+              "&:hover": { backgroundColor: "primary.dark" },
             }}
           >
             Use OTP Verification
@@ -142,9 +213,7 @@ export default function Verification() {
                 borderRadius: 3,
                 fontWeight: "bold",
                 textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "background.paper",
-                },
+                "&:hover": { backgroundColor: "background.paper" },
               }}
             >
               Use Backup Codes
@@ -153,6 +222,7 @@ export default function Verification() {
         </Box>
       )}
 
+      {/* Sending OTP */}
       {!selectedOption && isLoading && (
         <Box
           sx={{
@@ -169,6 +239,7 @@ export default function Verification() {
         </Box>
       )}
 
+      {/* OTP / Backup Form */}
       {selectedOption && (
         <Box
           sx={{

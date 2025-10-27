@@ -113,7 +113,7 @@ namespace SahayataNidhi.Controllers
             }
         }
 
-        [HttpGet("sso/callback")]
+        [HttpGet]
         public async Task<IActionResult> SSOCallback([FromQuery] string @string)
         {
             if (string.IsNullOrEmpty(@string))
@@ -163,7 +163,7 @@ namespace SahayataNidhi.Controllers
                 {
                     HttpOnly = true,
                     Secure = _configuration.GetValue<bool>("AppSettings:UseSecureCookies", true),
-                    SameSite = SameSiteMode.Lax,
+                    SameSite = SameSiteMode.None,
                     Expires = DateTimeOffset.Now.AddHours(12)
                 };
 
@@ -188,7 +188,7 @@ namespace SahayataNidhi.Controllers
 
                 var encoded = Uri.EscapeDataString(JsonSerializer.Serialize(ssoResponse));
                 var frontendUrl = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
-                return Redirect($"{frontendUrl}/sso-callback?sso={encoded}");
+                return Redirect($"{frontendUrl}/verification?sso={encoded}");
             }
             catch (Exception ex)
             {
