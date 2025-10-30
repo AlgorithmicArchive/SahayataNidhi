@@ -12,16 +12,16 @@ namespace SahayataNidhi.Controllers.Admin
     {
 
         [HttpPost]
-        public IActionResult ValidateOfficer(string username)
+        public IActionResult ValidateOfficer(string email)
         {
             try
             {
-                if (string.IsNullOrEmpty(username))
+                if (string.IsNullOrEmpty(email))
                 {
-                    return BadRequest(new { status = false, message = "Username is required." });
+                    return BadRequest(new { status = false, message = "email is required." });
                 }
 
-                var officer = dbcontext.Users.FirstOrDefault(u => u.Username == username);
+                var officer = dbcontext.Users.FirstOrDefault(u => u.Email == email);
                 if (officer == null)
                 {
                     return NotFound(new { status = false, message = "Officer not found." });
@@ -55,8 +55,54 @@ namespace SahayataNidhi.Controllers.Admin
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error validating officer: {Username}", username);
+                _logger.LogError(ex, "Error validating officer: {Username}", email);
                 return StatusCode(500, new { status = false, message = "An error occurred while validating the officer." });
+            }
+        }
+
+        [HttpPost]
+        [HttpPost]
+        public IActionResult UpdateUserType(string username, string userType)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(userType))
+                {
+                    return BadRequest(new { status = false, message = "Username and userType are required." });
+                }
+
+                if (userType != "Admin" && userType != "Officer")
+                {
+                    return BadRequest(new { status = false, message = "Invalid userType. Must be 'Admin' or 'Officer'." });
+                }
+
+                var user = dbcontext.Users.FirstOrDefault(u => u.Username == username);
+                if (user == null)
+                {
+                    return NotFound(new { status = false, message = "User not found." });
+                }
+
+                // Update the actual UserType column
+                user.UserType = userType;
+
+                dbcontext.SaveChanges();
+
+                // Current IST time
+                string currentDateTime = DateTime.UtcNow.AddHours(5.5)
+                    .ToString("dd MMM yyyy, hh:mm tt") + " IST";
+
+                return Json(new
+                {
+                    status = true,
+                    message = $"User type changed to {userType}",
+                    userType,
+                    updatedAt = currentDateTime
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user type for {Username}", username);
+                return StatusCode(500, new { status = false, message = "An error occurred while updating user type." });
             }
         }
 

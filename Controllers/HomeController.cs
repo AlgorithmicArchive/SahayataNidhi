@@ -23,6 +23,8 @@ using SahayataNidhi.Models;
 using SahayataNidhi.Models.Entities;
 using SendEmails;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using UAParser;
+using System.Dynamic;
 
 namespace SahayataNidhi.Controllers
 {
@@ -49,12 +51,12 @@ namespace SahayataNidhi.Controllers
 
         // JAN PARICHAY SETUP
 
-        public async Task<bool> ValidateToken(JanParichayUser janUser)
+        public async Task<bool> ValidateToken(UserSignature userSignature)
         {
             var client = _httpClientFactory.CreateClient();
-            var clientToken = janUser.ClientToken; // From payload
-            var sessionId = janUser.SessionId; // From payload (Post Login Session Id)
-            var browserId = janUser.BrowserId; // From payload
+            var clientToken = userSignature.ClientToken; // From payload
+            var sessionId = userSignature.SessionId; // From payload (Post Login Session Id)
+            var browserId = userSignature.BrowserId; // From payload
 
             // PDF Page 10: Include sessionId & browserId from cookies if set, fallback to payload
             var cookieSessionId = HttpContext.Request.Cookies["SessionId"];
@@ -63,10 +65,10 @@ namespace SahayataNidhi.Controllers
             if (!string.IsNullOrEmpty(cookieBrowserId)) browserId = cookieBrowserId;
 
             var url = $"{_configuration["JanParichay:ClientBaseUrl"]}/isTokenValid?" +
-                      $"clientToken={Uri.EscapeDataString(clientToken!)}" +
+                      $"clientToken={clientToken!}" +
                       $"&sid={_configuration["JanParichay:ServiceId"]}" +
-                      $"&sessionId={Uri.EscapeDataString(sessionId!)}" +
-                      $"&browserId={Uri.EscapeDataString(browserId!)}";
+                      $"&sessionId={sessionId!}" +
+                      $"&browserId={browserId!}";
 
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode) return false;
@@ -81,29 +83,23 @@ namespace SahayataNidhi.Controllers
         {
             try
             {
-                var clientSessionId = Guid.NewGuid().ToString();
+                var clientSessionId = HttpContext.Session.Id;
                 var sid = _configuration["JanParichay:ServiceId"]!;
-                var tid = DateTimeOffset.UtcNow.AddMinutes(5).ToUnixTimeMilliseconds();
+                var tid = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 var baseUrl = _configuration["JanParichay:JanParichayBaseUrl"]!.TrimEnd('/');
-
                 // 1. Encrypt the Client Session Id
                 var encryptedClientSessionId = await _helper.EncryptStringAsync(clientSessionId);
-
                 // 2. Build HMAC input string (EXACTLY as per doc)
                 var loginUrl = $"{baseUrl}/v1/api/login";
                 var hmacInput = $"JanParichay{tid}{loginUrl}{sid}";
-
                 var clientSignature = await _helper.GetHmacSignatureAsync(hmacInput);
-
                 // 3. Build redirect URL
                 var redirectUrl = $"{baseUrl}/v1/api/login?" +
                                   $"sid={sid}" +
                                   $"&tid={tid}" +
-                                  $"&cs={Uri.EscapeDataString(clientSignature)}" +
-                                  $"&string={Uri.EscapeDataString(encryptedClientSessionId)}";
-
-                // _logger.LogInformation("Redirecting to JanParichay: {Url}", redirectUrl);
-
+                                  $"&cs={clientSignature}" +
+                                  $"&string={encryptedClientSessionId}";
+                _logger.LogInformation("Redirecting to JanParichay: {Url}", redirectUrl);
                 // // Return JSON for React frontend
                 // return Ok(new { redirectUrl });
                 return Json(new { redirectUrl });
@@ -114,8 +110,6 @@ namespace SahayataNidhi.Controllers
                 return StatusCode(500, new { error = "SSO initiation failed", details = ex.Message });
             }
         }
-
-        [HttpGet]
         public async Task<IActionResult> SSOCallback([FromQuery] string @string)
         {
             // ========================================
@@ -126,7 +120,6 @@ namespace SahayataNidhi.Controllers
             _logger.LogInformation("Full URL: {FullUrl}", fullUrl);
             _logger.LogInformation("Raw @string: '{String}' (Length: {Len})", @string ?? "NULL", @string?.Length ?? 0);
             _logger.LogInformation("All Query Params: {@Query}", Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString()));
-
             // ========================================
             // STEP 2: VALIDATE HANDSHAKING ID
             // ========================================
@@ -135,63 +128,50 @@ namespace SahayataNidhi.Controllers
                 _logger.LogError("MISSING HANDSHAKING ID — Jan Parichay did NOT send ?string=");
                 return BadRequest(new { status = false, response = "Missing handshaking ID" });
             }
-
             if (@string.Length < 100 || @string.Length > 1000)
             {
                 _logger.LogWarning("SUSPICIOUS HANDSHAKING ID LENGTH: {Len} chars", @string.Length);
                 // Still proceed — might be valid
             }
-
             _logger.LogInformation("VALID HANDSHAKING ID RECEIVED: {Len} chars", @string.Length);
-
             try
             {
                 var sid = _configuration["JanParichay:ServiceId"]!;
                 var clientBaseUrl = _configuration["JanParichay:ClientBaseUrl"]!.TrimEnd('/');
+                var frontendUrl = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
 
                 // ========================================
                 // STEP 3: CALL HANDSHAKE API
                 // ========================================
-                var handshakeUrl = $"{clientBaseUrl}/handshake?handshakingId={Uri.EscapeDataString(@string)}&sid={sid}";
+                var handshakeUrl = $"{clientBaseUrl}/handshake?handshakingId={@string}&sid={sid}";
                 _logger.LogInformation("Calling Handshake API: {HandshakeUrl}", handshakeUrl);
-
                 var client = _httpClientFactory.CreateClient();
                 var response = await client.GetAsync(handshakeUrl);
-
                 _logger.LogInformation("Handshake Response Status: {StatusCode}", response.StatusCode);
-
-                if (response.StatusCode != HttpStatusCode.Accepted) // 202
+                if (response.StatusCode != HttpStatusCode.OK) // 202
                 {
                     var error = await response.Content.ReadAsStringAsync();
                     _logger.LogError("HANDSHAKE FAILED: {Status} | Response: {Error}", response.StatusCode, error);
                     return StatusCode(500, new { status = false, response = "Handshake failed", details = error });
                 }
-
                 var encryptedPayload = await response.Content.ReadAsStringAsync();
                 _logger.LogInformation("Encrypted Payload: '{Payload}' (Length: {Len})", encryptedPayload, encryptedPayload.Length);
-
                 if (encryptedPayload == "false")
                 {
                     _logger.LogError("INVALID HANDSHAKING ID — Jan Parichay returned 'false'");
                     return Unauthorized(new { status = false, response = "Invalid handshaking ID" });
                 }
-
                 // ========================================
                 // STEP 4: DECRYPT PAYLOAD
                 // ========================================
                 _logger.LogInformation("Decrypting payload...");
-                var decryptedJson = await _helper.DecryptStringAsync(encryptedPayload);
-                _logger.LogInformation("Decryption SUCCESS. Decrypted JSON: {Json}", decryptedJson);
-
-                var janUser = JsonSerializer.Deserialize<JanParichayUser>(decryptedJson,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
+                var janUser = await _helper.DecryptStringAsync(encryptedPayload); // Already deserialized to UserSignature
+                _logger.LogInformation("Decryption SUCCESS. User: {UserId}", janUser.UserId);
                 if (janUser?.ClientToken == null)
                 {
                     _logger.LogError("DECRYPTED DATA MISSING ClientToken");
                     return BadRequest(new { status = false, response = "Invalid user data" });
                 }
-
                 // ========================================
                 // STEP 5: TOKEN VALIDATION (Optional but Recommended)
                 // ========================================
@@ -201,7 +181,6 @@ namespace SahayataNidhi.Controllers
                     _logger.LogWarning("TOKEN VALIDATION FAILED");
                     return Unauthorized(new { status = false, response = "Token validation failed" });
                 }
-
                 // ========================================
                 // STEP 6: CREATE LOCAL USER & JWT
                 // ========================================
@@ -212,47 +191,83 @@ namespace SahayataNidhi.Controllers
                     return StatusCode(500, new { status = false, response = "User creation failed" });
                 }
 
-                var jwt = _helper.GenerateJwt(localUser, janUser.ClientToken);
 
+
+
+
+                var jwt = _helper.GenerateJwt(localUser, janUser.ClientToken);
                 // ========================================
                 // STEP 7: SET COOKIES (SameSite=None for Cross-Origin)
                 // ========================================
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = _configuration.GetValue<bool>("AppSettings:UseSecureCookies", true),
-                    SameSite = SameSiteMode.None,
+                    Secure = false,
+                    SameSite = SameSiteMode.Lax,
                     Expires = DateTimeOffset.Now.AddHours(12),
                     Path = "/"
                 };
-
                 Response.Cookies.Append("ClientToken", janUser.ClientToken, cookieOptions);
                 Response.Cookies.Append("SessionId", janUser.SessionId!, cookieOptions);
                 Response.Cookies.Append("BrowserId", janUser.BrowserId!, cookieOptions);
                 Response.Cookies.Append("PostLoginSessionId", janUser.SessionId!, cookieOptions);
 
-                _logger.LogInformation("COOKIES SET — User: {Email}", janUser.Email);
+                // existing lines
+                HttpContext.Session.SetString("IdentityProviderIP", janUser?.Ip ?? "");
+                HttpContext.Session.SetString("ClientIP", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "");
 
+                // new lines for Browser, OS, Device
+                var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
+                var parser = Parser.GetDefault();
+                var clientInfo = parser.Parse(userAgent);
+
+                var browser = clientInfo.UA.ToString();     // e.g. "Chrome 129.0.0"
+                var os = clientInfo.OS.ToString();          // e.g. "Windows 11"
+                var device = clientInfo.Device.Family;      // e.g. "Desktop" or "iPhone"
+
+                HttpContext.Session.SetString("Browser", browser);
+                HttpContext.Session.SetString("OS", os);
+                HttpContext.Session.SetString("Device", string.IsNullOrEmpty(device) ? "Unknown" : device);
+
+                _logger.LogInformation("COOKIES SET — User: {Email}", janUser?.Email);
                 // ========================================
                 // STEP 8: REDIRECT TO FRONTEND WITH SSO DATA
                 // ========================================
-                var ssoResponse = new
+                // ... inside try block, after creating localUser and jwt ...
+
+                dynamic ssoResponse = new ExpandoObject();
+                ssoResponse.status = true;
+                ssoResponse.token = jwt;
+
+                // PRESERVE ORIGINAL ROLE FROM DB
+                var actualUserType = localUser.UserType;  // <-- ADD THIS
+
+                ssoResponse.userType = localUser.UserType;
+                ssoResponse.actualUserType = actualUserType;  // <-- ADD THIS
+
+                ssoResponse.username = localUser.Username;
+                ssoResponse.userId = localUser.UserId;
+                ssoResponse.designation = janUser?.Designation ?? "";
+                ssoResponse.department = _helper.GetDepartment(localUser);
+                ssoResponse.profile = localUser.Profile ?? "/assets/images/profile.jpg";
+                ssoResponse.email = janUser?.Email;
+
+                // Force non-validated officers to Citizen *view* only
+                if (localUser.UserType != "Citizen")
                 {
-                    status = true,
-                    token = jwt,
-                    userType = localUser.UserType,
-                    username = localUser.Username,
-                    userId = localUser.UserId,
-                    designation = janUser.Designation ?? "",
-                    department = _helper.GetDepartment(localUser),
-                    profile = localUser.Profile ?? "/assets/images/profile.jpg",
-                    email = janUser.Email
-                };
+                    var AdditionalDetails = JsonConvert.DeserializeObject<dynamic>(localUser.AdditionalDetails!);
+                    bool isValidated = (bool)AdditionalDetails!["Validate"];
+                    if (!isValidated)
+                    {
+                        ssoResponse.userType = "Citizen";  // Current view
+                                                           // actualUserType remains "Officer" (or whatever DB says)
+                    }
+                }
 
-                var encoded = Uri.EscapeDataString(JsonSerializer.Serialize(ssoResponse));
-                var frontendUrl = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
 
-                _logger.LogInformation("REDIRECTING TO FRONTEND: {Url}", $"{frontendUrl}/verification?sso={encoded}");
+
+                var encoded = JsonSerializer.Serialize(ssoResponse);
+                _logger.LogInformation("REDIRECTING TO FRONTEND: {Url}", $"{frontendUrl}?sso={encoded}");
                 return Redirect($"{frontendUrl}/verification?sso={encoded}");
             }
             catch (Exception ex)
@@ -261,6 +276,7 @@ namespace SahayataNidhi.Controllers
                 return StatusCode(500, new { status = false, response = "SSO processing failed", details = ex.Message });
             }
         }
+
         private static string GenerateOTP(int length)
         {
             var random = new Random();
@@ -824,7 +840,7 @@ namespace SahayataNidhi.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult ValidateToken()
+        public IActionResult ValidateJWTToken()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var username = User.FindFirst(ClaimTypes.Name)?.Value;
@@ -888,63 +904,135 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, response = "Registration failed." });
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> OfficerRegistration([FromForm] IFormCollection form)
         {
-            // Extract form fields and map to stored procedure parameters
-            var fullName = new SqlParameter("@Name", form["fullName"].ToString());
-            var username = new SqlParameter("@Username", form["username"].ToString());
-            var password = new SqlParameter("@Password", form["password"].ToString()); // Will be hashed in SQL
-            var email = new SqlParameter("@Email", form["email"].ToString());
-            var mobileNumber = new SqlParameter("@MobileNumber", form["mobileNumber"].ToString());
-            var profile = new SqlParameter("@Profile", "/assets/images/profile.jpg"); // Default profile image
+            var email = form["email"].ToString().Trim();
+            var mobileNumber = form["mobileNumber"].ToString().Trim();
+            var fullName = form["fullName"].ToString().Trim();
+            var designation = form["designation"].ToString();
+            var departmentId = form["department"].ToString();
+            var accessLevel = form["accessLevel"].ToString();
+            var accessCodeStr = form["accessCode"].ToString();
 
-            // Determine UserType
-            var userType = new SqlParameter("@UserType",
-                form["designation"].ToString().Contains("Admin") ? "Admin" : "Officer");
+            // Username = Email
+            var username = email;
 
-            // Backup codes (stored as JSON string in NVARCHAR(MAX))
-            var backupCodes = new
+            if (!int.TryParse(accessCodeStr, out int accessCode))
+                return Json(new { status = false, message = "Invalid access code." });
+
+            try
             {
-                unused = _helper.GenerateUniqueRandomCodes(10, 8),
-                used = Array.Empty<string>()
+                // Step 1: Check if user exists using EF
+                var existingUser = await _dbContext.Users
+                    .FirstOrDefaultAsync(u => u.Email == email);
+
+                var profile = "/assets/images/profile.jpg";
+                var registeredDate = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
+
+                // Officer details
+                var officerDetails = new
+                {
+                    Role = designation,
+                    RoleShort = GetShortTitleFromRole(designation),
+                    AccessLevel = accessLevel,
+                    AccessCode = accessCode,
+                    Department = departmentId,
+                    District = form.ContainsKey("District") ? form["District"].ToString() : null,
+                    Division = form.ContainsKey("Division") ? form["Division"].ToString() : null,
+                    Tehsil = form.ContainsKey("Tehsil") ? form["Tehsil"].ToString() : null,
+                    Validate = false
+                };
+
+                if (existingUser != null)
+                {
+                    // Upgrade only if current user is Citizen
+                    if (existingUser.UserType != "Citizen")
+                        return Json(new { status = false, message = "Email already registered as non-Citizen." });
+
+                    // Parse existing AdditionalDetails
+                    var currentDetails = string.IsNullOrEmpty(existingUser.AdditionalDetails)
+                        ? new { }
+                        : JsonConvert.DeserializeObject(existingUser.AdditionalDetails) ?? new { };
+
+                    // Merge: Keep Citizen + Add Officer
+                    var mergedDetails = new
+                    {
+                        Citizen = currentDetails,
+                        Officer = officerDetails
+                    };
+                    var mergedJson = JsonConvert.SerializeObject(mergedDetails);
+
+                    // Update using EF
+                    existingUser.Username = username;
+                    existingUser.MobileNumber = mobileNumber;
+                    existingUser.UserType = "Officer";
+                    existingUser.AdditionalDetails = mergedJson;
+                    existingUser.RegisteredDate = registeredDate;
+
+                    await _dbContext.SaveChangesAsync();
+
+                    return Json(new
+                    {
+                        status = true,
+                        userId = existingUser.UserId,
+                        message = "Upgraded from Citizen to Officer successfully."
+                    });
+                }
+                else
+                {
+                    // New Officer: Use stored procedure
+                    var backupCodesObj = new
+                    {
+                        unused = _helper.GenerateUniqueRandomCodes(10, 8),
+                        used = Array.Empty<string>()
+                    };
+                    var backupCodesJson = JsonConvert.SerializeObject(backupCodesObj);
+
+                    var additionalDetailsJson = JsonConvert.SerializeObject(new { Officer = officerDetails });
+
+                    var parameters = new[]
+                    {
+                new SqlParameter("@Name", fullName),
+                new SqlParameter("@Username", username),
+                new SqlParameter("@Password", ""), // Empty
+                new SqlParameter("@Email", email),
+                new SqlParameter("@MobileNumber", mobileNumber),
+                new SqlParameter("@Profile", profile),
+                new SqlParameter("@UserType", "Officer"),
+                new SqlParameter("@BackupCodes", backupCodesJson),
+                new SqlParameter("@AddtionalDetails", additionalDetailsJson),
+                new SqlParameter("@RegisteredDate", registeredDate)
             };
-            var backupCodesParam = new SqlParameter("@BackupCodes", JsonConvert.SerializeObject(backupCodes));
 
-            // Additional details JSON
-            var additionalDetails = new
-            {
-                Role = form["designation"].ToString(),
-                RoleShort = GetShortTitleFromRole(form["designation"].ToString()),
-                AccessLevel = form["accessLevel"].ToString(),
-                AccessCode = Convert.ToInt32(form["accessCode"].ToString()),
-                Department = form["department"].ToString(),
-                District = form.ContainsKey("District") ? form["District"].ToString() : null,
-                Division = form.ContainsKey("Division") ? form["Division"].ToString() : null,
-                Tehsil = form.ContainsKey("Tehsil") ? form["Tehsil"].ToString() : null,
-                Validate = false
-            };
-            var additionalDetailsParam = new SqlParameter("@AddtionalDetails", JsonConvert.SerializeObject(additionalDetails));
+                    var result = await _dbContext.Users
+                        .FromSqlRaw(
+                            @"EXEC RegisterUser 
+                      @Name, @Username, @Password, @Email, @MobileNumber, 
+                      @Profile, @UserType, @BackupCodes, @AddtionalDetails, @RegisteredDate",
+                            parameters)
+                        .ToListAsync();
 
-            // Date of registration (as NVARCHAR to match SP definition)
-            var registeredDate = new SqlParameter("@RegisteredDate",
-                DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt"));
+                    if (result.Count > 0)
+                    {
+                        return Json(new
+                        {
+                            status = true,
+                            userId = result[0].UserId,
+                            message = "Officer registered successfully."
+                        });
+                    }
 
-            // 🔹 Execute Stored Procedure (parameter names must match exactly)
-            var result = _dbContext.Users.FromSqlRaw(
-                "EXEC RegisterUser @Name, @Username, @Password, @Email, @MobileNumber, @Profile, @UserType, @BackupCodes, @AddtionalDetails, @RegisteredDate",
-                fullName, username, password, email, mobileNumber, profile, userType, backupCodesParam, additionalDetailsParam, registeredDate
-            ).ToList();
-
-            // Handle result
-            if (result.Count > 0)
-            {
-                return Json(new { status = true, userId = result[0].UserId, message = "Registration successful." });
+                    return Json(new { status = false, message = "Registration failed." });
+                }
             }
-
-            return Json(new { status = false, message = "Registration failed." });
+            catch (Exception ex)
+            {
+                // Log in production: _logger.LogError(ex, "OfficerRegistration failed");
+                return Json(new { status = false, message = "Server error: " + ex.Message });
+            }
         }
-
 
         [HttpPost]
         public IActionResult Verification([FromForm] IFormCollection form)
@@ -1085,11 +1173,47 @@ namespace SahayataNidhi.Controllers
             return Json(new { status = true, message = "Email verified successfully." });
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
-        public IActionResult LogOut()
+        public async Task<IActionResult> Logout()
         {
-            return RedirectToAction("Index", "Home");
+            try
+            {
+                // === 1. Read JanParichay tokens from cookies ===
+                var clientToken = Request.Cookies["ClientToken"];
+                var sessionId = Request.Cookies["SessionId"] ?? Request.Cookies["PostLoginSessionId"];
+                var browserId = Request.Cookies["BrowserId"];
+                var sid = _configuration["JanParichay:ServiceId"]!;
+                var userAgent = Request.Headers["User-Agent"].ToString();
+                var tid = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+
+                // === 2. Clear local cookies FIRST ===
+                Response.Cookies.Delete("ClientToken");
+                Response.Cookies.Delete("SessionId");
+                Response.Cookies.Delete("BrowserId");
+                Response.Cookies.Delete("PostLoginSessionId");
+
+                // === 3. If SSO user, redirect browser to JanParichay logout ===
+                if (!string.IsNullOrEmpty(clientToken) && !string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(browserId))
+                {
+                    var logoutUrl = _helper.GetJanParichayLogoutUrl(clientToken, sessionId, browserId, sid, userAgent, tid);
+
+                    // Optional: Log audit
+                    _auditService.InsertLog(HttpContext, "Logout", "User logged out via JanParichay.", null, "Success");
+
+                    // Redirect browser → kills JanParichay session
+                    return Json(new { sso = true, logoutUrl });
+                }
+
+                // === 4. Non-SSO user: just go to login ===
+                _auditService.InsertLog(HttpContext, "Logout", "User logged out (non-SSO).", null, "Success");
+                return Redirect("/login");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Logout failed");
+                return Redirect("/login");
+            }
         }
 
         [HttpGet]
@@ -1181,65 +1305,17 @@ namespace SahayataNidhi.Controllers
         }
 
         [HttpGet]
-        public IActionResult CheckEmail(string email, string UserType, string? divisionId = null, string? departmentId = null, string? districtId = null, string? tehsilId = null, string? designation = null)
+        public IActionResult CheckEmail(string email, string userType)
         {
-            bool exists;
-
-            if (UserType == "Citizen")
-            {
-                exists = _dbContext.Users.Any(u => u.Email == email && u.UserType == UserType);
-            }
-            else if (UserType != "Citizen")
-            {
-                // First, check if email already exists for officer
-                exists = _dbContext.Users.Any(u => u.Email == email && u.UserType == UserType);
-
-                if (exists)
-                {
-                    // Now match with JSON details only if email exists
-                    exists = _dbContext.Users
-                        .AsEnumerable()
-                        .Any(u => u.Email == email &&
-                                  u.UserType == UserType &&
-                                  u.AdditionalDetails != null &&
-                                  MatchesOfficerDetails(u.AdditionalDetails, divisionId, districtId, tehsilId, departmentId, designation));
-                }
-            }
-            else
-            {
-                exists = _dbContext.Users.Any(u => u.Email == email);
-            }
+            bool exists = _dbContext.Users.Any(u => u.Email == email && u.UserType == userType);
 
             return Json(new { status = true, isUnique = !exists });
         }
 
         [HttpGet]
-        public IActionResult CheckMobileNumber(string number, string UserType, string? divisionId = null, string? districtId = null, string? tehsilId = null, string? departmentId = null, string? designation = null)
+        public IActionResult CheckMobileNumber(string number, string userType)
         {
-            bool exists;
-
-            if (UserType == "Citizen")
-            {
-                exists = _dbContext.Users.Any(u => u.MobileNumber == number && u.UserType == UserType);
-            }
-            else if (UserType == "Officer")
-            {
-                exists = _dbContext.Users.Any(u => u.MobileNumber == number && u.UserType == UserType);
-
-                if (exists)
-                {
-                    exists = _dbContext.Users
-                        .AsEnumerable()
-                        .Any(u => u.MobileNumber == number &&
-                                  u.UserType == UserType &&
-                                  u.AdditionalDetails != null &&
-                                  MatchesOfficerDetails(u.AdditionalDetails, divisionId, districtId, tehsilId, departmentId, designation));
-                }
-            }
-            else
-            {
-                exists = _dbContext.Users.Any(u => u.MobileNumber == number);
-            }
+            bool exists = _dbContext.Users.Any(u => u.MobileNumber == number && u.UserType == userType);
 
             return Json(new { status = true, isUnique = !exists });
         }

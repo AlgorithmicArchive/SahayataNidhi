@@ -12,12 +12,14 @@ using Wangkanai.Detection.Services;
 
 namespace SahayataNidhi.Controllers
 {
-    public partial class BaseController(SwdjkContext dbcontext, ILogger<BaseController> logger, IDetectionService detection, IWebHostEnvironment webHostEnvironment) : Controller
+    public partial class BaseController(SwdjkContext dbcontext, ILogger<BaseController> logger, IDetectionService detection, IWebHostEnvironment webHostEnvironment, IConfiguration config, UserHelperFunctions helper) : Controller
     {
         protected readonly SwdjkContext dbcontext = dbcontext;
         protected readonly ILogger<BaseController> _logger = logger;
         private readonly IDetectionService _detection = detection;
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
+        private readonly IConfiguration _config = config;
+        protected readonly UserHelperFunctions helper = helper;
 
 
         private const long MinImageFile = 20 * 1024;  // 20KB

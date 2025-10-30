@@ -11,12 +11,14 @@ import {
   MenuItem,
   Popper,
   Menu,
+  CircularProgress,
 } from "@mui/material";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { UserContext } from "../UserContext";
 import TokenTimer from "./TokenTimer";
 import axiosInstance from "../axiosConfig";
 import MenuIcon from "@mui/icons-material/Menu";
+import { toast } from "react-toastify";
 
 const MyNavbar = () => {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
@@ -24,8 +26,8 @@ const MyNavbar = () => {
   const [openSubmenu, setOpenSubmenu] = useState(null);
   const [hoveredKey, setHoveredKey] = useState(null);
   const [popperAnchor, setPopperAnchor] = useState(null);
+  const [loginLoading, setLoginLoading] = useState(false);
   const timeoutRef = useRef(null);
-
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -41,23 +43,46 @@ const MyNavbar = () => {
     verified,
     setVerified,
     officerAuthorities,
+    actualUserType, // NEW
   } = useContext(UserContext);
 
-  /* ------------------ Resize detection ------------------ */
+  /* -------------------------------------------------
+     Toggle role (Officer ↔ Citizen)
+  ------------------------------------------------- */
+  const handleToggleRole = async () => {
+    const isCurrentCitizen = userType === "Citizen";
+    try {
+      const res = await axiosInstance.get("/Base/RedirectToCitizen", {
+        params: { username, isCitizen: isCurrentCitizen }, // true → Officer, false → Citizen
+      });
+      window.location.href = res.data.url;
+    } catch (e) {
+      toast.error("Role switch failed.");
+    }
+  };
+
+  /* -------------------------------------------------
+     Resize detection
+  ------------------------------------------------- */
   useEffect(() => {
-    const handleResize = () => setIsSmallScreen(window.innerWidth < 992);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const handle = () => setIsSmallScreen(window.innerWidth < 992);
+    handle();
+    window.addEventListener("resize", handle);
+    return () => window.removeEventListener("resize", handle);
   }, []);
 
   useEffect(() => {
     return () => timeoutRef.current && clearTimeout(timeoutRef.current);
   }, []);
 
-  /* ------------------ Logout & navigation ------------------ */
+  /* -------------------------------------------------
+     Logout & navigation
+  ------------------------------------------------- */
   const handleLogout = async () => {
-    await axiosInstance.get("/Home/LogOut");
+    try {
+      const r = await axiosInstance.post("/Home/LogOut");
+      if (r.data.sso) window.location.href = r.data.logoutUrl;
+    } catch {}
     setToken(null);
     setUserType(null);
     setUsername(null);
@@ -75,55 +100,71 @@ const MyNavbar = () => {
     setHoveredKey(null);
   };
 
-  const handleNavigate = (path) => {
-    navigate(path);
-    closeAllMenus();
+  const handleNavigate = async (path) => {
+    if (path === "/login") {
+      try {
+        setLoginLoading(true);
+        const r = await fetch("/Home/InitiateSSO", { method: "POST" });
+        const d = await r.json();
+        if (d.redirectUrl) {
+          setTimeout(() => (window.location.href = d.redirectUrl), 300);
+        } else {
+          toast.error("Failed to start SSO.");
+          setLoginLoading(false);
+        }
+      } catch {
+        toast.error("Login error.");
+        setLoginLoading(false);
+      }
+    } else {
+      navigate(path);
+      closeAllMenus();
+    }
   };
 
   const handleMobileMenuOpen = (e) => setMobileMenuAnchor(e.currentTarget);
   const handleMobileMenuClose = () => setMobileMenuAnchor(null);
 
-  /* ------------------ Hover handling (desktop) ------------------ */
-  const handleMouseEnter = (key, anchorEl) => {
+  /* -------------------------------------------------
+     Hover (desktop)
+  ------------------------------------------------- */
+  const handleMouseEnter = (key, el) => {
     if (!isSmallScreen) {
       clearTimeout(timeoutRef.current);
       setHoveredKey(key);
-      setPopperAnchor(anchorEl);
+      setPopperAnchor(el);
     }
   };
-
   const handleMouseLeave = () => {
     if (!isSmallScreen) {
       timeoutRef.current = setTimeout(() => setHoveredKey(null), 200);
     }
   };
-
   const handleMenuMouseEnter = () => clearTimeout(timeoutRef.current);
   const handleMenuMouseLeave = () => handleMouseLeave();
 
-  /* ------------------ Style helpers ------------------ */
+  /* -------------------------------------------------
+     Styles
+  ------------------------------------------------- */
   const getActivePaths = (item) => {
     if (item.path) return [item.path];
     if (item.subItems) return item.subItems.map((s) => s.path).filter(Boolean);
     return [];
   };
-
   const getNavItemStyle = (item) => {
-    const activePaths = getActivePaths(item);
-    const isActive = activePaths.includes(location.pathname);
-
+    const active = getActivePaths(item).includes(location.pathname);
     return {
-      color: isActive ? "#FFF" : "#000", // changed from white to green
-      fontWeight: isActive ? 600 : "normal",
+      color: active ? "#FFF" : "#000",
+      fontWeight: active ? 600 : "normal",
       padding: "5px 15px",
-      transition: "all 0.3s ease",
-      background: isActive
-        ? "linear-gradient(to right, #10B582, #0D9588)" // lighter background for better contrast
+      transition: "all .3s ease",
+      background: active
+        ? "linear-gradient(to right, #10B582, #0D9588)"
         : "transparent",
       borderRadius: 2,
       "&:hover": {
-        transform: isActive ? "scale(1.05)" : "none",
-        color: !isActive ? "#0FB282" : undefined,
+        transform: active ? "scale(1.05)" : "none",
+        color: !active ? "#0FB282" : undefined,
       },
       ...(item.isSpecial && {
         backgroundColor: "#E5620A",
@@ -136,49 +177,46 @@ const MyNavbar = () => {
       gap: 0.5,
     };
   };
-
   const getMenuItemStyle = (path) => {
-    const isActive = location.pathname === path;
+    const active = location.pathname === path;
     return {
-      backgroundColor: isActive
+      backgroundColor: active
         ? "linear-gradient(to right, #10B582, #0D9588)"
         : "transparent",
-      color: isActive ? "#0D9588" : "#000",
-      fontWeight: isActive ? 600 : "normal",
+      color: active ? "#0D9588" : "#000",
+      fontWeight: active ? 600 : "normal",
       "&:hover": {
-        backgroundColor: isActive
+        backgroundColor: active
           ? "linear-gradient(to right, #10B582, #0D9588)"
           : "#f0f0f0",
-        color: isActive ? "#0D9588" : "#10B582",
+        color: active ? "#0D9588" : "#10B582",
       },
     };
   };
 
-  /* ------------------ Dynamic menu config ------------------ */
+  /* -------------------------------------------------
+     Dynamic menu config
+  ------------------------------------------------- */
   const getMenuConfig = () => {
-    const menu = [];
+    const m = [];
 
-    // ---------------------------
-    // Unauthenticated users
-    // ---------------------------
+    // ---- unauthenticated ----
     if (!userType && !verified) {
-      menu.push(
+      m.push(
         { name: "Home", path: "/", key: "home" },
-        { name: "Login", path: "/login", key: "login" },
+        { name: "Login", path: "/login", key: "login", isSpecial: true },
         {
-          name: "Register",
-          path: "/register",
-          key: "register",
+          name: "Department Officer Register",
+          path: "/officerRegistration",
+          key: "officerRegistration",
           isSpecial: true,
         },
       );
     }
 
-    // ---------------------------
-    // Citizen
-    // ---------------------------
+    // ---- Citizen ----
     if (userType === "Citizen" && verified) {
-      menu.push(
+      m.push(
         { name: "Home", path: "/user/home", key: "citizen-home" },
         {
           name: "Apply for Service",
@@ -196,11 +234,9 @@ const MyNavbar = () => {
       );
     }
 
-    // ---------------------------
-    // Officer
-    // ---------------------------
+    // ---- Officer ----
     if (userType === "Officer" && verified) {
-      menu.push(
+      m.push(
         { name: "Home", path: "/officer/home", key: "officer-home" },
         { name: "Reports", path: "/officer/reports", key: "officer-reports" },
         {
@@ -211,7 +247,7 @@ const MyNavbar = () => {
       );
 
       if (officerAuthorities?.canManageBankFiles) {
-        menu.push({
+        m.push({
           name: "Bank Files",
           key: "bank-files",
           subItems: [
@@ -224,34 +260,24 @@ const MyNavbar = () => {
         });
       }
 
-      const updations = [];
-      if (officerAuthorities?.canCorrigendum) {
-        updations.push({
-          name: "Data Updation",
-          path: "/officer/issuecorrigendum",
-        });
-      }
-      if (officerAuthorities?.canWithhold) {
-        updations.push({
-          name: "Withheld Application",
-          path: "/officer/withheld",
-        });
-      }
-      if (officerAuthorities?.canValidateAadhaar) {
-        updations.push({
+      const upd = [];
+      if (officerAuthorities?.canCorrigendum)
+        upd.push({ name: "Data Updation", path: "/officer/issuecorrigendum" });
+      if (officerAuthorities?.canWithhold)
+        upd.push({ name: "Withheld Application", path: "/officer/withheld" });
+      if (officerAuthorities?.canValidateAadhaar)
+        upd.push({
           name: "Validate Aadhaar",
           path: "/officer/validateaadhaar",
         });
-      }
-      if (updations.length) {
-        menu.push({
+      if (upd.length)
+        m.push({
           name: "Applications Updations",
           key: "updations",
-          subItems: updations,
+          subItems: upd,
         });
-      }
 
-      menu.push({
+      m.push({
         name: "View Applications",
         key: "view-apps",
         subItems: [
@@ -261,11 +287,9 @@ const MyNavbar = () => {
       });
     }
 
-    // ---------------------------
-    // Viewer
-    // ---------------------------
+    // ---- Viewer, Admin, Designer (unchanged) ----
     if (userType === "Viewer" && verified) {
-      menu.push(
+      m.push(
         { name: "Home", path: "/viewer/home", key: "viewer-home" },
         {
           name: "Aadhaar Validations",
@@ -274,12 +298,8 @@ const MyNavbar = () => {
         },
       );
     }
-
-    // ---------------------------
-    // Admin
-    // ---------------------------
     if (userType === "Admin" && verified) {
-      menu.push(
+      m.push(
         { name: "Dashboard", path: "/admin/home", key: "admin-home" },
         { name: "Reports", path: "/admin/reports", key: "admin-reports" },
         {
@@ -307,12 +327,8 @@ const MyNavbar = () => {
         },
       );
     }
-
-    // ---------------------------
-    // Designer
-    // ---------------------------
     if (userType === "Designer" && verified) {
-      menu.push(
+      m.push(
         {
           name: "Dashboard",
           path: "/designer/dashboard",
@@ -341,42 +357,60 @@ const MyNavbar = () => {
         },
       );
     }
-
-    return menu;
+    return m;
   };
-
   const menuConfig = getMenuConfig();
 
+  /* -------------------------------------------------
+     Mobile menu – adds profile submenu with switch
+  ------------------------------------------------- */
   const mobileMenuItems = React.useMemo(() => {
     if (!userType || !verified) return menuConfig;
+
+    const profileSub = [{ name: "Settings", path: "/settings" }];
+
+    // ---- show switch only for non-Citizen original role ----
+    if (actualUserType !== "Citizen") {
+      profileSub.push({
+        name:
+          userType === "Citizen" ? "Switch to Officer" : "Switch to Citizen",
+        action: handleToggleRole,
+      });
+    }
+
+    profileSub.push({ name: "Logout", action: handleLogout });
+
     return [
       ...menuConfig,
       { name: "Feedback", path: "/feedback", key: "feedback" },
-      {
-        name: "Profile",
-        key: "profile",
-        subItems: [
-          { name: "Settings", path: "/settings" },
-          { name: "Logout", action: handleLogout },
-        ],
-      },
+      { name: "Profile", key: "profile", subItems: profileSub },
     ];
-  }, [menuConfig, userType, verified]);
+  }, [menuConfig, userType, verified, actualUserType]);
 
-  /* ------------------ Desktop render helper using Popper ------------------ */
+  /* -------------------------------------------------
+     Render helpers
+  ------------------------------------------------- */
   const renderDesktopItem = (item, idx) => {
-    const isDropdown = !!item.subItems;
-
-    if (!isDropdown) {
+    const isDrop = !!item.subItems;
+    if (!isDrop) {
+      const isLogin = item.path === "/login";
       return (
         <Button
           key={idx}
-          component={Link}
-          to={item.path}
+          component={isLogin ? "button" : Link}
+          to={!isLogin ? item.path : undefined}
           sx={getNavItemStyle(item)}
           onClick={() => handleNavigate(item.path)}
+          disabled={isLogin && loginLoading}
         >
-          {item.name}
+          {isLogin && loginLoading ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <CircularProgress size={18} sx={{ color: "#fff" }} />
+              <span>Redirecting...</span>
+            </Box>
+          ) : (
+            item.name
+          )}
         </Button>
       );
     }
@@ -422,19 +456,25 @@ const MyNavbar = () => {
     );
   };
 
-  /* ------------------ Mobile render helper ------------------ */
   const renderMobileItem = (item, idx) => {
-    const isDropdown = !!item.subItems;
-    const isOpen = openSubmenu === item.key;
+    const isDrop = !!item.subItems;
+    const open = openSubmenu === item.key;
 
-    if (!isDropdown) {
+    if (!isDrop) {
       return (
         <MenuItem
           key={idx}
           onClick={() => handleNavigate(item.path)}
           sx={getMenuItemStyle(item.path)}
         >
-          {item.name}
+          {item.path === "/login" && loginLoading ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <CircularProgress size={16} />
+              <span>Redirecting...</span>
+            </Box>
+          ) : (
+            item.name
+          )}
         </MenuItem>
       );
     }
@@ -442,25 +482,23 @@ const MyNavbar = () => {
     return (
       <React.Fragment key={idx}>
         <MenuItem
-          onClick={() => setOpenSubmenu(isOpen ? null : item.key)}
+          onClick={() => setOpenSubmenu(open ? null : item.key)}
           sx={{
             fontWeight: 600,
             justifyContent: "space-between",
             "&:hover": { backgroundColor: "#f0f0f0", color: "#10B582" },
           }}
         >
-          {item.name} <Box>{isOpen ? "−" : "→"}</Box>
+          {item.name} <Box>{open ? "−" : "→"}</Box>
         </MenuItem>
-
-        {isOpen &&
+        {open &&
           item.subItems.map((sub, i) => (
             <MenuItem
               key={i}
               sx={{ pl: 4, ...getMenuItemStyle(sub.path) }}
-              onClick={() => {
-                if (sub.action) sub.action();
-                else handleNavigate(sub.path);
-              }}
+              onClick={() =>
+                sub.action ? sub.action() : handleNavigate(sub.path)
+              }
             >
               {sub.name}
             </MenuItem>
@@ -469,7 +507,9 @@ const MyNavbar = () => {
     );
   };
 
-  /* ------------------ JSX ------------------ */
+  /* -------------------------------------------------
+     JSX
+  ------------------------------------------------- */
   return (
     <AppBar position="static" sx={{ backgroundColor: "#fff" }}>
       <Toolbar>
@@ -516,10 +556,8 @@ const MyNavbar = () => {
             p: 1,
           }}
         >
-          {/* Main nav items */}
           {menuConfig.map(renderDesktopItem)}
 
-          {/* Feedback button */}
           {userType && verified && (
             <Button
               component={Link}
@@ -531,15 +569,13 @@ const MyNavbar = () => {
             </Button>
           )}
 
-          {/* User info + TokenTimer + Profile dropdown */}
+          {/* Profile (desktop) */}
           {userType && verified && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, ml: 2 }}>
               <Typography sx={{ color: "#333", fontWeight: "bold" }}>
                 {username}
               </Typography>
               <TokenTimer />
-
-              {/* Profile dropdown */}
               <Box
                 onMouseEnter={(e) =>
                   handleMouseEnter("profile", e.currentTarget)
@@ -557,9 +593,9 @@ const MyNavbar = () => {
                       borderRadius: "50%",
                       objectFit: "cover",
                     }}
-                    onError={(e) => {
-                      e.currentTarget.src = "/assets/images/profile.jpg";
-                    }}
+                    onError={(e) =>
+                      (e.currentTarget.src = "/assets/images/profile.jpg")
+                    }
                   />
                 </IconButton>
 
@@ -574,12 +610,14 @@ const MyNavbar = () => {
                     onMouseLeave={handleMenuMouseLeave}
                   >
                     <MenuList>
-                      <MenuItem
-                        sx={getMenuItemStyle("/settings")}
-                        onClick={() => handleNavigate("/settings")}
-                      >
-                        Settings
-                      </MenuItem>
+                      {/* SWITCH – only for non-Citizen original role */}
+                      {actualUserType !== "Citizen" && (
+                        <MenuItem onClick={handleToggleRole}>
+                          {userType === "Citizen"
+                            ? "Switch to Officer"
+                            : "Switch to Citizen"}
+                        </MenuItem>
+                      )}
                       <MenuItem onClick={handleLogout}>Logout</MenuItem>
                     </MenuList>
                   </Paper>

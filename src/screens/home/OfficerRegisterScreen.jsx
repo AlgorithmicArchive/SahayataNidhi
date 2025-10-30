@@ -429,7 +429,7 @@ export default function OfficerRegisterScreen() {
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
               {/* Row 1 */}
               <Row>
-                <Col xs={12} md={6}>
+                <Col xs={12} md={12}>
                   <Controller
                     name="fullName"
                     control={control}
@@ -464,7 +464,7 @@ export default function OfficerRegisterScreen() {
                     )}
                   />
                 </Col>
-                <Col xs={12} md={6}>
+                {/* <Col xs={12} md={6}>
                   <Controller
                     name="username"
                     control={control}
@@ -504,7 +504,7 @@ export default function OfficerRegisterScreen() {
                       />
                     )}
                   />
-                </Col>
+                </Col> */}
               </Row>
 
               {/* Row 2: Department & Designation */}
@@ -816,7 +816,7 @@ export default function OfficerRegisterScreen() {
               </Row>
 
               {/* Password */}
-              <Row>
+              {/* <Row>
                 <Col xs={12} md={6}>
                   <Controller
                     name="password"
@@ -888,7 +888,7 @@ export default function OfficerRegisterScreen() {
                     )}
                   />
                 </Col>
-              </Row>
+              </Row> */}
 
               {/* CAPTCHA */}
               <Row>
@@ -1031,28 +1031,6 @@ export default function OfficerRegisterScreen() {
               </Box>
             </Box>
           </form>
-
-          {/* Sign In Link */}
-          <Box textAlign="center" mt={3}>
-            <Typography variant="body2" color="text.secondary">
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate("/login");
-                }}
-                sx={{
-                  color: "#F67015",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                  "&:hover": { textDecoration: "underline" },
-                }}
-              >
-                Sign In
-              </Link>
-            </Typography>
-          </Box>
         </Container>
 
         {/* OTP Modal */}

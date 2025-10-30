@@ -303,24 +303,35 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SwdjkCo
 
 
 
-    public async Task<string> DecryptStringAsync(string encryptedText)
+    public async Task<UserSignature> DecryptStringAsync(string encryptedText)
     {
-        var url = $"{BaseUrl}/Encryption/decrypt?encryptedText={Uri.EscapeDataString(encryptedText)}";
-        var response = await Client.GetAsync(url);
-        var content = await response.Content.ReadAsStringAsync();
+        var url = $"{BaseUrl}/decryption";
 
-        _logger.LogInformation("Decrypt Response: {Content}", content);
+        // Create the JSON body
+        var jsonBody = JsonSerializer.Serialize(new
+        {
+            EncryptedString = encryptedText
+        });
+
+        var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+        var response = await Client.PostAsync(url, content);
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("Decrypt Response: {Content}", responseString);
 
         response.EnsureSuccessStatusCode();
 
-        var result = JsonSerializer.Deserialize<DecryptResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                     ?? throw new Exception("Decrypt failed: null response");
+        var result = JsonSerializer.Deserialize<DecryptResponse>(responseString,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+            ?? throw new Exception("Decrypt failed: null response");
 
-        if (result.Status?.ToLower() != "success" || result.Data?.DecryptedString == null)
-            throw new Exception($"Decrypt failed: {content}");
+        if (result.Status?.ToLower() != "success" || result.Data?.Signature == null)
+            throw new Exception($"Decrypt failed: {responseString}");
 
-        return result.Data.DecryptedString;
+        return result.Data.Signature;
     }
+
 
     // 3. HMAC
     public async Task<string> GetHmacSignatureAsync(string input)
@@ -387,59 +398,92 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SwdjkCo
         return result.Status?.ToLower() == "success" && result.TokenValid == "true";
     }
 
-    public async Task<Users> FindOrCreateJanParichayUser(JanParichayUser janUser)
+    public async Task<Users> FindOrCreateJanParichayUser(UserSignature userSignature)
     {
-        if (janUser == null || string.IsNullOrEmpty(janUser.Email))
+        if (userSignature == null)
             throw new ArgumentException("Invalid JanParichay user data");
 
-        // 1. Try to find existing user by Email
+        // Fallback: Use UserId as Email if Email is missing/empty (common for mobile logins)
+        var effectiveEmail = string.IsNullOrEmpty(userSignature.Email) ? userSignature.UserId : userSignature.Email;
+        if (string.IsNullOrEmpty(effectiveEmail))
+            throw new ArgumentException("Invalid JanParichay user data: Missing both Email and UserId");
+
+        // 1. Try to find existing user by effectiveEmail
         var existingUser = await dbcontext.Users
-            .FirstOrDefaultAsync(u => u.Email == janUser.Email);
+      .FirstOrDefaultAsync(u => u.Email == effectiveEmail);
 
         if (existingUser != null)
-            return existingUser;
+        {
+            if (string.IsNullOrWhiteSpace(existingUser.Username))
+            {
+                existingUser.Username = userSignature.UserName;
+                await dbcontext.SaveChangesAsync(); // ✅ async save
+            }
 
-        // 2. Create new user
+            return existingUser;
+        }
+
+        // 2. Prepare additional details as JSON for citizens/officers
+        var additionalDetails = new
+        {
+            DateOfBirth = userSignature.Dob
+        };
+        var additionalJson = JsonSerializer.Serialize(additionalDetails);
+
+
+        // 3. Create new user (use effectiveEmail for Username/Email)
         var newUser = new Users
         {
-            Name = $"{janUser.FirstName} {janUser.LastName}".Trim(),
-            Username = janUser.Email,
-            Email = janUser.Email,
-            MobileNumber = janUser.MobileNo,
-            UserType = "Citizen", // You can map based on Designation later
-            Profile = "/assets/images/profile.jpg",
+            Name = $"{userSignature.FirstName?.ToUpper()} {userSignature.LastName?.ToUpper()}".Trim(),
+            Username = effectiveEmail,  // Use effectiveEmail here
+            Email = effectiveEmail,     // Use effectiveEmail here
+            MobileNumber = userSignature.MobileNo,
+            UserType = userSignature.UserType ?? "Citizen",  // Fallback to userType if Role missing
+            Profile = userSignature.ProfilePic ?? "/assets/images/profile.jpg",
+            BackupCodes = null, // Generate if needed
+            AdditionalDetails = additionalJson, // Store all extra details as JSON
             IsEmailValid = true,
             RegisteredDate = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt")
         };
+        _logger.LogInformation($"Creating new user with UserData: {newUser}");
 
-        dbcontext.Users.Add(newUser);
+        dbcontext.Users.Add(newUser);  // Uncomment for actual save
         await dbcontext.SaveChangesAsync();
-
         return newUser;
     }
-
     // 5. LOGOUT
-    public async Task<bool> LogoutAsync(string clientToken, string sessionId, string browserId, string sid, string userAgent, string tid)
+    public string GetJanParichayLogoutUrl(
+    string clientToken,
+    string sessionId,
+    string browserId,
+    string sid,
+    string userAgent,
+    string tid)
     {
-        var signatureInput = $"clientToken={clientToken}&sessionId={sessionId}&browserId={browserId}&sid={sid}&UserAgent={userAgent}&tid={tid}&cs=";
-        var clientSignature = await GetHmacSignatureAsync(signatureInput);
+        // Build the exact string to sign, as per documentation:
+        // "JanParichay" + tid + "{BaseUrl}/v1/salt/api/client/logout" + clientToken + sid + sessionId
 
-        var url = $"{BaseUrl}/sal/api/client/logout?" +
+        var baseUrl = _configuration["JanParichay:JanParichayBaseUrl"]!.TrimEnd('/');
+
+        var signatureBase = $"JanParichay{tid}{baseUrl}/v1/salt/api/client/logout{clientToken}{sid}{sessionId}";
+
+        // Generate HMAC hash (sync for simplicity)
+        var clientSignature = GetHmacSignatureAsync(signatureBase).GetAwaiter().GetResult();
+
+        // Then build the final redirect URL
+        var url = $"{baseUrl}/v1/salt/api/client/logout?" +
                   $"clientToken={clientToken}" +
+                  $"&sid={sid}" +
                   $"&sessionId={sessionId}" +
                   $"&browserId={browserId}" +
-                  $"&sid={sid}" +
-                  $"&UserAgent={Uri.EscapeDataString(userAgent)}" +
+                  $"&ua={userAgent}" +
                   $"&tid={tid}" +
-                  $"&cs=" +
-                  $"&ClientSignature={Uri.EscapeDataString(clientSignature)}";
+                  $"&cs={clientSignature}";
 
-        var response = await Client.GetAsync(url);
-        var content = await response.Content.ReadAsStringAsync();
-        _logger.LogInformation("Logout Response: {Content}", content);
-
-        return response.IsSuccessStatusCode;
+        _logger.LogInformation("JanParichay Logout Redirect URL: {Url}", url);
+        return url;
     }
+
     public string GetDepartment(Users user)
     {
         if (user.UserType != "Admin") return "";
@@ -459,13 +503,13 @@ public class UserHelperFunctions(IWebHostEnvironment webHostEnvironment, SwdjkCo
     public string GenerateJwt(Users user, string clientToken)
     {
         var claims = new List<Claim>
-    {
-        new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-        new(ClaimTypes.Name, user.Username!),
-        new(ClaimTypes.Role, user.UserType!),
-        new("Profile", user.Profile!),
-        new("JanParichayClientToken", clientToken)
-    };
+        {
+            new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new(ClaimTypes.Name, user.Username!),
+            new(ClaimTypes.Role, user.UserType!),
+            new("Profile", user.Profile!),
+            new("JanParichayClientToken", clientToken)
+        };
 
         var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]!);
         var tokenDescriptor = new SecurityTokenDescriptor

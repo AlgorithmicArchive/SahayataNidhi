@@ -1,3 +1,4 @@
+// Updated ServerSideTable component
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { MaterialReactTable } from "material-react-table";
 import {
@@ -24,7 +25,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axiosInstance from "../axiosConfig";
 import styled from "@emotion/styled";
-
 const TableContainer = styled(Box)`
   background: linear-gradient(to bottom right, #f4f9ff 0%, #f9f3ec 100%);
   display: flex;
@@ -34,12 +34,10 @@ const TableContainer = styled(Box)`
   box-sizing: border-box;
   min-height: 50vh;
   width: 100%;
-
   @media (max-width: 600px) {
     padding: 1rem 0.5rem;
   }
 `;
-
 const TableCard = styled(Box)`
   background: #ffffff;
   border-radius: 16px;
@@ -51,13 +49,11 @@ const TableCard = styled(Box)`
   &:hover {
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
   }
-
   @media (max-width: 600px) {
     padding: 1rem;
     border-radius: 12px;
   }
 `;
-
 const ActionButton = styled(Button)`
   background: linear-gradient(45deg, #1e88e5, #4fc3f7);
   color: #ffffff;
@@ -70,13 +66,11 @@ const ActionButton = styled(Button)`
     background: linear-gradient(45deg, #1565c0, #039be5);
     box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
   }
-
   @media (max-width: 600px) {
     padding: 0.4rem 1rem;
     font-size: 0.875rem;
   }
 `;
-
 const StyledIconButton = styled(IconButton)`
   color: #1e88e5;
   border: 1px solid #1e88e5;
@@ -88,12 +82,10 @@ const StyledIconButton = styled(IconButton)`
     color: #ffffff;
     transform: scale(1.02);
   }
-
   @media (max-width: 600px) {
     padding: 0.3rem;
   }
 `;
-
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
   & .MuiToggleButton-root {
     text-transform: none;
@@ -115,7 +107,6 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
       }
     }
   }
-
   @media (max-width: 600px) {
     & .MuiToggleButton-root {
       padding: 0.4rem 1rem;
@@ -123,7 +114,6 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
     }
   }
 `;
-
 const StyledFormControl = styled(FormControl)`
   & .MuiOutlinedInput-root {
     border-radius: 8px;
@@ -145,31 +135,26 @@ const StyledFormControl = styled(FormControl)`
   }
   min-width: 150px;
   margin-right: 1rem;
-
   @media (max-width: 600px) {
     min-width: 120px;
     margin-right: 0.5rem;
   }
 `;
-
 // Memoized Input Cell Component to prevent re-renders and focus loss
 const InputCell = React.memo(({ row, inputValues, setInputValues }) => {
   const [localValue, setLocalValue] = useState(
     inputValues[row.original.sno] || "",
   );
-
   // Sync local value with parent state only when parent state changes externally
   useEffect(() => {
     if (inputValues[row.original.sno] !== localValue) {
       setLocalValue(inputValues[row.original.sno] || "");
     }
   }, [inputValues[row.original.sno], row.original.sno]);
-
   const handleInputChange = useCallback(
     (e) => {
       const value = e.target.value;
       setLocalValue(value);
-
       // Immediate update to parent state without debouncing
       setInputValues((prev) => ({
         ...prev,
@@ -178,7 +163,6 @@ const InputCell = React.memo(({ row, inputValues, setInputValues }) => {
     },
     [row.original.sno, setInputValues],
   );
-
   return (
     <TextField
       type="text"
@@ -200,6 +184,31 @@ const InputCell = React.memo(({ row, inputValues, setInputValues }) => {
         },
       }}
     />
+  );
+});
+
+// New Memoized UserType Select Component
+const UserTypeSelect = React.memo(({ row, onChange }) => {
+  const [value, setValue] = useState(row.original.userType || "Officer");
+  // Sync with row data changes
+  useEffect(() => {
+    setValue(row.original.userType || "Officer");
+  }, [row.original.userType]);
+  const handleChange = useCallback(
+    (e) => {
+      const newValue = e.target.value;
+      setValue(newValue);
+      onChange(row.original.username, newValue);
+    },
+    [row.original.username, onChange],
+  );
+  return (
+    <FormControl size="small" sx={{ minWidth: 100 }}>
+      <Select value={value} onChange={handleChange}>
+        <MenuItem value="Officer">Officer</MenuItem>
+        <MenuItem value="Admin">Admin</MenuItem>
+      </Select>
+    </FormControl>
   );
 });
 
@@ -241,19 +250,52 @@ const ServerSideTable = React.forwardRef(
     const [anchorEl, setAnchorEl] = useState(null);
     const [downloadType, setDownloadType] = useState(null);
     const [inputValues, setInputValues] = useState({});
-
     // Storage key unique to the table instance
     const storageKey = Title.toLowerCase()
       .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) =>
         index === 0 ? word.toLowerCase() : word.toUpperCase(),
       )
       .replace(/\s+/g, "");
-
     // Memoized setInputValues to prevent unnecessary re-renders
     const memoizedSetInputValues = useCallback((updater) => {
       setInputValues(updater);
     }, []);
-
+    // New: Handler for UserType changes
+    const handleUserTypeChange = useCallback(
+      async (username, newType) => {
+        const formdata = new FormData();
+        formdata.append("username", username);
+        formdata.append("userType", newType);
+        try {
+          const response = await axiosInstance.post(
+            "/Admin/UpdateUserType",
+            formdata,
+          );
+          if (response.data.status) {
+            toast.success(response.data.message, {
+              position: "top-center",
+              autoClose: 3000,
+              theme: "colored",
+            });
+            fetchData(); // Refresh table to reflect changes
+          } else {
+            toast.error(response.data.message || "Update failed.", {
+              position: "top-center",
+              autoClose: 3000,
+              theme: "colored",
+            });
+          }
+        } catch (error) {
+          console.error("Error updating user type:", error);
+          toast.error("An error occurred while updating user type.", {
+            position: "top-center",
+            autoClose: 3000,
+            theme: "colored",
+          });
+        }
+      },
+      [fetchData],
+    );
     // Log props for debugging
     useEffect(() => {
       console.log("ServerSideTable props:", {
@@ -263,7 +305,6 @@ const ServerSideTable = React.forwardRef(
         Title,
       });
     }, [url, serviceId, extraParams, Title]);
-
     // Load saved column settings from sessionStorage on mount
     useEffect(() => {
       const fetchTableSettings = async () => {
@@ -271,7 +312,6 @@ const ServerSideTable = React.forwardRef(
           const response = await axiosInstance.get("/Base/GetTableSettings", {
             params: { storageKey: storageKey },
           });
-
           if (response.data?.status && response.data?.tableSettings) {
             try {
               const savedSettings = response.data.tableSettings;
@@ -299,7 +339,6 @@ const ServerSideTable = React.forwardRef(
       };
       fetchTableSettings();
     }, [storageKey]);
-
     // Save column settings to sessionStorage
     const saveColumnSettings = useCallback(async () => {
       const formData = new FormData();
@@ -311,17 +350,14 @@ const ServerSideTable = React.forwardRef(
           savedColumnVisibility: columnVisibility,
         }),
       );
-
       await axiosInstance.post("/Base/SaveTableSettings", formData);
     }, [columnOrder, columnVisibility, storageKey]);
-
     // Update sessionStorage whenever columnOrder or columnVisibility changes
     useEffect(() => {
       if (columnOrder.length > 0 || Object.keys(columnVisibility).length > 0) {
         saveColumnSettings();
       }
     }, [columnOrder, columnVisibility, saveColumnSettings]);
-
     // Memoized function to create input column
     const createInputColumn = useCallback(() => {
       return {
@@ -339,7 +375,6 @@ const ServerSideTable = React.forwardRef(
         ),
       };
     }, [memoizedSetInputValues]);
-
     const fetchData = useCallback(async () => {
       if (!url) {
         console.error("URL is undefined, cannot fetch data.");
@@ -351,7 +386,6 @@ const ServerSideTable = React.forwardRef(
         setIsLoading(false);
         return;
       }
-
       setIsLoading(true);
       try {
         const response = await axiosInstance.get(url, {
@@ -361,33 +395,40 @@ const ServerSideTable = React.forwardRef(
             ...extraParams,
           },
         });
-
         const json = response.data;
-
         const hasAnyActions =
           json.data?.some((row) => row.customActions?.length > 0) ||
           json.poolData?.some((row) => row.customActions?.length > 0) ||
           false;
-
         // Base column config
         let updatedColumns = Object.values(json.columns || {}).map((col) =>
           col.accessorKey === "sno" ? { ...col, size: 20 } : col,
         );
-
+        // Apply custom cell renderer for userType column (before actions)
+        updatedColumns = updatedColumns.map((col) => {
+          if (col.accessorKey === "userType") {
+            return {
+              ...col,
+              size: 120,
+              enableSorting: false,
+              Cell: ({ row }) => (
+                <UserTypeSelect row={row} onChange={handleUserTypeChange} />
+              ),
+            };
+          }
+          return col;
+        });
         // Check if any row has "input: true"
         const hasInputColumn = json.data?.some((row) => row.input === true);
-
         if (hasInputColumn) {
           updatedColumns.push(createInputColumn());
         }
-
         setHasActions(hasAnyActions);
         setColumns(updatedColumns);
         setInboxData(json.data || []);
         setPoolData(json.poolData || []);
         setTotalRecords(json.totalRecords || 0);
         setPageCount(Math.ceil((json.totalRecords || 0) / pagination.pageSize));
-
         setColumnOrder((prevOrder) => {
           if (prevOrder.length === 0) {
             return updatedColumns.map((col) => col.accessorKey);
@@ -402,7 +443,6 @@ const ServerSideTable = React.forwardRef(
             updatedColumns.some((col) => col.accessorKey === key),
           );
         });
-
         setColumnVisibility((prevVisibility) => {
           if (Object.keys(prevVisibility).length === 0) {
             const initialVisibility = {};
@@ -440,12 +480,11 @@ const ServerSideTable = React.forwardRef(
       pagination.pageSize,
       extraParams,
       refreshTrigger,
+      handleUserTypeChange, // Add dependency
     ]);
-
     useEffect(() => {
       fetchData();
     }, [fetchData]);
-
     const handleDownload = async (format, scope) => {
       if (!url) {
         console.error("URL is undefined, cannot initiate download.");
@@ -456,7 +495,6 @@ const ServerSideTable = React.forwardRef(
         });
         return;
       }
-
       setIsLoading(true);
       setAnchorEl(null);
       setDownloadType(null);
@@ -467,27 +505,22 @@ const ServerSideTable = React.forwardRef(
         formData.append("scope", scope);
         formData.append("format", format);
         formData.append("function", url.split("/").filter(Boolean).pop());
-
         if (scope === "InView") {
           formData.append("pageIndex", pagination.pageIndex.toString());
           formData.append("pageSize", pagination.pageSize.toString());
         }
-
         if (extraParams && typeof extraParams === "object") {
           Object.entries(extraParams).forEach(([key, value]) => {
             formData.append(key, value.toString());
           });
         }
-
         // Include input values in download
         if (Object.keys(inputValues).length > 0) {
           formData.append("inputValues", JSON.stringify(inputValues));
         }
-
         console.log("Sending formData:", {
           formData,
         });
-
         const response = await axiosInstance.post(
           "/Base/ExportData",
           formData,
@@ -495,7 +528,6 @@ const ServerSideTable = React.forwardRef(
             responseType: "blob",
           },
         );
-
         const contentType = response.headers["content-type"];
         const extension = {
           Excel: "xlsx",
@@ -505,7 +537,6 @@ const ServerSideTable = React.forwardRef(
         const fileName = `${Title.replace(/\s+/g, "_")}_${scope}_${
           new Date().toISOString().split("T")[0]
         }.${extension}`;
-
         const blobUrl = window.URL.createObjectURL(
           new Blob([response.data], { type: contentType }),
         );
@@ -516,7 +547,6 @@ const ServerSideTable = React.forwardRef(
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(blobUrl);
-
         toast.success(`${format} file downloaded successfully!`, {
           position: "top-center",
           autoClose: 2000,
@@ -533,33 +563,27 @@ const ServerSideTable = React.forwardRef(
         setIsLoading(false);
       }
     };
-
     const handleMenuOpen = (event, format) => {
       setAnchorEl(event.currentTarget);
       setDownloadType(format);
     };
-
     const handleMenuClose = () => {
       setAnchorEl(null);
       setDownloadType(null);
     };
-
     const isPoolView = viewType === "Pool";
     const tableData = isPoolView ? poolData : inboxData;
     const showToggleButtons =
       poolData && pendingApplications && canSanction && canHavePool;
-
     const handleViewTypeChange = (event, newViewType) => {
       if (newViewType !== null) {
         setViewType(newViewType);
         setRowSelection({});
       }
     };
-
     // Memoize the table data to prevent unnecessary re-renders
     const memoizedTableData = useMemo(() => tableData, [tableData]);
     const memoizedColumns = useMemo(() => columns, [columns]);
-
     return (
       <TableContainer ref={ref}>
         <TableCard>
@@ -917,5 +941,4 @@ const ServerSideTable = React.forwardRef(
     );
   },
 );
-
 export default ServerSideTable;

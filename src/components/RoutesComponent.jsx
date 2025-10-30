@@ -59,14 +59,18 @@ import ViewFeedbacks from "../screens/admin/ViewFeedbacks";
 import SubmissionLimitations from "../screens/designer/SubmissionLimitations";
 import AddOffices from "../screens/admin/AddOffices";
 import AddOfficeDetails from "../screens/admin/AddOfficeDetails";
+import NotValidated from "../screens/home/NotValidated";
+import OfficerChoice from "../screens/home/OfficerChoice";
 
 const RoutesComponent = () => {
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<HomeScreen />} />
-      <Route path="/login" element={<LoginScreen />} />
+      <Route path="/loginForNICONLY" element={<LoginScreen />} />
+      <Route path="/choice" element={<OfficerChoice />} />
       <Route path="/verification" element={<Verification />} />
+      <Route path="/notValidated" element={<NotValidated />} />
       <Route path="/register" element={<RegisterScreen />} />
       <Route path="/officerRegistration" element={<OfficerRegisterScreen />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

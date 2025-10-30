@@ -3,20 +3,23 @@ import React, { createContext, useState, useEffect } from "react";
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  // Utility to safely parse JSON from sessionStorage
+  // ---------- Helper ----------
   const safeParse = (key, defaultValue) => {
     try {
-      const value = sessionStorage.getItem(key);
-      return value ? JSON.parse(value) : defaultValue;
-    } catch (error) {
-      console.error(`Failed to parse ${key} from sessionStorage:`, error);
+      const v = sessionStorage.getItem(key);
+      return v ? JSON.parse(v) : defaultValue;
+    } catch (e) {
+      console.error(`Failed to parse ${key}`, e);
       return defaultValue;
     }
   };
 
-  // Initialize state with safe parsing
+  // ---------- State ----------
   const [userType, setUserType] = useState(
     () => sessionStorage.getItem("userType") || null,
+  );
+  const [actualUserType, setActualUserType] = useState(
+    () => sessionStorage.getItem("actualUserType") || null,
   );
   const [token, setToken] = useState(
     () => sessionStorage.getItem("token") || null,
@@ -42,30 +45,41 @@ export const UserProvider = ({ children }) => {
     safeParse("tokenExpiry", null),
   );
 
-  // Sync state with sessionStorage
+  // ---------- Sync with sessionStorage ----------
   useEffect(() => {
-    if (userType) sessionStorage.setItem("userType", userType);
-    else sessionStorage.removeItem("userType");
+    userType
+      ? sessionStorage.setItem("userType", userType)
+      : sessionStorage.removeItem("userType");
   }, [userType]);
 
   useEffect(() => {
-    if (token) sessionStorage.setItem("token", token);
-    else sessionStorage.removeItem("token");
+    actualUserType
+      ? sessionStorage.setItem("actualUserType", actualUserType)
+      : sessionStorage.removeItem("actualUserType");
+  }, [actualUserType]);
+
+  useEffect(() => {
+    token
+      ? sessionStorage.setItem("token", token)
+      : sessionStorage.removeItem("token");
   }, [token]);
 
   useEffect(() => {
-    if (username) sessionStorage.setItem("username", username);
-    else sessionStorage.removeItem("username");
+    username
+      ? sessionStorage.setItem("username", username)
+      : sessionStorage.removeItem("username");
   }, [username]);
 
   useEffect(() => {
-    if (userId) sessionStorage.setItem("userId", userId);
-    else sessionStorage.removeItem("userId");
+    userId
+      ? sessionStorage.setItem("userId", userId)
+      : sessionStorage.removeItem("userId");
   }, [userId]);
 
   useEffect(() => {
-    if (profile) sessionStorage.setItem("profile", JSON.stringify(profile));
-    else sessionStorage.removeItem("profile");
+    profile
+      ? sessionStorage.setItem("profile", JSON.stringify(profile))
+      : sessionStorage.removeItem("profile");
   }, [profile]);
 
   useEffect(() => {
@@ -73,37 +87,41 @@ export const UserProvider = ({ children }) => {
   }, [verified]);
 
   useEffect(() => {
-    if (designation) sessionStorage.setItem("designation", designation);
-    else sessionStorage.removeItem("designation");
+    designation
+      ? sessionStorage.setItem("designation", designation)
+      : sessionStorage.removeItem("designation");
   }, [designation]);
 
   useEffect(() => {
-    if (officerAuthorities && Object.keys(officerAuthorities).length > 0) {
-      sessionStorage.setItem(
-        "officerAuthorities",
-        JSON.stringify(officerAuthorities),
-      );
-    } else {
-      sessionStorage.removeItem("officerAuthorities");
-    }
+    officerAuthorities && Object.keys(officerAuthorities).length
+      ? sessionStorage.setItem(
+          "officerAuthorities",
+          JSON.stringify(officerAuthorities),
+        )
+      : sessionStorage.removeItem("officerAuthorities");
   }, [officerAuthorities]);
 
   useEffect(() => {
-    if (department) sessionStorage.setItem("department", department);
-    else sessionStorage.removeItem("department");
+    department
+      ? sessionStorage.setItem("department", department)
+      : sessionStorage.removeItem("department");
   }, [department]);
 
   useEffect(() => {
-    if (tokenExpiry)
-      sessionStorage.setItem("tokenExpiry", JSON.stringify(tokenExpiry));
-    else sessionStorage.removeItem("tokenExpiry");
+    tokenExpiry
+      ? sessionStorage.setItem("tokenExpiry", JSON.stringify(tokenExpiry))
+      : sessionStorage.removeItem("tokenExpiry");
   }, [tokenExpiry]);
 
   return (
     <UserContext.Provider
       value={{
+        // current view
         userType,
         setUserType,
+        // original role (from SSO / DB)
+        actualUserType,
+        setActualUserType,
         token,
         setToken,
         username,

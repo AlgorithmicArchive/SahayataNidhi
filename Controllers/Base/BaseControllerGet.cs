@@ -1,3 +1,4 @@
+using System.Dynamic;
 using System.Globalization;
 using System.Security.Claims;
 using ClosedXML.Excel;
@@ -640,6 +641,45 @@ namespace SahayataNidhi.Controllers
                 return StatusCode(500, new { status = false, message = ex.Message });
             }
         }
+
+        [HttpGet]
+        public IActionResult RedirectToCitizen(string username, bool isCitizen)
+        {
+            var clientToken = Request.Cookies["ClientToken"];
+            var localUser = dbcontext.Users.FirstOrDefault(u => u.Username == username);
+
+            if (localUser == null)
+                return Json(new { url = $"{_config["AppSettings:FrontendUrl"]}/login" });
+
+            // PRESERVE ORIGINAL USER TYPE
+            var actualUserType = localUser.UserType; // <-- This is the real role from DB
+
+            // Temporarily override for this session
+            localUser.UserType = isCitizen ? "Officer" : "Citizen";
+
+            var jwt = helper.GenerateJwt(localUser!, clientToken!);
+
+            dynamic ssoResponse = new ExpandoObject();
+            ssoResponse.status = true;
+            ssoResponse.token = jwt;
+            ssoResponse.userType = localUser.UserType;           // <-- current (switched) view
+            ssoResponse.actualUserType = actualUserType;         // <-- original DB role
+            ssoResponse.username = localUser.Username;
+            ssoResponse.userId = localUser.UserId;
+            ssoResponse.designation = "";
+            ssoResponse.department = helper.GetDepartment(localUser!);
+            ssoResponse.profile = localUser.Profile ?? "/assets/images/profile.jpg";
+            ssoResponse.email = localUser.Email;
+
+            var encoded = JsonConvert.SerializeObject(ssoResponse);
+            var frontendUrl = _config["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+
+            _logger.LogInformation("REDIRECTING TO FRONTEND: {Url}", $"{frontendUrl}/verification?sso={encoded}");
+
+            return Json(new { url = $"{frontendUrl}/verification?sso={encoded}" });
+        }
+
+
 
     }
 }

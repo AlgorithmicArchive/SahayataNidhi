@@ -28,6 +28,7 @@
     <PackageReference Include="Pkcs11Interop" Version="5.1.2" />
     <PackageReference Include="SSH.NET" Version="2024.1.0" />
     <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+    <PackageReference Include="UAParser" Version="3.1.47" />
     <PackageReference Include="Wangkanai.Detection" Version="8.20.0" />
   </ItemGroup>
 
@@ -47,16 +48,9 @@
   <Target Name="ForceDevelopmentEnv" AfterTargets="AfterPublish">
     <Message Text="Updating web.config to set ASPNETCORE_ENVIRONMENT=Development" Importance="High" />
     <!-- Set existing environmentVariable if it exists -->
-    <XmlPoke 
-      XmlInputPath="$(PublishDir)web.config"
-      Query="/configuration/location/system.webServer/aspNetCore/environmentVariables/environmentVariable[@name='ASPNETCORE_ENVIRONMENT']/@value"
-      Value="Development" />
+    <XmlPoke XmlInputPath="$(PublishDir)web.config" Query="/configuration/location/system.webServer/aspNetCore/environmentVariables/environmentVariable[@name='ASPNETCORE_ENVIRONMENT']/@value" Value="Development" />
     <!-- Ensure environmentVariables node exists (optional, if missing) -->
-    <XmlPoke 
-      XmlInputPath="$(PublishDir)web.config"
-      Query="/configuration/location/system.webServer/aspNetCore/environmentVariables"
-      Value="" 
-      Condition="!Exists('$(PublishDir)web.config')" />
+    <XmlPoke XmlInputPath="$(PublishDir)web.config" Query="/configuration/location/system.webServer/aspNetCore/environmentVariables" Value="" Condition="!Exists('$(PublishDir)web.config')" />
   </Target>
 
 </Project>

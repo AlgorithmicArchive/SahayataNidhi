@@ -18,6 +18,16 @@ const ProtectedRoute = ({ requiredRoles }) => {
 
   // Effect to handle unauthorized access by clearing data and redirecting
   useEffect(() => {
+    console.log(
+      "Token",
+      token,
+      "Verified",
+      verified,
+      "Required roles",
+      requiredRoles,
+      "User Type",
+      userType,
+    );
     if (
       !token ||
       !verified ||
@@ -31,7 +41,7 @@ const ProtectedRoute = ({ requiredRoles }) => {
       setVerified(false);
       sessionStorage.clear(); // Clear all sessionStorage on logout
       // Redirect to appropriate page after clearing data
-      navigate(!token ? "/login" : "/unauthorized", { replace: true });
+      navigate(!token ? "/login" : "/unauthorized");
     }
   }, [
     token,

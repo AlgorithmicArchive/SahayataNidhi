@@ -45,6 +45,15 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.Name = ".SahayataNidhi.Session";
+});
+
+
 // JWT Authentication
 var jwtSecretKey = builder.Configuration.GetValue<string>("JWT:Secret");
 var key = Encoding.ASCII.GetBytes(jwtSecretKey!);
@@ -147,6 +156,9 @@ app.UseStaticFiles(new StaticFileOptions
             ctx.Context.Response.Headers.Append("Content-Type", $"image/{fileExtension.TrimStart('.')}");
     }
 });
+
+
+
 app.UseDetection();
 
 // ⚡ Add this for Nginx + ngrok forwarded headers
@@ -157,6 +169,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 
 app.UseRouting();
 app.UseCors("AllowAll");
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

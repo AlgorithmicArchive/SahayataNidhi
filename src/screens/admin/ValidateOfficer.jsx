@@ -1,24 +1,23 @@
+// Updated ValidateOfficer component (no changes needed here, as the logic is in ServerSideTable)
 import { Box } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../axiosConfig";
 import ServerSideTable from "../../components/ServerSideTable";
 import MessageModal from "../../components/MessageModal";
-
 export default function ValidateOfficer() {
   const [modalOpen, setModalOpen] = useState(false);
   const [responseMessage, setResponseMessage] = useState("");
   const actionFunctions = {
     ValidateOfficer: async (row) => {
       const userdata = row.original;
-      console.log("Validating officer:", userdata.username);
+      console.log("Validating officer:", userdata.email);
       const formdata = new FormData();
-      formdata.append("username", userdata.username);
+      formdata.append("email", userdata.email);
       try {
         const response = await axiosInstance.post(
           "/Admin/ValidateOfficer",
-          formdata
+          formdata,
         );
-
         if (response.data.status) {
           setResponseMessage(response.data.message);
           setModalOpen(true);
@@ -32,7 +31,6 @@ export default function ValidateOfficer() {
       }
     },
   };
-
   return (
     <Box
       sx={{

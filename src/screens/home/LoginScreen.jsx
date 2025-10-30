@@ -253,7 +253,6 @@ export default function LoginScreen() {
           </Typography>
         </Box>
         {/* JanParichay SSO Button */}
-        {/* JanParichay SSO Button */}
         <Box
           component="button"
           onClick={async () => {

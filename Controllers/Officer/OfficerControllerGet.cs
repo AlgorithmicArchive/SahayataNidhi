@@ -3362,5 +3362,30 @@ namespace SahayataNidhi.Controllers.Officer
         }
 
 
+        [HttpGet]
+        public IActionResult RedirectToCitizen(string username, bool isCitizen)
+        {
+            var clientToken = Request.Cookies["ClientToken"];
+            var localUser = dbcontext.Users.FirstOrDefault(u => u.Username == username);
+            var frontendUrl = _config["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+            localUser!.UserType = isCitizen ? "Officer" : "Citizen";
+            var jwt = helper.GenerateJwt(localUser!, clientToken!);
+            dynamic ssoResponse = new ExpandoObject();
+            ssoResponse.status = true;
+            ssoResponse.token = jwt;
+            ssoResponse.userType = localUser?.UserType;
+            ssoResponse.username = localUser?.Username;
+            ssoResponse.userId = localUser?.UserId;
+            ssoResponse.designation = "";
+            ssoResponse.department = helper.GetDepartment(localUser!);
+            ssoResponse.profile = localUser?.Profile ?? "/assets/images/profile.jpg";
+            ssoResponse.email = localUser?.Email;
+
+            var encoded = JsonConvert.SerializeObject(ssoResponse);
+
+            _logger.LogInformation("REDIRECTING TO FRONTEND: {Url}", $"{frontendUrl}?sso={encoded}");
+            return Json(new { url = $"{frontendUrl}/verification?sso={encoded}" });
+        }
+
     }
 }

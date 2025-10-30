@@ -514,7 +514,6 @@ namespace SahayataNidhi.Controllers.Admin
                 totalCount
             });
         }
-
         public IActionResult GetOfficerToValidate(int pageIndex = 0, int pageSize = 10)
         {
             try
@@ -539,9 +538,11 @@ namespace SahayataNidhi.Controllers.Admin
                 var paramAccessLevel = new SqlParameter("@AccessLevel", accessLevel);
                 var paramAccessCode = new SqlParameter("@AccessCode", accessCode);
 
-                // Call stored procedure
+                // Call stored procedure — UserType is already included!
                 var response = dbcontext.Database
-                    .SqlQueryRaw<OfficersToValidateModal>("EXEC GetOfficersToValidate @AccessLevel, @AccessCode", paramAccessLevel, paramAccessCode)
+                    .SqlQueryRaw<OfficersToValidateModal>(
+                        "EXEC GetOfficersToValidate @AccessLevel, @AccessCode",
+                        paramAccessLevel, paramAccessCode)
                     .ToList();
 
                 // Pagination
@@ -558,22 +559,22 @@ namespace SahayataNidhi.Controllers.Admin
                     new { accessorKey = "username", header = "Username" },
                     new { accessorKey = "email", header = "Email" },
                     new { accessorKey = "mobileNumber", header = "Mobile Number" },
-                    new { accessorKey = "designation", header = "Designation" }
+                    new { accessorKey = "designation", header = "Designation" },
+                    new { accessorKey = "userType", header = "User Type" }
                 };
 
                 // Dynamic custom actions based on validation state
-                var customActions = new List<dynamic>();
-                foreach (var item in pagedData)
+                var customActions = pagedData.Select(item =>
                 {
-                    var isValidated = item.IsValidated ?? false; // Assuming IsValidated is a nullable bool in OfficersToValidateModal
-                    customActions.Add(new
+                    var isValidated = item.IsValidated ?? false;
+                    return new
                     {
                         type = isValidated ? "Unvalidate" : "Validate",
                         tooltip = isValidated ? "Unvalidate" : "Validate",
-                        color = isValidated ? "#FF6B6B" : "#F0C38E", // Red for unvalidate, orange for validate
-                        actionFunction = isValidated ? "ValidateOfficer" : "ValidateOfficer"
-                    });
-                }
+                        color = isValidated ? "#FF6B6B" : "#F0C38E",
+                        actionFunction = "ValidateOfficer"
+                    };
+                }).ToList();
 
                 // Shape the data with dynamic actions
                 var data = pagedData.Select((item, index) => new
@@ -583,7 +584,8 @@ namespace SahayataNidhi.Controllers.Admin
                     email = item.Email,
                     mobileNumber = item.MobileNumber,
                     designation = item.Designation,
-                    customActions = new List<dynamic> { customActions[index] } // Assign specific action per row
+                    userType = item.UserType,  // Already from DB column
+                    customActions = new List<dynamic> { customActions[index] }
                 }).ToList();
 
                 return Json(new
@@ -599,7 +601,6 @@ namespace SahayataNidhi.Controllers.Admin
                 return StatusCode(500, new { error = "An error occurred while fetching data." });
             }
         }
-
 
         public IActionResult GetCurrentAdminDetails()
         {
