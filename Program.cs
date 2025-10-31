@@ -86,6 +86,7 @@ builder.Services.AddHostedService<QueuedHostedService>();
 builder.Services.AddSingleton<ICronScheduler, CronScheduler>();
 builder.Services.AddHostedService<CronScheduler>(); // This registers ICronScheduler automatically
 builder.Services.AddScoped<CronServices>();
+builder.Services.AddScoped<SessionRepository>();
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
