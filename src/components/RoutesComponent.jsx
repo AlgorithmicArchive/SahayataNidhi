@@ -144,6 +144,7 @@ const RoutesComponent = () => {
           <Route path="createworkflow" element={<CreateWorkflow />} />
           <Route path="createletterpdf" element={<CreateLetterPdf />} />
           <Route path="createwebservice" element={<CreateWebService />} />
+          <Route path="createreports" element={<CreateReports />} />
           <Route path="dynamicform" element={<DynamicScrollableForm />} />
           <Route path="emailsettings" element={<EmailSettings />} />
           <Route path="corrections" element={<Corrections />} />

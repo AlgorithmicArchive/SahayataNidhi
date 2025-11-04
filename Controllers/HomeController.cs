@@ -112,168 +112,213 @@ namespace SahayataNidhi.Controllers
         }
         public async Task<IActionResult> SSOCallback([FromQuery] string @string)
         {
-            // ========================================
-            // STEP 1: LOG EVERYTHING — SEE WHAT JAN PARICHAY SENT
-            // ========================================
             var fullUrl = Request.GetDisplayUrl();
             _logger.LogInformation("=== JAN PARICHAY CALLBACK START ===");
             _logger.LogInformation("Full URL: {FullUrl}", fullUrl);
             _logger.LogInformation("Raw @string: '{String}' (Length: {Len})", @string ?? "NULL", @string?.Length ?? 0);
-            _logger.LogInformation("All Query Params: {@Query}", Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString()));
-            // ========================================
-            // STEP 2: VALIDATE HANDSHAKING ID
-            // ========================================
-            if (string.IsNullOrEmpty(@string))
+
+            // Unified error response format — makes frontend parsing easy
+            IActionResult ErrorResponse(int statusCode, string response, string? details = null, string? step = null)
             {
-                _logger.LogError("MISSING HANDSHAKING ID — Jan Parichay did NOT send ?string=");
-                return BadRequest(new { status = false, response = "Missing handshaking ID" });
+                var obj = new
+                {
+                    status = false,
+                    response,
+                    details = details ?? "",
+                    step = step ?? "",
+                    handshakingId = @string ?? "",
+                    timestamp = DateTimeOffset.Now.ToString("o")
+                };
+                return StatusCode(statusCode, obj);
             }
-            if (@string.Length < 100 || @string.Length > 1000)
-            {
-                _logger.LogWarning("SUSPICIOUS HANDSHAKING ID LENGTH: {Len} chars", @string.Length);
-                // Still proceed — might be valid
-            }
-            _logger.LogInformation("VALID HANDSHAKING ID RECEIVED: {Len} chars", @string.Length);
+            ;
+
             try
             {
-                var sid = _configuration["JanParichay:ServiceId"]!;
-                var clientBaseUrl = _configuration["JanParichay:ClientBaseUrl"]!.TrimEnd('/');
+                // STEP 1: Validate Input
+                if (string.IsNullOrEmpty(@string))
+                {
+                    return ErrorResponse(400, "Missing handshaking ID", null, "ValidateInput");
+                }
+
+                if (@string.Length < 100 || @string.Length > 1000)
+                {
+                    _logger.LogWarning("SUSPICIOUS HANDSHAKING ID LENGTH: {Len} chars", @string.Length);
+                    // Proceed but flag in response for frontend awareness
+                }
+
+                // STEP 2: Load Config
+                var sid = _configuration["JanParichay:ServiceId"];
+                var clientBaseUrl = _configuration["JanParichay:ClientBaseUrl"]?.TrimEnd('/');
                 var frontendUrl = _configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
 
-                // ========================================
-                // STEP 3: CALL HANDSHAKE API
-                // ========================================
+                if (string.IsNullOrEmpty(sid))
+                {
+                    return ErrorResponse(500, "Service ID not configured", "JanParichay:ServiceId missing", "LoadConfig");
+                }
+                if (string.IsNullOrEmpty(clientBaseUrl))
+                {
+                    return ErrorResponse(500, "Client base URL not configured", "JanParichay:ClientBaseUrl missing", "LoadConfig");
+                }
+
+                // STEP 3: Call Handshake API
                 var handshakeUrl = $"{clientBaseUrl}/handshake?handshakingId={@string}&sid={sid}";
-                _logger.LogInformation("Calling Handshake API: {HandshakeUrl}", handshakeUrl);
-                var client = _httpClientFactory.CreateClient();
-                var response = await client.GetAsync(handshakeUrl);
-                _logger.LogInformation("Handshake Response Status: {StatusCode}", response.StatusCode);
-                if (response.StatusCode != HttpStatusCode.OK) // 202
+                _logger.LogInformation("Calling Handshake API: {Url}", handshakeUrl);
+
+                HttpResponseMessage handshakeResponse;
+                try
                 {
-                    var error = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("HANDSHAKE FAILED: {Status} | Response: {Error}", response.StatusCode, error);
-                    return StatusCode(500, new { status = false, response = "Handshake failed", details = error });
+                    var client = _httpClientFactory.CreateClient();
+                    handshakeResponse = await client.GetAsync(handshakeUrl);
                 }
-                var encryptedPayload = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation("Encrypted Payload: '{Payload}' (Length: {Len})", encryptedPayload, encryptedPayload.Length);
-                if (encryptedPayload == "false")
+                catch (Exception httpEx)
                 {
-                    _logger.LogError("INVALID HANDSHAKING ID — Jan Parichay returned 'false'");
-                    return Unauthorized(new { status = false, response = "Invalid handshaking ID" });
+                    return ErrorResponse(500, "Failed to reach Jan Parichay server", httpEx.Message, "HandshakeHttpCall");
                 }
-                // ========================================
-                // STEP 4: DECRYPT PAYLOAD
-                // ========================================
-                _logger.LogInformation("Decrypting payload...");
-                var janUser = await _helper.DecryptStringAsync(encryptedPayload); // Already deserialized to UserSignature
-                _logger.LogInformation("Decryption SUCCESS. User: {UserId}", janUser.UserId);
-                if (janUser?.ClientToken == null)
+
+                if (!handshakeResponse.IsSuccessStatusCode)
                 {
-                    _logger.LogError("DECRYPTED DATA MISSING ClientToken");
-                    return BadRequest(new { status = false, response = "Invalid user data" });
+                    var errorBody = await handshakeResponse.Content.ReadAsStringAsync();
+                    return ErrorResponse((int)handshakeResponse.StatusCode, "Handshake API error", errorBody, "HandshakeResponse");
                 }
-                // ========================================
-                // STEP 5: TOKEN VALIDATION (Optional but Recommended)
-                // ========================================
-                var isValid = await ValidateToken(janUser);
+
+                var encryptedPayload = await handshakeResponse.Content.ReadAsStringAsync();
+
+                if (string.IsNullOrEmpty(encryptedPayload) || encryptedPayload == "false")
+                {
+                    return ErrorResponse(401, "Invalid handshaking ID", "Jan Parichay returned empty or 'false'", "HandshakePayload");
+                }
+
+                // STEP 4: Decrypt Payload
+                UserSignature? janUser;
+                try
+                {
+                    janUser = await _helper.DecryptStringAsync(encryptedPayload);
+                }
+                catch (Exception decryptEx)
+                {
+                    return ErrorResponse(500, "Decryption failed", decryptEx.Message, "DecryptPayload");
+                }
+
+                if (janUser == null || string.IsNullOrEmpty(janUser.ClientToken))
+                {
+                    return ErrorResponse(400, "Invalid user data from Jan Parichay", "Missing ClientToken or null user", "DecryptPayload");
+                }
+
+                // STEP 5: Token Validation
+                bool isValid;
+                try
+                {
+                    isValid = await ValidateToken(janUser);
+                }
+                catch (Exception tokenEx)
+                {
+                    return ErrorResponse(401, "Token validation error", tokenEx.Message, "ValidateToken");
+                }
+
                 if (!isValid)
                 {
-                    _logger.LogWarning("TOKEN VALIDATION FAILED");
-                    return Unauthorized(new { status = false, response = "Token validation failed" });
+                    return ErrorResponse(401, "Token validation failed", "ValidateToken returned false", "ValidateToken");
                 }
-                // ========================================
-                // STEP 6: CREATE LOCAL USER & JWT
-                // ========================================
+
+                // STEP 6: Create Local User
                 var localUser = await _helper.FindOrCreateJanParichayUser(janUser);
+
                 if (localUser == null)
                 {
-                    _logger.LogError("USER CREATION FAILED");
-                    return StatusCode(500, new { status = false, response = "User creation failed" });
+                    return ErrorResponse(500, "User creation failed", "FindOrCreateJanParichayUser returned null", "CreateLocalUser");
                 }
 
-
-
-
-
-                var jwt = _helper.GenerateJwt(localUser, janUser.ClientToken);
-                // ========================================
-                // STEP 7: SET COOKIES (SameSite=None for Cross-Origin)
-                // ========================================
-                var cookieOptions = new CookieOptions
+                // STEP 7: Generate JWT
+                string jwt;
+                try
                 {
-                    HttpOnly = true,
-                    Secure = false,
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTimeOffset.Now.AddHours(12),
-                    Path = "/"
-                };
-                Response.Cookies.Append("ClientToken", janUser.ClientToken, cookieOptions);
-                Response.Cookies.Append("SessionId", janUser.SessionId!, cookieOptions);
-                Response.Cookies.Append("BrowserId", janUser.BrowserId!, cookieOptions);
-                Response.Cookies.Append("PostLoginSessionId", janUser.SessionId!, cookieOptions);
+                    jwt = _helper.GenerateJwt(localUser, janUser.ClientToken);
+                }
+                catch (Exception jwtEx)
+                {
+                    return ErrorResponse(500, "JWT generation failed", jwtEx.Message, "GenerateJwt");
+                }
 
-                // existing lines
-                HttpContext.Session.SetString("IdentityProviderIP", janUser?.Ip ?? "");
-                HttpContext.Session.SetString("ClientIP", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "");
+                // STEP 8: Set Cookies & Session (non-fatal — log only)
+                try
+                {
+                    var cookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = false, // Set true in prod
+                        SameSite = SameSiteMode.Lax,
+                        Expires = DateTimeOffset.Now.AddHours(12),
+                        Path = "/"
+                    };
 
-                // new lines for Browser, OS, Device
-                var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
-                var parser = Parser.GetDefault();
-                var clientInfo = parser.Parse(userAgent);
+                    Response.Cookies.Append("ClientToken", janUser.ClientToken, cookieOptions);
+                    Response.Cookies.Append("SessionId", janUser.SessionId!, cookieOptions);
+                    Response.Cookies.Append("BrowserId", janUser.BrowserId!, cookieOptions);
+                    Response.Cookies.Append("PostLoginSessionId", janUser.SessionId!, cookieOptions);
 
-                var browser = clientInfo.UA.ToString();     // e.g. "Chrome 129.0.0"
-                var os = clientInfo.OS.ToString();          // e.g. "Windows 11"
-                var device = clientInfo.Device.Family;      // e.g. "Desktop" or "iPhone"
+                    HttpContext.Session.SetString("IdentityProviderIP", janUser.Ip ?? "");
+                    HttpContext.Session.SetString("ClientIP", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "");
 
-                HttpContext.Session.SetString("Browser", browser);
-                HttpContext.Session.SetString("OS", os);
-                HttpContext.Session.SetString("Device", string.IsNullOrEmpty(device) ? "Unknown" : device);
+                    var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
+                    var parser = Parser.GetDefault();
+                    var clientInfo = parser.Parse(userAgent);
+                    HttpContext.Session.SetString("Browser", clientInfo.Browser.ToString());
+                    HttpContext.Session.SetString("OS", clientInfo.OS.ToString());
+                    HttpContext.Session.SetString("Device", string.IsNullOrEmpty(clientInfo.Device.Family) ? "Unknown" : clientInfo.Device.Family);
+                }
+                catch (Exception cookieEx)
+                {
+                    _logger.LogWarning(cookieEx, "Non-fatal: Cookie/Session setup failed");
+                    // Continue — not worth failing SSO
+                }
 
-                _logger.LogInformation("COOKIES SET — User: {Email}", janUser?.Email);
-                // ========================================
-                // STEP 8: REDIRECT TO FRONTEND WITH SSO DATA
-                // ========================================
-                // ... inside try block, after creating localUser and jwt ...
-
+                // STEP 9: Build SSO Response
                 dynamic ssoResponse = new ExpandoObject();
                 ssoResponse.status = true;
                 ssoResponse.token = jwt;
-
-                // PRESERVE ORIGINAL ROLE FROM DB
-                var actualUserType = localUser.UserType;  // <-- ADD THIS
-
                 ssoResponse.userType = localUser.UserType;
-                ssoResponse.actualUserType = actualUserType;  // <-- ADD THIS
-
+                ssoResponse.actualUserType = localUser.UserType;
                 ssoResponse.username = localUser.Username;
                 ssoResponse.userId = localUser.UserId;
-                ssoResponse.designation = janUser?.Designation ?? "";
+                ssoResponse.designation = janUser.Designation ?? "";
                 ssoResponse.department = _helper.GetDepartment(localUser);
                 ssoResponse.profile = localUser.Profile ?? "/assets/images/profile.jpg";
-                ssoResponse.email = janUser?.Email;
+                ssoResponse.email = janUser.Email;
 
-                // Force non-validated officers to Citizen *view* only
-                if (localUser.UserType != "Citizen")
+                // Non-validated officer override
+                if (localUser.UserType != "Citizen" && !string.IsNullOrEmpty(localUser.AdditionalDetails))
                 {
-                    var AdditionalDetails = JsonConvert.DeserializeObject<dynamic>(localUser.AdditionalDetails!);
-                    bool isValidated = (bool)AdditionalDetails!["Validate"];
-                    if (!isValidated)
+                    try
                     {
-                        ssoResponse.userType = "Citizen";  // Current view
-                                                           // actualUserType remains "Officer" (or whatever DB says)
+                        var additional = JsonConvert.DeserializeObject<dynamic>(localUser.AdditionalDetails);
+                        bool isValidated = additional?["Validate"] ?? false;
+                        if (!isValidated)
+                        {
+                            ssoResponse.userType = "Citizen";
+                        }
+                    }
+                    catch (Exception jsonEx)
+                    {
+                        _logger.LogWarning(jsonEx, "Failed to parse AdditionalDetails — skipping validation check");
                     }
                 }
 
-
-
                 var encoded = JsonSerializer.Serialize(ssoResponse);
-                _logger.LogInformation("REDIRECTING TO FRONTEND: {Url}", $"{frontendUrl}?sso={encoded}");
-                return Redirect($"{frontendUrl}/verification?sso={encoded}");
+                var redirectUrl = $"{frontendUrl}/verification?sso={encoded}";
+
+                // SUCCESS: Return 200 with redirect info (frontend can read body if needed)
+                return Ok(new
+                {
+                    status = true,
+                    redirect = redirectUrl,
+                    sso = encoded
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "SSOCALLBACK CRASHED — Handshaking ID: {Id}", @string);
-                return StatusCode(500, new { status = false, response = "SSO processing failed", details = ex.Message });
+                // FINAL SAFETY NET
+                return ErrorResponse(500, "Unexpected SSO processing failure", ex.Message + "\n" + ex.StackTrace, "UnhandledException");
             }
         }
 
