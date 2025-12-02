@@ -937,10 +937,10 @@ namespace SahayataNidhi.Controllers.Officer
                         totalRecords = ageData.Count;
                         data = ageData.Skip(pageIndex * pageSize).Take(pageSize).ToList<dynamic>();
                         columns = new List<dynamic>
-                {
-                    new { accessorKey = "age", header = "Age" },
-                    new { accessorKey = "countOfApplicants", header = "Ben. Count" }
-                };
+                        {
+                            new { accessorKey = "age", header = "Age" },
+                            new { accessorKey = "countOfApplicants", header = "Ben. Count" }
+                        };
                         break;
 
                     case "PensionTypeWise":
@@ -953,11 +953,11 @@ namespace SahayataNidhi.Controllers.Officer
                         totalRecords = pensionData.Count;
                         data = pensionData.Skip(pageIndex * pageSize).Take(pageSize).ToList<dynamic>();
                         columns = new List<dynamic>
-                {
-                    new { accessorKey = "age", header = "Age" },
-                    new { accessorKey = "pensionType", header = "Pension Type" },
-                    new { accessorKey = "countOfApplicants", header = "Ben. Count" }
-                };
+                        {
+                            new { accessorKey = "age", header = "Age" },
+                            new { accessorKey = "pensionType", header = "Pension Type" },
+                            new { accessorKey = "countOfApplicants", header = "Ben. Count" }
+                        };
                         break;
 
                     case "GenderWise":
@@ -970,10 +970,10 @@ namespace SahayataNidhi.Controllers.Officer
                         totalRecords = genderData.Count;
                         data = genderData.Skip(pageIndex * pageSize).Take(pageSize).ToList<dynamic>();
                         columns = new List<dynamic>
-                {
-                    new { accessorKey = "gender", header = "Gender" },
-                    new { accessorKey = "countOfApplicants", header = "Ben. Count" }
-                };
+                        {
+                            new { accessorKey = "gender", header = "Gender" },
+                            new { accessorKey = "countOfApplicants", header = "Ben. Count" }
+                        };
                         break;
 
                     case "TehsilWise":

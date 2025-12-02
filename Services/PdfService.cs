@@ -150,7 +150,7 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SwdjkContext dbc
         document.Close();
 
         // Call GetFilePath to store in database
-        await helper.GetFilePath(null, memoryStream.ToArray(), applicationId.Replace("/", "_") + "Acknowledgement.pdf");
+        await helper.GetFilePath(null, memoryStream.ToArray(), applicationId.Replace("/", "_") + "Acknowledgement.pdf", "document");
     }
 
     public async Task CreateSanctionPdf(Dictionary<string, string> details, string sanctionLetterFor, string information, OfficerDetailsModal Officer, string ApplicationId)
@@ -246,7 +246,7 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SwdjkContext dbc
         document.Add(footerTable);
 
         document.Close();
-        await helper.GetFilePath(null, memoryStream.ToArray(), ApplicationId.Replace("/", "_") + "_SanctionLetter.pdf");
+        await helper.GetFilePath(null, memoryStream.ToArray(), ApplicationId.Replace("/", "_") + "_SanctionLetter.pdf", "document");
     }
 
     public async Task CreateCorrigendumSanctionPdf(string corrigendumFieldsJson, string applicationId, OfficerDetailsModal officer, string serviceName, string corrigendumId, string sanctionedDate, string type)
@@ -392,6 +392,6 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SwdjkContext dbc
         document.Add(div);
         document.Close();
 
-        await helper.GetFilePath(null, memoryStream.ToArray(), corrigendumId.Replace("/", "_") + $"_{type}_SanctionLetter.pdf");
+        await helper.GetFilePath(null, memoryStream.ToArray(), corrigendumId.Replace("/", "_") + $"_{type}_SanctionLetter.pdf", "document");
     }
 }

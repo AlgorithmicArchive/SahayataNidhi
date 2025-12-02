@@ -68,6 +68,7 @@ export default function LoginScreen() {
     setDesignation,
     setDepartment,
     setUserId,
+    setActualUserType,
   } = useContext(UserContext);
 
   const navigate = useNavigate();
@@ -98,7 +99,8 @@ export default function LoginScreen() {
 
       if (response.status) {
         setToken(response.token);
-        setUserType(response.userType);
+        setUserType(response.userType);          // <-- displayed role (Citizen for non-validated)
+        setActualUserType(response.actualUserType); // <-- NEW: store original DB role
         setProfile(response.profile);
         setUsername(response.username);
         setDesignation(response.designation);

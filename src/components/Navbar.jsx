@@ -82,7 +82,7 @@ const MyNavbar = () => {
     try {
       const r = await axiosInstance.post("/Home/LogOut");
       if (r.data.sso) window.location.href = r.data.logoutUrl;
-    } catch {}
+    } catch { }
     setToken(null);
     setUserType(null);
     setUsername(null);
@@ -103,15 +103,16 @@ const MyNavbar = () => {
   const handleNavigate = async (path) => {
     if (path === "/login") {
       try {
-        setLoginLoading(true);
-        const r = await fetch("/Home/InitiateSSO", { method: "POST" });
-        const d = await r.json();
-        if (d.redirectUrl) {
-          setTimeout(() => (window.location.href = d.redirectUrl), 300);
-        } else {
-          toast.error("Failed to start SSO.");
-          setLoginLoading(false);
-        }
+        navigate("/login")
+        // setLoginLoading(true);
+        // const r = await fetch("/Home/InitiateSSO", { method: "POST" });
+        // const d = await r.json();
+        // if (d.redirectUrl) {
+        //   setTimeout(() => (window.location.href = d.redirectUrl), 300);
+        // } else {
+        //   toast.error("Failed to start SSO.");
+        //   setLoginLoading(false);
+        // }
       } catch {
         toast.error("Login error.");
         setLoginLoading(false);
@@ -609,6 +610,9 @@ const MyNavbar = () => {
                     onMouseEnter={handleMenuMouseEnter}
                     onMouseLeave={handleMenuMouseLeave}
                   >
+                    <MenuItem onClick={() => navigate('/settings')}>
+                      Settings
+                    </MenuItem>
                     <MenuList>
                       {/* SWITCH – only for non-Citizen original role */}
                       {actualUserType !== "Citizen" && (

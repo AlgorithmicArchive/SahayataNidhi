@@ -50,7 +50,7 @@ export default function OtpModal({
           sx={{ mt: 1, color: erorrMessage == "" ? "green" : "red" }}
         >
           {erorrMessage == ""
-            ? `Please enter the OTP sent to your registered {registeredAt}.`
+            ? `Please enter the OTP sent to your registered ${registeredAt}.`
             : erorrMessage}
         </Typography>
         <form

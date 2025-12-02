@@ -265,7 +265,7 @@ export default function Settings() {
       console.error("Error changing password:", error);
       toast.error(
         error.response?.data?.response ||
-          "Failed to change password. Please try again.",
+        "Failed to change password. Please try again.",
         {
           position: "top-center",
           autoClose: 3000,
@@ -451,6 +451,7 @@ export default function Settings() {
               name="name"
               value={userDetails.name}
               onChange={handleInputChange}
+              InputProps={{ readOnly: true }}
               fullWidth
               variant="outlined"
               aria-label="User name"
@@ -504,6 +505,7 @@ export default function Settings() {
               fullWidth
               variant="outlined"
               aria-label="Mobile number"
+              InputProps={{ readOnly: true }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": { borderColor: "#90CAF9" },
@@ -512,7 +514,7 @@ export default function Settings() {
                 },
               }}
             />
-            <FormControl fullWidth margin="normal">
+            {/* <FormControl fullWidth margin="normal">
               <Button
                 variant="contained"
                 component="label"
@@ -531,7 +533,7 @@ export default function Settings() {
               <Typography sx={{ fontSize: "0.85rem", color: "#6B7280" }}>
                 Accepted File Types: .pdf Size: 100kb-200kb
               </Typography>
-            </FormControl>
+            </FormControl> */}
           </Box>
         </Box>
 
@@ -604,7 +606,7 @@ export default function Settings() {
         />
 
         {/* Change Password Section */}
-        <Box
+        {/* <Box
           sx={{
             mb: 4,
           }}
@@ -737,7 +739,7 @@ export default function Settings() {
               />
             )}
           </Box>
-        </Box>
+        </Box> */}
 
         <Divider
           sx={{

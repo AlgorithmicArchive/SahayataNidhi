@@ -343,6 +343,7 @@ namespace SahayataNidhi.Controllers.User
                 return -1;
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> UpdateApplicationDetails([FromForm] IFormCollection form)
         {
@@ -350,140 +351,115 @@ namespace SahayataNidhi.Controllers.User
             string returnFieldsJson = form["returnFields"].ToString();
             string formDetailsJson = form["formDetails"].ToString();
 
-            var returnFields = JsonConvert.DeserializeObject<List<string>>(returnFieldsJson) ?? new List<string>();
+            var updatedFieldNames = JsonConvert.DeserializeObject<List<string>>(returnFieldsJson) ?? new List<string>();
             var submittedFormDetails = JObject.Parse(formDetailsJson);
 
-            // Fetch existing application
-            var application = dbcontext.CitizenApplications.FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+            var application = dbcontext.CitizenApplications
+                .FirstOrDefault(a => a.ReferenceNumber == referenceNumber);
+
             if (application == null)
-            {
                 return Json(new { status = false, message = "Application not found" });
-            }
 
             var existingFormDetails = JObject.Parse(application.FormDetails ?? "{}");
 
-            var existingLocation = existingFormDetails["Location"];
+            // === 1. Location Change Detection ===
+            int shiftedFrom = GetShiftedFromTo(JsonConvert.SerializeObject(existingFormDetails["Location"] ?? new JObject()));
+            int shiftedTo = shiftedFrom;
+
             var submittedLocation = submittedFormDetails["Location"];
+            if (submittedLocation != null && submittedLocation.HasValues)
+                shiftedTo = GetShiftedFromTo(submittedLocation.ToString());
 
-            int shiftedFrom = GetShiftedFromTo(JsonConvert.SerializeObject(existingLocation!));
-            int shiftedTo = GetShiftedFromTo(JsonConvert.SerializeObject(submittedLocation!));
-
-            _logger.LogInformation($"------------ Shifted From: {shiftedFrom}  Shifted To: {shiftedTo} --------------------------");
-
-            // Helper function to get all file fields from a JObject (including nested additionalFields)
-            static HashSet<string> GetFileFields(JObject formDetails)
+            // === Safe Field Finder (supports nested additionalFields) ===
+            JObject FindFieldByName(JObject root, string name)
             {
-                var fileFields = new HashSet<string>();
-                foreach (var section in formDetails.Properties())
+                if (string.IsNullOrEmpty(name)) return null;
+
+                foreach (var prop in root.Properties())
                 {
-                    if (section.Value is JArray fields)
+                    if (prop.Value is JArray section)
                     {
-                        foreach (var field in fields.OfType<JObject>())
+                        foreach (var item in section.OfType<JObject>())
                         {
-                            if (field.ContainsKey("File") && !string.IsNullOrEmpty(field["File"]?.ToString()))
+                            if (string.Equals(item["name"]?.ToString(), name, StringComparison.OrdinalIgnoreCase))
+                                return item;
+
+                            var addFields = item["additionalFields"] as JArray;
+                            if (addFields != null)
                             {
-                                fileFields.Add(field["name"]?.ToString() ?? "");
-                            }
-                            if (field["additionalFields"] is JArray additionalFields)
-                            {
-                                foreach (var nestedField in additionalFields.OfType<JObject>())
-                                {
-                                    if (nestedField.ContainsKey("File") && !string.IsNullOrEmpty(nestedField["File"]?.ToString()))
-                                    {
-                                        fileFields.Add(nestedField["name"]?.ToString() ?? "");
-                                    }
-                                }
+                                var nested = addFields.OfType<JObject>()
+                                    .FirstOrDefault(n => string.Equals(n["name"]?.ToString(), name, StringComparison.OrdinalIgnoreCase));
+                                if (nested != null) return nested;
                             }
                         }
                     }
                 }
-                return fileFields;
+                return null;
             }
 
-            // Get file fields from existing and submitted formDetails
-            var existingFileFields = GetFileFields(existingFormDetails);
-            var submittedFileFields = GetFileFields(submittedFormDetails);
-
-            // Delete files present in existingFormDetails but not in submittedFormDetails
-            foreach (var fieldName in existingFileFields.Except(submittedFileFields))
+            // === 2. ONLY process fields that user actually changed (from returnFields) ===
+            foreach (string fieldName in updatedFieldNames)
             {
-                var section = existingFormDetails.Properties()
-                    .Select(p => new { Name = p.Name, Fields = p.Value as JArray })
-                    .FirstOrDefault(s => s.Fields?.OfType<JObject>().Any(f => f["name"]?.ToString() == fieldName) == true);
-                if (section != null)
+                var uploadedFile = form.Files.FirstOrDefault(f => f.Name == fieldName);
+                var fieldObj = FindFieldByName(submittedFormDetails, fieldName);
+                if (fieldObj == null) continue;
+
+                var oldFieldObj = FindFieldByName(existingFormDetails, fieldName);
+                string oldFilePath = oldFieldObj?["File"]?.ToString();
+
+                bool hadFileBefore = !string.IsNullOrEmpty(oldFilePath);
+                bool hasNewFileUpload = uploadedFile != null && uploadedFile.Length > 0;
+
+                // === ONLY file fields get special treatment ===
+                if (hadFileBefore || hasNewFileUpload)
                 {
-                    var field = section.Fields?.OfType<JObject>().FirstOrDefault(f => f["name"]?.ToString() == fieldName);
-                    var filePath = field?["File"]?.ToString();
-                    if (!string.IsNullOrEmpty(filePath))
+                    // 1. New file uploaded → replace old
+                    if (hasNewFileUpload)
                     {
-                        _logger.LogInformation($"Deleting file for removed field {fieldName}: {filePath}");
-                        helper.DeleteFile(filePath);
+                        if (!string.IsNullOrEmpty(oldFilePath))
+                        {
+                            helper.DeleteFile(oldFilePath);
+                            _logger.LogInformation($"Replaced file for {fieldName}");
+                        }
+
+                        string newPath = await helper.GetFilePath(uploadedFile, null, null, "document");
+                        fieldObj["File"] = newPath;
                     }
+                    // 2. User explicitly removed the file (frontend removed "File" key or sent null)
+                    else if (!fieldObj.TryGetValue("File", out JToken fileToken) || fileToken.Type == JTokenType.Null)
+                    {
+                        if (!string.IsNullOrEmpty(oldFilePath))
+                        {
+                            helper.DeleteFile(oldFilePath);
+                            _logger.LogInformation($"User removed file: {fieldName}");
+                        }
+                        fieldObj.Remove("File");
+                    }
+                    // 3. Frontend sent "File": {} or "File": "" → this means "unchanged, keep old file"
+                    else if (fileToken.Type == JTokenType.Object || string.IsNullOrWhiteSpace(fileToken.ToString()))
+                    {
+                        if (!string.IsNullOrEmpty(oldFilePath))
+                        {
+                            fieldObj["File"] = oldFilePath; // ← THIS IS THE KEY LINE
+                            _logger.LogInformation($"Preserved existing file for {fieldName}");
+                        }
+                    }
+                    // 4. Otherwise: valid path already there → keep it
                 }
+                // Non-file fields (AadharNumber, Mobile, etc.) → do absolutely nothing
+                // Their value comes directly from frontend and stays intact
             }
 
-            // Process new files in form.Files and update submittedFormDetails
-            foreach (var section in submittedFormDetails.Properties())
-            {
-                if (section.Value is not JArray fields) continue;
-                foreach (var field in fields.OfType<JObject>())
-                {
-                    string fieldName = field["name"]?.ToString() ?? "";
-                    if (string.IsNullOrEmpty(fieldName)) continue;
-
-                    if (field.ContainsKey("File") || field.ContainsKey("Enclosure"))
-                    {
-                        var file = form.Files.FirstOrDefault(f => f.Name == fieldName);
-                        if (file != null)
-                        {
-                            string filePath = await helper.GetFilePath(file, null, null, "document");
-                            field["File"] = filePath;
-                            _logger.LogInformation($"Updated file path for {fieldName}: {filePath}");
-                        }
-                        else if (field["File"]?.Type == JTokenType.Object)
-                        {
-                            field["File"] = "";
-                        }
-                    }
-
-                    // Process additionalFields for nested files
-                    if (field["additionalFields"] is JArray additionalFields)
-                    {
-                        foreach (var nestedField in additionalFields.OfType<JObject>())
-                        {
-                            string nestedFieldName = nestedField["name"]?.ToString() ?? "";
-                            if (string.IsNullOrEmpty(nestedFieldName)) continue;
-
-                            if (nestedField.ContainsKey("File") || nestedField.ContainsKey("Enclosure"))
-                            {
-                                var file = form.Files.FirstOrDefault(f => f.Name == nestedFieldName);
-                                if (file != null)
-                                {
-                                    string filePath = await helper.GetFilePath(file, null, null, "document");
-                                    nestedField["File"] = filePath;
-                                    _logger.LogInformation($"Updated file path for nested field {nestedFieldName}: {filePath}");
-                                }
-                                else if (nestedField["File"]?.Type == JTokenType.Object)
-                                {
-                                    nestedField["File"] = "";
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Update application.FormDetails with the new formDetails
+            // === 3. Save the corrected full form ===
             application.FormDetails = submittedFormDetails.ToString();
             application.AdditionalDetails = null;
 
+            // === 4. Workflow & History ===
             var workFlow = JsonConvert.DeserializeObject<JArray>(application.WorkFlow ?? "[]");
-            var currentOfficer = workFlow!.FirstOrDefault(o => (int)o["playerId"]! == application.CurrentPlayer);
+            var currentOfficer = workFlow?.FirstOrDefault(o => (int?)o["playerId"] == application.CurrentPlayer);
             if (currentOfficer != null)
             {
                 currentOfficer["status"] = "pending";
-
-                // ✅ Only add shift details if location actually changed
                 if (shiftedFrom != shiftedTo)
                 {
                     currentOfficer["shifted"] = true;
@@ -491,18 +467,25 @@ namespace SahayataNidhi.Controllers.User
                     currentOfficer["shiftedTo"] = shiftedTo;
                 }
             }
-
-            application.WorkFlow = JsonConvert.SerializeObject(workFlow);
+            application.WorkFlow = workFlow?.ToString();
             application.CreatedAt = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
 
-            string? locationLevel = GetFormFieldValue(submittedFormDetails, "Tehsil") != null ? "Tehsil" : "District";
-            int locationValue = Convert.ToInt32(GetFormFieldValue(submittedFormDetails, locationLevel));
+            string locationLevel = GetFormFieldValue(submittedFormDetails, "Tehsil") != null ? "Tehsil" : "District";
+            int locationValue = Convert.ToInt32(GetFormFieldValue(submittedFormDetails, locationLevel ?? "District"));
 
             dbcontext.SaveChanges();
+
             helper.InsertHistory(referenceNumber, "Re submission of Application", "Citizen", "Re submitted", locationLevel, locationValue);
 
-            return Json(new { status = true, message = "Application updated successfully", type = "Edit", referenceNumber });
+            return Json(new
+            {
+                status = true,
+                message = "Application updated successfully",
+                type = "Edit",
+                referenceNumber
+            });
         }
+
         [HttpPost]
         public async Task<IActionResult> UpdateExpiringDocumentDetails([FromForm] IFormCollection form)
         {

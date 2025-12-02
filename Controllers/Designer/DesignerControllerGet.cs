@@ -321,8 +321,7 @@ namespace SahayataNidhi.Controllers
                 columnNames
             });
         }
-      
-      
+
         [HttpGet]
         public IActionResult GetFormElementsForEmail(string serviceId)
         {
@@ -466,7 +465,6 @@ namespace SahayataNidhi.Controllers
                 return Json(new { status = false, message = $"Error retrieving document fields: {ex.Message}" });
             }
         }
-
 
         [HttpGet]
         public IActionResult GetEmailTemplate([FromQuery] int serviceId, [FromQuery] string type)

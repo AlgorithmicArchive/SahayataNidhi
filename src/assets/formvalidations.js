@@ -1,42 +1,34 @@
 // formvalidations.js
 import * as tf from "@tensorflow/tfjs";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
-
 // Validation functions
-
 export function notEmpty(field, value) {
   if (value === "" || value == "Please Select") {
     return "This field is required.";
   }
   return true;
 }
-
 export function onlyAlphabets(field, value) {
   if (!/^[A-Za-z .']+$/.test(value)) {
     return "Please use letters (a-z, A-Z) and special characters (. and ') only.";
   }
   return true;
 }
-
 export function onlyDigits(field, value) {
   if (!/^\d+$/.test(value)) {
     return "Please enter only digits.";
   }
   return true;
 }
-
 export function specificLength(field, value, formData = {}) {
   let maxLengthValue;
-
   // Determine maxLength based on dependent field if needed
   if (typeof field.maxLength === "object" && field.maxLength.dependentOn) {
     const dependentFieldId = field.maxLength.dependentOn;
     const dependentValue = formData[dependentFieldId];
-
     if (!dependentValue) {
       return `Dependent field (${dependentFieldId}) value is missing.`;
     }
-
     maxLengthValue = field.maxLength[dependentValue];
     if (maxLengthValue === undefined) {
       return `No maximum length defined for option (${dependentValue}).`;
@@ -44,15 +36,12 @@ export function specificLength(field, value, formData = {}) {
   } else {
     maxLengthValue = field.maxLength;
   }
-
   // Check the length
   if (value.length !== maxLengthValue) {
     return `This must be exactly ${maxLengthValue} characters long.`;
   }
-
   return true;
 }
-
 export function isEmailValid(field, value) {
   if (
     value.length > 0 &&
@@ -62,7 +51,6 @@ export function isEmailValid(field, value) {
   }
   return true;
 }
-
 export async function duplicateAccountNumber(
   field,
   value,
@@ -78,9 +66,20 @@ export async function duplicateAccountNumber(
       formData["BankDetail"] != null
         ? formData["Bank Details"][2].value
         : formData.IfscCode;
-    const res = await fetch(
-      `/Base/IsDuplicateAccNo?bankName=${bankName}&ifscCode=${ifscCode}&accNo=${value}&applicationId=${referenceNumber}`,
-    );
+    const fd = new FormData();
+    fd.append("bankName", bankName);
+    fd.append("ifscCode", ifscCode);
+    fd.append("accNo", value);
+    fd.append("applicationId", referenceNumber);
+    const res = await fetch(`/Base/IsDuplicateAccNo`, {
+      method: "POST",
+      body: fd,
+    });
+    if (!res.ok) {
+      const errorText = await res.text(); // Get raw text for debugging
+      console.error(`Server error: ${res.status} - Response: ${errorText}`);
+      return "Validation failed due to a server error.";
+    }
     const data = await res.json();
     if (data.status) {
       return "Account Number already exists.";
@@ -101,17 +100,18 @@ export async function validateIfscCode(
 ) {
   const ifscCode = formData.IfscCode;
   const bankName = formData.BankName;
-
   // Ensure IFSC code exists
   if (!ifscCode) {
     return "IFSC Code is missing.";
   }
-
   try {
-    const res = await fetch(
-      `/Base/GetBankDetails?IfscCode=${ifscCode}&BankId=${bankName}`,
-    );
-
+    const fd = new FormData();
+    fd.append("bankName", bankName);
+    fd.append("ifscCode", ifscCode);
+    const res = await fetch(`/Base/ValidateIfscCode`, {
+      method: "POST",
+      body: fd,
+    });
     if (!res.ok) {
       if (res.status === 404) {
         setValue("BranchName", "", { shouldValidate: true });
@@ -123,9 +123,7 @@ export async function validateIfscCode(
       }
       return `Error: ${res.status} ${res.statusText}`;
     }
-
     const data = await res.json();
-
     // Check if bank details are returned
     if (!data || !data.status || !data.bankDetails) {
       setValue("BranchName", "", { shouldValidate: true });
@@ -135,10 +133,8 @@ export async function validateIfscCode(
         removeReadonly: true,
       };
     }
-
     // Update BranchName from API response
     setValue("BranchName", data.bankDetails.branch, { shouldValidate: true });
-
     return true;
   } catch (error) {
     console.error("Error validating IFSC:", error);
@@ -149,18 +145,14 @@ export async function validateIfscCode(
     };
   }
 }
-
 export async function validateFile(field, value) {
   try {
     const formData = new FormData();
     if (field.accept.includes(".jpg")) formData.append("fileType", "image");
     else if (field.accept.includes(".pdf")) formData.append("fileType", "pdf");
     else return;
-
     const notRequired = !field.validationFunctions.includes("notEmpty");
-
     formData.append("file", value);
-
     const res = await fetch("/Base/Validate", {
       method: "POST",
       body: formData,
@@ -178,34 +170,26 @@ export async function validateFile(field, value) {
     return "File validation failed due to a server error.";
   }
 }
-
 export function range(field, value) {
   console.log(field, value);
   if (value < field.minLength || value > field.maxLength) {
     return `The value must be between ${field.minLength} and ${field.maxLength}.`;
   }
 }
-
 // Helper function to parse DD/MM/YYYY and return a Date object
 function parseDDMMYYYY(value) {
   const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
   const match = value.match(datePattern);
-
   if (!match) return null;
-
   const [, day, month, year] = match.map(Number);
   const date = new Date(year, month - 1, day);
-
   // Check for invalid dates like 31/02/2025
   if (isNaN(date.getTime()) || date.getDate() !== day) return null;
-
   date.setHours(0, 0, 0, 0); // zero out time
   return date;
 }
-
 export function isAgeGreaterThan(field, value, formData) {
   let maxLengthValue;
-
   // Determine maxLength based on dependent field if needed
   if (typeof field.maxLength === "object" && field.maxLength.dependentOn) {
     const dependentFieldId = field.maxLength.dependentOn;
@@ -220,16 +204,13 @@ export function isAgeGreaterThan(field, value, formData) {
   } else {
     maxLengthValue = field.maxLength;
   }
-
   // Parse the input date
   const inputDate = parseDDMMYYYY(value);
   if (!inputDate) {
     return `${field.label || "Date"} must be in DD/MM/YYYY format and valid.`;
   }
-
   const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
-
   // Compute the date that corresponds to the minimum age
   const compareDate = new Date(
     currentDate.getFullYear() - maxLengthValue,
@@ -237,50 +218,38 @@ export function isAgeGreaterThan(field, value, formData) {
     currentDate.getDate(),
   );
   compareDate.setHours(0, 0, 0, 0);
-
   if (inputDate >= compareDate) {
     return `Age should be greater than or equal to ${maxLengthValue}.`;
   }
-
   return true;
 }
-
 // 1. Check if date is within a range of months from current date
 export function isDateWithinRange(field, value) {
   const dateOfMarriage = parseDDMMYYYY(value);
   if (!dateOfMarriage) {
     return `${field.label || "Date"} must be in DD/MM/YYYY format and valid.`;
   }
-
   const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
-
   const minDate = new Date(currentDate);
   minDate.setMonth(currentDate.getMonth() + parseInt(field.minLength));
-
   const maxDate = new Date(currentDate);
   maxDate.setMonth(currentDate.getMonth() + parseInt(field.maxLength));
-
   if (dateOfMarriage < minDate || dateOfMarriage > maxDate) {
     return `The date should be between ${field.minLength} to ${field.maxLength} months from current date.`;
   }
-
   return true;
 }
-
 export function isDateAfterCurrentDate(field, value, formData) {
   const inputDate = parseDDMMYYYY(value);
   if (!inputDate) {
     return `${field.label || "Date"} must be in DD/MM/YYYY format and valid.`;
   }
-
   const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
-
   if (inputDate <= currentDate) {
     return `${field.label || "Date"} must be after the current date.`;
   }
-
   if (field.name === "IfTemporaryDisabilityUdidCardValidUpto") {
     const issueDate = parseDDMMYYYY(formData["UdidCardIssueDate"]);
     if (!issueDate) {
@@ -290,33 +259,30 @@ export function isDateAfterCurrentDate(field, value, formData) {
       return `${field.label || "Date"} must be after the UDID Card Issue date.`;
     }
   }
-
   return true;
 }
-
 // 3. Check if date is before the current date
 export function isDateBeforeCurrentDate(field, value) {
   const inputDate = parseDDMMYYYY(value);
   if (!inputDate) {
     return `${field.label || "Date"} must be in DD/MM/YYYY format and valid.`;
   }
-
   const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
-
   if (inputDate >= currentDate) {
     return `${field.label || "Date"} must be before the current date.`;
   }
-
   return true;
 }
-
 export async function tehsilForDistrict(field, districtValue) {
   if (!districtValue) return [];
   try {
-    const response = await fetch(
-      `/Base/GetTeshilForDistrict?districtId=${districtValue}`,
-    );
+    const fd = new FormData();
+    fd.append("districtId", districtValue);
+    const response = await fetch(`/Base/GetTeshilForDistrict`, {
+      method: "POST",
+      body: fd,
+    });
     const data = await response.json();
     if (data.status && Array.isArray(data.tehsils)) {
       // Map the returned tehsils to the expected format
@@ -331,7 +297,6 @@ export async function tehsilForDistrict(field, districtValue) {
     return [];
   }
 }
-
 let modelLoaded = false;
 let cocoSsdModel = null;
 export async function loadCocoSsdModel() {
@@ -345,15 +310,12 @@ export async function loadCocoSsdModel() {
     }
   }
 }
-
 export async function detectHuman(field, value) {
   if (!value || !(value instanceof File)) {
     return "No valid image file provided.";
   }
-
   try {
     await loadCocoSsdModel();
-
     // Create image from file
     const img = await new Promise((resolve, reject) => {
       const image = new Image();
@@ -361,18 +323,14 @@ export async function detectHuman(field, value) {
       image.onerror = () => reject(new Error("Failed to load image"));
       image.src = URL.createObjectURL(value);
     });
-
     // Detect objects in the image using COCO-SSD
     const predictions = await cocoSsdModel.detect(img);
-
     // Revoke the object URL
     URL.revokeObjectURL(img.src);
-
     // Check if any prediction is a "person" with sufficient confidence
     const personPrediction = predictions.find(
       (pred) => pred.class === "person" && pred.score > 0.5,
     );
-
     if (personPrediction) {
       return true;
     } else {
@@ -383,7 +341,6 @@ export async function detectHuman(field, value) {
     return "Human detection failed due to an error.";
   }
 }
-
 export const runValidations = async (
   field,
   value,
@@ -392,11 +349,9 @@ export const runValidations = async (
   setValue,
 ) => {
   if (!Array.isArray(field.validationFunctions)) return true;
-
   for (const validationFn of field.validationFunctions) {
     const fun = ValidationFunctionsList[validationFn];
     if (typeof fun !== "function") continue;
-
     try {
       let error = await fun(
         field,
@@ -410,17 +365,14 @@ export const runValidations = async (
       return "Validation failed due to an unexpected error.";
     }
   }
-
   return true;
 };
-
 export function formatKey(input) {
   if (!input) return input; // Check for empty or null input
   // Use Regex to insert space before each capital letter, except for the first one
   const result = input.replace(/(?<!^)([A-Z])/g, " $1");
   return result;
 }
-
 // Mapping of Validation Functions
 const ValidationFunctionsList = {
   notEmpty,
@@ -438,7 +390,6 @@ const ValidationFunctionsList = {
   isDateBeforeCurrentDate,
   detectHuman,
 };
-
 export const TransformationFunctionsList = {
   CaptilizeAlphabet: (value) => value.toUpperCase(),
   MaskAadhaar: (value, aadhaarNumber) => {
@@ -446,15 +397,12 @@ export const TransformationFunctionsList = {
       typeof aadhaarNumber === "string" && aadhaarNumber.length > 0
         ? aadhaarNumber
         : value;
-
     let digitCount = 0;
-
     return input.replace(/\d/g, (digit) => {
       return digitCount++ < 8 ? "X" : digit;
     });
   },
 };
-
 export const validationFunctionsList = [
   { id: "notEmpty", label: "Required" },
   { id: "onlyAlphabets", label: "Only Alphabets" },
@@ -471,7 +419,6 @@ export const validationFunctionsList = [
   { id: "isDateBeforeCurrentDate", label: "Before Current Date" },
   { id: "detectHuman", label: "Detect Human" },
 ];
-
 export const transformationFunctionsList = [
   { id: "CaptilizeAlphabet", label: "Capital Alphabets" },
   { id: "handleCopyAddress", label: "Copy Address" },

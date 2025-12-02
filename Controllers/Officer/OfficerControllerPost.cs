@@ -1476,7 +1476,7 @@ namespace SahayataNidhi.Controllers.Officer
 
                 // Retrieve from cache
                 var cacheKey = $"esign_{txnId}";
-                if (!_memoryCache.TryGetValue(cacheKey, out dynamic cacheEntry))
+                if (!_memoryCache.TryGetValue(cacheKey, out dynamic? cacheEntry))
                 {
                     _logger.LogWarning("No cache entry found for key: {CacheKey}", cacheKey);
                     return Json(new { success = false, message = "Invalid session data or temporary PDF not found. Cache key missing." });

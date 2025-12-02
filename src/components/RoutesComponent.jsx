@@ -67,7 +67,7 @@ const RoutesComponent = () => {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<HomeScreen />} />
-      <Route path="/loginForNICONLY" element={<LoginScreen />} />
+      <Route path="/login" element={<LoginScreen />} />
       <Route path="/choice" element={<OfficerChoice />} />
       <Route path="/verification" element={<Verification />} />
       <Route path="/notValidated" element={<NotValidated />} />

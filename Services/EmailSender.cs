@@ -17,7 +17,7 @@ namespace SendEmails
         public async Task SendEmail(string email, string subject, string message)
         {
             throw new SmtpException("Simulated failure for testing");
-            await SendEmailWithAttachments(email, subject, message, null);
+            // await SendEmailWithAttachments(email, subject, message, null);
         }
 
         // New method to support attachments

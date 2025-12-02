@@ -4,25 +4,18 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import CustomButton from "./CustomButton";
 import { downloadFile } from "../assets/downloadFile";
 
+// Import the worker as a URL (Vite will handle it)
+import workerUrl from "pdfjs-dist/build/pdf.worker.min.js?url";
+
 const PdfViewer = ({ pdfUrl, path, exportButton = null, width }) => {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginTop: "50px",
-        width: "100%",
-        gap: 5,
-      }}
-    >
+    <div style={{ textAlign: "center", marginTop: 50 }}>
       {exportButton && (
         <CustomButton text="Export PDF" onClick={() => downloadFile(path)} />
       )}
-      {/* The Worker component provides the PDF.js worker.
-          Here we use a CDN URL; ensure the version here is in sync with the library version. */}
-      <Worker workerUrl="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js">
-        <div style={{ height: "750px", width: width || "600px" }}>
+
+      <Worker workerSrc={workerUrl}>
+        <div style={{ height: "750px", width: width || "600px", margin: "0 auto" }}>
           <Viewer fileUrl={`/Base/DisplayFile?filename=${pdfUrl}`} />
         </div>
       </Worker>

@@ -1261,7 +1261,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       const bankCode = response.data?.bankCode || "";
       setIfscPrefix(bankCode);
       setValue("IfscCode", bankCode, { shouldValidate: true });
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const processField = (field, formData, initialData) => {
@@ -1281,9 +1281,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
           formData[fileFieldName] || initialData[field.name]?.documents || [];
         sectionFormData["Documents"] = Array.isArray(documents)
           ? documents.map((doc) => ({
-              type: doc.type || "",
-              file: doc.file || null,
-            }))
+            type: doc.type || "",
+            file: doc.file || null,
+          }))
           : [];
       } else {
         sectionFormData["Enclosure"] =
@@ -1445,9 +1445,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         } else {
           setReferenceNumber(result.referenceNumber);
           toast.success(
-            `Form details have been saved as a draft. ${
-              aadhaarExists &&
-              "If you don’t submit the form, you will need to re-verify your Aadhaar number when you edit it later"
+            `Form details have been saved as a draft. ${aadhaarExists &&
+            "If you don’t submit the form, you will need to re-verify your Aadhaar number when you edit it later"
             }.`,
           );
           if (formRef.current) {
@@ -1508,9 +1507,9 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       prevSections.map((section) =>
         section.id === sectionId
           ? {
-              ...section,
-              fields: section.fields.filter((field) => field.id !== fieldId),
-            }
+            ...section,
+            fields: section.fields.filter((field) => field.id !== fieldId),
+          }
           : section,
       ),
     );
@@ -1837,8 +1836,8 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
               field.isConsentCheckbox
                 ? false
                 : field.options?.length > 0
-                ? []
-                : ""
+                  ? []
+                  : ""
             }
             rules={{
               validate: async (value) => {
@@ -2599,7 +2598,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
       <MessageModal
         open={emailAlertModalOpen}
         title="Email Required"
-        message="Documents like Acknowledgement and Sanction Letters are sent via email. Please provide an email address to proceed."
+        message="Documents like Acknowledgement and Sanction Letters are sent via email. Please provide an email address if you want to receive these letters via mail."
         primaryButton={{
           text: "Submit",
           action: handleEmailAlertSubmit,

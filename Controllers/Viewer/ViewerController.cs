@@ -452,9 +452,17 @@ namespace SahayataNidhi.Controllers.Officer
             return "";
         }
 
-        public IActionResult GetMainApplicationStatusData(string serviceId, string type, int pageIndex = 0, int pageSize = 10, string state = "0", string? division = null, string? district = null, string? tehsil = null)
+        public IActionResult GetMainApplicationStatusData(
+        string serviceId,
+        string type,
+        int pageIndex = 0,
+        int pageSize = 10,
+        string state = "0",
+        string? division = null,
+        string? district = null,
+        string? tehsil = null)
         {
-            // Determine AccessLevel and AccessCode based on filters
+            // === Determine AccessLevel and AccessCode ===
             string accessLevel;
             object accessCode = DBNull.Value;
             object divisionCode = DBNull.Value;
@@ -478,86 +486,116 @@ namespace SahayataNidhi.Controllers.Officer
             else
             {
                 accessLevel = "State";
-                accessCode = state == "0" ? 0 : DBNull.Value; // Assuming "0" represents Jammu & Kashmir
+                accessCode = state == "0" ? 0 : DBNull.Value;
             }
 
-            // Validate AccessLevel and AccessCode
+            // === Validation ===
             if ((accessLevel == "Tehsil" || accessLevel == "District") && accessCode == DBNull.Value)
-            {
                 return BadRequest("Invalid AccessCode for the specified AccessLevel.");
-            }
+
             if (accessLevel == "Division" && divisionCode == DBNull.Value)
-            {
                 return BadRequest("Invalid DivisionCode for Division AccessLevel.");
-            }
 
-            // Parameters for GetMainApplicationStatusData
+            // === Execute Stored Procedure ===
             var parameters = new List<SqlParameter>
-            {
-                new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
-                new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
-                new("@AccessCode", SqlDbType.Int) { Value = accessCode },
-                new("@DivisionCode", SqlDbType.Int) { Value = divisionCode },
-                new("@ApplicationStatus", SqlDbType.VarChar) { Value = (object)(type == "total" ? null : type)! ?? DBNull.Value },
-                new("@PageIndex", SqlDbType.Int) { Value = pageIndex },
-                new("@PageSize", SqlDbType.Int) { Value = pageSize },
-                new("@IsPaginated", SqlDbType.Bit) { Value = 1 },
-                new("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output }
-            };
+    {
+        new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
+        new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
+        new("@AccessCode", SqlDbType.Int) { Value = accessCode },
+        new("@DivisionCode", SqlDbType.Int) { Value = divisionCode },
+        new("@ApplicationStatus", SqlDbType.VarChar) { Value = type == "total" ? DBNull.Value : type },
+        new("@PageIndex", SqlDbType.Int) { Value = pageIndex },
+        new("@PageSize", SqlDbType.Int) { Value = pageSize },
+        new("@IsPaginated", SqlDbType.Bit) { Value = 1 },
+        new("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output }
+    };
 
-            // Fetch application data
             var response = dbcontext.CitizenApplications
                 .FromSqlRaw(
                     "EXEC GetMainApplicationStatusData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @ApplicationStatus, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
-                    parameters.ToArray()
-                )
+                    parameters.ToArray())
+                .AsNoTracking()
                 .ToList();
 
-            int totalRecords = (int)parameters.Find(p => p.ParameterName == "@TotalRecords")!.Value;
+            int totalRecords = (int)parameters.First(p => p.ParameterName == "@TotalRecords").Value;
 
-            // Fetch service details for serviceName
             var service = dbcontext.Services.FirstOrDefault(s => s.ServiceId == int.Parse(serviceId));
-            if (service == null)
+            if (service == null) return NotFound("Service not found.");
+
+            string serviceName = service.ServiceName!;
+
+            // === Decide whether to show "Sanction Date" column ===
+            bool showSanctionDateColumn = type == "sanctioned" ||
+                                          (type == "total" && response.Any(x => x.Status == "Sanctioned"));
+
+            // === Build Columns (Only Once!) ===
+            var columns = new List<object>
+    {
+        new { accessorKey = "sno", header = "S.No" },
+        new { accessorKey = "referenceNumber", header = "Reference Number" },
+        new { accessorKey = "applicantName", header = "Applicant Name" },
+        new { accessorKey = "serviceName", header = "Service Name" },
+        new { accessorKey = "status", header = "Application Status" },
+        new { accessorKey = "submissionDate", header = "Submission Date" }
+    };
+
+            if (showSanctionDateColumn)
             {
-                return NotFound();
+                columns.Add(new { accessorKey = "sanctionDate", header = "Sanction Date" });
             }
 
-            // Columns for the table
-            List<dynamic> columns =
-            [
-                new { accessorKey = "sno", header = "S.No" },
-                new { accessorKey = "referenceNumber", header = "Reference Number" },
-                new { accessorKey = "applicantName", header = "Applicant Name" },
-                new { accessorKey = "serviceName", header = "Service Name" },
-                new { accessorKey = "status", header = "Application Status" },
-                new { accessorKey = "submissionDate", header = "Submission Date" }
-            ];
-
-            List<dynamic> data = [];
-
-            // Start numbering based on pagination
-            int snoCounter = (pageIndex * pageSize) + 1;
+            // === Build Data ===
+            var data = new List<Dictionary<string, object>>();
+            int sno = pageIndex * pageSize + 1;
 
             foreach (var details in response)
             {
-                var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails!);
-                string serviceName = service.ServiceName!;
-                string status = details.Status!; // Use WorkflowStatus from stored procedure
+                var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails ?? "{}");
+                string applicantName = GetFieldValue("ApplicantName", formDetails);
+                string status = details.Status ?? "Initiated";
+                string submissionDate = details.CreatedAt!;
 
-                var applicationObject = new
+                var row = new Dictionary<string, object>
                 {
-                    sno = snoCounter++,
-                    referenceNumber = details.ReferenceNumber,
-                    applicantName = GetFieldValue("ApplicantName", formDetails),
-                    submissionDate = details.CreatedAt,
-                    serviceName,
-                    status,
-                    serviceId = details.ServiceId
+                    ["sno"] = sno++,
+                    ["referenceNumber"] = details.ReferenceNumber ?? "",
+                    ["applicantName"] = applicantName,
+                    ["serviceName"] = serviceName,
+                    ["status"] = status,
+                    ["submissionDate"] = submissionDate
                 };
 
-                data.Add(applicationObject);
+                // Add Sanction Date only if column is shown
+                if (showSanctionDateColumn)
+                {
+                    string sanctionDate = "-";
+
+                    if (status == "Sanctioned" && !string.IsNullOrEmpty(details.WorkFlow))
+                    {
+                        try
+                        {
+                            var workflow = JsonConvert.DeserializeObject<JArray>(details.WorkFlow);
+                            var sanctionedStep = workflow?
+                                .FirstOrDefault(w => w["status"]?.ToString() == "sanctioned");
+
+                            if (sanctionedStep?["completedAt"] != null)
+                            {
+                                sanctionDate = sanctionedStep["completedAt"]!.ToString();
+                            }
+                        }
+                        catch
+                        {
+                            sanctionDate = "-";
+                        }
+                    }
+
+                    row["sanctionDate"] = sanctionDate;
+                }
+
+                data.Add(row);
             }
 
+            // === Return Clean JSON ===
             return Json(new
             {
                 data,
