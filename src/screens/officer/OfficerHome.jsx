@@ -162,6 +162,20 @@ const CardGrid = styled(Box)(({ theme }) => ({
   },
 }));
 
+const ViewOnlySection = styled(Box)(({ theme }) => ({
+  marginTop: theme.spacing(6),
+  paddingTop: theme.spacing(4),
+  borderTop: `2px dashed ${theme.palette.divider}`,
+}));
+
+const SectionTitle = styled(Typography)(({ theme }) => ({
+  fontSize: "1.5rem",
+  fontWeight: 600,
+  color: "#374151",
+  marginBottom: theme.spacing(3),
+  fontFamily: "'Inter', sans-serif",
+}));
+
 export default function OfficerHome() {
   const [services, setServices] = useState([]);
   const [serviceId, setServiceId] = useState("");
@@ -232,11 +246,11 @@ export default function OfficerHome() {
 
   const statusColors = useMemo(
     () => ({
-      "Total Applications": "#6B7280", // Neutral Gray: Distinct, professional, contrasts vibrant statuses
-      "Total Corrigendum": "#5B21B6", // Deep Violet: Unique for revisions, pairs with greens
-      "Total Correction": "#0D9488", // Teal: Fresh for fixes, balances warm tones
-      "Total Amendment": "#15803D", // Forest Green: Growth vibe, distinct from Sanctioned
-      "Total Withheld Applications": "#B45309", // Warm Ochre: Cautionary, softer than Pending orange
+      "Total Applications": "#6B7280",
+      "Total Corrigendum": "#5B21B6",
+      "Total Correction": "#0D9488",
+      "Total Amendment": "#15803D",
+      "Total Withheld Applications": "#B45309",
       Pending: "#F76F15",
       "Pending With Citizen": "#a855f7",
       "Withheld Pending": "#F76F15",
@@ -250,7 +264,7 @@ export default function OfficerHome() {
       "Temporary Withheld": "#F76F15",
       Sanctioned: "#10b981",
       Issued: "#059669",
-      "PCP-UDID Expires 3 Months": "#14b8a6",
+      "PCP-UDID Expires in 3 Months": "#14b8a6",
       "PCP Applications": "#3b82f6",
       "Pension's Stopped": "#9333ea",
     }),
@@ -259,11 +273,11 @@ export default function OfficerHome() {
 
   const textColors = useMemo(
     () => ({
-      "Total Applications": "#FFFFFF", // White for high contrast on gray
-      "Total Amendment": "#FFFFFF", // White for forest green
-      "Total Corrigendum": "#FFFFFF", // White for violet
-      "Total Correction": "#FFFFFF", // White for teal
-      "Total Withheld Applications": "#FFFFFF", // White for ochre
+      "Total Applications": "#FFFFFF",
+      "Total Amendment": "#FFFFFF",
+      "Total Corrigendum": "#FFFFFF",
+      "Total Correction": "#FFFFFF",
+      "Total Withheld Applications": "#FFFFFF",
       Pending: "#FFFFFF",
       Forwarded: "#FFFFFF",
       Returned: "#FFFFFF",
@@ -274,7 +288,7 @@ export default function OfficerHome() {
       Issued: "#FFFFFF",
       "Pension's Stopped": "#FFFFFF",
       "PCP Applications": "#FFFFFF",
-      "PCP-UDID Expires 3 Months": "#FFFFFF",
+      "PCP-UDID Expires in 3 Months": "#FFFFFF",
       "Temporary Withheld": "#FFFFFF",
       "Permanent Withheld": "#FFFFFF",
     }),
@@ -321,9 +335,9 @@ export default function OfficerHome() {
       Issued: makeIcon(CheckCircle, "Issued"),
       "Pension's Stopped": makeIcon(Block, "Pension's Stopped"),
       "PCP Applications": makeIcon(Description, "PCP Applications"),
-      "PCP-UDID Expires 3 Months": makeIcon(
+      "PCP-UDID Expires in 3 Months": makeIcon(
         AccessTime,
-        "PCP-UDID Expires 3 Months",
+        "PCP-UDID Expires in 3 Months",
       ),
       "Temporary Withheld": makeIcon(PauseCircle, "Temporary Withheld"),
       "Permanent Withheld": makeIcon(DoNotDisturbAlt, "Permanent Withheld"),
@@ -454,7 +468,7 @@ export default function OfficerHome() {
       if (blob.type !== "application/pdf") return false;
       const arrayBuffer = await blob.slice(0, 4).arrayBuffer();
       const header = new Uint8Array(arrayBuffer);
-      const pdfHeader = [37, 80, 68, 70]; // %PDF
+      const pdfHeader = [37, 80, 68, 70];
       return header.every((byte, i) => byte === pdfHeader[i]);
     } catch (error) {
       console.error("Error validating PDF blob:", error);
@@ -487,7 +501,7 @@ export default function OfficerHome() {
       "Pending With Citizen": "returntoedit",
       "Shifted To Another Location": "shifted",
       "Pension's Stopped": "pensionstopped",
-      "PCP-UDID Expires 3 Months": "expiringeligibility",
+      "PCP-UDID Expires in 3 Months": "expiringeligibility",
       "PCP Applications": "totalpcpapplication",
       "Withheld Pending": "pending",
       "Withheld Forwarded": "forwarded",
@@ -509,12 +523,12 @@ export default function OfficerHome() {
     const url =
       type === "Corrigendum" || type === "Correction"
         ? "/Officer/GetCorrigendumApplications"
-        : statusName === "PCP-UDID Expires 3 Months" ||
+        : statusName === "PCP-UDID Expires in 3 Months" ||
           statusName === "PCP Applications"
-        ? "/Officer/GetTemporaryDisability"
-        : statusName.includes("Withheld")
-        ? "/Officer/GetWithheldApplications"
-        : "/Officer/GetApplications";
+          ? "/Officer/GetTemporaryDisability"
+          : statusName.includes("Withheld")
+            ? "/Officer/GetWithheldApplications"
+            : "/Officer/GetApplications";
 
     setUrl(url);
     setApplicationType(type);
@@ -546,7 +560,7 @@ export default function OfficerHome() {
       handleViewApplication: (row) => {
         const data = row.original;
         navigate("/officer/userDetails", {
-          state: { applicationId: data.referenceNumber, notaction: true },
+          state: { applicationId: data.referenceNumber, notaction: false },
         });
       },
       handleViewWithheldApplication: (row) => {
@@ -733,8 +747,8 @@ export default function OfficerHome() {
     } catch (error) {
       throw new Error(
         "Error signing PDF: " +
-          error.message +
-          " Check if Desktop App is started.",
+        error.message +
+        " Check if Desktop App is started.",
       );
     }
   };
@@ -760,8 +774,8 @@ export default function OfficerHome() {
         selectedAction === "Sanction"
           ? "Sanctioned"
           : selectedAction === "Reject"
-          ? "Rejected"
-          : "Returned to Inbox",
+            ? "Rejected"
+            : "Returned to Inbox",
       );
 
       let hasError = false;
@@ -826,8 +840,7 @@ export default function OfficerHome() {
         }
       } catch (error) {
         toast.error(
-          `Error processing ${selectedAction.toLowerCase()} for ID ${id}: ${
-            error.message
+          `Error processing ${selectedAction.toLowerCase()} for ID ${id}: ${error.message
           }`,
           {
             position: "top-right",
@@ -864,14 +877,12 @@ export default function OfficerHome() {
       setCurrentIdIndex(0);
       setCurrentApplicationId("");
       toast.success(
-        `${
-          selectedAction === "toInbox"
-            ? "Returned to Inbox"
-            : selectedAction === "Sanction"
+        `${selectedAction === "toInbox"
+          ? "Returned to Inbox"
+          : selectedAction === "Sanction"
             ? "Sanctioned"
             : "Rejected"
-        } ${successCount} of ${ids.length} application${
-          ids.length > 1 ? "s" : ""
+        } ${successCount} of ${ids.length} application${ids.length > 1 ? "s" : ""
         }!`,
         { position: "top-right", autoClose: 2000, theme: "colored" },
       );
@@ -940,8 +951,7 @@ export default function OfficerHome() {
             setCurrentIdIndex(0);
             setCurrentApplicationId("");
             toast.success(
-              `Sanctioned ${pendingIds.length} application${
-                pendingIds.length > 1 ? "s" : ""
+              `Sanctioned ${pendingIds.length} application${pendingIds.length > 1 ? "s" : ""
               }!`,
               {
                 position: "top-right",
@@ -1013,7 +1023,7 @@ export default function OfficerHome() {
         if (!updateResponse.data.status) {
           throw new Error(
             "Failed to update PDF on server: " +
-              (updateResponse.data.response || "Unknown error"),
+            (updateResponse.data.response || "Unknown error"),
           );
         }
 
@@ -1083,8 +1093,7 @@ export default function OfficerHome() {
           setCurrentApplicationId("");
           setConfirmOpen(false);
           toast.success(
-            `Sanctioned ${pendingIds.length} application${
-              pendingIds.length > 1 ? "s" : ""
+            `Sanctioned ${pendingIds.length} application${pendingIds.length > 1 ? "s" : ""
             }!`,
             {
               position: "top-right",
@@ -1288,7 +1297,7 @@ export default function OfficerHome() {
 
   const barChartOptions = useMemo(
     () => ({
-      margin: { top: 20, right: 30, left: 20, bottom: 50 }, // Increased bottom margin
+      margin: { top: 20, right: 30, left: 20, bottom: 50 },
     }),
     [],
   );
@@ -1386,9 +1395,18 @@ export default function OfficerHome() {
             </Typography>
           </MuiTooltip>
 
-          {/* Always show collapse icon */}
           <IconButton size="small" onClick={toggleExpanded}>
-            {expanded ? <ExpandLess /> : <ExpandMore />}
+            <Typography
+              sx={{
+                fontSize: "1.8rem",
+                fontWeight: 300,
+                lineHeight: 1,
+                color: "#2d3748",
+                userSelect: "none",
+              }}
+            >
+              {expanded ? "−" : "+"}
+            </Typography>
           </IconButton>
         </Box>
 
@@ -1398,7 +1416,7 @@ export default function OfficerHome() {
               key={index}
               sx={{
                 display: "flex",
-                flexDirection: "column", // column for main + forwarded row
+                flexDirection: "column",
                 cursor: "pointer",
                 borderRadius: "8px",
                 backgroundColor: statusColors[item.label] || "#1976d2",
@@ -1408,12 +1426,11 @@ export default function OfficerHome() {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                 },
                 "&:hover .forwarded-row": {
-                  display: "flex", // show forwarded row on hover
+                  display: "flex",
                 },
               }}
               onClick={() => handleCardClick(item.label, type, item.tableTitle)}
             >
-              {/* Main row */}
               <Box
                 sx={{
                   display: "flex",
@@ -1453,16 +1470,15 @@ export default function OfficerHome() {
                 </Typography>
               </Box>
 
-              {/* Forwarded/Sanctioned row (hidden by default, shows on hover) */}
               {item.forwardedSanctionedCount != null && (
                 <Box
                   className="forwarded-row"
                   sx={{
-                    display: "none", // hidden initially
+                    display: "none",
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "4px 12px",
-                    backgroundColor: "rgba(0,0,0,0.1)", // optional highlight
+                    backgroundColor: "rgba(0,0,0,0.1)",
                     borderRadius: "0 0 8px 8px",
                   }}
                 >
@@ -1629,6 +1645,8 @@ export default function OfficerHome() {
           />
         </Box>
 
+        {/* Actionable Cards Section */}
+        <SectionTitle>Actions</SectionTitle>
         <CardGrid>
           {counts && countList?.length > 0 && (
             <ConsolidatedStatCard
@@ -1639,16 +1657,6 @@ export default function OfficerHome() {
             />
           )}
 
-          {!officerAuthorities.canReturnToCitizen &&
-            citizenPendingList.length > 0 && (
-              <ConsolidatedStatCard
-                title="Pending With Citizens"
-                items={citizenPendingList}
-                type="application"
-                sectionTooltip="Applications pending with citizens"
-              />
-            )}
-
           {withheldCountList.length > 0 && (
             <ConsolidatedStatCard
               title="Withheld Payments"
@@ -1658,14 +1666,7 @@ export default function OfficerHome() {
             />
           )}
 
-          {temporaryCountList.length > 0 && (
-            <ConsolidatedStatCard
-              title="Physically Challenged"
-              items={temporaryCountList}
-              type="application"
-              sectionTooltip="Physically challenged applications"
-            />
-          )}
+
 
           {corrigendumList?.length > 0 && (
             <ConsolidatedStatCard
@@ -1676,15 +1677,6 @@ export default function OfficerHome() {
             />
           )}
 
-          {/* {amendmentList?.length > 0 && (
-            <ConsolidatedStatCard
-              title="Data Updations"
-              items={amendmentList}
-              type="Amendments"
-              sectionTooltip="Amendments issued after cases are sanctioned"
-            />
-          )} */}
-
           {correctionList?.length > 0 && (
             <ConsolidatedStatCard
               title="Corrections"
@@ -1694,21 +1686,47 @@ export default function OfficerHome() {
             />
           )}
 
-          {legacyCountList?.length > 0 && (
-            <ConsolidatedStatCard
-              title="Legacy Applications"
-              items={legacyCountList}
-              type="Legacy"
-              sectionTooltip="Legacy applications overview"
-            />
-          )}
+
         </CardGrid>
+
+        {/* View-Only Cards Section */}
+
+        <ViewOnlySection>
+          <SectionTitle>View Only</SectionTitle>
+          <CardGrid>
+            {citizenPendingList.length > 0 && (
+              <ConsolidatedStatCard
+                title="Pending With Citizens"
+                items={citizenPendingList}
+                type="application"
+                sectionTooltip="Applications pending with citizens (View Only)"
+              />
+            )}
+
+            {temporaryCountList.length > 0 && (
+              <ConsolidatedStatCard
+                title="Physically Challenged"
+                items={temporaryCountList}
+                type="application"
+                sectionTooltip="Physically challenged applications"
+              />
+            )}
+
+            {legacyCountList?.length > 0 && (
+              <ConsolidatedStatCard
+                title="Legacy Applications"
+                items={legacyCountList}
+                type="Legacy"
+                sectionTooltip="Legacy applications overview"
+              />
+            )}
+          </CardGrid>
+        </ViewOnlySection>
 
         <Divider sx={{ borderColor: "#d1d5db", borderBottomWidth: 2, my: 6 }} />
 
         {counts && countList?.length > 0 && (
           <Row>
-            {/* Pie / Donut Chart */}
             <Col xs={12} lg={6} className="mb-4">
               <StyledCard>
                 <CardContent sx={{ p: 4 }}>
@@ -1743,10 +1761,10 @@ export default function OfficerHome() {
                             nameKey="name"
                             cx="50%"
                             cy="50%"
-                            outerRadius="80%" // relative to container
-                            innerRadius="50%" // donut hole
-                            paddingAngle={2} // gap between slices
-                            cornerRadius={5} // rounded edges
+                            outerRadius="80%"
+                            innerRadius="50%"
+                            paddingAngle={2}
+                            cornerRadius={5}
                             label
                           >
                             {pieData.labels.map((_, index) => (
@@ -1770,7 +1788,6 @@ export default function OfficerHome() {
               </StyledCard>
             </Col>
 
-            {/* Bar Chart */}
             <Col xs={12} lg={6} className="mb-4">
               <StyledCard>
                 <CardContent sx={{ p: 4 }}>
@@ -1899,10 +1916,10 @@ export default function OfficerHome() {
             {type === "corrigendum"
               ? "corrigendum"
               : type === "correction"
-              ? "correction"
-              : dataType === "legacy"
-              ? "legacy application"
-              : "application"}
+                ? "correction"
+                : dataType === "legacy"
+                  ? "legacy application"
+                  : "application"}
             {pendingRejectRows.length > 1 ? "s" : ""}? This action cannot be
             undone.
           </Typography>
@@ -1955,10 +1972,10 @@ export default function OfficerHome() {
             {type === "corrigendum"
               ? "corrigendum"
               : type === "correction"
-              ? "correction"
-              : dataType === "legacy"
-              ? "legacy application"
-              : "application"}
+                ? "correction"
+                : dataType === "legacy"
+                  ? "legacy application"
+                  : "application"}
             ? This action cannot be undone.
           </Typography>
         </DialogContent>

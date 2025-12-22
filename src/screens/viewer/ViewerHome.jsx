@@ -48,18 +48,17 @@ import {
 } from "recharts";
 import axiosInstance from "../../axiosConfig";
 import ServerSideTable from "../../components/ServerSideTable";
+import BasicModal from "../../components/BasicModal"; // <-- Make sure this is imported
 
 // === ANIMATIONS ===
 const popIn = keyframes`
   0% { transform: scale(0.9); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 `;
-
 const bounce = keyframes`
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 `;
-
 const spin = keyframes`
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -88,7 +87,6 @@ const SolidStatCard = styled(Card)(({ theme, bgcolor, iconcolor }) => ({
     "& .details-arrow": { transform: "translateX(8px)" },
   },
 }));
-
 const IconAvatar = styled(Avatar)(({ theme, iconcolor }) => ({
   width: 68,
   height: 68,
@@ -137,7 +135,6 @@ const STATUS_COLORS = {
   "Pending with Citizen": "#A855F7",
   Rejected: "#EF4444",
 };
-
 const getColor = (title) => STATUS_COLORS[title] || "#6B7280";
 
 // === ICON MAPS ===
@@ -148,7 +145,6 @@ const iconMap = {
   "Pending with Citizen": Group,
   Rejected: Cancel,
 };
-
 const filterIcons = {
   State: <Public />,
   Division: <LocationCity />,
@@ -321,7 +317,6 @@ const useDashboardData = (category, filters) => {
         params,
       });
       const filtered = res.data.dataList.filter((c) => c.category === category);
-
       setData(
         filtered.map((card) => ({
           ...card,
@@ -329,7 +324,6 @@ const useDashboardData = (category, filters) => {
           iconcolor: getColor(card.title),
         })),
       );
-
       setCategoryData(res.data.categoryData || []);
       setLocationData(res.data.locationData || []);
     } catch (err) {
@@ -359,7 +353,6 @@ const useDashboardData = (category, filters) => {
 const ModernStatCard = ({ card, onCardClick }) => {
   const Icon = iconMap[card.title] || AssignmentTurnedIn;
   const color = card.bgcolor || "#6B7280";
-
   return (
     <SolidStatCard
       bgcolor={color}
@@ -380,7 +373,6 @@ const ModernStatCard = ({ card, onCardClick }) => {
             <Icon />
           </IconAvatar>
         </Box>
-
         <Box mt={2} textAlign="center">
           <Typography
             variant="h6"
@@ -405,7 +397,6 @@ const ModernStatCard = ({ card, onCardClick }) => {
             {card.value}
           </Typography>
         </Box>
-
         <Box mt={3} textAlign="center">
           <Typography
             className="details-arrow"
@@ -432,7 +423,6 @@ const ModernStatCard = ({ card, onCardClick }) => {
 const DonutChart = ({ pieData, chartTitle }) => {
   const theme = useTheme();
   const hasData = pieData?.datasets?.[0]?.data?.some((v) => v > 0) ?? false;
-
   if (!hasData) {
     return (
       <Typography
@@ -445,7 +435,6 @@ const DonutChart = ({ pieData, chartTitle }) => {
       </Typography>
     );
   }
-
   const filtered = pieData.labels
     .map((label, i) => ({
       name: label,
@@ -453,7 +442,6 @@ const DonutChart = ({ pieData, chartTitle }) => {
       color: pieData.datasets[0].backgroundColor[i],
     }))
     .filter((d) => d.value > 0);
-
   return (
     <ResponsiveContainer width="100%" height={320}>
       <RechartsPieChart>
@@ -555,7 +543,6 @@ const ModernFilterSection = ({ category, filters, filterLoading }) => {
           <CircularProgress size={24} sx={{ ml: "auto", color: "#4f46e5" }} />
         )}
       </Stack>
-
       <Grid container spacing={3}>
         {filterFields.map(({ label, value, onChange, options, icon }, i) => (
           <Grid item xs={12} sm={6} md={3} key={i}>
@@ -607,14 +594,11 @@ const ModernFilterSection = ({ category, filters, filterLoading }) => {
           </Grid>
         ))}
       </Grid>
-
       <Box mt={4} textAlign="right">
         <Button
           variant="contained"
           onClick={resetFilters}
-          startIcon={
-            <Refresh sx={{ animation: `${spin} 1s linear infinite` }} />
-          }
+          startIcon={<Refresh />}
           sx={{
             bgcolor: "#4f46e5",
             color: "#fff",
@@ -649,8 +633,37 @@ export default function ModernMUIDashboard() {
     isLoading: appLoading,
     error: appError,
   } = useDashboardData("application", appFilters);
+
   const [selectedTable, setSelectedTable] = useState(null);
   const tableRef = useRef(null);
+
+  // === NEW: Timeline Modal State ===
+  const [timelineOpen, setTimelineOpen] = useState(false);
+  const [timelineApplicationId, setTimelineApplicationId] = useState(null);
+  const [timelineTable, setTimelineTable] = useState(null);
+
+  const handleOpenTimelineModal = (applicationId) => {
+    setTimelineApplicationId(applicationId);
+    setTimelineTable({
+      url: "/Viewer/GetApplicationHistory", // Use the new endpoint you added
+      params: { ApplicationId: applicationId },
+    });
+    setTimelineOpen(true);
+  };
+
+  const handleCloseTimelineModal = () => {
+    setTimelineOpen(false);
+    setTimelineApplicationId(null);
+    setTimelineTable(null);
+  };
+
+  // === Action Functions for ServerSideTable ===
+  const actionFunctions = {
+    ViewTimeline: (row) => {
+      const refNo = row.original.referenceNumber;
+      handleOpenTimelineModal(refNo);
+    },
+  };
 
   const handleCardClick = useCallback((title) => {
     const map = {
@@ -686,13 +699,12 @@ export default function ModernMUIDashboard() {
     ],
   };
 
-  const dynamicTitle = `${
-    appFilters.wise === "State"
-      ? "Division"
-      : appFilters.wise === "Division"
+  const dynamicTitle = `${appFilters.wise === "State"
+    ? "Division"
+    : appFilters.wise === "Division"
       ? "District"
       : "Tehsil"
-  }-wise Sanctioned Applications`;
+    }-wise Sanctioned`;
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f8fafc", py: 4 }}>
@@ -753,7 +765,6 @@ export default function ModernMUIDashboard() {
                   {appFilters.wise} - {appFilters.wiseName}
                 </Typography>
               </Box>
-
               <Grid container spacing={3} mb={5}>
                 {appData.map((card, i) => (
                   <Grid item xs={12} sm={6} md={4} lg={2.4} key={i}>
@@ -761,9 +772,7 @@ export default function ModernMUIDashboard() {
                   </Grid>
                 ))}
               </Grid>
-
               <Divider sx={{ my: 6, borderColor: alpha("#e2e8f0", 0.6) }} />
-
               <Grid container spacing={4}>
                 <Grid item xs={12} md={appFilters.tehsil ? 6 : 4}>
                   <Typography
@@ -783,7 +792,7 @@ export default function ModernMUIDashboard() {
                     mb={2}
                     color="#1e293b"
                   >
-                    Category-wise
+                    Category-wise Sanctioned
                   </Typography>
                   <DonutChart
                     pieData={{
@@ -837,16 +846,16 @@ export default function ModernMUIDashboard() {
                       tehsil: appFilters.tehsil,
                     }}
                     Title={selectedTable.title}
-                    actionFunctions={{}}
+                    actionFunctions={actionFunctions} // <-- Enables View Timeline button
                     canSanction={false}
                     canHavePool={false}
                     pendingApplications={false}
                     serviceId="1"
-                    onPushToPool={() => {}}
-                    onExecuteAction={() => {}}
+                    onPushToPool={() => { }}
+                    onExecuteAction={() => { }}
                     actionOptions={[]}
                     selectedAction=""
-                    setSelectedAction={() => {}}
+                    setSelectedAction={() => { }}
                   />
                 </div>
               </ModernFilterCard>
@@ -854,6 +863,23 @@ export default function ModernMUIDashboard() {
           </>
         )}
       </Container>
+
+      {/* === NEW: Application History Modal === */}
+      <BasicModal
+        open={timelineOpen}
+        handleClose={handleCloseTimelineModal}
+        Title={`Application History for ${timelineApplicationId || ""}`}
+        pdf={null}
+        table={timelineTable}
+        sx={{
+          "& .MuiDialog-paper": {
+            width: { xs: "95%", sm: "80%", md: "60%" },
+            maxWidth: "900px",
+            borderRadius: "16px",
+            padding: "2rem",
+          },
+        }}
+      />
     </Box>
   );
 }

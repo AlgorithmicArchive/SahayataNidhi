@@ -96,6 +96,8 @@ export const CollapsibleFormDetails = ({
       : Object.entries(formDetails).map(([key, value]) => ({ [key]: value }));
   }, [formDetails]);
 
+  console.log("Form Details:", formDetails);
+
   // State to track visibility of private fields
   const [fieldVisibility, setFieldVisibility] = useState({});
   console.log("Private Fields:", privateFields);

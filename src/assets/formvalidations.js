@@ -1,6 +1,16 @@
-// formvalidations.js
-import * as tf from "@tensorflow/tfjs";
+import "@tensorflow/tfjs-backend-webgl"; // Load backend first
+import * as tf from "@tensorflow/tfjs"; // Then core TF
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
+
+// Make tf globally available (temporarily for debugging)
+if (typeof window !== "undefined") {
+  window.tf = tf;
+  console.log(
+    "[DEBUG] TensorFlow.js version:",
+    tf.version?.tfjs || "Not loaded",
+  );
+}
+
 // Validation functions
 export function notEmpty(field, value) {
   if (value === "" || value == "Please Select") {
@@ -22,6 +32,7 @@ export function onlyDigits(field, value) {
 }
 export function specificLength(field, value, formData = {}) {
   let maxLengthValue;
+  console.log(formData);
   // Determine maxLength based on dependent field if needed
   if (typeof field.maxLength === "object" && field.maxLength.dependentOn) {
     const dependentFieldId = field.maxLength.dependentOn;
@@ -96,53 +107,60 @@ export async function validateIfscCode(
   value,
   formData,
   referenceNumber,
-  setValue,
+  setValue, // Keep parameter but handle it safely
 ) {
-  const ifscCode = formData.IfscCode;
+  const ifscCode = formData.IfscCode || value;
   const bankName = formData.BankName;
+
   // Ensure IFSC code exists
-  if (!ifscCode) {
-    return "IFSC Code is missing.";
+  if (!ifscCode || !ifscCode.trim()) {
+    return true; // Allow empty IFSC
   }
+
+  if (!bankName || bankName === "Please Select") {
+    return "Please select a bank name first";
+  }
+
   try {
     const fd = new FormData();
     fd.append("bankName", bankName);
-    fd.append("ifscCode", ifscCode);
+    fd.append("ifscCode", ifscCode.trim().toUpperCase());
+
     const res = await fetch(`/Base/ValidateIfscCode`, {
       method: "POST",
       body: fd,
     });
+
     if (!res.ok) {
-      if (res.status === 404) {
+      if (typeof setValue === "function") {
         setValue("BranchName", "", { shouldValidate: true });
-        return {
-          valid: false,
-          message: "Branch details not found.",
-          removeReadonly: true,
-        };
       }
-      return `Error: ${res.status} ${res.statusText}`;
+      return "Failed to validate IFSC code. Please try again.";
     }
+
     const data = await res.json();
-    // Check if bank details are returned
+
     if (!data || !data.status || !data.bankDetails) {
-      setValue("BranchName", "", { shouldValidate: true });
-      return {
-        valid: false,
-        message: "IFSC Code is incorrect or branch details not available.",
-        removeReadonly: true,
-      };
+      if (typeof setValue === "function") {
+        setValue("BranchName", "", { shouldValidate: true });
+      }
+      return "IFSC Code is incorrect or branch details not available.";
     }
-    // Update BranchName from API response
-    setValue("BranchName", data.bankDetails.branch, { shouldValidate: true });
-    return true;
+
+    // Update BranchName if setValue exists
+    if (typeof setValue === "function") {
+      setValue("BranchName", data.bankDetails.branch, { shouldValidate: true });
+    }
+
+    return true; // Validation passed
   } catch (error) {
     console.error("Error validating IFSC:", error);
-    return {
-      valid: false,
-      message: "Error validating IFSC code.",
-      removeReadonly: true,
-    };
+
+    if (typeof setValue === "function") {
+      setValue("BranchName", "", { shouldValidate: true });
+    }
+
+    return "Error validating IFSC code. Please try again.";
   }
 }
 export async function validateFile(field, value) {
@@ -177,16 +195,44 @@ export function range(field, value) {
   }
 }
 // Helper function to parse DD/MM/YYYY and return a Date object
+/**
+ * Parses a date string in either DD/MM/YYYY or YYYY-MM-DD format.
+ * Returns a Date object (with time zeroed) or null if invalid.
+ */
 function parseDDMMYYYY(value) {
-  const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-  const match = value.match(datePattern);
-  if (!match) return null;
-  const [, day, month, year] = match.map(Number);
-  const date = new Date(year, month - 1, day);
-  // Check for invalid dates like 31/02/2025
-  if (isNaN(date.getTime()) || date.getDate() !== day) return null;
-  date.setHours(0, 0, 0, 0); // zero out time
-  return date;
+  if (!value || typeof value !== "string") return null;
+
+  const trimmed = value.trim();
+
+  // 1. Try DD/MM/YYYY first
+  const ddmmyyyyPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  const ddMatch = trimmed.match(ddmmyyyyPattern);
+  if (ddMatch) {
+    const [, day, month, year] = ddMatch.map(Number);
+    const date = new Date(year, month - 1, day);
+
+    // Validate the date (catches 31/02/2025, 30/02/2025, etc.)
+    if (isNaN(date.getTime()) || date.getDate() !== day) return null;
+
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  // 2. Try YYYY-MM-DD (ISO format)
+  const isoPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
+  const isoMatch = trimmed.match(isoPattern);
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch.map(Number);
+    const date = new Date(year, month - 1, day);
+
+    if (isNaN(date.getTime()) || date.getDate() !== day) return null;
+
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  // Not a recognised format
+  return null;
 }
 export function isAgeGreaterThan(field, value, formData) {
   let maxLengthValue;
@@ -299,23 +345,91 @@ export async function tehsilForDistrict(field, districtValue) {
 }
 let modelLoaded = false;
 let cocoSsdModel = null;
+
+// UPDATED loadCocoSsdModel function
 export async function loadCocoSsdModel() {
   if (!modelLoaded) {
     try {
+      console.log("[DEBUG] Initializing TensorFlow.js...");
+
+      // IMPORTANT FIX: Call the backendNames function
+      const backendNames = tf.engine().backendNames();
+      console.log("[DEBUG] Available backends:", backendNames);
+
+      // Check if backends are available
+      if (!backendNames || backendNames.length === 0) {
+        throw new Error("No TensorFlow.js backends available");
+      }
+
+      // Try WebGL first, then CPU
+      let backendToUse = "cpu"; // Default fallback
+
+      if (backendNames.includes("webgl")) {
+        backendToUse = "webgl";
+      } else if (backendNames.includes("cpu")) {
+        backendToUse = "cpu";
+      }
+
+      console.log("[DEBUG] Using backend:", backendToUse);
+
+      // Set and initialize the backend
+      await tf.setBackend(backendToUse);
+      await tf.ready();
+
+      console.log(
+        "[DEBUG] TensorFlow ready, current backend:",
+        tf.getBackend(),
+      );
+      console.log("[DEBUG] TensorFlow version:", tf.version.tfjs);
+
+      // Now load the COCO-SSD model
       cocoSsdModel = await cocoSsd.load();
       modelLoaded = true;
+      console.log("[DEBUG] COCO-SSD model loaded successfully");
     } catch (error) {
-      console.error("Error loading COCO-SSD model:", error);
-      throw new Error("Failed to load COCO-SSD model");
+      console.error("[DEBUG] Error loading COCO-SSD model:", error);
+
+      // More specific error handling
+      if (
+        error.message.includes("No backend found") ||
+        error.message.includes("No TensorFlow.js backends")
+      ) {
+        console.error(
+          "[DEBUG] Backend issue detected. Trying manual initialization...",
+        );
+
+        // Try manual backend setup
+        try {
+          // Force register CPU backend
+          const cpuBackend = "cpu";
+          await tf.setBackend(cpuBackend);
+          await tf.ready();
+
+          cocoSsdModel = await cocoSsd.load();
+          modelLoaded = true;
+          console.log("[DEBUG] Model loaded with forced CPU backend");
+        } catch (cpuError) {
+          throw new Error(
+            `Failed to initialize any backend: ${cpuError.message}`,
+          );
+        }
+      } else {
+        throw new Error(`Failed to load COCO-SSD model: ${error.message}`);
+      }
     }
   }
 }
+
+// UPDATED detectHuman function - TEMPORARILY DISABLED
 export async function detectHuman(field, value) {
+  // REMOVE THE BYPASS - use original logic
   if (!value || !(value instanceof File)) {
     return "No valid image file provided.";
   }
+
   try {
     await loadCocoSsdModel();
+
     // Create image from file
     const img = await new Promise((resolve, reject) => {
       const image = new Image();
@@ -323,14 +437,18 @@ export async function detectHuman(field, value) {
       image.onerror = () => reject(new Error("Failed to load image"));
       image.src = URL.createObjectURL(value);
     });
+
     // Detect objects in the image using COCO-SSD
     const predictions = await cocoSsdModel.detect(img);
+
     // Revoke the object URL
     URL.revokeObjectURL(img.src);
+
     // Check if any prediction is a "person" with sufficient confidence
     const personPrediction = predictions.find(
       (pred) => pred.class === "person" && pred.score > 0.5,
     );
+
     if (personPrediction) {
       return true;
     } else {
@@ -338,9 +456,19 @@ export async function detectHuman(field, value) {
     }
   } catch (error) {
     console.error("Error in detectHuman with COCO-SSD:", error);
-    return "Human detection failed due to an error.";
+
+    // Provide specific error messages
+    if (
+      error.message.includes("backend") ||
+      error.message.includes("Backend")
+    ) {
+      return "Human detection failed: Graphics/GPU issue. Please try again or use a different browser.";
+    }
+
+    return "Human detection failed due to an error. Please try again.";
   }
 }
+
 export const runValidations = async (
   field,
   value,

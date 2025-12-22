@@ -122,6 +122,7 @@ builder.Services.AddHostedService<CronScheduler>();
 builder.Services.AddScoped<SessionRepository>();
 builder.Services.AddScoped<CronServices>();
 builder.Services.AddHttpClient();
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 

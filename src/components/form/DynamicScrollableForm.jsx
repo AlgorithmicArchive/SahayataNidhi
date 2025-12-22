@@ -2600,7 +2600,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
         title="Email Required"
         message="Documents like Acknowledgement and Sanction Letters are sent via email. Please provide an email address if you want to receive these letters via mail."
         primaryButton={{
-          text: "Submit",
+          text: "Submit Without Email",
           action: handleEmailAlertSubmit,
         }}
         secondaryButton={{
@@ -2617,7 +2617,7 @@ const DynamicScrollableForm = ({ mode = "new", data }) => {
             setOtpModal(false);
           }}
           onSubmit={handleOtpSubmit}
-          registeredAt="Mobile Number"
+          registeredAt="Mobile Number. Dummy OTP is 1234567"
         />
       )}
 

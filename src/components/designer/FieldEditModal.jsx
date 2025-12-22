@@ -13,18 +13,29 @@ import {
   FormControl,
   InputLabel,
   Box,
+  Autocomplete,
+  Chip,
+  IconButton,
+  Paper,
+  Tooltip,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import {
   validationFunctionsList,
   transformationFunctionsList,
 } from "../../assets/formvalidations";
-import axiosnInstance from "../../axiosConfig";
+import axiosInstance from "../../axiosConfig";
 import { toast } from "react-toastify";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from "@mui/icons-material/Close";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 
 // Async function to fetch districts (unchanged)
 const fetchDistricts = async () => {
   try {
-    const response = await axiosnInstance.get("/Base/GetDistricts");
+    const response = await axiosInstance.get("/Base/GetDistricts");
     const data = await response.data;
     if (data.status) {
       return data.districts;
@@ -78,12 +89,417 @@ const getSelectableFields = (sections = [], actionForm = []) => {
   return selectableFields.filter((field) => !field.id.includes("District"));
 };
 
+// Fetch form fields from API
+const fetchFormFieldsFromAPI = async (serviceId) => {
+  if (!serviceId) return [];
+
+  try {
+    console.log("Fetching form fields from API for service:", serviceId);
+    const response = await axiosInstance.get(`/Designer/GetFormElements`, {
+      params: { serviceId }
+    });
+
+    console.log("API Response:", response.data);
+
+    if (response.data.status && response.data.sections) {
+      const allFields = [];
+      response.data.sections.forEach(section => {
+        if (section.fields && Array.isArray(section.fields)) {
+          section.fields.forEach(field => {
+            if (field.name && field.label) {
+              allFields.push({
+                id: field.name,
+                name: field.name,
+                label: field.label,
+                type: field.type || 'text'
+              });
+            }
+          });
+        }
+      });
+      console.log("Extracted form fields:", allFields);
+      return allFields;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching form fields:", error);
+    toast.error("Failed to load form fields");
+    return [];
+  }
+};
+
+// Draggable Declaration Field Item Component
+const DraggableDeclarationField = ({ field, index, onRemove, onDragStart, onDragOver, onDrop }) => {
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('text/plain', index.toString());
+    onDragStart(index);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    onDragOver(index);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    onDrop(draggedIndex, index);
+  };
+
+  return (
+    <Paper
+      draggable
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      sx={{
+        p: 1.5,
+        mb: 1,
+        bgcolor: 'grey.50',
+        border: '1px dashed',
+        borderColor: 'primary.main',
+        cursor: 'move',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        '&:hover': {
+          bgcolor: 'grey.100',
+        },
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <DragIndicatorIcon sx={{ color: 'grey.500' }} />
+        <Box>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            {field.label}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {field.name} ({field.type})
+          </Typography>
+        </Box>
+      </Box>
+      <Chip
+        label={`{${field.name}}`}
+        size="small"
+        color="primary"
+        variant="outlined"
+      />
+      <IconButton
+        size="small"
+        onClick={() => onRemove(index)}
+        sx={{ color: 'error.main' }}
+      >
+        <CloseIcon />
+      </IconButton>
+    </Paper>
+  );
+};
+
+// Declaration Configuration Component
+const DeclarationConfiguration = ({
+  formData,
+  setFormData,
+  serviceId,
+  allAvailableFields = []
+}) => {
+  const [declarationFields, setDeclarationFields] = useState(formData.declarationFields || []);
+  const [availableFields, setAvailableFields] = useState([]);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
+  // Debug log
+  useEffect(() => {
+    console.log("DeclarationConfiguration received:", {
+      serviceId,
+      allAvailableFields: allAvailableFields,
+      formData,
+      declarationFields
+    });
+  }, [serviceId, allAvailableFields, formData, declarationFields]);
+
+  // Filter out fields that are already selected
+  useEffect(() => {
+    const usedFieldIds = new Set(declarationFields.map(f => f.id));
+    const filteredFields = allAvailableFields
+      .filter(f => f && !usedFieldIds.has(f.id))
+      .map(f => ({
+        id: f.id,
+        name: f.name,
+        label: f.label || f.name,
+        type: f.type || 'text'
+      }));
+
+    console.log("Available fields after filtering:", filteredFields);
+    setAvailableFields(filteredFields);
+  }, [allAvailableFields, declarationFields]);
+
+  useEffect(() => {
+    // Update parent form data when declaration fields change
+    setFormData(prev => ({
+      ...prev,
+      declarationFields: declarationFields,
+      isDeclaration: true
+    }));
+  }, [declarationFields, setFormData]);
+
+  const handleAddField = (selectedField) => {
+    if (selectedField) {
+      const fieldData = allAvailableFields.find(f => f.id === selectedField.id);
+      if (fieldData) {
+        const newField = {
+          id: fieldData.id,
+          name: fieldData.name,
+          label: fieldData.label || fieldData.name,
+          type: fieldData.type || 'text',
+          required: false
+        };
+        const updatedFields = [...declarationFields, newField];
+        setDeclarationFields(updatedFields);
+        updateDeclarationText(updatedFields);
+      }
+    }
+  };
+
+  const handleRemoveField = (index) => {
+    const updatedFields = declarationFields.filter((_, i) => i !== index);
+    setDeclarationFields(updatedFields);
+    updateDeclarationText(updatedFields);
+  };
+
+  const handleDragStart = (index) => {
+    setDragOverIndex(index);
+  };
+
+  const handleDragOver = (index) => {
+    setDragOverIndex(index);
+  };
+
+  const handleDrop = (draggedIndex, dropIndex) => {
+    if (draggedIndex === dropIndex) return;
+
+    const newFields = [...declarationFields];
+    const draggedItem = newFields[draggedIndex];
+    newFields.splice(draggedIndex, 1);
+    newFields.splice(dropIndex, 0, draggedItem);
+
+    setDeclarationFields(newFields);
+    updateDeclarationText(newFields);
+    setDragOverIndex(null);
+  };
+
+  const updateDeclarationText = (fields) => {
+    let text = formData.declaration || "";
+
+    // If no text exists, create a template
+    if (!text || text.trim() === '') {
+      if (fields.length > 0) {
+        text = fields.reduce((acc, field, index) => {
+          const separator = index === fields.length - 1 ? '. ' : ', ';
+          return acc + `{${field.name}}` + separator;
+        }, 'I hereby declare that ');
+        text += "All the information provided is true to the best of my knowledge.";
+      } else {
+        text = "I hereby declare that the information provided is true to the best of my knowledge.";
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        declaration: text
+      }));
+    }
+  };
+
+  const handleDeclarationTextChange = (text) => {
+    setFormData(prev => ({
+      ...prev,
+      declaration: text
+    }));
+  };
+
+  return (
+    <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'primary.main', borderRadius: 1 }}>
+      <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+        📝 Declaration Configuration
+      </Typography>
+
+      {/* Service Info */}
+      {serviceId && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Typography variant="body2">
+            Declaration will include form fields from the selected service.
+          </Typography>
+          <Typography variant="caption">
+            Total available fields: {allAvailableFields.length}
+          </Typography>
+        </Alert>
+      )}
+
+      {/* Field Selection */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
+          Add Form Fields to Declaration
+        </Typography>
+
+        {allAvailableFields.length > 0 ? (
+          <>
+            <Autocomplete
+              options={availableFields}
+              getOptionLabel={(option) => `${option.label} (${option.name})`}
+              onChange={(event, value) => {
+                console.log("Selected field:", value);
+                handleAddField(value);
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Select a form field to add to declaration"
+                  size="small"
+                  fullWidth
+                />
+              )}
+              renderOption={(props, option) => (
+                <li {...props}>
+                  <Box>
+                    <Typography variant="body2">{option.label}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Field: {option.name} | Type: {option.type}
+                    </Typography>
+                  </Box>
+                </li>
+              )}
+              sx={{ mb: 2 }}
+            />
+
+            {/* Quick Add Fields */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" sx={{ display: 'block', mb: 0.5, fontWeight: 'bold' }}>
+                Quick Add:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {availableFields.slice(0, 6).map((fieldItem) => (
+                  <Chip
+                    key={fieldItem.id}
+                    label={fieldItem.label}
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleAddField(fieldItem)}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          </>
+        ) : (
+          <Paper sx={{ p: 2, bgcolor: 'warning.light', mb: 2 }}>
+            <Typography variant="body2">
+              {serviceId ?
+                "No form fields available to add to declaration. The service might not have any form fields configured."
+                : "Please select a service first to load form fields."}
+            </Typography>
+          </Paper>
+        )}
+      </Box>
+
+      {/* Selected Fields List */}
+      {declarationFields.length > 0 ? (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
+            Selected Fields (Drag to reorder)
+          </Typography>
+          {declarationFields.map((fieldItem, index) => (
+            <DraggableDeclarationField
+              key={`${fieldItem.id}-${index}`}
+              field={fieldItem}
+              index={index}
+              onRemove={handleRemoveField}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            />
+          ))}
+        </Box>
+      ) : (
+        <Paper sx={{ p: 2, mb: 3, bgcolor: 'info.light' }}>
+          <Typography variant="body2">
+            No fields added to declaration yet. Select fields from the dropdown above.
+          </Typography>
+        </Paper>
+      )}
+
+      {/* Declaration Text Editor */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
+          Declaration Text
+        </Typography>
+        <TextField
+          fullWidth
+          multiline
+          rows={4}
+          value={formData.declaration || ""}
+          onChange={(e) => handleDeclarationTextChange(e.target.value)}
+          placeholder="I hereby declare that {field1}, {field2}..."
+          sx={{ mb: 1 }}
+        />
+        <Typography variant="caption" color="text.secondary">
+          Tip: Selected fields will appear as {`{fieldName}`} placeholders. Drag fields above to reorder them.
+        </Typography>
+      </Box>
+
+      {/* Preview */}
+      {declarationFields.length > 0 && (
+        <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+            Preview:
+          </Typography>
+          <Paper sx={{ p: 2, bgcolor: 'white' }}>
+            <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+              {declarationFields.reduce((text, fieldItem) => {
+                return text.replace(
+                  new RegExp(`\\{${fieldItem.name}\\}`, 'g'),
+                  `[${fieldItem.label}: ___________]`
+                );
+              }, formData.declaration || "")}
+            </Typography>
+          </Paper>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+            {`{fieldName}`} placeholders will be replaced with actual input fields
+          </Typography>
+        </Box>
+      )}
+
+      {/* Field Placeholder Helper */}
+      {declarationFields.length > 0 && (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+            Available Placeholders:
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+            {declarationFields.map((fieldItem, index) => (
+              <Chip
+                key={fieldItem.id}
+                label={`{${fieldItem.name}}`}
+                size="small"
+                sx={{ fontSize: '0.7rem', cursor: 'pointer' }}
+                onClick={() => {
+                  const newText = (formData.declaration || "") + ` {${fieldItem.name}}`;
+                  handleDeclarationTextChange(newText);
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
 const FieldEditModal = ({
   selectedField,
   sections = [],
   actionForm = [],
   onClose,
   updateField,
+  serviceId,
+  availableFormFields = [], // Receive from parent
 }) => {
   const [dependentOn, setDependentOn] = useState(
     selectedField?.dependentOn || "",
@@ -123,6 +539,9 @@ const FieldEditModal = ({
     isCheckboxDependent: selectedField?.isCheckboxDependent ?? false,
     checkboxDependentOn: selectedField?.checkboxDependentOn || "",
     checkboxDependentValue: selectedField?.checkboxDependentValue || "",
+    // New fields for declaration
+    isDeclaration: selectedField?.isDeclaration || false,
+    declarationFields: selectedField?.declarationFields || [],
   });
 
   const [optionInputText, setOptionInputText] = useState(
@@ -137,11 +556,33 @@ const FieldEditModal = ({
 
   const [dependentOptionInputs, setDependentOptionInputs] = useState({});
 
+  // State for available form fields
+  const [availableFields, setAvailableFields] = useState(availableFormFields);
+  const [isFetchingFormFields, setIsFetchingFormFields] = useState(false);
+
   const isWorkflowContext = sections.length === 0 && actionForm.length > 0;
   const selectableFields = getSelectableFields(sections, actionForm);
   const filteredSelectableFields = selectableFields.filter(
     (field) => field.id !== selectedField?.name,
   );
+
+  // Fetch form fields if not provided by parent
+  useEffect(() => {
+    async function fetchFields() {
+      if (serviceId && availableFormFields.length === 0) {
+        console.log("Fetching form fields in FieldEditModal for service:", serviceId);
+        setIsFetchingFormFields(true);
+        const fields = await fetchFormFieldsFromAPI(serviceId);
+        console.log("Fetched fields in FieldEditModal:", fields);
+        setAvailableFields(fields);
+        setIsFetchingFormFields(false);
+      } else if (availableFormFields.length > 0) {
+        console.log("Using form fields provided by parent:", availableFormFields.length);
+        setAvailableFields(availableFormFields);
+      }
+    }
+    fetchFields();
+  }, [serviceId, availableFormFields]);
 
   // Simplified useEffect to handle declaration only
   useEffect(() => {
@@ -149,6 +590,8 @@ const FieldEditModal = ({
       setFormData((prev) => ({
         ...prev,
         declaration: "",
+        isDeclaration: false,
+        declarationFields: [],
       }));
     }
   }, [formData.isConsentCheckbox, formData.type]);
@@ -200,6 +643,8 @@ const FieldEditModal = ({
       isCheckboxDependent: formData.isCheckboxDependent,
       checkboxDependentOn: formData.checkboxDependentOn,
       checkboxDependentValue: formData.checkboxDependentValue,
+      isDeclaration: formData.isDeclaration,
+      declarationFields: formData.declarationFields,
     });
 
     const finalFormData = {
@@ -221,6 +666,10 @@ const FieldEditModal = ({
         formData.type === "checkbox" && formData.isCheckboxDependent
           ? formData.checkboxDependentValue
           : "",
+      isDeclaration: formData.type === "checkbox" && formData.isConsentCheckbox,
+      declarationFields: formData.type === "checkbox" && formData.isConsentCheckbox
+        ? formData.declarationFields
+        : [],
     };
 
     updateField(finalFormData);
@@ -232,7 +681,7 @@ const FieldEditModal = ({
       open={true}
       onClose={onClose}
       aria-labelledby="form-dialog-title"
-      PaperProps={{ style: { width: "90%", maxWidth: 600 } }}
+      PaperProps={{ style: { width: '90%', maxWidth: 800 } }}
     >
       <DialogTitle id="form-dialog-title">Edit Field Properties</DialogTitle>
       <DialogContent>
@@ -414,40 +863,43 @@ const FieldEditModal = ({
             labelId="field-type-label"
             value={formData.type}
             label="Field Type"
-            onChange={(e) =>
+            onChange={(e) => {
+              const newType = e.target.value;
               setFormData((prev) => ({
                 ...prev,
-                type: e.target.value,
+                type: newType,
                 options:
-                  e.target.value === "select"
+                  newType === "select"
                     ? [{ value: "Please Select", label: "Please Select" }]
                     : [],
-                optionsType: e.target.value === "select" ? "independent" : "",
+                optionsType: newType === "select" ? "independent" : "",
                 isConsentCheckbox:
-                  e.target.value === "checkbox"
-                    ? prev.isConsentCheckbox
-                    : false,
+                  newType === "checkbox" ? prev.isConsentCheckbox : false,
                 declaration:
-                  e.target.value === "checkbox" && prev.isConsentCheckbox
+                  newType === "checkbox" && prev.isConsentCheckbox
                     ? prev.declaration
                     : "",
+                isDeclaration:
+                  newType === "checkbox" && prev.isConsentCheckbox
+                    ? prev.isDeclaration
+                    : false,
+                declarationFields:
+                  newType === "checkbox" && prev.isConsentCheckbox
+                    ? prev.declarationFields
+                    : [],
                 accept:
-                  e.target.value === "file" ||
-                  (e.target.value === "select" && prev.isDependentEnclosure)
+                  newType === "file" ||
+                    (newType === "select" && prev.isDependentEnclosure)
                     ? prev.accept
                     : "",
                 isCheckboxDependent:
-                  e.target.value === "checkbox"
-                    ? prev.isCheckboxDependent
-                    : false,
+                  newType === "checkbox" ? prev.isCheckboxDependent : false,
                 checkboxDependentOn:
-                  e.target.value === "checkbox" ? prev.checkboxDependentOn : "",
+                  newType === "checkbox" ? prev.checkboxDependentOn : "",
                 checkboxDependentValue:
-                  e.target.value === "checkbox"
-                    ? prev.checkboxDependentValue
-                    : "",
-              }))
-            }
+                  newType === "checkbox" ? prev.checkboxDependentValue : "",
+              }));
+            }}
           >
             <MenuItem value="text">Text</MenuItem>
             <MenuItem value="email">Email</MenuItem>
@@ -476,6 +928,8 @@ const FieldEditModal = ({
                       dependentOn: checked ? "" : prev.dependentOn,
                       dependentOptions: checked ? {} : prev.dependentOptions,
                       declaration: checked ? prev.declaration : "",
+                      isDeclaration: checked,
+                      declarationFields: checked ? prev.declarationFields : [],
                     }));
                     if (checked) {
                       setOptionInputText("");
@@ -486,6 +940,24 @@ const FieldEditModal = ({
               }
               label="Single Consent Checkbox (True/False)"
             />
+
+            {/* Declaration Configuration for Consent Checkbox */}
+            {formData.isConsentCheckbox && (
+              <>
+                <DeclarationConfiguration
+                  formData={formData}
+                  setFormData={setFormData}
+                  serviceId={serviceId}
+                  allAvailableFields={availableFields}
+                />
+                {isFetchingFormFields && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="caption">Loading form fields...</Typography>
+                  </Box>
+                )}
+              </>
+            )}
 
             {/* Checkbox Dependency Configuration */}
             {!isWorkflowContext && (
@@ -581,25 +1053,6 @@ const FieldEditModal = ({
                   </FormControl>
                 )}
               </>
-            )}
-
-            {formData.isConsentCheckbox && (
-              <TextField
-                fullWidth
-                label="Declaration Text"
-                value={formData.declaration}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    declaration: e.target.value,
-                  }))
-                }
-                margin="dense"
-                multiline
-                rows={4}
-                placeholder="Enter the declaration or consent text, e.g., 'I agree to the terms and conditions.'"
-                helperText="Optional: Enter a declaration statement to display with the consent checkbox."
-              />
             )}
 
             <FormControlLabel
@@ -730,8 +1183,8 @@ const FieldEditModal = ({
                               dependentOptionInputs[option.value] ??
                               (formData.dependentOptions?.[option.value]
                                 ? formData.dependentOptions[option.value]
-                                    .map((opt) => opt.label)
-                                    .join(";")
+                                  .map((opt) => opt.label)
+                                  .join(";")
                                 : "")
                             }
                             onChange={(e) => {
@@ -776,14 +1229,13 @@ const FieldEditModal = ({
                       return (
                         <TextField
                           fullWidth
-                          label={`Dependent Options for ${
-                            selectedField?.label || "Selected Field"
-                          } (semicolon-separated)`}
+                          label={`Dependent Options for ${selectedField?.label || "Selected Field"
+                            } (semicolon-separated)`}
                           value={
                             formData.dependentOptions?.["default"]
                               ? formData.dependentOptions["default"]
-                                  .map((opt) => opt.label)
-                                  .join(";")
+                                .map((opt) => opt.label)
+                                .join(";")
                               : ""
                           }
                           onChange={(e) => {

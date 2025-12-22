@@ -238,15 +238,20 @@ const MyNavbar = () => {
     // ---- Officer ----
     if (userType === "Officer" && verified) {
       m.push(
-        { name: "Home", path: "/officer/home", key: "officer-home" },
-        { name: "Reports", path: "/officer/reports", key: "officer-reports" },
-        {
+        { name: "Dashboard", path: "/officer/home", key: "officer-home" },
+        { name: "Reports", path: "/officer/reports", key: "officer-reports" }
+      );
+
+      // === DSC Management - Only if CanSanction is true ===
+      if (officerAuthorities?.canSanction) {
+        m.push({
           name: "DSC Management",
           key: "dsc-mgmt",
           subItems: [{ name: "Register DSC", path: "/officer/registerdsc" }],
-        },
-      );
+        });
+      }
 
+      // === Bank Files - existing condition ===
       if (officerAuthorities?.canManageBankFiles) {
         m.push({
           name: "Bank Files",
@@ -261,10 +266,11 @@ const MyNavbar = () => {
         });
       }
 
+      // === Applications Updations ===
       const upd = [];
       if (officerAuthorities?.canCorrigendum)
         upd.push({ name: "Data Updation", path: "/officer/issuecorrigendum" });
-      if (officerAuthorities?.canWithhold)
+      if (officerAuthorities?.canWithhold || officerAuthorities?.canDirectWithheld)
         upd.push({ name: "Withheld Application", path: "/officer/withheld" });
       if (officerAuthorities?.canValidateAadhaar)
         upd.push({
@@ -278,6 +284,7 @@ const MyNavbar = () => {
           subItems: upd,
         });
 
+      // === View Applications ===
       m.push({
         name: "View Applications",
         key: "view-apps",
@@ -291,7 +298,7 @@ const MyNavbar = () => {
     // ---- Viewer, Admin, Designer (unchanged) ----
     if (userType === "Viewer" && verified) {
       m.push(
-        { name: "Home", path: "/viewer/home", key: "viewer-home" },
+        { name: "Dashboard", path: "/viewer/home", key: "viewer-home" },
         {
           name: "Aadhaar Validations",
           path: "/viewer/aadhaarvalidations",
@@ -371,13 +378,13 @@ const MyNavbar = () => {
     const profileSub = [{ name: "Settings", path: "/settings" }];
 
     // ---- show switch only for non-Citizen original role ----
-    if (actualUserType !== "Citizen") {
-      profileSub.push({
-        name:
-          userType === "Citizen" ? "Switch to Officer" : "Switch to Citizen",
-        action: handleToggleRole,
-      });
-    }
+    // if (actualUserType !== "Citizen") {
+    //   profileSub.push({
+    //     name:
+    //       userType === "Citizen" ? "Switch to Officer" : "Switch to Citizen",
+    //     action: handleToggleRole,
+    //   });
+    // }
 
     profileSub.push({ name: "Logout", action: handleLogout });
 
@@ -615,13 +622,13 @@ const MyNavbar = () => {
                     </MenuItem>
                     <MenuList>
                       {/* SWITCH – only for non-Citizen original role */}
-                      {actualUserType !== "Citizen" && (
+                      {/* {actualUserType !== "Citizen" && (
                         <MenuItem onClick={handleToggleRole}>
                           {userType === "Citizen"
                             ? "Switch to Officer"
                             : "Switch to Citizen"}
                         </MenuItem>
-                      )}
+                      )} */}
                       <MenuItem onClick={handleLogout}>Logout</MenuItem>
                     </MenuList>
                   </Paper>

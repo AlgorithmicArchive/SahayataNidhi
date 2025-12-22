@@ -37,7 +37,7 @@ const BasicModal = ({
         sx={[
           style,
           {
-            maxHeight: "800px",
+            maxHeight: "650px",
             overflowY: "scroll",
             width: { xs: "100%", md: "90%" },
           },

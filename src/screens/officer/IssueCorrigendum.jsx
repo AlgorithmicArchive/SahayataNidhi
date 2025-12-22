@@ -304,8 +304,8 @@ export default function IssueDocumentChange() {
               const sectionName = changedFieldName.includes("Present")
                 ? "Present Address Details"
                 : changedFieldName.includes("Permanent")
-                ? "Permanent Address Details"
-                : "Location";
+                  ? "Permanent Address Details"
+                  : "Location";
               const sectionIndex = newSections.findIndex(
                 (s) => s.section === sectionName,
               );
@@ -393,8 +393,8 @@ export default function IssueDocumentChange() {
         const sectionName = changedFieldName.includes("Present")
           ? "Present Address Details"
           : changedFieldName.includes("Permanent")
-          ? "Permanent Address Details"
-          : "Location";
+            ? "Permanent Address Details"
+            : "Location";
         const sectionIndex = formElements.findIndex(
           (s) => s.section === sectionName,
         );
@@ -406,8 +406,8 @@ export default function IssueDocumentChange() {
         const addressTypeKey = changedFieldName.includes("Present")
           ? "PresentAddressType"
           : changedFieldName.includes("Permanent")
-          ? "PermanentAddressType"
-          : null;
+            ? "PermanentAddressType"
+            : null;
         const addressType = addressTypeKey
           ? formData[addressTypeKey] || "Urban"
           : "Urban";
@@ -527,7 +527,7 @@ export default function IssueDocumentChange() {
             if (
               currentFieldIndex !== -1 &&
               updatedFields[currentFieldIndex].additionalFields?.[
-                updatedFields[currentFieldIndex].newValue
+              updatedFields[currentFieldIndex].newValue
               ]
             ) {
               const addChildIndex = updatedFields[
@@ -541,7 +541,7 @@ export default function IssueDocumentChange() {
                 ][addChildIndex].options = newOptions;
                 const currentChildValue =
                   updatedFields[currentFieldIndex].additionalValues[
-                    childFieldName
+                  childFieldName
                   ] || "";
                 const isValueValid = newOptions.some(
                   (option) =>
@@ -1063,11 +1063,11 @@ export default function IssueDocumentChange() {
     try {
       const params = applicationId
         ? {
-            referenceNumber: ReferenceNumber,
-            serviceId: ServiceId,
-            applicationId,
-            type,
-          }
+          referenceNumber: ReferenceNumber,
+          serviceId: ServiceId,
+          applicationId,
+          type,
+        }
         : { referenceNumber, serviceId, type };
 
       const response = await axiosInstance.get(
@@ -1151,9 +1151,9 @@ export default function IssueDocumentChange() {
           setType(result.corrigendumType);
           const words = result.remarks
             ? result.remarks
-                .trim()
-                .split(/\s+/)
-                .filter((word) => word.length > 0)
+              .trim()
+              .split(/\s+/)
+              .filter((word) => word.length > 0)
             : [];
           setWordCount(words.length);
           setRemarks(result.remarks || "");
@@ -1218,12 +1218,12 @@ export default function IssueDocumentChange() {
                 if (
                   subFieldData.new_value &&
                   fieldConfig.conditionalAdditionalFields?.[
-                    subFieldData.new_value
+                  subFieldData.new_value
                   ]
                 ) {
                   const conditionalFields =
                     fieldConfig.conditionalAdditionalFields[
-                      subFieldData.new_value
+                    subFieldData.new_value
                     ];
                   for (const condField of conditionalFields) {
                     const condFormDetail = normalizeDetails(
@@ -1359,6 +1359,7 @@ export default function IssueDocumentChange() {
 
         // Initialize formData
         const newFormData = {};
+        console.log("Form Details:", result.formDetails);
         normalizeDetails(result.formDetails).forEach((item) => {
           newFormData[item.name] = item.value || (item.File ? item.File : "");
         });
@@ -1528,19 +1529,19 @@ export default function IssueDocumentChange() {
         console.error(`Field at index ${index} not found in corrigendumFields`);
         return;
       }
+      console.log(`Handling change for field ${field.name}`, { value, additionalFieldName });
 
       let transformedValue;
       const changedFieldName = additionalFieldName || field.name;
       const changedField = additionalFieldName
         ? (field.additionalFields[field.newValue] || []).find(
-            (f) => f.name === additionalFieldName,
-          )
+          (f) => f.name === additionalFieldName,
+        )
         : field;
 
       if (!changedField) {
         console.warn(
-          `Field ${
-            additionalFieldName || field.name
+          `Field ${additionalFieldName || field.name
           } not found in corrigendumFields`,
         );
         return;
@@ -2375,293 +2376,245 @@ export default function IssueDocumentChange() {
 
             {corrigendumFields.map((field, index) => (
               <Box
-                key={field.name} // Use field.name as key to ensure uniqueness
+                key={`${field.name}-${index}`} // Unique key using name + index
                 sx={{
                   display: "flex",
-                  flexDirection: "column", // Stack children vertically
-                  mb: 2,
-                  backgroundColor: "#f9f9f9", // Uniform background color
-                  padding: "12px",
-                  borderRadius: "8px",
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+                  flexDirection: "column",
+                  mb: 3,
+                  backgroundColor: "#f9f9f9",
+                  padding: "16px",
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
+                  border: "1px solid #e0e0e0",
                 }}
               >
-                {/* Parent field row */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 2,
-                    alignItems: "center",
-                    width: "100%",
-                  }}
-                >
-                  <TextField
-                    label="Field"
-                    value={field.label}
-                    InputProps={{ readOnly: true }}
-                    sx={{ minWidth: 200, flex: 1 }}
-                  />
-                  {field.type === "enclosure" ? (
-                    <FormControl
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 0.5,
-                        minWidth: 200,
-                        flex: 1,
-                      }}
-                    >
-                      <FormLabel>Old Value</FormLabel>
-                      <Button
+                {/* Parent Field Row */}
+                <Grid container spacing={2} alignItems="center">
+                  {/* Field Name (Label) */}
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      label="Field"
+                      value={field.label}
+                      InputProps={{ readOnly: true }}
+                      fullWidth
+                      variant="outlined"
+                      sx={{ backgroundColor: "#fff" }}
+                    />
+                  </Grid>
+
+                  {/* Old Value */}
+                  <Grid item xs={12} md={4}>
+                    {field.type === "enclosure" ? (
+                      <FormControl fullWidth>
+                        <FormLabel sx={{ fontWeight: 500, color: "#555", mb: 1 }}>
+                          {field.label} (Old)
+                        </FormLabel>
+                        {field.oldValue ? (
+                          <Button
+                            variant="outlined"
+                            onClick={() => handleViewFile(field.oldValue, true)}
+                            startIcon={<PictureAsPdfIcon />}
+                            fullWidth
+                            sx={{
+                              textTransform: "none",
+                              borderColor: "#1976D2",
+                              color: "#1976D2",
+                              "&:hover": {
+                                backgroundColor: "#E3F2FD",
+                                borderColor: "#1565C0",
+                              },
+                            }}
+                          >
+                            View Current Document
+                          </Button>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No document
+                          </Typography>
+                        )}
+                      </FormControl>
+                    ) : (
+                      <TextField
+                        label={`${field.label} (Old)`}
+                        value={field.oldValue || "N/A"}
+                        InputProps={{ readOnly: true }}
+                        fullWidth
                         variant="outlined"
-                        onClick={() => handleViewFile(field.oldValue, true)}
-                        startIcon={<PictureAsPdfIcon />}
-                        fullWidth
-                        sx={{
-                          textTransform: "none",
-                          borderColor: "#1976D2",
-                          color: "#1976D2",
-                          "&:hover": {
-                            backgroundColor: "#E3F2FD",
-                            borderColor: "#1565C0",
-                          },
-                        }}
-                        aria-label={`View ${field.label} document`}
-                      >
-                        View Document
-                      </Button>
-                    </FormControl>
-                  ) : (
-                    <TextField
-                      label="Old Value"
-                      value={field.oldValue || "N/A"}
-                      InputProps={{ readOnly: true }}
-                      sx={{ minWidth: 200, flex: 1 }}
-                    />
-                  )}
+                        sx={{ backgroundColor: "#fff" }}
+                      />
+                    )}
+                  </Grid>
 
-                  {field.type === "select" ? (
-                    <FormControl
-                      fullWidth
-                      sx={{ minWidth: 200, flex: 1 }}
-                      error={!!errors[field.name]}
-                    >
-                      <InputLabel>{field.label}</InputLabel>
-                      <Select
-                        value={field.newValue || ""}
-                        onChange={(e) =>
-                          handleNewValueChange(index, e.target.value)
-                        }
-                        onBlur={() => handleNewValueBlur(index, field.newValue)}
-                      >
-                        {field.options.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors[field.name] && (
-                        <FormHelperText>{errors[field.name]}</FormHelperText>
-                      )}
-                    </FormControl>
-                  ) : field.type === "date" ? (
-                    <TextField
-                      fullWidth
-                      type="date"
-                      value={field.newValue || ""}
-                      onChange={(e) =>
-                        handleNewValueChange(index, e.target.value)
-                      }
-                      onBlur={() => handleNewValueBlur(index, field.newValue)}
-                      error={!!errors[field.name]}
-                      helperText={errors[field.name]}
-                      InputLabelProps={{ shrink: true }}
-                      sx={{ minWidth: 200, flex: 1 }}
-                    />
-                  ) : field.type === "enclosure" ? (
-                    <TextField
-                      fullWidth
-                      type="file"
-                      inputProps={{ accept: field.accept }}
-                      onChange={(e) =>
-                        handleNewValueChange(index, e.target.files[0])
-                      }
-                      onBlur={() => handleNewValueBlur(index, field.newValue)}
-                      error={!!errors[field.name]}
-                      helperText={errors[field.name]}
-                      sx={{ minWidth: 200, flex: 1 }}
-                    />
-                  ) : (
-                    <TextField
-                      fullWidth
-                      value={field.newValue || ""}
-                      onChange={(e) =>
-                        handleNewValueChange(index, e.target.value)
-                      }
-                      onBlur={() => handleNewValueBlur(index, field.newValue)}
-                      inputProps={{ maxLength: field.maxLength }}
-                      error={!!errors[field.name]}
-                      helperText={errors[field.name]}
-                      sx={{ minWidth: 200, flex: 1 }}
-                    />
-                  )}
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDeleteField(index)}
-                    sx={{
-                      minWidth: 60,
-                      flexShrink: 0,
-                      "&:hover": {
-                        backgroundColor: "rgba(211, 47, 47, 0.1)",
-                      },
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-
-                {/* Additional fields rendered below */}
-                {field.additionalFields[field.newValue]?.map((addField) => (
-                  <Box
-                    key={`${field.name}-${addField.name}`}
-                    sx={{
-                      display: "flex",
-                      gap: 2,
-                      alignItems: "center",
-                      mt: 1, // Margin-top to separate from parent
-                      backgroundColor: "#f9f9f9", // Uniform background color
-                      padding: "8px",
-                      borderRadius: "8px",
-                      width: "100%", // Ensure full width
-                    }}
-                  >
-                    <TextField
-                      label={addField.label}
-                      value={addField.label}
-                      InputProps={{ readOnly: true }}
-                      sx={{ minWidth: 200, flex: 1 }}
-                    />
-                    <TextField
-                      label="Old Value"
-                      value={
-                        findNestedFieldValue(formDetails, addField.name) ||
-                        "N/A"
-                      }
-                      InputProps={{ readOnly: true }}
-                      sx={{ minWidth: 200, flex: 1 }}
-                    />
-                    {addField.type === "select" ? (
-                      <FormControl
-                        fullWidth
-                        sx={{ minWidth: 200, flex: 1 }}
-                        error={!!errors[`${field.name}-${addField.name}`]}
-                      >
-                        <InputLabel>{addField.label}</InputLabel>
+                  {/* New Value */}
+                  <Grid item xs={12} md={4}>
+                    {field.type === "select" ? (
+                      <FormControl fullWidth error={!!errors[field.name]}>
+                        <InputLabel>{field.label} (New)</InputLabel>
                         <Select
-                          value={field.additionalValues[addField.name] || ""}
-                          onChange={(e) =>
-                            handleNewValueChange(
-                              index,
-                              e.target.value,
-                              addField.name,
-                            )
-                          }
-                          onBlur={() =>
-                            handleNewValueBlur(
-                              index,
-                              field.additionalValues[addField.name],
-                              addField.name,
-                            )
-                          }
+                          value={field.newValue || ""}
+                          onChange={(e) => handleNewValueChange(index, e.target.value)}
+                          onBlur={() => handleNewValueBlur(index, field.newValue)}
                         >
-                          {addField.options.map((option) => (
+                          {field.options.map((option) => (
                             <MenuItem key={option.value} value={option.value}>
                               {option.label}
                             </MenuItem>
                           ))}
                         </Select>
-                        {errors[`${field.name}-${addField.name}`] && (
-                          <FormHelperText>
-                            {errors[`${field.name}-${addField.name}`]}
-                          </FormHelperText>
+                        {errors[field.name] && (
+                          <FormHelperText>{errors[field.name]}</FormHelperText>
                         )}
                       </FormControl>
-                    ) : addField.type === "date" ? (
+                    ) : field.type === "date" ? (
                       <TextField
-                        fullWidth
+                        label={`${field.label} (New)`}
                         type="date"
-                        value={field.additionalValues[addField.name] || ""}
-                        onChange={(e) =>
-                          handleNewValueChange(
-                            index,
-                            e.target.value,
-                            addField.name,
-                          )
-                        }
-                        onBlur={() =>
-                          handleNewValueBlur(
-                            index,
-                            field.additionalValues[addField.name],
-                            addField.name,
-                          )
-                        }
-                        error={!!errors[`${field.name}-${addField.name}`]}
-                        helperText={errors[`${field.name}-${addField.name}`]}
-                        InputLabelProps={{ shrink: true }}
-                        sx={{ minWidth: 200, flex: 1 }}
-                      />
-                    ) : addField.type === "enclosure" ? (
-                      <TextField
+                        value={field.newValue || ""}
+                        onChange={(e) => handleNewValueChange(index, e.target.value)}
+                        onBlur={() => handleNewValueBlur(index, field.newValue)}
                         fullWidth
+                        InputLabelProps={{ shrink: true }}
+                        error={!!errors[field.name]}
+                        helperText={errors[field.name]}
+                      />
+                    ) : field.type === "enclosure" ? (
+                      <TextField
+                        label={`${field.label} (New)`}
                         type="file"
-                        inputProps={{ accept: addField.accept }}
                         onChange={(e) =>
-                          handleNewValueChange(
-                            index,
-                            e.target.files[0],
-                            addField.name,
-                          )
+                          handleNewValueChange(index, e.target.files[0])
                         }
-                        onBlur={() =>
-                          handleNewValueBlur(
-                            index,
-                            field.additionalValues[addField.name],
-                            addField.name,
-                          )
-                        }
-                        error={!!errors[`${field.name}-${addField.name}`]}
-                        helperText={errors[`${field.name}-${addField.name}`]}
-                        sx={{ minWidth: 200, flex: 1 }}
+                        onBlur={() => handleNewValueBlur(index, field.newValue)}
+                        fullWidth
+                        InputProps={{ accept: field.accept || ".pdf" }}
+                        error={!!errors[field.name]}
+                        helperText={errors[field.name] || "Upload new document"}
                       />
                     ) : (
                       <TextField
+                        label={`${field.label} (New)`}
+                        value={field.newValue || ""}
+                        onChange={(e) => handleNewValueChange(index, e.target.value)}
+                        onBlur={() => handleNewValueBlur(index, field.newValue)}
                         fullWidth
-                        value={field.additionalValues[addField.name] || ""}
-                        onChange={(e) =>
-                          handleNewValueChange(
-                            index,
-                            e.target.value,
-                            addField.name,
-                          )
-                        }
-                        onBlur={() =>
-                          handleNewValueBlur(
-                            index,
-                            field.additionalValues[addField.name],
-                            addField.name,
-                          )
-                        }
-                        inputProps={{ maxLength: addField.maxLength }}
-                        error={!!errors[`${field.name}-${addField.name}`]}
-                        helperText={errors[`${field.name}-${addField.name}`]}
-                        sx={{ minWidth: 200, flex: 1 }}
+                        inputProps={{ maxLength: field.maxLength }}
+                        error={!!errors[field.name]}
+                        helperText={errors[field.name]}
                       />
                     )}
-                  </Box>
+                  </Grid>
+
+                  {/* Delete Button */}
+                  <Grid item xs={12} md={1} sx={{ display: "flex", justifyContent: "center" }}>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDeleteField(index)}
+                      sx={{
+                        bgcolor: "#ffebee",
+                        "&:hover": { bgcolor: "#ffcdd2" },
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+
+                {/* Render Additional / Conditional Fields */}
+                {field.additionalFields[field.newValue]?.map((addField) => (
+                  <Grid container spacing={2} sx={{ mt: 2 }} key={addField.name}>
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        label="Field"
+                        value={addField.label || addField.name}
+                        InputProps={{ readOnly: true }}
+                        fullWidth
+                        variant="outlined"
+                        sx={{ backgroundColor: "#fff" }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        label={`${addField.label || addField.name} (Old)`}
+                        value={
+                          findNestedFieldValue(formDetails, addField.name) || "N/A"
+                        }
+                        InputProps={{ readOnly: true }}
+                        fullWidth
+                        variant="outlined"
+                        sx={{ backgroundColor: "#fff" }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={5}>
+                      {addField.type === "select" ? (
+                        <FormControl fullWidth error={!!errors[`${field.name}-${addField.name}`]}>
+                          <InputLabel>{addField.label} (New)</InputLabel>
+                          <Select
+                            value={field.additionalValues[addField.name] || ""}
+                            onChange={(e) =>
+                              handleNewValueChange(index, e.target.value, addField.name)
+                            }
+                            onBlur={() =>
+                              handleNewValueBlur(index, field.additionalValues[addField.name], addField.name)
+                            }
+                          >
+                            {addField.options.map((option) => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          {errors[`${field.name}-${addField.name}`] && (
+                            <FormHelperText>{errors[`${field.name}-${addField.name}`]}</FormHelperText>
+                          )}
+                        </FormControl>
+                      ) : addField.type === "date" ? (
+                        <TextField
+                          label={`${addField.label} (New)`}
+                          type="date"
+                          value={field.additionalValues[addField.name] || ""}
+                          onChange={(e) =>
+                            handleNewValueChange(index, e.target.value, addField.name)
+                          }
+                          onBlur={() =>
+                            handleNewValueBlur(index, field.additionalValues[addField.name], addField.name)
+                          }
+                          fullWidth
+                          InputLabelProps={{ shrink: true }}
+                          error={!!errors[`${field.name}-${addField.name}`]}
+                          helperText={errors[`${field.name}-${addField.name}`]}
+                        />
+                      ) : addField.type === "enclosure" ? (
+                        <TextField
+                          label={`${addField.label} (New)`}
+                          type="file"
+                          onChange={(e) =>
+                            handleNewValueChange(index, e.target.files[0], addField.name)
+                          }
+                          fullWidth
+                          InputProps={{ accept: addField.accept || ".pdf" }}
+                          error={!!errors[`${field.name}-${addField.name}`]}
+                          helperText={errors[`${field.name}-${addField.name}`] || "Upload new document"}
+                        />
+                      ) : (
+                        <TextField
+                          label={`${addField.label} (New)`}
+                          value={field.additionalValues[addField.name] || ""}
+                          onChange={(e) =>
+                            handleNewValueChange(index, e.target.value, addField.name)
+                          }
+                          onBlur={() =>
+                            handleNewValueBlur(index, field.additionalValues[addField.name], addField.name)
+                          }
+                          fullWidth
+                          error={!!errors[`${field.name}-${addField.name}`]}
+                          helperText={errors[`${field.name}-${addField.name}`]}
+                        />
+                      )}
+                    </Grid>
+                  </Grid>
                 ))}
               </Box>
             ))}
-
             <Box sx={{ position: "relative", mt: 2 }}>
               <TextField
                 name="remarks"

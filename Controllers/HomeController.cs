@@ -694,6 +694,7 @@ namespace SahayataNidhi.Controllers
             // --------------------------------------------------------------
             string designation = "";
             string department = "";
+            _logger.LogInformation($"---------- User {user.Username} is of type {user.UserType}. Checking AdditionalDetails for validation status. ---------");
 
             if (user.UserType == "Officer" || user.UserType == "Admin")
             {
@@ -943,7 +944,6 @@ namespace SahayataNidhi.Controllers
             var accessLevel = form["accessLevel"].ToString();
             var accessCodeStr = form["accessCode"].ToString();
 
-            // Username = Email
             var username = email;
 
             if (!int.TryParse(accessCodeStr, out int accessCode))
@@ -951,51 +951,46 @@ namespace SahayataNidhi.Controllers
 
             try
             {
-                // Step 1: Check if user exists using EF
                 var existingUser = await _dbContext.Users
                     .FirstOrDefaultAsync(u => u.Email == email);
 
                 var profile = "/assets/images/profile.jpg";
                 var registeredDate = DateTime.Now.ToString("dd MMM yyyy hh:mm:ss tt");
 
-                // Officer details
+                // Base officer details (common for both new and upgrade)
                 var officerDetails = new
                 {
                     Role = designation,
                     RoleShort = GetShortTitleFromRole(designation),
                     AccessLevel = accessLevel,
                     AccessCode = accessCode,
-                    Department = departmentId,
-                    District = form.ContainsKey("District") ? form["District"].ToString() : null,
-                    Division = form.ContainsKey("Division") ? form["Division"].ToString() : null,
-                    Tehsil = form.ContainsKey("Tehsil") ? form["Tehsil"].ToString() : null,
-                    Validate = false
+                    Department = int.Parse(departmentId), // better as int if stored as number
+                    District = form.ContainsKey("District") && !string.IsNullOrEmpty(form["District"]) ? form["District"].ToString() : null,
+                    Division = form.ContainsKey("Division") && !string.IsNullOrEmpty(form["Division"]) ? form["Division"].ToString() : null,
+                    Tehsil = form.ContainsKey("Tehsil") && !string.IsNullOrEmpty(form["Tehsil"]) ? form["Tehsil"].ToString() : null,
+                    Validate = true  // You wanted this as true for new officers
                 };
 
                 if (existingUser != null)
                 {
-                    // Upgrade only if current user is Citizen
+                    // Upgrade path: Citizen → Officer (keep both roles)
                     if (existingUser.UserType != "Citizen")
                         return Json(new { status = false, message = "Email already registered as non-Citizen." });
 
-                    // Parse existing AdditionalDetails
                     var currentDetails = string.IsNullOrEmpty(existingUser.AdditionalDetails)
                         ? new { }
                         : JsonConvert.DeserializeObject(existingUser.AdditionalDetails) ?? new { };
 
-                    // Merge: Keep Citizen + Add Officer
                     var mergedDetails = new
                     {
                         Citizen = currentDetails,
                         Officer = officerDetails
                     };
-                    var mergedJson = JsonConvert.SerializeObject(mergedDetails);
 
-                    // Update using EF
                     existingUser.Username = username;
                     existingUser.MobileNumber = mobileNumber;
                     existingUser.UserType = "Officer";
-                    existingUser.AdditionalDetails = mergedJson;
+                    existingUser.AdditionalDetails = JsonConvert.SerializeObject(mergedDetails);
                     existingUser.RegisteredDate = registeredDate;
 
                     await _dbContext.SaveChangesAsync();
@@ -1009,39 +1004,39 @@ namespace SahayataNidhi.Controllers
                 }
                 else
                 {
-                    // New Officer: Use stored procedure
+                    // NEW OFFICER: Store officerDetails directly at root (NO "Officer" wrapper)
                     var backupCodesObj = new
                     {
                         unused = _helper.GenerateUniqueRandomCodes(10, 8),
                         used = Array.Empty<string>()
                     };
-                    var backupCodesJson = JsonConvert.SerializeObject(backupCodesObj);
 
-                    var additionalDetailsJson = JsonConvert.SerializeObject(new { Officer = officerDetails });
+                    var backupCodesJson = JsonConvert.SerializeObject(backupCodesObj);
+                    var additionalDetailsJson = JsonConvert.SerializeObject(officerDetails); // ← FIXED: No nesting!
 
                     var parameters = new[]
                     {
                 new SqlParameter("@Name", fullName),
                 new SqlParameter("@Username", username),
-                new SqlParameter("@Password", ""), // Empty
+                new SqlParameter("@Password", "Admin@123"),
                 new SqlParameter("@Email", email),
                 new SqlParameter("@MobileNumber", mobileNumber),
                 new SqlParameter("@Profile", profile),
                 new SqlParameter("@UserType", "Officer"),
                 new SqlParameter("@BackupCodes", backupCodesJson),
-                new SqlParameter("@AddtionalDetails", additionalDetailsJson),
+                new SqlParameter("@AddtionalDetails", additionalDetailsJson), // ← Now correct format
                 new SqlParameter("@RegisteredDate", registeredDate)
             };
 
                     var result = await _dbContext.Users
                         .FromSqlRaw(
-                            @"EXEC RegisterUser 
-                      @Name, @Username, @Password, @Email, @MobileNumber, 
+                            @"EXEC RegisterUser
+                      @Name, @Username, @Password, @Email, @MobileNumber,
                       @Profile, @UserType, @BackupCodes, @AddtionalDetails, @RegisteredDate",
                             parameters)
                         .ToListAsync();
 
-                    if (result.Count > 0)
+                    if (result.Any())
                     {
                         return Json(new
                         {
@@ -1056,7 +1051,7 @@ namespace SahayataNidhi.Controllers
             }
             catch (Exception ex)
             {
-                // Log in production: _logger.LogError(ex, "OfficerRegistration failed");
+                // _logger.LogError(ex, "OfficerRegistration failed");
                 return Json(new { status = false, message = "Server error: " + ex.Message });
             }
         }

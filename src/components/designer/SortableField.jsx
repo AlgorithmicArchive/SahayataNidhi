@@ -41,7 +41,7 @@ const SortableField = ({
             size="small"
             placeholder={field.label}
             value={field.value || ""}
-            onChange={(e) => onFieldChange(sectionId, field.id, e.target.value)}
+            onChange={(e) => onFieldChange && onFieldChange(sectionId, field.id, e.target.value)}
             inputProps={
               field.type === "file" && field.accept !== ""
                 ? { accept: field.accept }
@@ -71,7 +71,7 @@ const SortableField = ({
               field.value ||
               (field.options.length > 0 ? field.options[0].value : "")
             }
-            onChange={(e) => onFieldChange(sectionId, field.id, e.target.value)}
+            onChange={(e) => onFieldChange && onFieldChange(sectionId, field.id, e.target.value)}
             sx={{
               bgcolor: "white",
               borderRadius: 1,
@@ -100,7 +100,7 @@ const SortableField = ({
                 (field.options.length > 0 ? field.options[0].value : "")
               }
               onChange={(e) =>
-                onFieldChange(sectionId, field.id, e.target.value)
+                onFieldChange && onFieldChange(sectionId, field.id, e.target.value)
               }
               sx={{
                 bgcolor: "white",
@@ -125,7 +125,7 @@ const SortableField = ({
               placeholder={field.label}
               value={field.value || ""}
               onChange={(e) =>
-                onFieldChange(sectionId, field.id, e.target.value)
+                onFieldChange && onFieldChange(sectionId, field.id, e.target.value)
               }
               sx={{
                 mt: 2,
@@ -151,7 +151,7 @@ const SortableField = ({
             size="small"
             placeholder={field.label}
             value={field.value || ""}
-            onChange={(e) => onFieldChange(sectionId, field.id, e.target.value)}
+            onChange={(e) => onFieldChange && onFieldChange(sectionId, field.id, e.target.value)}
             sx={{
               bgcolor: "white",
               borderRadius: 1,
@@ -212,7 +212,7 @@ const SortableField = ({
                 <IconButton
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEditField({ ...field, sectionId });
+                    onEditField && onEditField({ ...field, sectionId });
                   }}
                   sx={{
                     color: "primary.main",
@@ -226,7 +226,8 @@ const SortableField = ({
                 <IconButton
                   onClick={(e) => {
                     e.stopPropagation();
-                    onRemoveField(sectionId, field.id);
+                    // FIXED: Always pass only field.id, not sectionId
+                    onRemoveField && onRemoveField(field.id);
                   }}
                   sx={{
                     color: "error.main",
@@ -241,7 +242,7 @@ const SortableField = ({
                   <IconButton
                     onClick={(e) => {
                       e.stopPropagation();
-                      onAdditonalModal({ ...field, sectionId });
+                      onAdditonalModal && onAdditonalModal({ ...field, sectionId });
                     }}
                     sx={{
                       color: "secondary.main",

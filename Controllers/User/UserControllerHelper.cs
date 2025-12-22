@@ -284,6 +284,7 @@ namespace SahayataNidhi.Controllers.User
             for (int i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
+                _logger.LogInformation($"--------------- Token: {token} ----------------");
                 if (Regex.IsMatch(token, @"^\{\d+\}$"))
                 {
                     var indexStr = token.Substring(1, token.Length - 2);
@@ -301,9 +302,10 @@ namespace SahayataNidhi.Controllers.User
             }
 
             var result = string.Join("", outputParts);
+            _logger.LogInformation($"--------------- Result before cleanup: {result} ----------------");
             result = Regex.Replace(result, @",(\s*,)*\s*$", "");
             result = Regex.Replace(result, @"\s*,\s*,", ",").Trim();
-
+            _logger.LogInformation($"--------------- Final Result: {result} ----------------");
             return new { Label = label, Value = result };
         }
 

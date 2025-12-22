@@ -71,6 +71,57 @@ namespace SahayataNidhi.Controllers.User
 
             return Json(new { formDetails, AdditionalDetails = "" });
         }
+
+
+        public IActionResult IncompleteApplications(int pageIndex = 0, int pageSize = 10)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Ensure that you filter by the correct "Initiated" status
+            var applications = dbcontext.CitizenApplications
+                                        .Where(u => u.CitizenId.ToString() == userIdClaim && u.Status == "Incomplete")
+                                        .ToList();
+
+            var totalRecords = applications.Count;
+
+            var pagedApplications = applications
+                .Skip(pageIndex * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // Initialize columns
+            var columns = new List<dynamic>
+            {
+                new { header = "S.No", accessorKey = "sno" },
+                new { header = "Reference Number", accessorKey = "referenceNumber" },
+                new { header = "Save Date", accessorKey = "saveDate" },
+            };
+
+            // Correctly initialize data list
+            List<dynamic> data = [];
+            int index = 0;
+
+
+            foreach (var application in pagedApplications)
+            {
+                List<dynamic> actions = [];
+                var formDetails = JsonConvert.DeserializeObject<dynamic>(application.FormDetails!);
+                actions.Add(new { id = (pageIndex * pageSize) + index + 1, tooltip = "Edit", color = "#F0C38E", actionFunction = "IncompleteForm" });
+                data.Add(new
+                {
+                    sno = (pageIndex * pageSize) + index + 1,
+                    referenceNumber = application.ReferenceNumber,
+                    serviceId = application.ServiceId,
+                    saveDate = application.CreatedAt,
+                    customActions = actions
+                });
+                index++;
+            }
+
+            // Ensure size is positive for pagination
+            return Json(new { data, columns, totalRecords });
+        }
+
         public IActionResult GetInitiatedApplications(int pageIndex = 0, int pageSize = 10)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -235,54 +286,7 @@ namespace SahayataNidhi.Controllers.User
 
             return Json(new { data, columns, totalRecords });
         }
-        public IActionResult IncompleteApplications(int pageIndex = 0, int pageSize = 10)
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // Ensure that you filter by the correct "Initiated" status
-            var applications = dbcontext.CitizenApplications
-                                        .Where(u => u.CitizenId.ToString() == userIdClaim && u.Status == "Incomplete")
-                                        .ToList();
-
-            var totalRecords = applications.Count;
-
-            var pagedApplications = applications
-                .Skip(pageIndex * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            // Initialize columns
-            var columns = new List<dynamic>
-            {
-                new { header = "S.No", accessorKey = "sno" },
-                new { header = "Reference Number", accessorKey = "referenceNumber" },
-                new { header = "Save Date", accessorKey = "saveDate" },
-            };
-
-            // Correctly initialize data list
-            List<dynamic> data = [];
-            int index = 0;
-
-
-            foreach (var application in pagedApplications)
-            {
-                List<dynamic> actions = [];
-                var formDetails = JsonConvert.DeserializeObject<dynamic>(application.FormDetails!);
-                actions.Add(new { id = (pageIndex * pageSize) + index + 1, tooltip = "Edit", color = "#F0C38E", actionFunction = "IncompleteForm" });
-                data.Add(new
-                {
-                    sno = (pageIndex * pageSize) + index + 1,
-                    referenceNumber = application.ReferenceNumber,
-                    serviceId = application.ServiceId,
-                    saveDate = application.CreatedAt,
-                    customActions = actions
-                });
-                index++;
-            }
-
-            // Ensure size is positive for pagination
-            return Json(new { data, columns, totalRecords });
-        }
         [HttpGet]
         public async Task<IActionResult> GetApplicationHistory(string ApplicationId, int page, int size)
         {
@@ -342,6 +346,8 @@ namespace SahayataNidhi.Controllers.User
 
             return Json(new { data, columns, totalRecords, customActions = new { } });
         }
+
+
         public IActionResult GetServices(int pageIndex = 0, int pageSize = 10)
         {
             // Fetch and materialize all active services

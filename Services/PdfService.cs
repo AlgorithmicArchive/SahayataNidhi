@@ -227,6 +227,11 @@ public class PdfService(IWebHostEnvironment webHostEnvironment, SwdjkContext dbc
             .SetFixedPosition(30, 30);
         document.Add(qrImage);
 
+        // Add generous vertical space before the issuing authority
+        document.Add(new Paragraph("\n\n\n\n\n").SetMarginTop(20).SetFontSize(12));
+        // or even better:
+        document.Add(new Paragraph(" ").SetHeight(60)); // forces 60pt vertical gap
+
         // --- Footer ---
         Table footerTable = new Table(UnitValue.CreatePercentArray(new float[] { 50, 50 }))
             .UseAllAvailableWidth();

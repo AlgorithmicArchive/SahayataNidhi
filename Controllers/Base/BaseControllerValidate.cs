@@ -105,7 +105,11 @@ namespace SahayataNidhi.Controllers
         [HttpPost]
         public IActionResult Validate([FromForm] IFormCollection file)
         {
-            // Ensure a file is provided
+            if (file == null)
+            {
+                return Json(new { isValid = false, errorMessage = "Invalid request: No form data received. Check Content-Type and request body." });
+            }
+
             if (file.Files.Count == 0)
             {
                 return Json(new { isValid = false, errorMessage = "No file uploaded." });
@@ -174,29 +178,103 @@ namespace SahayataNidhi.Controllers
         [HttpPost]
         public IActionResult ValidateIfscCode([FromForm] IFormCollection form)
         {
-            string bankName = form["bankName"].ToString();
-            string ifscCode = form["ifscCode"].ToString();
-            string bank = dbcontext.Bank.FirstOrDefault(b => b.Id == Convert.ToInt32(bankName))?.BankName ?? "";
-            var result = dbcontext.BankDetails
-                .FromSqlRaw(
-                    "EXEC ValidateIFSC @bankName, @ifscCode",
-                    new SqlParameter("@bankName", bank),
-                    new SqlParameter("@ifscCode", ifscCode))
-                .AsEnumerable()
-                .FirstOrDefault(); // Expect only one row for an exact IFSC
-            if (result == null)
+            try
             {
+                string bankNameOrId = form["bankName"].ToString();
+                string ifscCode = form["ifscCode"].ToString();
+
+                // Check if bankNameOrId is empty
+                if (string.IsNullOrWhiteSpace(bankNameOrId))
+                {
+                    return Json(new
+                    {
+                        status = false,
+                        message = "Bank name/ID is required."
+                    });
+                }
+
+                // Check if IFSC code is empty
+                if (string.IsNullOrWhiteSpace(ifscCode))
+                {
+                    return Json(new
+                    {
+                        status = false,
+                        message = "IFSC code is required."
+                    });
+                }
+
+                string actualBankName = "";
+
+                // Try to parse as integer (ID)
+                if (int.TryParse(bankNameOrId, out int bankId))
+                {
+                    // It's an ID, get bank name from database
+                    var bank = dbcontext.Bank.FirstOrDefault(b => b.Id == bankId);
+                    if (bank == null)
+                    {
+                        return Json(new
+                        {
+                            status = false,
+                            message = "Bank not found with the provided ID."
+                        });
+                    }
+                    actualBankName = bank.BankName;
+                }
+                else
+                {
+                    // It's a bank name, use it directly
+                    actualBankName = bankNameOrId;
+
+                    // Optional: Verify the bank exists in database
+                    var bankExists = dbcontext.Bank.Any(b => b.BankName == actualBankName);
+                    if (!bankExists)
+                    {
+                        return Json(new
+                        {
+                            status = false,
+                            message = "Bank not found with the provided name."
+                        });
+                    }
+                }
+
+                // Execute stored procedure with resolved bank name
+                var result = dbcontext.BankDetails
+                    .FromSqlRaw(
+                        "EXEC ValidateIFSC @bankName, @ifscCode",
+                        new SqlParameter("@bankName", actualBankName),
+                        new SqlParameter("@ifscCode", ifscCode))
+                    .AsEnumerable()
+                    .FirstOrDefault();
+
+                if (result == null)
+                {
+                    return Json(new
+                    {
+                        status = false,
+                        message = "Invalid IFSC code for the specified bank."
+                    });
+                }
+
+                return Json(new
+                {
+                    status = true,
+                    bankDetails = new
+                    {
+                        branch = result.Branch,
+                        bankName = actualBankName,
+                        ifsc = ifscCode
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception here
                 return Json(new
                 {
                     status = false,
-                    message = "Invalid IFSC code or bank not found."
+                    message = "An error occurred while validating IFSC code."
                 });
             }
-            return Json(new
-            {
-                status = true,
-                bankDetails = new { branch = result.Branch }
-            });
         }
         [HttpPost]
         public IActionResult GetTeshilForDistrict([FromForm] IFormCollection form)

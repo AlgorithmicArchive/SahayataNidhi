@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -17,10 +17,12 @@ import {
   resetFont,
   setFontScale,
 } from "../assets/FontScaler";
+import { UserContext } from "../UserContext";
 
 const Header = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { userType } = useContext(UserContext)
 
   const [fontSizeValue, setFontSizeValue] = useState("normal");
 
@@ -217,7 +219,7 @@ const Header = () => {
       </Box>
 
       {/* Middle Row */}
-      <Box sx={{ borderBottom: "1px solid #ccc", backgroundColor: "#F7FBFF" }}>
+      {(userType == null || userType == "Citizen") && <Box sx={{ borderBottom: "1px solid #ccc", backgroundColor: "#F7FBFF" }}>
         <Container maxWidth={false} disableGutters>
           <Box
             sx={{
@@ -346,7 +348,7 @@ const Header = () => {
             </Box>
           </Box>
         </Container>
-      </Box>
+      </Box>}
 
       {/* Navbar Row */}
       <Box

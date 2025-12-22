@@ -65,7 +65,7 @@ const CollapsibleActionHistory = ({
         >
           <ServerSideTable
             url={"/Officer/GetApplicationHistory"}
-            extraParams={{ applicationId }}
+            extraParams={{ ApplicationId: applicationId }}
             actionFunctions={{}}
             Title={"Application History"}
           />

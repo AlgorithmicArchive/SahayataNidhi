@@ -452,15 +452,39 @@ namespace SahayataNidhi.Controllers.Officer
             return "";
         }
 
-        public IActionResult GetMainApplicationStatusData(
-        string serviceId,
-        string type,
-        int pageIndex = 0,
-        int pageSize = 10,
-        string state = "0",
-        string? division = null,
-        string? district = null,
-        string? tehsil = null)
+        public string GetOfficerArea(string accessLevel, dynamic formDetails)
+        {
+
+            int accessCode;
+
+            switch (accessLevel)
+            {
+                case "Tehsil":
+                    accessCode = Convert.ToInt32(GetFieldValue("Tehsil", formDetails));
+                    var tehsil = dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == accessCode);
+                    return tehsil?.TehsilName ?? string.Empty;
+
+                case "District":
+                    accessCode = Convert.ToInt32(GetFieldValue("District", formDetails));
+                    var district = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
+                    return district?.DistrictName ?? string.Empty;
+
+                case "Division":
+                    accessCode = Convert.ToInt32(GetFieldValue("District", formDetails));
+                    var districtForDivision = dbcontext.District.FirstOrDefault(d => d.DistrictId == accessCode);
+                    if (districtForDivision == null)
+                        return string.Empty;
+                    return districtForDivision.Division == 1 ? "Jammu" : "Kashmir";
+                case "State":
+                    return "J&K";
+                default:
+                    return string.Empty;
+            }
+        }
+
+
+
+        public IActionResult GetMainApplicationStatusData(string serviceId, string type, int pageIndex = 0, int pageSize = 10, string state = "0", string? division = null, string? district = null, string? tehsil = null)
         {
             // === Determine AccessLevel and AccessCode ===
             string accessLevel;
@@ -498,23 +522,23 @@ namespace SahayataNidhi.Controllers.Officer
 
             // === Execute Stored Procedure ===
             var parameters = new List<SqlParameter>
-    {
-        new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
-        new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
-        new("@AccessCode", SqlDbType.Int) { Value = accessCode },
-        new("@DivisionCode", SqlDbType.Int) { Value = divisionCode },
-        new("@ApplicationStatus", SqlDbType.VarChar) { Value = type == "total" ? DBNull.Value : type },
-        new("@PageIndex", SqlDbType.Int) { Value = pageIndex },
-        new("@PageSize", SqlDbType.Int) { Value = pageSize },
-        new("@IsPaginated", SqlDbType.Bit) { Value = 1 },
-        new("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output }
-    };
+            {
+                new("@ServiceId", SqlDbType.Int) { Value = int.Parse(serviceId) },
+                new("@AccessLevel", SqlDbType.VarChar) { Value = accessLevel },
+                new("@AccessCode", SqlDbType.Int) { Value = accessCode },
+                new("@DivisionCode", SqlDbType.Int) { Value = divisionCode },
+                new("@ApplicationStatus", SqlDbType.VarChar) { Value = type == "total" ? DBNull.Value : type },
+                new("@PageIndex", SqlDbType.Int) { Value = pageIndex },
+                new("@PageSize", SqlDbType.Int) { Value = pageSize },
+                new("@IsPaginated", SqlDbType.Bit) { Value = 1 },
+                new("@TotalRecords", SqlDbType.Int) { Direction = ParameterDirection.Output }
+            };
 
-            var response = dbcontext.CitizenApplications
-                .FromSqlRaw(
+            // First, let's check what the stored procedure returns
+            var response = dbcontext.Database
+                .SqlQueryRaw<MainApplicationStatusDto>(
                     "EXEC GetMainApplicationStatusData @AccessLevel, @AccessCode, @ServiceId, @DivisionCode, @ApplicationStatus, @PageIndex, @PageSize, @IsPaginated, @TotalRecords OUTPUT",
                     parameters.ToArray())
-                .AsNoTracking()
                 .ToList();
 
             int totalRecords = (int)parameters.First(p => p.ParameterName == "@TotalRecords").Value;
@@ -528,16 +552,36 @@ namespace SahayataNidhi.Controllers.Officer
             bool showSanctionDateColumn = type == "sanctioned" ||
                                           (type == "total" && response.Any(x => x.Status == "Sanctioned"));
 
-            // === Build Columns (Only Once!) ===
+            // === Build Columns with Location Columns ===
             var columns = new List<object>
-    {
-        new { accessorKey = "sno", header = "S.No" },
-        new { accessorKey = "referenceNumber", header = "Reference Number" },
-        new { accessorKey = "applicantName", header = "Applicant Name" },
-        new { accessorKey = "serviceName", header = "Service Name" },
-        new { accessorKey = "status", header = "Application Status" },
-        new { accessorKey = "submissionDate", header = "Submission Date" }
-    };
+            {
+                new { accessorKey = "sno", header = "S.No" },
+                new { accessorKey = "referenceNumber", header = "Reference Number" }
+            };
+
+            // Add location columns based on access level
+            if (accessLevel == "State")
+            {
+                columns.Insert(1, new { accessorKey = "divisionName", header = "Division Name" });
+                columns.Insert(2, new { accessorKey = "districtName", header = "District Name" });
+            }
+            else if (accessLevel == "Division")
+            {
+                columns.Insert(1, new { accessorKey = "districtName", header = "District Name" });
+                columns.Insert(2, new { accessorKey = "tehsilName", header = "Tehsil Name" });
+            }
+            else if (accessLevel == "District")
+            {
+                columns.Insert(1, new { accessorKey = "tehsilName", header = "Tehsil Name" });
+            }
+            // Note: For Tehsil level, no additional location columns needed as per your logic
+
+            // Add the rest of the columns
+            columns.Add(new { accessorKey = "applicantName", header = "Applicant Name" });
+            columns.Add(new { accessorKey = "serviceName", header = "Service Name" });
+            columns.Add(new { accessorKey = "currentlyWith", header = "Currently With" });
+            columns.Add(new { accessorKey = "status", header = "Application Status" });
+            columns.Add(new { accessorKey = "submissionDate", header = "Submission Date" });
 
             if (showSanctionDateColumn)
             {
@@ -552,18 +596,43 @@ namespace SahayataNidhi.Controllers.Officer
             {
                 var formDetails = JsonConvert.DeserializeObject<dynamic>(details.FormDetails ?? "{}");
                 string applicantName = GetFieldValue("ApplicantName", formDetails);
-                string status = details.Status ?? "Initiated";
-                string submissionDate = details.CreatedAt!;
+                string status = details.Status == "Initiated" ? "Under Process" : details.Status ?? "Under Process";
+                string? submissionDate = details.Created_at;
+                var officers = JsonConvert.DeserializeObject<JArray>(details.WorkFlow!);
+                var currentPlayer = details.CurrentPlayer;
+                string officerDesignation = (string)officers![currentPlayer!]!["designation"]!;
+                string offierAccessLevel = (string)officers![currentPlayer!]!["accessLevel"]!;
+                string officerStatus = (string)officers![currentPlayer!]!["status"]!;
+                string officerArea = GetOfficerArea(offierAccessLevel, formDetails);
 
                 var row = new Dictionary<string, object>
                 {
                     ["sno"] = sno++,
-                    ["referenceNumber"] = details.ReferenceNumber ?? "",
-                    ["applicantName"] = applicantName,
-                    ["serviceName"] = serviceName,
-                    ["status"] = status,
-                    ["submissionDate"] = submissionDate
+                    ["referenceNumber"] = details.ReferenceNumber ?? ""
                 };
+
+                // Add location fields based on access level
+                if (accessLevel == "State")
+                {
+                    row["divisionName"] = details.DivisionName ?? "N/A";
+                    row["districtName"] = details.DistrictName ?? "N/A";
+                }
+                else if (accessLevel == "Division")
+                {
+                    row["districtName"] = details.DistrictName ?? "N/A";
+                    row["tehsilName"] = details.TehsilName ?? "N/A";
+                }
+                else if (accessLevel == "District")
+                {
+                    row["tehsilName"] = details.TehsilName ?? "N/A";
+                }
+
+                // Add the rest of the fields
+                row["applicantName"] = applicantName;
+                row["serviceName"] = serviceName;
+                row["currentlyWith"] = officerStatus == "returntoedit" ? "Citizen" : $"{officerDesignation} ({officerArea})";
+                row["status"] = status;
+                row["submissionDate"] = submissionDate!;
 
                 // Add Sanction Date only if column is shown
                 if (showSanctionDateColumn)
@@ -603,6 +672,97 @@ namespace SahayataNidhi.Controllers.Officer
                 totalRecords
             });
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetApplicationHistory(string ApplicationId, int page = 0, int size = 10)
+        {
+            if (string.IsNullOrEmpty(ApplicationId))
+            {
+                return BadRequest("ApplicationId is required.");
+            }
+
+            var application = await dbcontext.CitizenApplications
+                .FirstOrDefaultAsync(ca => ca.ReferenceNumber == ApplicationId);
+
+            if (application == null)
+            {
+                return NotFound("Application not found.");
+            }
+
+            var players = JsonConvert.DeserializeObject<JArray>(application.WorkFlow!);
+            int currentPlayerIndex = (int)application.CurrentPlayer!;
+            var currentPlayer = players!.FirstOrDefault(o => (int)o["playerId"]! == currentPlayerIndex);
+
+            var history = await dbcontext.ActionHistory
+                .Where(ah => ah.ReferenceNumber == ApplicationId && !ah.ActionTaken.Contains("Withheld"))
+                .OrderBy(ah => ah.ActionTakenDate)
+                .ToListAsync();
+
+            var formDetails = JsonConvert.DeserializeObject<dynamic>(application.FormDetails!);
+
+            var columns = new List<dynamic>
+    {
+        new { header = "S.No", accessorKey = "sno" },
+        new { header = "Action Taker", accessorKey = "actionTaker" },
+        new { header = "Action Taken", accessorKey = "actionTaken" },
+        new { header = "Remarks", accessorKey = "remarks" },
+        new { header = "Action Taken On", accessorKey = "actionTakenOn" },
+    };
+
+            var data = new List<dynamic>();
+            int index = 1;
+
+            foreach (var item in history)
+            {
+                string officerArea = GetOfficerAreaForHistory(item.LocationLevel!, item.LocationValue.ToString()!);
+                data.Add(new
+                {
+                    sno = index++,
+                    actionTaker = item.ActionTaker != "Citizen" ? item.ActionTaker + " " + officerArea : item.ActionTaker,
+                    actionTaken = item.ActionTaken == "ReturnToCitizen" ? "Returned to citizen for correction" : item.ActionTaken,
+                    remarks = item.Remarks ?? "",
+                    actionTakenOn = item.ActionTakenDate?.ToString() ?? "",
+                });
+            }
+
+            // Add current pending status if applicable
+            if (currentPlayer != null && (string)currentPlayer["status"]! == "pending")
+            {
+                string designation = (string)currentPlayer["designation"]!;
+                string accessLevel = (string)currentPlayer["accessLevel"]!;
+                string officerArea = GetOfficerArea(accessLevel, formDetails);
+
+                data.Add(new
+                {
+                    sno = index++,
+                    actionTaker = designation + " " + officerArea,
+                    actionTaken = "Pending",
+                    remarks = "",
+                    actionTakenOn = "",
+                });
+            }
+
+            int totalRecords = data.Count;
+
+            return Json(new { data, columns, totalRecords });
+        }
+
+        private string GetOfficerAreaForHistory(string locationLevel, string locationValue)
+        {
+            if (string.IsNullOrEmpty(locationValue)) return "";
+
+            int locId = int.Parse(locationValue);
+
+            return locationLevel switch
+            {
+                "Tehsil" => dbcontext.Tswotehsil.FirstOrDefault(t => t.TehsilId == locId)?.TehsilName ?? "",
+                "District" => dbcontext.District.FirstOrDefault(d => d.DistrictId == locId)?.DistrictName ?? "",
+                "Division" => locId == 1 ? "Jammu" : "Kashmir",
+                _ => ""
+            };
+        }
+
 
     }
 }

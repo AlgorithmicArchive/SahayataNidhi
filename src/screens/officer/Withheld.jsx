@@ -30,8 +30,21 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
+  Grid,
+  Divider,
+  Card,
+  CardContent,
+  Stack,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import SaveIcon from "@mui/icons-material/Save";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import HistoryIcon from "@mui/icons-material/History";
+import DescriptionIcon from "@mui/icons-material/Description";
 import ServiceSelectionForm from "../../components/ServiceSelectionForm";
 import { fetchServiceList } from "../../assets/fetch";
 import axiosInstance from "../../axiosConfig";
@@ -50,7 +63,6 @@ export default function Withheld() {
   const [formData, setFormData] = useState({
     withheldType: "",
     withheldReason: "",
-    isWithheld: true,
     files: [],
   });
   const [initialFormData, setInitialFormData] = useState(null);
@@ -58,7 +70,6 @@ export default function Withheld() {
   const [recordExists, setRecordExists] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const [canCreate, setCanCreate] = useState(false);
-  const [hasPermanentToTemporary, setCanPermanentToTemporary] = useState(true);
   const [tableData, setTableData] = useState([]);
   const [tableColumns, setTableColumns] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -67,6 +78,19 @@ export default function Withheld() {
   const [action, setAction] = useState("");
   const [actionOptions, setActionOptions] = useState([]);
   const [application, setApplication] = useState({});
+  const [showRemoveFromWithheld, setShowRemoveFromWithheld] = useState(false);
+  const [isWithheld, setIsWithheld] = useState(true);
+  const [currentPlayerInfo, setCurrentPlayerInfo] = useState({
+    playerId: -1,
+    isLastPlayer: false,
+    canWithhold: false,
+    canDirectWithheld: false,
+  });
+  const [canRemoveFromWithheld, setCanRemoveFromWithheld] = useState(false);
+  const [existingFilesToKeep, setExistingFilesToKeep] = useState([]);
+  const [isWithholdingOfficer, setIsWithholdingOfficer] = useState(false);
+  const [hasPendingReleaseRequest, setHasPendingReleaseRequest] = useState(false);
+  const [pendingReleaseFromPlayer, setPendingReleaseFromPlayer] = useState("");
 
   useEffect(() => {
     fetchServiceList(setServices);
@@ -84,15 +108,20 @@ export default function Withheld() {
     }
   }, [services, referenceNumber, serviceId, hasChecked]);
 
-  useEffect(() => {
-    if (referenceNumber && serviceId && !hasChecked) {
-      handleCheck();
-    }
-  }, [referenceNumber, serviceId, hasChecked]);
-
   const handleServiceId = (serviceId) => {
-    console.log(serviceId);
     setServiceId(serviceId);
+  };
+
+  const scrollToError = () => {
+    setTimeout(() => {
+      const errorElement = document.querySelector('.MuiAlert-root');
+      if (errorElement) {
+        errorElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }, 100);
   };
 
   const handleCheck = async () => {
@@ -118,13 +147,22 @@ export default function Withheld() {
     setInitialFormData(null);
     setAction("");
     setActionOptions([]);
+    setShowRemoveFromWithheld(false);
+    setExistingFilesToKeep([]);
+    setCurrentPlayerInfo({
+      playerId: -1,
+      isLastPlayer: false,
+      canWithhold: false,
+      canDirectWithheld: false,
+    });
+    setIsWithholdingOfficer(false);
+    setHasPendingReleaseRequest(false);
+    setPendingReleaseFromPlayer("");
 
     try {
       const res = await axiosInstance.get("/Officer/GetWithheldApplication", {
         params: { referenceNumber, serviceId: parseInt(serviceId) },
       });
-
-      console.log("API response:", res.data);
 
       if (!res.data.status) {
         setError(res.data.response || "Failed to fetch details.");
@@ -135,7 +173,6 @@ export default function Withheld() {
       }
 
       setRecordExists(!!res.data.recordExists);
-      setCanPermanentToTemporary(res.data.canPermanentToTemporary ?? true);
       setCanCreate(res.data.canCreate);
       setHasChecked(true);
       setTableData(res.data.data || []);
@@ -143,12 +180,24 @@ export default function Withheld() {
       setActionOptions(res.data.options || []);
       setApplication(res.data.application);
 
+      setCurrentPlayerInfo({
+        playerId: res.data.currentPlayerId || -1,
+        isLastPlayer: res.data.isLastPlayer || false,
+        canWithhold: res.data.canWithhold || false,
+        canDirectWithheld: res.data.canDirectWithheld || false,
+      });
+
+      setIsWithholdingOfficer(res.data.isWithholdingOfficer || false);
+      setHasPendingReleaseRequest(res.data.hasPendingReleaseRequest || false);
+      setPendingReleaseFromPlayer(res.data.pendingReleaseFromPlayer || "");
+
+      setCanRemoveFromWithheld(res.data.canRemoveFromWithheld || false);
+
       let withheldFiles = res.data.application?.files || [];
       if (typeof withheldFiles === "string") {
         try {
           withheldFiles = JSON.parse(withheldFiles);
         } catch (e) {
-          console.error("Failed to parse withheld application files:", e);
           withheldFiles = [];
         }
       }
@@ -158,15 +207,30 @@ export default function Withheld() {
 
       const newFormData = {
         withheldType: res.data.application?.withheldType || "",
-        withheldReason: res.data.application?.withheldReason || "",
-        isWithheld: res.data.application?.isWithheld ?? true,
+        withheldReason: "",
         files: withheldFiles,
       };
 
       setFormData(newFormData);
+      setExistingFilesToKeep(withheldFiles);
+
+      const isCurrentlyWithheld = res.data.application?.isWithheld ?? false;
+      setIsWithheld(true);
+
       if (res.data.application) {
-        setInitialFormData({ ...newFormData });
+        setInitialFormData({
+          ...newFormData,
+          isWithheld: isCurrentlyWithheld
+        });
       }
+
+      const shouldShowToggle =
+        !!res.data.canCreate &&
+        !!res.data.recordExists &&
+        isCurrentlyWithheld === true &&
+        (res.data.isWithholdingOfficer || res.data.canRemoveFromWithheld);
+
+      setShowRemoveFromWithheld(shouldShowToggle);
 
       let appDetails = res.data.applicationDetails || {};
       setApplicationDetails({
@@ -174,10 +238,21 @@ export default function Withheld() {
         parentage: appDetails.parentage || "N/A",
         ro: appDetails["r/o"] || "N/A",
         files: withheldFiles,
+        withheldType: res.data.application?.withheldType || "N/A",
+        withheldReason: res.data.application?.withheldReason || "N/A",
+        isWithheld: isCurrentlyWithheld,
       });
+
+      if (res.data.application && !res.data.canCreate) {
+        if (res.data.hasPendingReleaseRequest) {
+          setError(`There's a pending release request from ${res.data.pendingReleaseFromPlayer}. You are not the current player to handle it.`);
+        } else {
+          setError("You are not authorized to update this withheld application.");
+        }
+      }
+
     } catch (err) {
-      console.error("API error:", err);
-      setError("Failed to fetch details.");
+      setError("Failed to fetch details. Please try again.");
       setCanCreate(false);
       setHasChecked(false);
     } finally {
@@ -187,11 +262,7 @@ export default function Withheld() {
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files).filter(
-      (file) => file.type === "application/pdf",
-    );
-    console.log(
-      "Selected files:",
-      selectedFiles.map((f) => f.name),
+      (file) => file.type === "application/pdf"
     );
     setFormData((prev) => ({
       ...prev,
@@ -200,14 +271,16 @@ export default function Withheld() {
   };
 
   const handleRemoveFile = (fileToRemove) => {
-    setFormData((prev) => ({
-      ...prev,
-      files: prev.files.filter(
-        (file) =>
-          (typeof file === "string" ? file : file.name) !==
-          (typeof fileToRemove === "string" ? fileToRemove : fileToRemove.name),
-      ),
-    }));
+    if (typeof fileToRemove === "string") {
+      setExistingFilesToKeep((prev) =>
+        prev.filter((file) => file !== fileToRemove)
+      );
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        files: prev.files.filter((file) => file.name !== fileToRemove.name),
+      }));
+    }
   };
 
   const handleFileClick = (fileName) => {
@@ -221,57 +294,95 @@ export default function Withheld() {
   };
 
   const handleSave = async () => {
+    setError("");
+
     if (!formData.withheldType) {
       setError("Please select a Withheld Type.");
+      scrollToError();
       return;
     }
     if (!formData.withheldReason.trim()) {
       setError("Please provide a Withheld Reason.");
+      scrollToError();
       return;
     }
     if (!action) {
       setError("Please select an action.");
+      scrollToError();
       return;
     }
 
-    if (recordExists && initialFormData) {
-      const noFieldChanges =
-        formData.withheldType === initialFormData.withheldType &&
-        formData.isWithheld === initialFormData.isWithheld &&
-        formData.withheldReason === initialFormData.withheldReason;
+    // if (action === "forward") {
+    //   if (currentPlayerInfo.isLastPlayer) {
+    //     setError("Last player in workflow cannot forward, must approve.");
+    //     scrollToError();
+    //     return;
+    //   }
+    //   if (!currentPlayerInfo.canWithhold) {
+    //     setError("You don't have 'canWithhold' authority to forward.");
+    //     scrollToError();
+    //     return;
+    //   }
+    // }
 
-      const initialFileNames = initialFormData.files
-        .map((file) => (typeof file === "string" ? file : file.name))
-        .sort();
-      const currentFileNames = formData.files
-        .map((file) => (typeof file === "string" ? file : file.name))
-        .sort();
-      const noFileChanges = initialFileNames.join() === currentFileNames.join();
+    if (action === "approve") {
+      if (!isWithheld) {
+        const canApproveRelease = isWithholdingOfficer || currentPlayerInfo.isLastPlayer || currentPlayerInfo.canDirectWithheld;
+        if (!canApproveRelease) {
+          setError("Only the officer who withheld, last player, or direct authority can approve release.");
+          scrollToError();
+          return;
+        }
+      } else {
+        if (!currentPlayerInfo.canDirectWithheld && !currentPlayerInfo.isLastPlayer) {
+          setError("You need direct withhold authority or be the last player to approve withheld.");
+          scrollToError();
+          return;
+        }
+      }
+    }
 
-      if (
-        noFieldChanges &&
-        noFileChanges &&
-        action === initialFormData.action
-      ) {
-        setError(
-          "No changes detected. Please modify the application details, files, or action to update.",
-        );
+    if (application?.isWithheld === true && !isWithheld) {
+      if (!canRemoveFromWithheld) {
+        setError("You don't have permission to release this application.");
+        scrollToError();
         return;
       }
+    }
 
-      // Restrict action for Permanent withheld when isWithheld or withheldType is updated
-      if (
-        initialFormData.withheldType === "Permanent" &&
-        initialFormData.isWithheld &&
-        (formData.withheldType !== initialFormData.withheldType ||
-          !formData.isWithheld) &&
-        canPermanentToTemporary &&
-        action !== "approve"
-      ) {
-        setError(
-          "For a Permanent withheld application, only the 'Approve' action is allowed when updating Withheld Type or removing from withheld, until reviewed by the final authority.",
-        );
+    if (recordExists && initialFormData) {
+      const hasFieldChanges =
+        formData.withheldType !== initialFormData.withheldType ||
+        formData.withheldReason.trim() !== "" ||
+        isWithheld !== initialFormData.isWithheld;
+
+      const allCurrentFiles = [
+        ...existingFilesToKeep,
+        ...formData.files.map((file) => file.name),
+      ].sort();
+
+      const allInitialFiles = [
+        ...(initialFormData.files || []).map((file) =>
+          typeof file === "string" ? file : file.name
+        )
+      ].sort();
+
+      const hasFileChanges = allCurrentFiles.join() !== allInitialFiles.join();
+
+      if (!hasFieldChanges && !hasFileChanges) {
+        setError("No changes detected. Please modify the application details or files to update.");
+        scrollToError();
         return;
+      }
+    }
+
+    if (recordExists && initialFormData?.withheldType === "Permanent") {
+      if (formData.withheldType !== "Permanent" || !isWithheld) {
+        if (!currentPlayerInfo.isLastPlayer && !currentPlayerInfo.canDirectWithheld) {
+          setError("Only the final authority or direct withholding authority can change or remove a permanent withheld application.");
+          scrollToError();
+          return;
+        }
       }
     }
 
@@ -283,61 +394,40 @@ export default function Withheld() {
       const form = new FormData();
       form.append("ServiceId", serviceId);
       form.append("ReferenceNumber", referenceNumber);
-      form.append("IsWithheld", formData.isWithheld.toString());
+      form.append("IsWithheld", isWithheld.toString());
       form.append("WithheldType", formData.withheldType);
       form.append("WithheldReason", formData.withheldReason);
       form.append("Action", action);
 
+      if (existingFilesToKeep.length > 0) {
+        form.append("ExistingFiles", existingFilesToKeep.join(","));
+      }
+
       formData.files.forEach((file) => {
         if (file instanceof File) {
           form.append("Files", file);
-        } else {
-          form.append("ExistingFiles", file);
         }
       });
 
-      console.log(form);
-
       let res;
       if (recordExists) {
-        res = await axiosInstance.put(
+        res = await axiosInstance.post(
           "/Officer/UpdateWithheldApplication",
           form,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          },
         );
       } else {
         res = await axiosInstance.post(
           "/Officer/CreateWithheldApplication",
           form,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          },
         );
       }
 
-      console.log("Save response:", res.data);
-      setSuccessMessage(res.data.message);
-
-      let updatedFiles = res.data.files || [];
-      if (typeof updatedFiles === "string") {
-        try {
-          updatedFiles = JSON.parse(updatedFiles);
-        } catch (e) {
-          console.error("Failed to parse response files:", e);
-          updatedFiles = [];
-        }
-      }
-      if (!Array.isArray(updatedFiles)) {
-        updatedFiles = [];
-      }
+      setSuccessMessage(res.data.message || "Operation completed successfully.");
 
       setFormData({
         withheldType: "",
         withheldReason: "",
-        isWithheld: true,
-        files: updatedFiles,
+        files: [],
       });
       setInitialFormData(null);
       setServiceId("");
@@ -353,10 +443,20 @@ export default function Withheld() {
       setSelectedPdfUrl("");
       setAction("");
       setActionOptions([]);
+      setShowRemoveFromWithheld(false);
+      setIsWithheld(true);
+      setExistingFilesToKeep([]);
+      setIsWithholdingOfficer(false);
+      setHasPendingReleaseRequest(false);
+      setPendingReleaseFromPlayer("");
+
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
-      console.error("Save error:", err);
-      setError(err.response?.data?.message || "Failed to save application");
+      setError(
+        err.response?.data?.message ||
+        err.response?.data?.response ||
+        "Failed to save application. Please try again."
+      );
       setTimeout(() => setError(""), 5000);
     } finally {
       setConfirmDialogOpen(false);
@@ -367,7 +467,6 @@ export default function Withheld() {
     setFormData({
       withheldType: "",
       withheldReason: "",
-      isWithheld: true,
       files: [],
     });
     setServiceId("");
@@ -383,6 +482,18 @@ export default function Withheld() {
     setInitialFormData(null);
     setAction("");
     setActionOptions([]);
+    setShowRemoveFromWithheld(false);
+    setIsWithheld(true);
+    setExistingFilesToKeep([]);
+    setIsWithholdingOfficer(false);
+    setHasPendingReleaseRequest(false);
+    setPendingReleaseFromPlayer("");
+    setCurrentPlayerInfo({
+      playerId: -1,
+      isLastPlayer: false,
+      canWithhold: false,
+      canDirectWithheld: false,
+    });
   };
 
   const formatKey = (key) => {
@@ -393,290 +504,462 @@ export default function Withheld() {
       .trim();
   };
 
-  const formControlStyles = {
-    "& .MuiOutlinedInput-root": {
-      "& fieldset": { borderColor: "divider" },
-      "&:hover fieldset": { borderColor: "primary.main" },
-      "&.Mui-focused fieldset": {
-        borderColor: "primary.main",
-        borderWidth: "2px",
-      },
-      backgroundColor: "background.paper",
-      color: "text.primary",
-      borderRadius: "8px",
-    },
-    "& .MuiInputLabel-root": {
-      color: "text.secondary",
-      "&.Mui-focused": { color: "primary.main" },
-    },
-    marginBottom: 3,
-  };
-
-  const buttonStyles = {
-    backgroundColor: "primary.main",
-    color: "common.white",
-    fontWeight: 600,
-    textTransform: "none",
-    py: 1.5,
-    px: 4,
-    borderRadius: "8px",
-    "&:hover": {
-      backgroundColor: "primary.dark",
-      transform: "scale(1.02)",
-      transition: "all 0.2s ease",
-    },
-    "&:disabled": {
-      backgroundColor: "grey.400",
-      color: "grey.600",
-    },
-  };
-
-  const fileUploadStyles = {
-    border: "2px dashed",
-    borderColor: "grey.400",
-    borderRadius: "8px",
-    padding: 2,
-    textAlign: "center",
-    backgroundColor: "grey.50",
-    "&:hover": {
-      borderColor: "primary.main",
-      backgroundColor: "primary.50",
-    },
-    cursor: "pointer",
-  };
-
   return (
-    <Box
-      sx={{
-        p: { xs: 2, md: 4 },
-        maxWidth: 800,
-        mx: "auto",
-        minHeight: "100vh",
-        bgcolor: "background.default",
-        borderRadius: "12px",
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 3,
-      }}
-    >
-      <Typography
-        variant="h4"
-        sx={{
-          fontFamily: "'Playfair Display', serif",
-          color: "primary.main",
-          fontWeight: 700,
-          textAlign: "center",
-        }}
-      >
-        Withheld Application Management
-      </Typography>
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: "auto" }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 700,
+            color: "primary.main",
+            mb: 1,
+          }}
+        >
+          Withheld Application Management
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Search for applications and manage withheld status
+        </Typography>
+      </Box>
 
-      <Paper
-        sx={{
-          p: 3,
-          borderRadius: "12px",
-          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)",
-        }}
-      >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <FormControl
-            fullWidth
-            sx={formControlStyles}
-            error={error.includes("Service")}
-          >
-            <ServiceSelectionForm
-              services={services}
-              value={serviceId}
-              onServiceSelect={handleServiceId}
-            />
-            {error.includes("Service") && (
-              <FormHelperText>Please select a valid service</FormHelperText>
-            )}
-          </FormControl>
+      <Card sx={{ mb: 3, borderRadius: 2, boxShadow: 2 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+            Search Application
+          </Typography>
 
-          <TextField
-            fullWidth
-            label="Reference Number"
-            value={referenceNumber}
-            onChange={(e) => {
-              console.log("Reference Number:", e.target.value);
-              setReferenceNumber(e.target.value);
-            }}
-            sx={formControlStyles}
-            error={error.includes("Reference Number")}
-            helperText={
-              error.includes("Reference Number")
-                ? "Please enter a valid reference number"
-                : ""
-            }
-          />
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={12}>
+              <FormControl fullWidth>
+                <ServiceSelectionForm
+                  services={services}
+                  value={serviceId}
+                  onServiceSelect={handleServiceId}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={12}>
+              <TextField
+                fullWidth
+                label="Reference Number"
+                value={referenceNumber}
+                onChange={(e) => setReferenceNumber(e.target.value)}
+                placeholder="Enter application reference number"
+              />
+            </Grid>
+          </Grid>
 
-          <Box sx={{ display: "flex", gap: 2 }}>
+          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
             <Button
               variant="contained"
-              sx={buttonStyles}
+              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SearchIcon />}
               onClick={handleCheck}
               disabled={loading || !services.length}
-              startIcon={loading && <CircularProgress size={20} />}
+              sx={{ px: 4 }}
             >
-              {loading ? "Checking..." : "Check Application"}
+              {loading ? "Searching..." : "Search Application"}
             </Button>
             <Button
               variant="outlined"
-              sx={{
-                ...buttonStyles,
-                backgroundColor: "transparent",
-                borderColor: "primary.main",
-                color: "primary.main",
-                "&:hover": {
-                  backgroundColor: "primary.50",
-                  borderColor: "primary.dark",
-                },
-              }}
+              startIcon={<ClearIcon />}
               onClick={handleClearForm}
             >
-              Clear Form
+              Clear
             </Button>
-          </Box>
-        </Box>
-      </Paper>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {successMessage && (
-        <Alert severity="success" sx={{ borderRadius: "8px" }}>
+        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
           {successMessage}
         </Alert>
       )}
 
       {error && (
-        <Alert severity="error" sx={{ borderRadius: "8px" }}>
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
           {error}
         </Alert>
       )}
 
-      {hasChecked && applicationDetails && (
-        <Paper
-          sx={{
-            p: 3,
-            borderRadius: "12px",
-            boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-            Application Details
-          </Typography>
-
-          {/* Applicant Details */}
-          {Object.entries(applicationDetails).map(
-            ([key, value]) =>
-              key !== "files" && (
-                <Typography key={key} variant="body1" sx={{ mb: 1 }}>
-                  <strong>{formatKey(key)}:</strong> {value || "N/A"}
+      {hasChecked && (
+        <>
+          {applicationDetails && (
+            <Card sx={{ mb: 3, borderRadius: 2, boxShadow: 2 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <DescriptionIcon /> Application Details
                 </Typography>
-              ),
-          )}
 
-          {/* Withheld Application Details */}
-          {recordExists && application && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                Withheld Information
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                <strong>Type:</strong>{" "}
-                {application.withheldType === "Permanent"
-                  ? "Weedout"
-                  : application.withheldType || "N/A"}
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                <strong>Reason:</strong> {application.withheldReason || "N/A"}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Status:</strong>{" "}
-                {application.isWithheld ? "Currently Withheld" : "Not Withheld"}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Uploaded Documents */}
-          {Array.isArray(formData.files) && formData.files.length > 0 && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-                Uploaded Documents
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {formData.files.map((file, index) => (
-                  <Button
-                    key={index}
-                    variant="outlined"
-                    sx={{
-                      textTransform: "none",
-                      borderColor: "primary.main",
-                      color: "primary.main",
-                      "&:hover": {
-                        backgroundColor: "primary.50",
-                        borderColor: "primary.dark",
-                      },
-                    }}
-                    onClick={() =>
-                      handleFileClick(
-                        typeof file === "string" ? file : file.name,
+                <Grid container spacing={3}>
+                  {Object.entries(applicationDetails).map(
+                    ([key, value]) =>
+                      key !== "files" && (
+                        <Grid item xs={12} md={6} key={key}>
+                          <Box sx={{ mb: 2 }}>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              {formatKey(key)}
+                            </Typography>
+                            <Typography variant="body1" fontWeight={500}>
+                              {value || "N/A"}
+                            </Typography>
+                          </Box>
+                        </Grid>
                       )
-                    }
-                  >
-                    {typeof file === "string" ? file : file.name}
-                  </Button>
-                ))}
-              </Box>
-            </Box>
+                  )}
+                </Grid>
+
+                {recordExists && application && (
+                  <>
+                    <Divider sx={{ my: 3 }} />
+                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                      Withheld Status
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Typography variant="body2" color="text.secondary">
+                            Type:
+                          </Typography>
+                          <Chip
+                            label={application.withheldType === "Permanent" ? "Permanent (Weedout)" : "Temporary"}
+                            size="small"
+                            color={application.withheldType === "Permanent" ? "error" : "warning"}
+                            variant="outlined"
+                          />
+                        </Stack>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Typography variant="body2" color="text.secondary">
+                            Current Status:
+                          </Typography>
+                          <Chip
+                            label={application.isWithheld ? "Withheld" : "Not Withheld"}
+                            size="small"
+                            color={application.isWithheld ? "error" : "success"}
+                          />
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                  </>
+                )}
+
+                {existingFilesToKeep.length > 0 && (
+                  <>
+                    <Divider sx={{ my: 3 }} />
+                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                      Attached Documents
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      {existingFilesToKeep.map((file, index) => (
+                        <Chip
+                          key={index}
+                          label={file}
+                          onClick={() => handleFileClick(file)}
+                          onDelete={() => handleRemoveFile(file)}
+                          deleteIcon={<DeleteIcon />}
+                          icon={<VisibilityIcon />}
+                          variant="outlined"
+                          sx={{ mb: 1 }}
+                        />
+                      ))}
+                    </Stack>
+                  </>
+                )}
+              </CardContent>
+            </Card>
           )}
 
-          {/* Action History Table */}
-          {hasChecked && tableData.length > 0 && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-                Action History
-              </Typography>
-              <TableContainer
-                component={Paper}
-                sx={{
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)",
-                }}
-              >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      {tableColumns.map((column, index) => (
-                        <TableCell
-                          key={index}
-                          sx={{
-                            fontWeight: 600,
-                            color: "text.primary",
-                            backgroundColor: "grey.100",
-                          }}
-                        >
-                          {column.header}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {tableData.map((row, index) => (
-                      <TableRow key={index}>
-                        {tableColumns.map((column, colIndex) => (
-                          <TableCell key={colIndex}>
-                            {row[column.accessorKey] || "N/A"}
+          {tableData.length > 0 && (
+            <Card sx={{ mb: 3, borderRadius: 2, boxShadow: 2 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <HistoryIcon /> Action History
+                </Typography>
+                <TableContainer sx={{ borderRadius: 1, border: 1, borderColor: 'divider' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: 'grey.50' }}>
+                        {tableColumns.map((column, index) => (
+                          <TableCell
+                            key={index}
+                            sx={{ fontWeight: 600, color: 'text.primary' }}
+                          >
+                            {column.header}
                           </TableCell>
                         ))}
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
+                    </TableHead>
+                    <TableBody>
+                      {tableData.map((row, index) => (
+                        <TableRow key={index} hover>
+                          {tableColumns.map((column, colIndex) => (
+                            <TableCell key={colIndex}>
+                              {row[column.accessorKey] || "N/A"}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
           )}
-        </Paper>
+
+          {canCreate && (
+            <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                  {recordExists ? "Update Withheld Application" : "Create Withheld Application"}
+                </Typography>
+
+                {hasPendingReleaseRequest && (
+                  <Alert severity="info" sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2">
+                      Pending Release Request
+                    </Typography>
+                    <Typography variant="body2">
+                      There's a pending release request from {pendingReleaseFromPlayer}.
+                      You can approve or forward this request.
+                    </Typography>
+                  </Alert>
+                )}
+
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Withheld Type</InputLabel>
+                      <Select
+                        label="Withheld Type"
+                        value={formData.withheldType}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            withheldType: e.target.value,
+                          }))
+                        }
+                        disabled={application?.withheldType === "Permanent" && !currentPlayerInfo.isLastPlayer && !currentPlayerInfo.canDirectWithheld}
+                      >
+                        <MenuItem value="Permanent">Permanent (Weedout)</MenuItem>
+                        <MenuItem value="Temporary">Temporary</MenuItem>
+                      </Select>
+                      <FormHelperText>
+                        {formData.withheldType === "Permanent"
+                          ? "Application will be permanently withheld"
+                          : "Application will be temporarily withheld"}
+                      </FormHelperText>
+                    </FormControl>
+                  </Grid>
+
+                  {showRemoveFromWithheld && application?.isWithheld === true && (
+                    <Grid item xs={12} md={6}>
+                      <FormControl component="fieldset" fullWidth>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          Withheld Status
+                        </Typography>
+                        <RadioGroup
+                          row
+                          value={isWithheld.toString()}
+                          onChange={(e) => setIsWithheld(e.target.value === "true")}
+                        >
+                          <FormControlLabel
+                            value="true"
+                            control={<Radio />}
+                            label="Keep Withheld"
+                          />
+                          <FormControlLabel
+                            value="false"
+                            control={<Radio />}
+                            label="Release Application"
+                            disabled={!canRemoveFromWithheld}
+                          />
+                        </RadioGroup>
+                        <FormHelperText>
+                          {isWithholdingOfficer
+                            ? "You withheld this application. You can release it."
+                            : canRemoveFromWithheld
+                              ? "You have permission to release this application."
+                              : "Only the officer who withheld can release this application."}
+                        </FormHelperText>
+                      </FormControl>
+                    </Grid>
+                  )}
+
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Withheld Reason"
+                      fullWidth
+                      multiline
+                      rows={3}
+                      value={formData.withheldReason}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          withheldReason: e.target.value,
+                        }))
+                      }
+                      helperText={
+                        recordExists && application?.isWithheld === false
+                          ? "Application is currently NOT withheld. This will re-withhold it."
+                          : "Provide detailed reason for withholding this application"
+                      }
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth error={error.includes("action")}>
+                      <InputLabel>Action</InputLabel>
+                      <Select
+                        label="Action"
+                        value={action}
+                        onChange={(e) => setAction(e.target.value)}
+                      >
+                        {actionOptions.map((option, index) => (
+                          <MenuItem key={index} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {action && (
+                        <FormHelperText>
+                          {action === "forward"
+                            ? "Forward to next officer in workflow"
+                            : "Approve the withheld action immediately"}
+                          {action === "approve" && !currentPlayerInfo.canDirectWithheld && !currentPlayerInfo.isLastPlayer && (
+                            <Typography component="span" color="error" display="block" sx={{ mt: 0.5 }}>
+                              You need direct withhold authority or be the last player to approve.
+                            </Typography>
+                          )}
+                        </FormHelperText>
+                      )}
+                      {error.includes("action") && (
+                        <FormHelperText error>Please select a valid action</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                        Upload Supporting Documents (PDF only)
+                      </Typography>
+
+                      {existingFilesToKeep.length > 0 && (
+                        <Box sx={{ mb: 3 }}>
+                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                            Current Documents
+                          </Typography>
+                          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                            {existingFilesToKeep.map((file, index) => (
+                              <Chip
+                                key={index}
+                                label={file}
+                                onClick={() => handleFileClick(file)}
+                                onDelete={() => handleRemoveFile(file)}
+                                deleteIcon={<DeleteIcon />}
+                                icon={<VisibilityIcon />}
+                                variant="outlined"
+                                sx={{ mb: 1 }}
+                              />
+                            ))}
+                          </Stack>
+                        </Box>
+                      )}
+
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 4,
+                          textAlign: 'center',
+                          borderStyle: 'dashed',
+                          borderWidth: 2,
+                          borderColor: 'grey.300',
+                          backgroundColor: 'grey.50',
+                          '&:hover': {
+                            borderColor: 'primary.main',
+                            backgroundColor: 'action.hover',
+                          },
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => document.getElementById('file-upload').click()}
+                      >
+                        <input
+                          id="file-upload"
+                          type="file"
+                          accept="application/pdf"
+                          multiple
+                          onChange={handleFileChange}
+                          style={{ display: 'none' }}
+                        />
+                        <UploadFileIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+                        <Typography variant="body1" gutterBottom>
+                          Click to upload or drag and drop PDF files
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Maximum file size: 10MB per file
+                        </Typography>
+                      </Paper>
+
+                      {formData.files.length > 0 && (
+                        <Box sx={{ mt: 3 }}>
+                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                            New files to upload:
+                          </Typography>
+                          <List dense>
+                            {formData.files.map((file, index) => (
+                              <ListItem
+                                key={index}
+                                secondaryAction={
+                                  <IconButton
+                                    edge="end"
+                                    onClick={() => handleRemoveFile(file)}
+                                    size="small"
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                }
+                                sx={{ py: 0.5 }}
+                              >
+                                <ListItemText
+                                  primary={file.name}
+                                  primaryTypographyProps={{ variant: 'body2' }}
+                                />
+                              </ListItem>
+                            ))}
+                          </List>
+                        </Box>
+                      )}
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 2 }} />
+                    <Stack direction="row" spacing={2} justifyContent="flex-end">
+                      <Button
+                        variant="outlined"
+                        onClick={handleClearForm}
+                        startIcon={<ClearIcon />}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="contained"
+                        onClick={handleSave}
+                        disabled={loading || !action}
+                        startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                        sx={{ px: 4 }}
+                      >
+                        {recordExists ? "Update Application" : "Submit Application"}
+                      </Button>
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
 
       <BasicModal
@@ -686,216 +969,63 @@ export default function Withheld() {
         pdf={selectedPdfUrl}
       />
 
-      {hasChecked && canCreate && (
-        <Paper
-          sx={{
-            p: 3,
-            borderRadius: "12px",
-            boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ mb: 2, fontWeight: 600, color: "text.primary" }}
-          >
-            {recordExists
-              ? "Update Withheld Application"
-              : "Create Withheld Application"}
-          </Typography>
-
-          <FormControl fullWidth sx={formControlStyles}>
-            <InputLabel id="withheld-type-label">Withheld Type</InputLabel>
-            <Select
-              labelId="withheld-type-label"
-              label="Withheld Type"
-              value={formData.withheldType}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  withheldType: e.target.value,
-                }))
-              }
-            >
-              <MenuItem value="Permanent">Weedout</MenuItem>
-              <MenuItem value="Temporary">Temporary</MenuItem>
-            </Select>
-            <FormHelperText>
-              {formData.withheldType === "Permanent"
-                ? "Permanently withhold the application."
-                : "Temporarily withhold; can be reversed later."}
-            </FormHelperText>
-          </FormControl>
-
-          <TextField
-            label="Withheld Reason"
-            fullWidth
-            multiline
-            rows={4}
-            value={formData.withheldReason}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                withheldReason: e.target.value,
-              }))
-            }
-            sx={formControlStyles}
-            helperText="Provide a detailed reason for withholding the application."
-          />
-
-          <FormControl component="fieldset" sx={{ mb: 3 }}>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, color: "text.primary" }}
-            >
-              Remove from Withheld
-            </Typography>
-            <RadioGroup
-              row
-              value={formData.isWithheld.toString()}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  isWithheld: e.target.value === "true",
-                }))
-              }
-            >
-              <FormControlLabel
-                value="true"
-                control={<Radio />}
-                label="Keep Withheld"
-              />
-              <FormControlLabel
-                value="false"
-                control={<Radio />}
-                label="Remove from Withheld"
-              />
-            </RadioGroup>
-            <FormHelperText>
-              Select "Remove from Withheld" to release the application.
-            </FormHelperText>
-          </FormControl>
-
-          <FormControl
-            fullWidth
-            sx={formControlStyles}
-            error={error.includes("action")}
-          >
-            <InputLabel id="action-label">Action</InputLabel>
-            <Select
-              labelId="action-label"
-              label="Action"
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
-            >
-              {actionOptions.map((option, index) => (
-                <MenuItem key={index} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-            <FormHelperText>
-              {initialFormData?.withheldType === "Permanent" &&
-              initialFormData?.isWithheld &&
-              (formData.withheldType !== initialFormData.withheldType ||
-                !formData.isWithheld) &&
-              canPermanentToTemporary
-                ? "Only 'Approve' action is allowed when updating Withheld Type or removing a Permanent withheld application, until reviewed by the final authority."
-                : "Select the action to take for this application."}
-            </FormHelperText>
-            {error.includes("action") && (
-              <FormHelperText>Please select a valid action</FormHelperText>
-            )}
-          </FormControl>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, color: "text.primary", mb: 1 }}
-            >
-              Upload PDF Files
-            </Typography>
-            <Box sx={fileUploadStyles}>
-              <input
-                type="file"
-                accept="application/pdf"
-                multiple
-                onChange={handleFileChange}
-                style={{ display: "block", margin: "8px auto" }}
-              />
-              <Typography variant="body2" color="text.secondary">
-                Drag and drop PDF files here or click to upload
-              </Typography>
-            </Box>
-            {Array.isArray(formData.files) && formData.files.length > 0 && (
-              <List dense sx={{ mt: 2 }}>
-                {formData.files.map((file, index) => (
-                  <ListItem
-                    key={index}
-                    secondaryAction={
-                      <Tooltip title="Remove File">
-                        <IconButton
-                          edge="end"
-                          onClick={() => handleRemoveFile(file)}
-                        >
-                          <DeleteIcon color="error" />
-                        </IconButton>
-                      </Tooltip>
-                    }
-                  >
-                    <ListItemText
-                      primary={typeof file === "string" ? file : file.name}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            )}
-          </Box>
-
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="contained"
-              sx={buttonStyles}
-              onClick={handleSave}
-              disabled={loading || !action}
-            >
-              {recordExists ? "Update Application" : "Submit Application"}
-            </Button>
-            <Button
-              variant="outlined"
-              sx={{
-                ...buttonStyles,
-                backgroundColor: "transparent",
-                borderColor: "primary.main",
-                color: "primary.main",
-                "&:hover": {
-                  backgroundColor: "primary.50",
-                  borderColor: "primary.dark",
-                },
-              }}
-              onClick={handleClearForm}
-            >
-              Clear Form
-            </Button>
-          </Box>
-        </Paper>
-      )}
-
       <Dialog
         open={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
       >
-        <DialogTitle>Confirm Submission</DialogTitle>
+        <DialogTitle>
+          {recordExists ? "Update Withheld Application" : "Create Withheld Application"}
+        </DialogTitle>
         <DialogContent>
-          <Typography>
-            Are you sure you want to {recordExists ? "update" : "submit"} this
-            withheld application with action: {action}?
+          <Typography sx={{ mb: 3 }}>
+            Are you sure you want to proceed with the following action?
           </Typography>
+
+          <Stack spacing={2} sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Action</Typography>
+              <Typography fontWeight={500}>{action}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Withheld Type</Typography>
+              <Typography fontWeight={500}>{formData.withheldType}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Status</Typography>
+              <Typography fontWeight={500}>
+                {isWithheld
+                  ? (application?.isWithheld === false
+                    ? "Application will be WITHHELD (currently not withheld)"
+                    : "Application will remain WITHHELD")
+                  : "Application will be RELEASED from withheld"}
+              </Typography>
+            </Box>
+            {!isWithheld && (
+              <Alert severity="warning" sx={{ mt: 1 }}>
+                This will remove the application from withheld status
+              </Alert>
+            )}
+            {application?.isWithheld === false && (
+              <Alert severity="info" sx={{ mt: 1 }}>
+                This will re-withhold the application (currently not withheld)
+              </Alert>
+            )}
+          </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDialogOpen(false)} color="primary">
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={() => setConfirmDialogOpen(false)}
+            color="inherit"
+          >
             Cancel
           </Button>
-          <Button onClick={confirmSave} color="primary" variant="contained">
+          <Button
+            onClick={confirmSave}
+            variant="contained"
+            autoFocus
+          >
             Confirm
           </Button>
         </DialogActions>

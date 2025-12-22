@@ -255,7 +255,7 @@ export default function LoginScreen() {
           </Typography>
         </Box>
         {/* JanParichay SSO Button */}
-        <Box
+        {/* <Box
           component="button"
           onClick={async () => {
             setButtonLoading(true);
@@ -311,7 +311,7 @@ export default function LoginScreen() {
           ) : (
             <>Login with JanParichay</>
           )}
-        </Box>
+        </Box> */}
         {/* Form */}
         <Box
           component="form"

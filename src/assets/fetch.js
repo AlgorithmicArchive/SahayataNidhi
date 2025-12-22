@@ -253,6 +253,7 @@ export async function fetchUserDetail(
   setCanTakeAction = null,
   setPrivateFields = null,
   setCurrentOfficerDetails = null,
+  setPreviousOfficer = null,
 ) {
   const response = await axiosInstance.get("/Officer/GetUserDetails", {
     params: { applicationId: applicationId },
@@ -267,6 +268,9 @@ export async function fetchUserDetail(
 
   if (setCurrentOfficerDetails != null)
     setCurrentOfficerDetails(response.data.currentOfficerDetails);
+  if (setPreviousOfficer != null) {
+    setPreviousOfficer(response.data.previousOfficer);
+  }
 }
 
 export async function fetchFormDetails(applicationId) {

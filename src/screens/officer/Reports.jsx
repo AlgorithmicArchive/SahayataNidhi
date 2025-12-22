@@ -62,7 +62,6 @@ export default function Reports() {
   const [endDate, setEndDate] = useState("");
 
   const tableRef = useRef(null);
-  const API_BASE_URL = "http://127.0.0.1:5004";
 
   // Fetch districts and services
   useEffect(() => {
@@ -71,8 +70,8 @@ export default function Reports() {
       setError(null);
       try {
         const [districtsRes, servicesRes] = await Promise.all([
-          axiosInstance.get(`${API_BASE_URL}/Base/GetAccessAreas`),
-          axiosInstance.get(`${API_BASE_URL}/Base/GetServices`),
+          axiosInstance.get(`/Base/GetAccessAreas`),
+          axiosInstance.get(`/Base/GetServices`),
         ]);
 
         if (districtsRes.data.status && servicesRes.data.status) {
@@ -369,7 +368,7 @@ export default function Reports() {
                   </Typography>
                   <ServerSideTable
                     key={`${district}-${service}-${selectedStatus}-${reportType}-${startDate}-${endDate}`}
-                    url={`${API_BASE_URL}/Officer/GetApplicationsForReports`}
+                    url={`/Officer/GetApplicationsForReports`}
                     Title={"Reports"}
                     extraParams={extraParams}
                   />

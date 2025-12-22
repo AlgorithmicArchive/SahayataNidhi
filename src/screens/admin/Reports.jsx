@@ -59,48 +59,53 @@ export default function ReportsAdmin() {
 
   const tableRef = useRef(null);
 
-  const API_BASE_URL = "http://127.0.0.1:5004";
-
   // Fetch districts and services
   useEffect(() => {
     const fetchDropdowns = async () => {
       setLoading(true);
       setError(null);
-      try {
-        const [districtsRes, servicesRes] = await Promise.all([
-          axiosInstance.get(`${API_BASE_URL}/Base/GetAccessAreas`),
-          axiosInstance.get(`${API_BASE_URL}/Base/GetServices`),
-        ]);
 
-        if (districtsRes.data.status && servicesRes.data.status) {
-          if (districtsRes.data.tehsils) {
-            setIsTehsil(true);
-            setDistricts(
-              districtsRes.data.tehsils.map((d) => ({
-                value: d.tehsilId,
-                label: d.tehsilName,
-              }))
-            );
-          } else {
-            setDistricts(
-              districtsRes.data.districts.map((d) => ({
-                value: d.districtId,
-                label: d.districtName,
-              }))
-            );
-          }
-          setServices(
-            servicesRes.data.services.map((s) => ({
-              value: s.serviceId,
-              label: s.serviceName,
+      try {
+        // Fetch districts/access areas
+        const districtsRes = await axiosInstance.get("/Base/GetAccessAreas");
+
+        // Fetch services
+        const servicesRes = await axiosInstance.get("/Base/GetServices");
+
+        // Check if both responses are successful
+        if (!districtsRes.data.status || !servicesRes.data.status) {
+          throw new Error("Failed to fetch districts or services");
+        }
+
+        // Handle districts/tehsils logic
+        if (districtsRes.data.tehsils) {
+          setIsTehsil(true);
+          setDistricts(
+            districtsRes.data.tehsils.map((d) => ({
+              value: d.tehsilId,
+              label: d.tehsilName,
             }))
           );
         } else {
-          throw new Error("Failed to fetch districts or services");
+          setDistricts(
+            districtsRes.data.districts.map((d) => ({
+              value: d.districtId,
+              label: d.districtName,
+            }))
+          );
         }
+
+        // Set services
+        setServices(
+          servicesRes.data.services.map((s) => ({
+            value: s.serviceId,
+            label: s.serviceName,
+          }))
+        );
       } catch (err) {
-        setError(err.message);
-        toast.error(`Error: ${err.message}`, {
+        const message = err.response?.data?.message || err.message || "Something went wrong";
+        setError(message);
+        toast.error(`Error: ${message}`, {
           position: "top-right",
           autoClose: 3000,
         });
@@ -205,7 +210,7 @@ export default function ReportsAdmin() {
           fontFamily: "'Inter', sans-serif",
         }}
       >
-        Reports
+        Reportsssssssssss
       </Typography>
 
       <Container>
@@ -281,7 +286,7 @@ export default function ReportsAdmin() {
                   </Typography>
                   <ServerSideTable
                     key={`${district}-${service}-${selectedStatus}`}
-                    url={`${API_BASE_URL}/Admin/GetApplicationsForReports`}
+                    url={`/Admin/GetApplicationsForReports`}
                     extraParams={extraParams}
                     Title={"Tehsil Wise Reports"}
                     sx={{

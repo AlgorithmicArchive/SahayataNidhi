@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { fetchCertificateDetails, fetchUserDetail } from "../../assets/fetch";
+import { fetchCertificateDetails } from "../../assets/fetch";
 import { Container } from "react-bootstrap";
 import {
   Box,
@@ -20,7 +20,13 @@ import {
   DialogActions,
   FormControlLabel,
   Checkbox,
+  Collapse,
 } from "@mui/material";
+import {
+  PictureAsPdf,
+  AddCircleOutlineSharp,
+  RemoveCircleOutlineSharp,
+} from "@mui/icons-material";
 import { formatKey, runValidations } from "../../assets/formvalidations";
 import { Controller, useForm } from "react-hook-form";
 import CustomButton from "../../components/CustomButton";
@@ -31,6 +37,25 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CollapsibleActionHistory from "../../components/officer/CollapsibleActionHistory";
 import CollapsibleFormDetails from "../../components/officer/CollapsibleFormDetails";
+import { MaterialReactTable } from "material-react-table";
+
+// Styled components for table
+const buttonStyles = {
+  backgroundColor: "#FFFFFF",
+  color: "primary.main",
+  textTransform: "none",
+  fontSize: "24px",
+  fontWeight: 700,
+  padding: "8px 16px",
+  border: "1px solid",
+  borderColor: "primary.main",
+  borderRadius: "8px",
+  "&:hover": {
+    backgroundColor: "#E3F2FD",
+    borderColor: "#1565C0",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+  },
+};
 
 const commonStyles = {
   "& .MuiOutlinedInput-root": {
@@ -48,7 +73,7 @@ const commonStyles = {
   marginBottom: "16px",
 };
 
-const buttonStyles = {
+const submitButtonStyles = {
   backgroundColor: "#1976D2",
   color: "#FFFFFF",
   textTransform: "none",
@@ -64,6 +89,214 @@ const buttonStyles = {
     backgroundColor: "#B0BEC5",
     color: "#FFFFFF",
   },
+};
+
+// MaterialTable component for corrigendum fields
+const MaterialTable = ({ columns, data }) => {
+  return (
+    <MaterialReactTable
+      columns={columns}
+      data={data}
+      enableColumnActions={false}
+      enableColumnFilters={false}
+      enablePagination={false}
+      enableSorting={false}
+      muiTablePaperProps={{
+        sx: {
+          borderRadius: "12px",
+          background: "#ffffff",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+        },
+      }}
+      muiTableContainerProps={{
+        sx: { maxHeight: "600px", background: "#ffffff" },
+      }}
+      muiTableHeadCellProps={{
+        sx: {
+          background: "#e6f0fa",
+          color: "#1f2937",
+          fontWeight: 600,
+          fontSize: { xs: 12, md: 14 },
+          borderBottom: "2px solid #b3cde0",
+          borderRight: "1px solid #b3cde0",
+          "&:last-child": { borderRight: "none" },
+        },
+      }}
+      muiTableBodyRowProps={{
+        sx: {
+          "&:hover": {
+            background: "#f8fafc",
+            transition: "background-color 0.2s ease",
+          },
+        },
+      }}
+      muiTableBodyCellProps={{
+        sx: {
+          color: "#1f2937",
+          background: "#ffffff",
+          fontSize: { xs: 12, md: 14 },
+          borderRight: "1px solid #b3cde0",
+          borderBottom: "1px solid #b3cde0",
+          "&:last-child": { borderRight: "none" },
+        },
+      }}
+      renderEmptyRowsFallback={() => (
+        <Box
+          sx={{
+            textAlign: "center",
+            py: 4,
+            color: "rgb(107, 114, 128)",
+            fontSize: { xs: 14, md: 16 },
+          }}
+        >
+          No corrigendum field changes available.
+        </Box>
+      )}
+    />
+  );
+};
+
+// CollapsibleTable component for corrigendum fields
+const CollapsibleCorrigendumTable = ({
+  title,
+  columns,
+  data,
+  open,
+  setOpen,
+  onViewPdf,
+}) => {
+  return (
+    <Box sx={{ width: "100%", mx: "auto", mb: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+        <Tooltip
+          title={open ? `Collapse ${title.toLowerCase()}` : `Expand ${title.toLowerCase()}`}
+          arrow
+        >
+          <Button
+            onClick={() => setOpen(!open)}
+            sx={buttonStyles}
+            endIcon={
+              open ? (
+                <RemoveCircleOutlineSharp />
+              ) : (
+                <AddCircleOutlineSharp />
+              )
+            }
+            aria-expanded={open}
+            aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
+          >
+            {open ? `Hide ${title}` : title}
+          </Button>
+        </Tooltip>
+      </Box>
+      <Collapse in={open} timeout={500}>
+        <Box
+          sx={{
+            borderRadius: "12px",
+            overflow: "hidden",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+          }}
+        >
+          <MaterialTable columns={columns} data={data} />
+        </Box>
+      </Collapse>
+    </Box>
+  );
+};
+
+// Collapsible component for Corrigendum Attachments
+const CollapsibleAttachments = ({
+  title,
+  files,
+  corrigendumType,
+  open,
+  setOpen,
+  onViewPdf,
+}) => {
+  return (
+    <Box sx={{ width: "100%", mx: "auto", mb: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+        <Tooltip
+          title={open ? `Collapse ${title.toLowerCase()}` : `Expand ${title.toLowerCase()}`}
+          arrow
+        >
+          <Button
+            onClick={() => setOpen(!open)}
+            sx={buttonStyles}
+            endIcon={
+              open ? (
+                <RemoveCircleOutlineSharp />
+              ) : (
+                <AddCircleOutlineSharp />
+              )
+            }
+            aria-expanded={open}
+            aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
+          >
+            {open ? `Hide ${title}` : title}
+          </Button>
+        </Tooltip>
+      </Box>
+      <Collapse in={open} timeout={500}>
+        <Box
+          sx={{
+            borderRadius: "12px",
+            overflow: "hidden",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+            p: 3,
+            backgroundColor: "#ffffff",
+          }}
+        >
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+            {corrigendumType} Attachments
+          </Typography>
+          {files.length > 0 ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 2,
+              }}
+            >
+              {files.map((item, index) => (
+                <Button
+                  key={index}
+                  onClick={() => onViewPdf(item)}
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<PictureAsPdf />}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 500,
+                    minWidth: 140,
+                    border: "1px solid",
+                    borderColor: "primary.main",
+                    "&:hover": {
+                      backgroundColor: "#E3F2FD",
+                      borderColor: "#1565C0",
+                    },
+                  }}
+                >
+                  View PDF {index + 1}
+                </Button>
+              ))}
+            </Box>
+          ) : (
+            <Typography
+              sx={{
+                textAlign: "center",
+                color: "rgb(107, 114, 128)",
+                py: 4,
+                fontSize: { xs: 14, md: 16 },
+              }}
+            >
+              No attachments available.
+            </Typography>
+          )}
+        </Box>
+      </Collapse>
+    </Box>
+  );
 };
 
 export default function UserDetails() {
@@ -93,6 +326,11 @@ export default function UserDetails() {
   const [esignSignPosition, setEsignSignPosition] = useState("1");
   const [esignUserName, setEsignUserName] = useState("");
   const [pollInterval, setPollInterval] = useState(null);
+  const [previousOfficer, setPreviousOfficer] = useState("");
+  // New state for corrigendum data
+  const [corrigendumData, setCorrigendumData] = useState(null);
+  const [corrigendumOpen, setCorrigendumOpen] = useState(false);
+  const [attachmentsOpen, setAttachmentsOpen] = useState(false);
 
   const {
     control,
@@ -121,15 +359,40 @@ export default function UserDetails() {
     async function loadDetails() {
       setLoading(true);
       try {
-        await fetchUserDetail(
-          applicationId,
-          setFormDetails,
-          setActionForm,
-          setHaspending,
-          setCanTakeAction,
-          null,
-          setCurrentOfficerDetails,
-        );
+        // Call the API directly to get all data including corrigendum
+        const response = await axiosInstance.get("/Officer/GetUserDetails", {
+          params: { applicationId }
+        });
+
+        if (response.data.error) {
+          toast.error(response.data.error, {
+            position: "top-center",
+            autoClose: 3000,
+            theme: "colored",
+          });
+          return;
+        }
+
+        // Set form details and other data from response
+        setFormDetails(response.data.list);
+        setHaspending(response.data.hasPending);
+        setPreviousOfficer(response.data.previousOfficer || "");
+        setCanTakeAction(response.data.canTakeAction || false);
+
+        // Set corrigendum data if available
+        if (response.data.corrigendum) {
+          setCorrigendumData(response.data.corrigendum);
+        }
+
+        // Extract action form from currentOfficerDetails
+        if (response.data.currentOfficerDetails) {
+          setCurrentOfficerDetails(response.data.currentOfficerDetails);
+          const actionFormData = response.data.currentOfficerDetails.actionForm;
+          if (actionFormData) {
+            setActionForm(Array.isArray(actionFormData) ? actionFormData : []);
+          }
+        }
+
       } catch (error) {
         console.error("Error fetching user details:", error);
         toast.error("Failed to load user details. Please try again.", {
@@ -209,8 +472,8 @@ export default function UserDetails() {
     } catch (error) {
       throw new Error(
         "Error signing PDF: " +
-          error.message +
-          " Check if Desktop App is started.",
+        error.message +
+        " Check if Desktop App is started.",
       );
     }
   }
@@ -308,7 +571,7 @@ export default function UserDetails() {
       if (!updateResponse.data.status) {
         throw new Error(
           "Failed to update PDF on server: " +
-            (updateResponse.data.response || "Unknown error"),
+          (updateResponse.data.response || "Unknown error"),
         );
       }
 
@@ -696,7 +959,7 @@ export default function UserDetails() {
                   <Button
                     variant="contained"
                     component="label"
-                    sx={buttonStyles}
+                    sx={submitButtonStyles}
                     aria-label={`Upload ${field.label}`}
                   >
                     {field.label}
@@ -880,7 +1143,7 @@ export default function UserDetails() {
                     <Button
                       variant="contained"
                       component="label"
-                      sx={{ ...buttonStyles, mt: 2 }}
+                      sx={{ ...submitButtonStyles, mt: 2 }}
                       disabled={!value?.selected}
                       aria-label={`Upload ${field.label} file`}
                     >
@@ -986,10 +1249,44 @@ export default function UserDetails() {
           applicationId={applicationId}
         />
 
+        {/* Corrigendum Fields Table - Added below Movement History */}
+        {corrigendumData && corrigendumData.fieldChanges && corrigendumData.fieldChanges.length > 0 && (
+          <CollapsibleCorrigendumTable
+            title={`${corrigendumData.corrigendumType} Fields`}
+            columns={[
+              { accessorKey: "sno", header: "S.No." },
+              { accessorKey: "formField", header: "Description" },
+              { accessorKey: "oldvalue", header: "As Existing" },
+              {
+                accessorKey: "newvalue",
+                header: corrigendumData.corrigendumType === "Amendment"
+                  ? "As Updated"
+                  : "As Corrected"
+              },
+            ]}
+            data={corrigendumData.fieldChanges}
+            open={corrigendumOpen}
+            setOpen={setCorrigendumOpen}
+            onViewPdf={handleViewPdf}
+          />
+        )}
+
+        {/* Corrigendum Attachments Section - Updated to match design */}
+        {corrigendumData && corrigendumData.files && corrigendumData.fieldChanges.length > 0 && corrigendumData.files.length > 0 && (
+          <CollapsibleAttachments
+            title={`${corrigendumData.corrigendumType} Attachments`}
+            files={corrigendumData.files}
+            corrigendumType={corrigendumData.corrigendumType}
+            open={attachmentsOpen}
+            setOpen={setAttachmentsOpen}
+            onViewPdf={handleViewPdf}
+          />
+        )}
+
         <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
           <CustomButton
             text="Generate User Details PDF"
-            sx={{ ...buttonStyles, width: { xs: "100%", sm: "auto" } }}
+            sx={{ ...submitButtonStyles, width: { xs: "100%", sm: "auto" } }}
             disabled={buttonLoading}
             startIcon={
               buttonLoading && <CircularProgress size={20} color="inherit" />
@@ -1035,7 +1332,7 @@ export default function UserDetails() {
                         fontWeight: "bold",
                       }}
                     >
-                      Declaration by Previous Officer
+                      Declaration by {previousOfficer || "Previous Officer"}
                     </Typography>
                     <Typography
                       variant="subtitle2"
@@ -1064,13 +1361,13 @@ export default function UserDetails() {
                                   rules={{
                                     validate: (value) =>
                                       value ===
-                                        `I hereby certify that the beneficiary, namely ${getValueByName(
-                                          formDetails,
-                                          "ApplicantName",
-                                        )} parentage ${getValueByName(
-                                          formDetails,
-                                          "Parentage",
-                                        )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.` ||
+                                      `I hereby certify that the beneficiary, namely ${getValueByName(
+                                        formDetails,
+                                        "ApplicantName",
+                                      )} parentage ${getValueByName(
+                                        formDetails,
+                                        "Parentage",
+                                      )} Application No. ${applicationId}, is eligible for pension and his application is submitted for sanction.` ||
                                       "You must confirm the declaration to forward.",
                                   }}
                                   render={({ field: { onChange, value } }) => (
@@ -1178,7 +1475,7 @@ export default function UserDetails() {
                     <Box sx={{ display: "flex", justifyContent: "center" }}>
                       <CustomButton
                         text="Take Action"
-                        sx={{ ...buttonStyles, width: "100%", mt: 3 }}
+                        sx={{ ...submitButtonStyles, width: "100%", mt: 3 }}
                         disabled={buttonLoading}
                         startIcon={
                           buttonLoading && (

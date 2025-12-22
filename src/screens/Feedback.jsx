@@ -96,7 +96,7 @@ export default function Feedback() {
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
       <Typography variant="h4" component="h2" gutterBottom>
-        Submit Feedback
+        Submit Portal Feedback
       </Typography>
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
         <TextField

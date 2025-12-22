@@ -32,7 +32,7 @@
     "@react-pdf/renderer": "^4.3.0",
     "@tensorflow-models/coco-ssd": "^2.2.3",
     "@tensorflow-models/mobilenet": "^2.1.1",
-    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs": "^3.18.0",
     "apexcharts": "^4.4.0",
     "assert": "^2.1.0",
     "axios": "^1.7.7",

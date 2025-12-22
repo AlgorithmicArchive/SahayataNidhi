@@ -639,7 +639,7 @@ namespace SahayataNidhi.Controllers.Officer
             }
         }
 
-        private void ReplaceCodeFieldsWithNames(JToken formDetails)
+        private void ReplaceCodeFieldsWithNames(JToken formDetails, bool doBankName = true)
         {
             var lookupMap = new Dictionary<string, Func<int, string>>
             {
@@ -652,8 +652,14 @@ namespace SahayataNidhi.Controllers.Officer
                 { "HalqaPanchayat", id => dbcontext.HalqaPanchayat.FirstOrDefault(m => m.HalqaPanchayatId == id)?.HalqaPanchayatName ?? "" },
                 { "Village", id => dbcontext.Villages.FirstOrDefault(m => m.VillageId == id)?.VillageName ?? "" },
                 { "WardNo", id => dbcontext.Wards.FirstOrDefault(w => w.WardCode == id)?.WardNo.ToString() ?? "" },
-                { "BankName", id => dbcontext.Bank.FirstOrDefault(w => w.Id == id)?.BankName.ToString() ?? "" }
             };
+
+            // Add BankName only if doBankName = true
+            if (doBankName)
+            {
+                lookupMap["BankName"] =
+                    id => dbcontext.Bank.FirstOrDefault(b => b.Id == id)?.BankName ?? "";
+            }
 
             foreach (var section in formDetails.Children<JProperty>())
             {

@@ -43,7 +43,7 @@ const sanitizeActionForm = (actionForm) => {
               Object.entries(field.dependentOptions).map(([key, opts]) => [
                 key,
                 opts,
-              ]),
+              ])
             )
           : field.dependentOptions,
       };
@@ -139,7 +139,7 @@ export default function CreateWorkflow() {
       canWithhold: player.canWithhold,
       customPermissions: player.customPermissions
         ? Object.fromEntries(
-            player.customPermissions.map((perm) => [perm.name, perm.enabled]),
+            player.customPermissions.map((perm) => [perm.name, perm.enabled])
           )
         : {},
     };
@@ -147,7 +147,7 @@ export default function CreateWorkflow() {
       let label = "Forward to Player";
       if (player.nextPlayerId !== null) {
         const nextPlayer = players.find(
-          (p) => p.playerId === player.nextPlayerId,
+          (p) => p.playerId === player.nextPlayerId
         );
         if (nextPlayer && nextPlayer.designation) {
           label = `Forward to ${nextPlayer.designation}`;
@@ -162,7 +162,7 @@ export default function CreateWorkflow() {
       let label = "Return to Player";
       if (player.prevPlayerId !== null) {
         const previousPlayer = players.find(
-          (p) => p.playerId === player.prevPlayerId,
+          (p) => p.playerId === player.prevPlayerId
         );
         if (previousPlayer && previousPlayer.designation) {
           label = `Return to ${previousPlayer.designation}`;
@@ -231,7 +231,7 @@ export default function CreateWorkflow() {
         const updatedActionForm = player.actionForm.map((field) => {
           if (field.name === "defaultAction") {
             const newActionField = defaultFields.find(
-              (f) => f.name === "defaultAction",
+              (f) => f.name === "defaultAction"
             );
             if (newActionField) {
               return {
@@ -244,13 +244,13 @@ export default function CreateWorkflow() {
           return field;
         });
         return { ...player, actionForm: updatedActionForm };
-      }),
+      })
     );
   };
 
   const removePlayer = (playerIdToRemove) => {
     const filteredPlayers = players.filter(
-      (player) => player.playerId !== playerIdToRemove,
+      (player) => player.playerId !== playerIdToRemove
     );
     const updatedPlayers = filteredPlayers.map((player, index) => ({
       ...player,
@@ -305,7 +305,7 @@ export default function CreateWorkflow() {
     const updatedPlayers = players.map((player, index) =>
       index === players.length - 1
         ? { ...player, nextPlayerId: newPlayerId }
-        : player,
+        : player
     );
     const newPlayerWithDefaultFields = {
       ...newPlayer,
@@ -356,7 +356,7 @@ export default function CreateWorkflow() {
     const corrigendumCount = players.filter((p) => p.canCorrigendum).length;
     const bankFilesCount = players.filter((p) => p.canManageBankFiles).length;
     const validateAadhaarCount = players.filter(
-      (p) => p.canValidateAadhaar,
+      (p) => p.canValidateAadhaar
     ).length;
 
     if (corrigendumCount > 1) {
@@ -378,7 +378,7 @@ export default function CreateWorkflow() {
     try {
       const response = await axiosInstance.post(
         "/Designer/WorkFlowPlayers",
-        formdata,
+        formdata
       );
       const result = response.data;
       if (result.status) {
@@ -417,41 +417,41 @@ export default function CreateWorkflow() {
     // Check for multiple players with exclusive authorities
     if (updatedPlayer.canCorrigendum) {
       const otherCorrigendum = players.find(
-        (p) => p.playerId !== updatedPlayer.playerId && p.canCorrigendum,
+        (p) => p.playerId !== updatedPlayer.playerId && p.canCorrigendum
       );
       if (otherCorrigendum) {
         toast.error(
-          `Another player (${otherCorrigendum.designation}) already has Can Corrigendum authority.`,
+          `Another player (${otherCorrigendum.designation}) already has Can Corrigendum authority.`
         );
         return;
       }
     }
     if (updatedPlayer.canManageBankFiles) {
       const otherBankFiles = players.find(
-        (p) => p.playerId !== updatedPlayer.playerId && p.canManageBankFiles,
+        (p) => p.playerId !== updatedPlayer.playerId && p.canManageBankFiles
       );
       if (otherBankFiles) {
         toast.error(
-          `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`,
+          `Another player (${otherBankFiles.designation}) already has Can Manage Bank Files authority.`
         );
         return;
       }
     }
     if (updatedPlayer.canValidateAadhaar) {
       const otherValidateAadhaar = players.find(
-        (p) => p.playerId !== updatedPlayer.playerId && p.canValidateAadhaar,
+        (p) => p.playerId !== updatedPlayer.playerId && p.canValidateAadhaar
       );
       if (otherValidateAadhaar) {
         toast.error(
-          `Another player (${otherValidateAadhaar.designation}) already has Can Validate Aadhaar authority.`,
+          `Another player (${otherValidateAadhaar.designation}) already has Can Validate Aadhaar authority.`
         );
         return;
       }
     }
     setPlayers((prev) =>
       prev.map((p) =>
-        p.playerId === updatedPlayer.playerId ? updatedPlayer : p,
-      ),
+        p.playerId === updatedPlayer.playerId ? updatedPlayer : p
+      )
     );
     updateAllDefaultActionFields();
     setIsEditModalOpen(false);
